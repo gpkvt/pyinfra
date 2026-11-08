@@ -68,6 +68,8 @@ def install_apt_package(package_name):
         packages=[package_name],
     )
 
+print(__doc__)
+
 # Retrieve configured packages.
 apt_packages = host.data.get("apt_packages", [])
 
