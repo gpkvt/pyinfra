@@ -1,4 +1,7 @@
-"""Configure COSMIC dock position, size, margins, and autohide behavior."""
+
+"""Configure COSMIC dock position, size, margins, autohide behavior, and applets."""
+
+import json
 
 from pyinfra import host
 from tasks.cosmic.config import deploy_cosmic_values
@@ -6,6 +9,7 @@ from tasks.cosmic.config import deploy_cosmic_values
 config = host.data.get("cosmic", {}).get("dock", {})
 
 if config.get("enabled", False):
+
     positions = {
         "top": "Top",
         "bottom": "Bottom",
@@ -28,6 +32,41 @@ if config.get("enabled", False):
     if size not in sizes:
         raise ValueError(f"Invalid dock size: {size}")
 
+    # Default applet placement.
+    default_applets = {
+        "left": ["com.system76.CosmicAppletWorkspaces"],
+        "center": [
+            "com.system76.CosmicPanelAppLibraryButton",
+            "com.system76.CosmicPanelLauncherButton",
+            "com.system76.CosmicAppList",
+            "com.system76.CosmicAppletMinimize",
+        ],
+        "right": [],
+    }
+
+    # Allow host-specific overrides.
+    applets = config.get("applets", default_applets)
+
+    left_applets = applets.get("left", [])
+    center_applets = applets.get("center", [])
+    right_applets = applets.get("right", [])
+
+    # COSMIC uses RON syntax. JSON arrays and strings are
+    # compatible with the corresponding RON representations.
+
+    plugins_wings = (
+        "Some((\n"
+        f"    {json.dumps(left_applets, ensure_ascii=False)},\n"
+        f"    {json.dumps(right_applets, ensure_ascii=False)},\n"
+        "))"
+    )
+
+    plugins_center = (
+        "Some(\n"
+        f"    {json.dumps(center_applets, ensure_ascii=False)}\n"
+        ")"
+    )
+
     values = {
         "com.system76.CosmicPanel.Dock/v1/anchor":
             positions[position],
@@ -43,6 +82,12 @@ if config.get("enabled", False):
 
         "com.system76.CosmicPanel.Dock/v1/anchor_gap":
             str(config.get("anchor_gap", 0) > 0).lower(),
+
+        "com.system76.CosmicPanel.Dock/v1/plugins_wings":
+            plugins_wings,
+
+        "com.system76.CosmicPanel.Dock/v1/plugins_center":
+            plugins_center,
     }
 
     deploy_cosmic_values("dock", values)

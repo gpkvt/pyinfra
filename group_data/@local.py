@@ -90,6 +90,23 @@ cosmic = {
       "anchor_gap": False,
       "margin": 4,
       "size": "extra_small",
+      "applets": {
+          "left": [
+              "io.github.DrakRosmann.CosmicExtAppletQuickSettings",
+          ],
+
+          "center": [
+              "io.github.cosmic_utils.minimon_applet",
+          ],
+
+          "right": [
+              "io.github.hepp3n.kdeconnect",
+              "com.system76.CosmicAppletStatusArea",
+              "com.system76.CosmicAppletTime",
+              "com.vintagetechie.CosmicExtAppletTempest",
+              "com.system76.CosmicAppletPower",
+          ],
+      },
   },
   "dock": {
       "enabled": True,
@@ -99,6 +116,25 @@ cosmic = {
       "anchor_gap": False,
       "margin": 4,
       "size": "small",
+      "applets": {
+          "left": [
+              "io.github.crocodile.cosmic-ext-applet-workspace-icons",
+          ],
+
+          "center": [
+              "com.system76.CosmicPanelAppButton",
+              "com.system76.CosmicPanelLauncherButton",
+              "com.system76.CosmicAppList",
+              "com.system76.CosmicAppletMinimize",
+          ],
+
+          "right": [
+              "io.github.AceMythos.cosmic-ext-applet-power-monitor",
+              "com.system76.CosmicAppletTiling",
+              "org.cosmic_utils.CosmicExtAppletContainerManager",
+              "io.github.marcelogomes90.cosmic-ext-applet-trash",
+          ],
+      },
   },
   "workspaces": {
       "enabled": True,

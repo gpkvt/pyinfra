@@ -1,5 +1,6 @@
-"""Configure COSMIC panel position, size, margins, and autohide behavior."""
+"""Configure COSMIC panel position, size, margins, autohide behavior, and applets."""
 
+import json
 from pyinfra import host
 from tasks.cosmic.config import deploy_cosmic_values
 
@@ -36,6 +37,43 @@ if config.get("enabled", False):
     if size not in sizes:
         raise ValueError(f"Invalid panel size: {size}")
 
+    # Default applet configuration.
+    default_applets = {
+        "left": [
+            "com.system76.CosmicAppletQuickSettings",
+        ],
+        "center": [],
+        "right": [
+            "com.system76.CosmicAppletNotifications",
+            "com.system76.CosmicAppletTime",
+            "com.system76.CosmicAppletTempest",
+            "com.system76.CosmicAppletUserSession",
+        ],
+    }
+
+    # Allow applet configuration to be overridden through host data.
+    applets = config.get("applets", {})
+
+    left_applets = applets.get("left", [])
+    center_applets = applets.get("center", [])
+    right_applets = applets.get("right", [])
+
+    # JSON string/list syntax is compatible with the corresponding
+    # RON string/list syntax used by COSMIC.
+
+    plugins_wings = (
+        "Some((\n"
+        f"    {json.dumps(left_applets, ensure_ascii=False)},\n"
+        f"    {json.dumps(right_applets, ensure_ascii=False)},\n"
+        "))"
+    )
+
+    plugins_center = (
+        "Some(\n"
+        f"    {json.dumps(center_applets, ensure_ascii=False)}\n"
+        ")"
+    )
+
     values = {
         "com.system76.CosmicPanel.Panel/v1/anchor":
             positions[position],
@@ -51,6 +89,12 @@ if config.get("enabled", False):
 
         "com.system76.CosmicPanel.Panel/v1/anchor_gap":
             str(config.get("anchor_gap", 0) > 0).lower(),
+
+        "com.system76.CosmicPanel.Panel/v1/plugins_wings":
+            plugins_wings,
+
+        "com.system76.CosmicPanel.Panel/v1/plugins_center":
+            plugins_center,
     }
 
     deploy_cosmic_values("panel", values)
