@@ -1,46 +1,79 @@
 """
-Manage APT package updates and installation using pyinfra.
+Manage APT package updates, upgrades, and installations.
 
-This module updates the APT package index, upgrades installed packages, and installs additional packages defined in the host configuration.
+This module provides package management for Debian-based Linux hosts
+using pyinfra.
 
-Configuration: apt_packages (list[str]): Packages to install, retrieved from host.data.apt_packages. Defaults to an empty list.
+Configuration:
+    apt_packages (list[str]): Packages to install, retrieved from
+        host.data.apt_packages. Defaults to an empty list.
 
-Operations:
-
-1. Update APT package sources, using a cache time of 4 hours.
-2. Upgrade installed packages and automatically remove obsolete
-   dependencies, only when the package index has changed.
-3. Install each package specified in `apt_packages`.
-
-Notes:
-
-- Package index updates are cached for 14,400 seconds (4 hours).
-- Package upgrades are conditional on the APT update operation
-  reporting changes.
-- Packages are installed individually using separate pyinfra
-  operations.
+Execution:
+    1. Update APT package sources, using a cache time of four hours.
+    2. Upgrade installed packages and automatically remove obsolete
+       dependencies, if the package index has changed.
+    3. Install each configured package individually.
 """
 
-from pyinfra.operations import apt
 from pyinfra import host
+from pyinfra.operations import apt
 
+def update_apt_sources():
+    """
+    Update the APT package index.
+
+    Refreshes the local package index from configured repositories.
+    The update is cached for 14,400 seconds (four hours).
+
+    Returns:
+        The pyinfra operation result, used to determine whether
+        the package index has changed.
+    """
+    return apt.update(
+        name="Update apt sources",
+        cache_time=14400,
+    )
+
+def upgrade_apt_packages(update_result):
+    """
+    Upgrade installed APT packages.
+
+    Upgrades available packages and automatically removes obsolete
+    dependencies.
+
+    The operation runs only when the preceding APT index update
+    reports changes.
+
+    Args:
+        update_result: Result of the APT package index update.
+    """
+    apt.upgrade(
+        name="Update apt packages",
+        auto_remove=True,
+        _if=update_result.did_change,
+    )
+
+def install_apt_package(package_name):
+    """
+    Install an individual APT package.
+
+    Ensures that the specified package is installed on the target
+    host. Each package is handled as a separate pyinfra operation.
+
+    Args:
+        package_name (str): Name of the package to install.
+    """
+    apt.packages(
+        name=f"Install {package_name}",
+        packages=[package_name],
+    )
+
+# Retrieve configured packages.
 apt_packages = host.data.get("apt_packages", [])
 
-apt_update = apt.update(
-    name="Update apt sources",
-    cache_time=14400
-)
-
-apt.upgrade(
-    name="Update apt packages",
-    auto_remove=True,
-    _if=apt_update.did_change
-)
+# Execute package management operations.
+apt_update = update_apt_sources()
+upgrade_apt_packages(apt_update)
 
 for package in apt_packages:
-    apt.packages (
-        name=f"Install {package}",
-        packages=[
-            package
-        ],
-    )
+    install_apt_package(package)
