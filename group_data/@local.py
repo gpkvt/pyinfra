@@ -335,7 +335,6 @@ apt_sources = {
 
 # Install flatpak packages
 flatpak_packages = [
-  "net.lutris.Lutris",
   "app.go2tv.go2tv",
   "app.ytmdesktop.ytmdesktop",
   "best.ellie.StartupConfiguration",
