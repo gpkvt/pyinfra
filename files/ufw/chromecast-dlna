@@ -3,8 +3,16 @@ title="Chromecast/DLNA"
 description="Allow chromecast and DLNA casts"
 ports=32768:65535/udp|3500,3339,1900,5001,2869/udp|8009,3500/tcp
 
+[Multicast-wlan0]
+title=Multicast Discovery on wlan0
+description=Allow IGMP, mDNS and SSDP multicast traffic
+ports=5353/udp|1800/udp|1900/udp
+
 # You will also need the following rules, which are not possible to set in app profiles
-#224.0.0.1/igmp on wlp1s0   ALLOW IN    Anywhere
-#224.0.0.251 5353/udp on wlp1s0 ALLOW IN    Anywhere
-#239.255.255.250 1900/udp on wlp1s0 ALLOW IN    Anywhere
-#239.255.255.250 1800/udp on wlp1s0 ALLOW IN    Anywhere
+# IGMP
+# sudo ufw allow in on wlan0 to 224.0.0.1 proto igmp
+# mDNS
+# sudo ufw allow in on wlan0 to 224.0.0.251 port 5353 proto udp
+# SSDP
+# sudo ufw allow in on wlan0 to 239.255.255.250 port 1900 proto udp
+# sudo ufw allow in on wlan0 to 239.255.255.250 port 1800 proto udp
