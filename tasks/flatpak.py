@@ -6,8 +6,8 @@ applications and checks for updates.
 """
 
 from pyinfra.operations import flatpak, server, apt
-from pyinfra import host
-from pyinfra.api import FactBase
+from pyinfra import host, logger
+from pyinfra.api import FactBase, operation
 
 if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
@@ -64,4 +64,52 @@ server.shell(
     ],
     _sudo=False,
     _if=lambda: bool(host.get_fact(FlatpakUpdates, _sudo=False)),
+)
+
+def _output_as_text(result) -> str:
+    """Normalize whatever run_shell_command returns into plain text."""
+    logger.debug("raw run_shell_command result: %r", result)
+
+    if isinstance(result, str):
+        return result
+
+    if isinstance(result, (tuple, list)):
+        return "\n".join(
+            part for part in (_output_as_text(item) for item in result) if part
+        )
+
+    for attr in ("stdout", "stderr", "combined", "output", "text"):
+        val = getattr(result, attr, None)
+        if val is None:
+            continue
+        if isinstance(val, str):
+            return val
+        if isinstance(val, (list, tuple)):
+            return "\n".join(str(line) for line in val)
+
+    return repr(result)
+
+
+@operation()
+def uninstall_unused():
+    result = host.run_shell_command(
+        "flatpak uninstall --unused --noninteractive --assumeyes 2>&1"
+    )
+    output = _output_as_text(result)
+
+    removed = "Removed:" in output
+    nothing = "Nothing unused to uninstall" in output
+
+    if not removed and not nothing:
+        logger.warning("Unexpected flatpak output:\n%s", output)
+
+    if not removed:
+        return  # zero commands -> pyinfra reports "No Change"
+
+    logger.info("Unused flatpak refs removed")
+    yield "true"  # change already happened via run_shell_command; record it
+
+uninstall_unused(
+    name="Uninstall unused packages",
+    _sudo=False,
 )
