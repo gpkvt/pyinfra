@@ -1,52 +1,8 @@
 """
 Install and manage Flatpak applications and updates using pyinfra.
 
-This module ensures Flatpak is installed, installs configured Flatpak applications, and checks for available application and runtime updates. Updates are applied conditionally to avoid unnecessary operations and prevent concurrent update processes.
-
-Configuration: flatpak_packages (list[str]): Flatpak application IDs to install, retrieved from host.data.flatpak_packages. Defaults to an empty list.
-
-Facts:
-
-FlatpakUpdates: Checks for available user-level Flatpak application updates using flatpak remote-ls --updates.
-
-    Returns:
-        list[str]: Application IDs with available updates.
-
-FlatpakSystemUpdates:
-    Checks for available system-level Flatpak updates using
-    `flatpak remote-ls --system --updates`.
-
-    Returns:
-        list[str]: Application IDs with available system updates.
-
-Operations:
-
-1. Install the Flatpak package through APT.
-2. Install all applications specified in `flatpak_packages`
-   without sudo.
-3. Check for available system-level updates and update runtimes
-   when necessary.
-4. Check for available user-level updates and update applications
-   when necessary.
-
-Update management:
-
-- System updates run with sudo.
-- User-level updates run without sudo.
-- Updates are executed only when the corresponding fact detects
-  available updates.
-- Both update operations use `flock` with the shared lock file
-  `/tmp/flatpak-update.lock` to prevent concurrent execution.
-- If another update process holds the lock, the operation is
-  skipped.
-
-Notes:
-
-- Flatpak applications are installed individually.
-- Update checks are performed separately for system and user
-  installations.
-- The update commands automatically confirm prompts using `-y`.
-
+This module ensures Flatpak is installed, installs configured
+applications and checks for updates.
 """
 
 from pyinfra.operations import flatpak, server, apt
@@ -78,11 +34,9 @@ apt.packages(
 )
 
 for package in flatpak_packages:
-    flatpak.packages (
+    flatpak.packages(
         name=f"Install {package}",
-        packages=[
-            package
-        ],
+        packages=[package],
         _sudo=False,
     )
 
@@ -110,11 +64,4 @@ server.shell(
     ],
     _sudo=False,
     _if=lambda: bool(host.get_fact(FlatpakUpdates, _sudo=False)),
-)
-
-server.shell(
-    name="Remove unused",
-    commands=[
-        "flatpak uninstall --unused --noninteractive"
-    ],
 )
