@@ -1,0 +1,4 @@
+[localsend]
+title="localsend"
+description="Allow localsend connections"
+ports=53317/udp|53317/tcp

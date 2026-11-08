@@ -1,0 +1,5 @@
+secrets.json
+secrets.json.gpg
+pyinfra.code-workspace
+.venv
+*.log

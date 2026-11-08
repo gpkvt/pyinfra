@@ -1,0 +1,15 @@
+{%- for entry in caddy_conf %}
+{{ entry }} {
+{%- for key, value in caddy_conf[entry].items() %}
+{%- if value is iterable and value is not string and value is not mapping %}
+    {{ key }} {
+{%- for item in value %}
+        {{ item }}
+{%- endfor %}
+    }
+{%- else %}
+    {{ key }} {{ value }}
+{%- endif %}
+{%- endfor %}
+}
+{%- endfor %}

@@ -1,0 +1,11 @@
+# This is Git's per-user configuration file.
+
+[user]
+    name = gpkvt
+    email = git@21x9.org
+[pull]
+    ff = only
+[credential]
+    helper = store
+[init]
+    defaultBranch = main

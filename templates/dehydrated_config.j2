@@ -1,0 +1,24 @@
+#############################################################
+# This is the main config file for dehydrated               #
+#                                                           #
+# This is the default configuration for the Debian package. #
+# To see a more comprehensive example, see                  #
+# /usr/share/doc/dehydrated/examples/config                 #
+#                                                           #
+# For details please read:                                  #
+# /usr/share/doc/dehydrated/README.Debian                   #
+#############################################################
+
+CONFIG_D=/etc/dehydrated/conf.d
+BASEDIR=/var/lib/dehydrated
+WELLKNOWN="${BASEDIR}/acme-challenges"
+DOMAINS_TXT="/etc/dehydrated/domains.txt"
+
+# Challenge Typ
+CHALLENGETYPE="dns-01"
+
+# Pfad zur Cloud-API Hook
+HOOK="/etc/dehydrated/hook.sh"
+
+# Hetzner Cloud-API Token
+API_TOKEN="{{ hetzner_api_token }}"

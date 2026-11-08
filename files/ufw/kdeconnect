@@ -1,0 +1,4 @@
+[kdeconnect]
+title="kadeconnect"
+description="Allow kdeconnect connections"
+ports=1714:1764/udp|1714:1764/tcp

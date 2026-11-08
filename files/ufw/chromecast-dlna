@@ -1,0 +1,10 @@
+[cast]
+title="Chromecast/DLNA"
+description="Allow chromecast and DLNA casts"
+ports=32768:65535/udp|3500,3339,1900,5001,2869/udp|8009,3500/tcp
+
+# You will also need the following rules, which are not possible to set in app profiles
+#224.0.0.1/igmp on wlp1s0   ALLOW IN    Anywhere
+#224.0.0.251 5353/udp on wlp1s0 ALLOW IN    Anywhere
+#239.255.255.250 1900/udp on wlp1s0 ALLOW IN    Anywhere
+#239.255.255.250 1800/udp on wlp1s0 ALLOW IN    Anywhere

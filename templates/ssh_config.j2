@@ -1,0 +1,4 @@
+{% for name, config in host.data.ssh_config.items() %}
+Host {{ name }}
+{{ config }}
+{% endfor %}

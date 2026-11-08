@@ -1,0 +1,70 @@
+# Exit if mc is active
+[[ -v MC_SID ]] && return
+
+TIMESTAMP="/var/lib/pyinfra/last-run"
+
+# Ensure timestamp directory exists
+sudo mkdir -p /var/lib/pyinfra
+
+pushd ~/pyinfra > /dev/null
+pyinfra @local tasks/git.py --sudo --diff -y
+
+# Run some PyInfra only if it hasn't run in the last hour
+if [[ -f "$TIMESTAMP" ]] && [[ $(find "$TIMESTAMP" -mmin -60 -print) ]]; then
+    echo "PyInfra ran within the last hour. Skipping."
+else
+    echo "Running PyInfra..."
+
+   if pyinfra @local tasks/apt.py --sudo --diff -y; then
+        sudo touch "$TIMESTAMP"
+        echo "PyInfra apt updates completed successfully."
+    else
+        echo "PyInfra failed."
+    fi
+
+    if pyinfra @local tasks/flatpak.py --sudo --diff -y; then
+        sudo touch "$TIMESTAMP"
+        echo "PyInfra flatpak updates completed successfully."
+    else
+        echo "PyInfra failed."
+    fi
+fi
+popd > /dev/null
+
+if [ -f ~/.local/share/fnm/fnm ]; then
+    export PATH="/home/gpkvt/.local/share/fnm:$PATH"
+    eval "`fnm env`"
+    fnm use v23
+fi
+
+# fnm
+export PATH="/home/gpkvt/.local/share/fnm:$PATH"
+eval "`fnm env`"
+
+echo ""
+echo "Wireguard status:"
+sudo wg show
+
+echo ""
+echo "Firewall status:"
+sudo ufw status verbose
+
+# source settings
+{% for source in zshrc_imports %}
+source ~/.dotfiles/zsh/{{ source }}.zsh
+{% endfor %}
+
+{#
+{% if 'tmux' in zshrc_imports %}
+if [ -z ${TMUX} ]; then
+    while true; do
+        read -k1 -s "REPLY?Start tmux? yNa "
+        case ${REPLY} in
+            [Yy]* ) clear;echo "Loading tmux";tmux;exit 0;;
+            [Aa]* ) tmux a;;
+            * ) return;;
+        esac
+    done
+fi
+{% endif %}
+#}

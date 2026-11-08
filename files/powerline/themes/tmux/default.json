@@ -1,0 +1,26 @@
+{
+  "segments": {
+    "right": [
+      {
+        "function": "powerline.segments.common.net.external_ip"
+      },
+      {
+        "function": "powerline.segments.common.net.network_load"
+      },
+      {
+        "args": {
+          "format": "%H:%M",
+          "istime": true
+        },
+        "function": "powerline.segments.common.time.date",
+        "name": "time"
+      },
+      {
+        "function": "powerline.segments.common.net.hostname"
+      },
+      {
+        "function": "powerline.segments.tmux.attached_clients"
+      }
+    ]
+  }
+}
