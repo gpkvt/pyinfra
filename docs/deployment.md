@@ -15,14 +15,14 @@ Deployments are executed through **pyinfra** from the repository root.
 With the standard pyinfra CLI for this layout:
 
 ```bash
-# Preview changes (the project explicitly promotes --diff)
-pyinfra inventory.py deploy.py --diff
+# Preview changes (the project explicitly promotes --dry)
+pyinfra inventory.py deploy.py --diff --dry
 
 # Execute the deployment
-pyinfra inventory.py deploy.py
+pyinfra inventory.py deploy.py --diff
 
 # Target a single host
-pyinfra inventory.py deploy.py @local
+pyinfra inventory.py deploy.py --limit @local
 
 # Example with sudo and auto-confirm (pattern seen in the project's scripts)
 pyinfra @local tasks/apt.py --sudo --diff -y
@@ -65,8 +65,8 @@ failing the deployment.
 
 ## Recommended workflow
 
-1. **Dry run**: `--diff` to review the intended changes.
-2. **Apply**: run without `--diff`.
+1. **Dry run**: `--dry` to review the intended changes.
+2. **Apply**: run without `--dry`.
 3. **Inspect**: pyinfra reports per-host, per-operation changed/unchanged
    status.
 4. **Iterate**: adjust `group_data/` flags and re-run — deployments are
