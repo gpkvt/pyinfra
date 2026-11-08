@@ -1,0 +1,14 @@
+#!/usr/bin/env python3
+import time
+from evdev import InputDevice, ecodes
+
+device = InputDevice('/dev/input/event3')
+
+try:
+    device.grab()
+    print("Keyboard disabled for 60 seconds.")
+    time.sleep(60)
+finally:
+    device.ungrab()
+    device.close()
+    print("Keyboard re-enabled.")
