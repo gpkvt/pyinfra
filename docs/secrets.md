@@ -37,6 +37,8 @@ fails) and `json.JSONDecodeError` (invalid JSON).
 | --- | --- |
 | `wireguard` | `tasks/wireguard.py` (together with `host.data.wireguard_config`) |
 | `dehydrated` | `tasks/dehydrated.py` (ACME/Let's Encrypt certificates) |
+| `git_credentials` | `tasks/git.py` (Git credentials) |
+| `docker.miniflux` | `tasks/docker/miniflux.py` (Docker deployment of Miniflux RSS reader) |
 
 The full secret categories are documented in `secrets.json.gpg.example`.
 
