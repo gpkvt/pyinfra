@@ -265,8 +265,77 @@ apt_packages = [
   "zip",
 ]
 
+apt_sources = {
+  "docker": {
+      "key": {
+          "url": "https://download.docker.com/linux/ubuntu/gpg",
+          "path": "/etc/apt/keyrings/docker-keyring.asc",
+      },
+      "repository": {
+          "url": "https://download.docker.com/linux/ubuntu",
+          "distribution": "noble",
+          "components": ["stable"],
+          "architectures": ["amd64"],
+      },
+  },
+  "mullvad": {
+      "key": {
+          "url": "https://repository.mullvad.net/deb/mullvad-keyring.asc",
+          "path": "/etc/apt/keyrings/mullvad-keyring.asc",
+      },
+      "repository": {
+          "url": "https://repository.mullvad.net/deb/stable",
+          "distribution": "stable",
+          "components": ["main"],
+          "architectures": ["amd64"],
+          "types": ["deb"],
+      },
+  },
+  "proton": {
+      "key": {
+          "url": "https://repo.protonvpn.com/debian/public_key.asc",
+          "path": "/etc/apt/keyrings/proton-keyring.asc",
+      },
+      "repository": {
+          "url": "https://repo.protonvpn.com/debian",
+          "distribution": "stable",
+          "components": ["main"],
+          "architectures": ["amd64"],
+          "types": ["deb"],
+      },
+  },
+  "vscodium": {
+      "key": {
+          "url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/-/raw/master/pub.gpg",
+          "path": "/usr/share/keyrings/vscodium-archive-keyring.gpg",
+      },
+      "repository": {
+          "url": "https://download.vscodium.com/debs",
+          "distribution": "vscodium",
+          "components": ["main"],
+          "architectures": ["amd64", "arm64"],
+          "types": ["deb"],
+      },
+  },
+  "signal": {
+      "key": {
+          "url": "https://updates.signal.org/desktop/apt/keys.asc",
+          "path": "/usr/share/keyrings/signal-desktop-keyring.gpg",
+          "format": "asc",
+      },
+      "repository": {
+          "url": "https://updates.signal.org/desktop/apt",
+          "distribution": "xenial",
+          "components": ["main"],
+          "architectures": ["amd64"],
+          "types": ["deb"],
+      },
+  },
+}
+
 # Install flatpak packages
 flatpak_packages = [
+  "net.lutris.Lutris",
   "app.go2tv.go2tv",
   "app.ytmdesktop.ytmdesktop",
   "best.ellie.StartupConfiguration",

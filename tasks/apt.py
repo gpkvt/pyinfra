@@ -16,7 +16,7 @@ Execution:
 """
 
 from pyinfra import host
-from pyinfra.operations import apt
+from pyinfra.operations import apt, files
 
 def update_apt_sources():
     """
@@ -69,6 +69,57 @@ def install_apt_package(package_name):
     )
 
 print(__doc__)
+
+# Ensure keyring directory exists
+files.directory(
+    name="Ensure APT keyrings directory exists",
+    path="/etc/apt/keyrings",
+    mode="0755",
+)
+
+apt_sources = host.data.get("apt_sources", {})
+
+for name, repo in host.data.apt_sources.items():
+    key = repo["key"]
+    repository = repo["repository"]
+
+    files.download(
+        name=f"Download {name} GPG key",
+        src=key["url"],
+        dest=key["path"],
+        mode="0644",
+    )
+
+    architectures = repository.get("architectures", [])
+    components = repository.get("components", [])
+
+    options = [f"signed-by={key['path']}"]
+
+    if architectures:
+        options.append(f"arch={','.join(architectures)}")
+
+    source_lines = []
+
+    for repo_type in repository.get("types", ["deb"]):
+        source = (
+            f"{repo_type} "
+            f"[{' '.join(options)}] "
+            f"{repository['url']} "
+            f"{repository['distribution']}"
+        )
+
+        if components:
+            source += " " + " ".join(components)
+
+        source_lines.append(source)
+
+    files.template(
+        name=f"Configure {name} APT repository",
+        src="templates/apt_repository.list.j2",
+        dest=f"/etc/apt/sources.list.d/{name}.list",
+        mode="0644",
+        repo_lines=source_lines,
+    )
 
 # Retrieve configured packages.
 apt_packages = host.data.get("apt_packages", [])
