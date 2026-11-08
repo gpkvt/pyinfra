@@ -96,7 +96,7 @@ cosmic = {
           ],
 
           "center": [
-              "io.github.cosmic_utils.minimon_applet",
+              "io.github.cosmic_utils.minimon-applet",
           ],
 
           "right": [
