@@ -93,12 +93,21 @@ def _output_as_text(result) -> str:
 @operation()
 def uninstall_unused():
     result = host.run_shell_command(
-        "flatpak uninstall --unused --noninteractive --assumeyes 2>&1"
+        """
+        before=$(flatpak list --all --columns=application,arch,branch,installation | sort)
+        flatpak uninstall --unused --noninteractive --assumeyes
+        after=$(flatpak list --all --columns=application,arch,branch,installation | sort)
+        if [ "$before" = "$after" ]; then
+            echo UNCHANGED
+        else
+            echo REMOVED
+        fi
+        """
     )
     output = _output_as_text(result)
 
-    removed = "Removed:" in output
-    nothing = "Nothing unused to uninstall" in output
+    removed = "REMOVED" in output
+    nothing = "UNCHANGED" in output
 
     if not removed and not nothing:
         logger.warning("Unexpected flatpak output:\n%s", output)
