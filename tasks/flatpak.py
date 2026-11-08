@@ -89,9 +89,8 @@ def _output_as_text(result) -> str:
 
     return repr(result)
 
-
 @operation()
-def uninstall_unused():
+def uninstall_unused_packages():
     result = host.run_shell_command(
         """
         before=$(flatpak list --all --columns=application,arch,branch,installation | sort)
@@ -118,7 +117,12 @@ def uninstall_unused():
     logger.info("Unused flatpak refs removed")
     yield "true"  # change already happened via run_shell_command; record it
 
-uninstall_unused(
-    name="Uninstall unused packages",
+uninstall_unused_packages(
+    name="Remove unused packages",
     _sudo=False,
+)
+
+uninstall_unused_packages(
+    name="Remove unused runtimes",
+    _sudo=True,
 )
