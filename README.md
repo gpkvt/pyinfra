@@ -495,7 +495,7 @@ The pre-commit configuration includes:
 ## Contributing
 
 Contributions are welcome! Please read
-[CONTRIBUTION.md](CONTRIBUTION.md) before submitting changes.
+[CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes.
 
 ## License
 
