@@ -7,7 +7,7 @@
 [![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
 ![GitHub License](https://img.shields.io/github/license/gpkvt/pyinfra)
 
-A configuration-driven infrastructure automation project built with [pyinfra](<https://pyinfra.com/>).
+A configuration-driven infrastructure automation project built with pyinfra.
 
 This repository provides automated provisioning and configuration of Linux systems. It manages system packages, networking, security, Docker services, desktop environments, and user configurations through reusable, modular deployment tasks.
 
@@ -21,6 +21,12 @@ Host-specific settings are separated from deployment logic, allowing individual 
 - Flatpak application management
 - Hostname and `/etc/hosts` configuration
 - System configuration and directory management
+- Linux kernel parameters (sysctl)
+- Custom udev rules
+- USB device access control using USBGuard
+- Custom sudoers rules
+- SSH key generation and authorized keys
+- System and user font management
 - Custom scripts and dotfiles
 
 ### Networking
@@ -43,6 +49,7 @@ Host-specific settings are separated from deployment logic, allowing individual 
 ### Desktop and user environment
 
 - COSMIC desktop configuration
+- VSCodium extension management
 - AppArmor profile management
 - Zsh and zplug
 - Powerlevel10k
@@ -55,9 +62,11 @@ Host-specific settings are separated from deployment logic, allowing individual 
 ### Security
 
 - Encrypted secrets using GPG
-- SSH configuration
+- SSH configuration and key management
+- Custom sudoers rules
 - Firewall policies
 - AppArmor profile enforcement
+- USBGuard USB device authorization
 - Restricted permissions for sensitive configuration files
 
 ## Requirements
@@ -67,7 +76,7 @@ The project is primarily intended for Debian-based Linux systems.
 ### Required software
 
 - Python 3
-- [pyinfra](<https://pyinfra.com/>)
+- pyinfra
 - OpenSSH
 - sudo privileges where required
 - GPG for encrypted secrets
@@ -85,6 +94,7 @@ Depending on the enabled features:
 - dehydrated
 - COSMIC Desktop
 - AppArmor
+- USBGuard
 
 ## Getting started
 
@@ -152,7 +162,6 @@ _all_hosts = {
         "_sudo": True,
     },
 }
-
 production = [
     (hostname, options)
     for hostname, options in _all_hosts.items()
@@ -172,19 +181,23 @@ Settings are organized into logical sections:
 
 | Section | Description |
 | --- | --- |
-| General | Username, group, and home directory |
+| General | Username, group, home directory, hostname, timezone, locale, keyboard and editor |
 | Network | Local network CIDR and WireGuard interface |
 | Hosts | Hostname mappings |
 | APT | System packages |
+| System | Sysctl parameters, udev rules and USBGuard configuration |
+| Sudo | Custom sudoers rules |
+| SSH | SSH client configuration, keypairs and authorized keys |
+| Fonts | System and user fonts |
 | Flatpak | Desktop applications |
 | Docker | Containerized applications and services |
 | WireGuard | VPN interfaces and settings |
 | Firewall | UFW application policies |
 | Caddy | Reverse proxy and TLS configuration |
-| SSH | SSH client configuration |
 | Zsh | Shell configuration and plugins |
 | tmux | Terminal multiplexer |
 | Powerline | Terminal themes and configuration |
+| VSCodium | Editor extensions |
 | COSMIC | Desktop appearance, panel, dock, and workspaces |
 | AppArmor | Profiles to enforce |
 
@@ -329,15 +342,20 @@ text
 │   ├── dehydrated.py
 │   ├── docker.py
 │   ├── flatpak.py
+│   ├── fonts.py
 │   ├── git.py
 │   ├── hosts.py
 │   ├── mc.py
 │   ├── powerline.py
 │   ├── scripts.py
 │   ├── ssh_config.py
+│   ├── ssh_keys.py
+│   ├── sudo.py
+│   ├── system.py
 │   ├── tmux.py
 │   ├── ufw.py
 │   ├── vpn.py
+│   ├── vscodium.py
 │   ├── wireguard.py
 │   └── zsh.py
 ├── common.py
@@ -373,9 +391,12 @@ The following tasks are always included:
 
 - APT package management
 - Host configuration
+- Sudo configuration
+- SSH key management
+- Font management
+- Git configuration
 - Custom scripts
 - Midnight Commander
-- Git configuration
 
 Additional tasks are included conditionally:
 
@@ -394,6 +415,10 @@ Additional tasks are included conditionally:
 | Docker | `docker` is configured |
 | AppArmor | `apparmor_profiles` are configured |
 | COSMIC | `cosmic` is configured |
+| Mullvad extensions | `mullvad_extensions` is configured |
+| VSCodium | `vscodium` is configured |
+
+The `system.py` module additionally provides system-level configuration, including hostname, timezone, locale, keyboard layout, sysctl, udev and USBGuard management. It is currently not included in the main `deploy.py` entry point and must be included separately to execute these operations.
 
 ### Execute a deployment
 
@@ -466,4 +491,5 @@ The pre-commit configuration includes:
 ## License
 
 This project is licensed under the MIT License.
+
 See [LICENSE](LICENSE) for details.
