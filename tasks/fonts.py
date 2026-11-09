@@ -1,6 +1,8 @@
 """ Font deployment """
 
-from pyinfra.operations import apt, server
+from pyinfra.operations import apt, server, files
+from pyinfra.facts.files import Directory
+from pyinfra import host
 
 apt.packages(
     name="Installing font packages",
@@ -89,6 +91,10 @@ if host.data.get("powerline_fonts", False):
         name="Create user font directory",
         path=FONT_DIR,
     )
+    files.directory(
+        name="Create tmp directory",
+        path=EXTRACT_DIR,
+    )
 
     # Download Powerline fonts
     files.download(
@@ -97,23 +103,24 @@ if host.data.get("powerline_fonts", False):
         dest=ARCHIVE,
     )
 
-    # Extract archive
-    files.unarchive(
-        name="Extract Powerline fonts",
-        src=ARCHIVE,
-        dest=EXTRACT_DIR,
-        remote_src=True,
-    )
+    if host.get_fact(Directory, EXTRACT_DIR):
+        # Extract archive
+        files.unarchive(
+            name="Extract Powerline fonts",
+            src=ARCHIVE,
+            dest=EXTRACT_DIR,
+            remote_src=True,
+        )
 
-    # Install all TTF and OTF fonts
-    server.shell(
-        name="Install Powerline fonts",
-        commands=[
-            f'find {EXTRACT_DIR}/fonts-master -type f '
-            rf'\( -iname "*.ttf" -o -iname "*.otf" \) '
-            f'-exec cp -n {{}} {FONT_DIR}/ \;'
-        ],
-    )
+        # Install all TTF and OTF fonts
+        server.shell(
+            name="Install Powerline fonts",
+            commands=[
+                f'find {EXTRACT_DIR}/fonts-master -type f '
+                rf'\( -iname "*.ttf" -o -iname "*.otf" \) '
+                f'-exec cp -n {{}} {FONT_DIR}/ \;'
+            ],
+        )
 
     # Refresh font cache
     server.shell(

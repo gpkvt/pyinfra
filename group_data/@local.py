@@ -71,6 +71,7 @@ hostnames = {
 zsh=True
 powerline=True
 tmux=True
+powerline_fonts=False
 
 # Configure COSMIC Desktop
 
