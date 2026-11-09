@@ -313,65 +313,6 @@ secrets.json.gpg
 
 ## Repository structure
 
-text
-
-```text
-.
-├── .github/
-├── files/
-│   ├── git/
-│   ├── mc/
-│   ├── powerline/
-│   ├── scripts/
-│   ├── tmux/
-│   ├── ufw/
-│   ├── dotfiles/
-│   └── cosmic/
-├── group_data/
-│   └── @local.py
-├── templates/
-│   ├── dehydrated_config.j2
-│   ├── docker/
-│   │   ├── grav/
-│   │   ├── miniflux/
-│   │   └── timetagger/
-│   ├── dotfiles/
-│   ├── git/
-│   ├── ssh_config.j2
-│   └── wireguard.conf.j2
-├── tasks/
-│   ├── docker/
-│   ├── cosmic/
-│   ├── apt.py
-│   ├── apparmor.py
-│   ├── caddy.py
-│   ├── dehydrated.py
-│   ├── docker.py
-│   ├── flatpak.py
-│   ├── fonts.py
-│   ├── git.py
-│   ├── hosts.py
-│   ├── mc.py
-│   ├── powerline.py
-│   ├── scripts.py
-│   ├── ssh_config.py
-│   ├── ssh_keys.py
-│   ├── sudo.py
-│   ├── system.py
-│   ├── tmux.py
-│   ├── ufw.py
-│   ├── vpn.py
-│   ├── vscodium.py
-│   ├── wireguard.py
-│   └── zsh.py
-├── common.py
-├── deploy.py
-├── inventory.py
-├── secrets.json.gpg.example
-├── .pre-commit-config.yaml
-└── README.md
-```
-
 ### Main components
 
 | Component | Responsibility |
