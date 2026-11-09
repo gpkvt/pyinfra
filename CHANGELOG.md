@@ -37,6 +37,7 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ### Fixed
 
+- Pull new docker images before systemd start, to avoid timeouts
 - Fixed APT repository signing key formats.
 - Fixed missing imports and errors occurring during dry-run execution.
 - Fixed an incorrect applet ID in the COSMIC configuration.
