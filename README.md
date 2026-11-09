@@ -1,11 +1,6 @@
 # Infrastructure Configuration
 
-[![python](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org)
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-[![pyinfra](https://img.shields.io/badge/pyinfra-v3.10.0-blue)](https://pyinfra.com)
-![GitHub branch check suites](https://img.shields.io/github/check-suites/gpkvt/pyinfra/main)
-[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
-![GitHub License](https://img.shields.io/github/license/gpkvt/pyinfra)
+[\!\[python\](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python&logoColor=white)](<https://www.python.org>) [\!\[pre-commit\](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](<https://github.com/pre-commit/pre-commit>) [\!\[pyinfra\](https://img.shields.io/badge/pyinfra-v3.10.0-blue)](<https://pyinfra.com>) \!GitHub branch check suites [\!\[linting: pylint\](https://img.shields.io/badge/linting-pylint-yellowgreen)](<https://github.com/pylint-dev/pylint>) \!GitHub License
 
 A configuration-driven infrastructure automation project built with pyinfra.
 
@@ -58,6 +53,8 @@ Host-specific settings are separated from deployment logic, allowing individual 
 - tmux and tmux-powerline
 - Midnight Commander
 - Git configuration and credentials
+- Mullvad browser extensions
+- Proton configuration
 - Custom scripts and dotfiles
 
 ### Security
@@ -96,6 +93,8 @@ Depending on the enabled features:
 - COSMIC Desktop
 - AppArmor
 - USBGuard
+- VSCodium
+- Proton
 
 ## Getting started
 
@@ -151,7 +150,6 @@ disabled_hosts = {
     "dns",
     "dmz",
 }
-
 _all_hosts = {
     "@local": {
         "_sudo": True,
@@ -218,7 +216,7 @@ The configuration files contain examples and defaults for the local environment.
 
 ## Additional documentation
 
-You can find additional documentation in [docs](docs).
+You can find additional documentation in docs.
 
 ## Secrets management
 
@@ -336,14 +334,15 @@ The `deploy.py` entry point initializes shared configuration and includes deploy
 
 The following tasks are always included:
 
-- APT package management
-- Host configuration
-- Sudo configuration
-- SSH key management
-- Font management
-- Git configuration
-- Custom scripts
-- Midnight Commander
+- APT package management (`apt.py`)
+- Host configuration (`hosts.py`)
+- Sudo configuration (`sudo.py`)
+- System configuration (`system.py`)
+- SSH key management (`ssh_keys.py`)
+- Font management (`fonts.py`)
+- Git configuration (`git.py`)
+- Custom scripts (`scripts.py`)
+- Midnight Commander (`mc.py`)
 
 Additional tasks are included conditionally:
 
@@ -364,8 +363,7 @@ Additional tasks are included conditionally:
 | COSMIC | `cosmic` is configured |
 | Mullvad extensions | `mullvad_extensions` is configured |
 | VSCodium | `vscodium` is configured |
-
-The `system.py` module additionally provides system-level configuration, including hostname, timezone, locale, keyboard layout, sysctl, udev and USBGuard management. It is currently not included in the main `deploy.py` entry point and must be included separately to execute these operations.
+| Proton | `proton` is configured |
 
 ### Execute a deployment
 
@@ -419,7 +417,7 @@ pre-commit run pretty-format-json --all-files
 The pre-commit configuration includes:
 
 - Python linting with Pylint
-- YAML validation and linting
+- YAML validation and linting with yamllint
 - JSON validation and formatting
 - Large-file detection
 - Trailing whitespace removal
@@ -437,11 +435,10 @@ The pre-commit configuration includes:
 
 ## Contributing
 
-Contributions are welcome! Please read
-[CONTRIBUTING.md](CONTRIBUTING.md) before submitting changes.
+Contributions are welcome\! Please read CONTRIBUTING.md before submitting changes.
 
 ## License
 
 This project is licensed under the MIT License.
 
-See [LICENSE](LICENSE) for details.
+See LICENSE for details.
