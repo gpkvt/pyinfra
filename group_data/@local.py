@@ -308,7 +308,7 @@ apt_sources = {
   "vscodium": {
       "key": {
           "url": "https://gitlab.com/paulcarroty/vscodium-deb-rpm-repo/-/raw/master/pub.gpg",
-          "path": "/usr/share/keyrings/vscodium-archive-keyring.gpg",
+          "path": "/usr/share/keyrings/vscodium-archive-keyring.asc",
       },
       "repository": {
           "url": "https://download.vscodium.com/debs",
@@ -321,8 +321,7 @@ apt_sources = {
   "signal": {
       "key": {
           "url": "https://updates.signal.org/desktop/apt/keys.asc",
-          "path": "/usr/share/keyrings/signal-desktop-keyring.gpg",
-          "format": "asc",
+          "path": "/usr/share/keyrings/signal-desktop-keyring.asc",
       },
       "repository": {
           "url": "https://updates.signal.org/desktop/apt",
