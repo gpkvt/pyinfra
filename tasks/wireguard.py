@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Install WireGuard and deploy VPN interface configurations using pyinfra.
 
@@ -36,7 +37,6 @@ Notes:
 - Each interface is configured independently.
 - This module deploys WireGuard configurations but does not
   start or enable the corresponding VPN services.
-
 """
 
 from pyinfra.operations import apt, files
@@ -48,7 +48,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 
 vpns = host.data.get("vpn", {})
 
-wireguard_secrets = secrets.get("wireguard", {})
+wireguard_secrets = secrets.get("wireguard", {}) # pylint: disable=undefined-variable
 wireguard_config = host.data.get("wireguard_config", {})
 
 apt.packages(
@@ -66,5 +66,5 @@ for key, vpn in wireguard_config.items():
         mode="640",
         _sudo=True,
         config=vpn,
-        secrets=secrets.get("wireguard").get(key)
+        secrets=secrets.get("wireguard").get(key) # pylint: disable=undefined-variable
     )

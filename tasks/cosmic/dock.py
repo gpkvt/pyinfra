@@ -1,5 +1,7 @@
-
-"""Configure COSMIC dock position, size, margins, autohide behavior, and applets."""
+# pylint: disable=E0401
+"""
+Configure COSMIC dock position, size, margins, autohide behavior, and applets.
+"""
 
 import json
 

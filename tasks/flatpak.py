@@ -1,3 +1,4 @@
+# pylint: disable=E0401, C0115, C0116
 """
 Install and manage Flatpak applications and updates using pyinfra.
 

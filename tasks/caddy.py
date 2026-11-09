@@ -1,3 +1,5 @@
+# pylint: disable=C0301, E0401, C0116, E1101
+
 """
 Install, configure, and manage the Caddy web server using pyinfra.
 

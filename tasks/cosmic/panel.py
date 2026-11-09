@@ -1,4 +1,7 @@
-"""Configure COSMIC panel position, size, margins, autohide behavior, and applets."""
+# pylint: disable=E0401
+"""
+Configure COSMIC panel position, size, margins, autohide behavior, and applets.
+"""
 
 import json
 from pyinfra import host

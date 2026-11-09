@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Deploy and configure Powerlevel10k and Powerline resources using pyinfra.
 
@@ -47,7 +48,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 files.put(
     name="Configure powerline",
     src="files/powerline/p10k.zsh",
-    dest=f"{homedir}/.p10k.zsh",
+    dest=f"{homedir}/.p10k.zsh", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="750",
@@ -56,7 +57,7 @@ files.put(
 files.sync(
     name="Install theme",
     src="files/powerline/themes/",
-    dest=f"{homedir}/.config/powerline/themes/",
+    dest=f"{homedir}/.config/powerline/themes/", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",
@@ -66,7 +67,7 @@ files.sync(
 files.sync(
     name="Install fonts",
     src="files/powerline/fonts/",
-    dest=f"{homedir}/.fonts/",
+    dest=f"{homedir}/.fonts/", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",

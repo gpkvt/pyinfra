@@ -1,3 +1,4 @@
+# pylint: disable=C0103
 """
 Manage custom sudoers configuration.
 

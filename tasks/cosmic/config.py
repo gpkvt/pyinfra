@@ -1,4 +1,7 @@
-"""Provide shared helpers for deploying COSMIC configuration files."""
+# pylint: disable=E0401
+"""
+Provide shared helpers for deploying COSMIC configuration files.
+"""
 
 from io import StringIO
 from pyinfra import host

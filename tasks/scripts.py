@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Deploy custom scripts and create system-wide symbolic links using pyinfra.
 
@@ -49,7 +50,7 @@ src = Path("files/scripts/")
 files.sync(
     name="Install scripts",
     src="files/scripts/",
-    dest=f"{homedir}/scripts/",
+    dest=f"{homedir}/scripts/", # pylint: disable=undefined-variable
     delete=False,
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
@@ -62,5 +63,5 @@ for file in src.rglob("*"):
         files.link(
             name=f"Symlink {file.name}",
             path=f"/usr/local/bin/{file.name}",
-            target=f"{homedir}/scripts/{file.relative_to(src)}",
+            target=f"{homedir}/scripts/{file.relative_to(src)}", # pylint: disable=undefined-variable
         )

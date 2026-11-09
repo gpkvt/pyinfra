@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Install and configure tmux, its plugins, and tmux-powerline resources using pyinfra.
 
@@ -55,7 +56,6 @@ Notes:
 - Plugin installation and updates are executed sequentially.
 - Custom segments and themes are deployed independently of the
   tmux package installation.
-
 """
 
 from pyinfra.operations import apt, files
@@ -79,7 +79,7 @@ apt.packages(
 files.put(
     name="Confgure tmux",
     src="files/tmux/tmux.conf",
-    dest=f"{homedir}/.tmux.conf",
+    dest=f"{homedir}/.tmux.conf", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",
@@ -89,7 +89,7 @@ files.put(
 files.put(
     name="Confgure tmux-powerline",
     src="files/tmux/tmux-powerline-config.sh",
-    dest=f"{homedir}/.config/tmux-powerline/config.sh",
+    dest=f"{homedir}/.config/tmux-powerline/config.sh", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",
@@ -99,7 +99,7 @@ files.put(
 files.sync(
     name="Patching tmux-powerline",
     src="files/tmux/segments/",
-    dest=f"{homedir}/.tmux/tmux-powerline/segments/",
+    dest=f"{homedir}/.tmux/tmux-powerline/segments/", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",
@@ -110,7 +110,7 @@ files.sync(
 files.sync(
     name="Deploy tmux-powerline themes",
     src="files/tmux/themes/",
-    dest=f"{homedir}/.tmux/tmux-powerline/themes/",
+    dest=f"{homedir}/.tmux/tmux-powerline/themes/", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",

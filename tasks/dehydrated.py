@@ -1,3 +1,5 @@
+# pylint: disable=C0301, E0401, C0115, E0602
+
 """
 Configure dehydrated and manage Let's Encrypt certificate renewal using pyinfra.
 

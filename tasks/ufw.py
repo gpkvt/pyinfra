@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401, C0115, C0116
 """
 Install, configure, and manage the UFW firewall using pyinfra.
 
@@ -86,7 +87,6 @@ Notes:
 - UFW is enabled non-interactively using `--force`.
 - Default incoming traffic is denied and outgoing traffic is allowed.
 - SSH access is explicitly configured before firewall activation.
-
 """
 
 from pyinfra.operations import apt, server, files

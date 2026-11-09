@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Configure the user's SSH client using a Jinja2 template and pyinfra.
 
@@ -34,7 +35,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 files.template(
     name="Configure ssh client",
     src="templates/ssh_config.j2",
-    dest=f"{ssh_dir}/config",
+    dest=f"{ssh_dir}/config", # pylint: disable=undefined-variable
     mode="600",
     _sudo=False,
 )

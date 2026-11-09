@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Deploy and configure Zsh dotfiles, shell configuration, and plugins using pyinfra.
 
@@ -55,7 +56,6 @@ Notes:
   using Jinja2 templates.
 - The default shell is configured independently of the dotfile
   deployment operations.
-
 """
 
 from pyinfra.operations import files, server
@@ -68,7 +68,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 files.sync(
     name="Ensure that zsh .dotfiles are in the expected state",
     src="files/dotfiles/zsh/",
-    dest=f"{homedir}/.dotfiles/zsh/",
+    dest=f"{homedir}/.dotfiles/zsh/", # pylint: disable=undefined-variable
     delete=False,
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
@@ -80,7 +80,7 @@ files.sync(
 files.put(
     name="Configure hyfetch",
     src="files/hyfetch.conf",
-    dest=f"{homedir}/.config/neowofetch/config.conf",
+    dest=f"{homedir}/.config/neowofetch/config.conf", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",
@@ -90,7 +90,7 @@ files.put(
 files.template(
     name="Ensure that .zshrc has the proper state",
     src="templates/dotfiles/zshrc.j2",
-    dest=f"{homedir}/.zshrc",
+    dest=f"{homedir}/.zshrc", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",
@@ -101,7 +101,7 @@ files.template(
 files.template(
     name="Ensure that zplug has the proper configuration",
     src="templates/dotfiles/zplug.zsh.j2",
-    dest=f"{homedir}/.dotfiles/zsh/zplug.zsh",
+    dest=f"{homedir}/.dotfiles/zsh/zplug.zsh", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",

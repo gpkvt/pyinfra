@@ -1,4 +1,4 @@
-
+# pylint: disable=E0401
 """
 Deploy and manage the TimeTagger Docker service using pyinfra.
 
@@ -86,7 +86,7 @@ timetagger = host.data.get("docker", {}).get("timetagger", {})
 deploy_docker_service(
     service="timetagger",
     description="TimeTagger Docker Service",
-    homedir=homedir,
+    homedir=homedir, # pylint: disable=undefined-variable
     username=host.data.get("username", "root"),
     usergroup=host.data.get("usergroup", "root"),
     port=timetagger.get("port", 8080),

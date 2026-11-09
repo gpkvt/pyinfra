@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Manage system hostname mappings in /etc/hosts using pyinfra.
 

@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Manage the WireGuard VPN connection based on local network detection using pyinfra.
 
@@ -34,7 +35,6 @@ Notes:
 - The VPN service is managed through systemd.
 - The network membership check is performed before the service
   operation is evaluated.
-
 """
 
 import ipaddress
@@ -52,7 +52,7 @@ if not success:
     raise RuntimeError("Unable to retrieve network interfaces")
 
 interfaces = json.loads("\n".join(output.stdout_lines))
-network = ipaddress.ip_network(local_network_cidr)
+network = ipaddress.ip_network(local_network_cidr) # pylint: disable=undefined-variable
 
 on_local_network = any(
     ipaddress.ip_address(addr["local"]) in network
@@ -63,7 +63,7 @@ on_local_network = any(
 
 server.service(
     name="Connect to home VPN via WireGuard",
-    service=f"wg-quick@{wireguard_interface}",
+    service=f"wg-quick@{wireguard_interface}", # pylint: disable=undefined-variable
     running=True,
     enabled=True,
     _sudo=True,

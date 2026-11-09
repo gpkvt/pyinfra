@@ -1,4 +1,6 @@
-""" Define host-specific configuration for pyinfra system provisioning.
+# pylint: disable=C0103, C0301
+"""
+Define host-specific configuration for pyinfra system provisioning.
 
 This module contains the configuration options consumed by the deployment tasks. It centralizes system settings, network configuration, application preferences, service definitions, and user environment customization.
 

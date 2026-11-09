@@ -1,4 +1,4 @@
-
+# pylint: disable=E0401
 """
 Deploy and manage the Miniflux Docker service using pyinfra.
 
@@ -103,12 +103,12 @@ from pyinfra import host
 from tasks.docker import deploy_docker_service
 
 miniflux = host.data.get("docker", {}).get("miniflux", {})
-miniflux_secrets = secrets.get("docker", {}).get("miniflux", {})
+miniflux_secrets = secrets.get("docker", {}).get("miniflux", {}) # pylint: disable=undefined-variable
 
 deploy_docker_service(
     service="miniflux",
     description="Miniflux Docker Service",
-    homedir=homedir,
+    homedir=homedir, # pylint: disable=undefined-variable
     username=host.data.get("username", "root"),
     usergroup=host.data.get("usergroup", "root"),
     postgres_password=miniflux_secrets.get("postgres_password", ""),

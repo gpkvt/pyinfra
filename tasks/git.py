@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401, C0116
 """
 Install Git and configure user-level Git settings and credentials using pyinfra.
 
@@ -62,22 +63,22 @@ apt.packages(
 files.put(
     name="Create gitconfig",
     src="files/git/gitconfig",
-    dest=f"{homedir}/.gitconfig",
+    dest=f"{homedir}/.gitconfig", # pylint: disable=undefined-variable
     mode="640",
     _sudo=False,
 )
 
 # Create git-credentials
-set_immutable(f"{homedir}/.git-credentials", False)
+set_immutable(f"{homedir}/.git-credentials", False) # pylint: disable=undefined-variable
 
-if secrets.get("git_credentials") is not None:
+if secrets.get("git_credentials") is not None: # pylint: disable=undefined-variable
     files.template(
         name="Create git-credentials",
         src="templates/git/git-credentials.j2",
-        dest=f"{homedir}/.git-credentials",
+        dest=f"{homedir}/.git-credentials", # pylint: disable=undefined-variable
         mode="600",
-        git_credentials=secrets.get("git_credentials", []),
+        git_credentials=secrets.get("git_credentials", []), # pylint: disable=undefined-variable
         _sudo=False,
     )
 
-set_immutable(f"{homedir}/.git-credentials", True)
+set_immutable(f"{homedir}/.git-credentials", True) # pylint: disable=undefined-variable

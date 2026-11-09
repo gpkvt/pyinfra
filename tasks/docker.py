@@ -1,3 +1,4 @@
+# pylint: disable=E0401, C0116, E1101, C0303
 
 """
 Install Docker and deploy configured Docker services using pyinfra.
@@ -123,7 +124,6 @@ if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
     initialize(host)
 
-
 @deploy("Deploy Docker service")
 def deploy_docker_service(
     service,
@@ -214,7 +214,7 @@ apt.packages(
 
 files.directory(
     name="Create docker directory structure",
-    path=f"{homedir}/.docker/",
+    path=f"{homedir}/.docker/", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="750",

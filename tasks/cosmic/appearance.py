@@ -1,4 +1,7 @@
-"""Configure COSMIC appearance settings such as dark and light mode."""
+# pylint: disable=E0401
+"""
+Configure COSMIC appearance settings such as dark and light mode.
+"""
 
 from pyinfra import host
 from tasks.cosmic.config import deploy_cosmic_values

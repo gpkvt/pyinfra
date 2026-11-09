@@ -21,7 +21,7 @@ repos:
       - id: pylint
         args:
           # - --errors-only
-          - --disable=E0401,E0602,C0301,W0105,C0116,R0903,R0801,C0115,C0103
+          - --disable=E0401,C0301,W0105,C0116,R0903,R0801,C0115,C0103
         files: '\.py$'
 
   # YAML linting

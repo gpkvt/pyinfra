@@ -1,4 +1,4 @@
-
+# pylint: disable=E0401
 """
 Deploy and manage the Grav CMS Docker service using pyinfra.
 
@@ -71,7 +71,7 @@ usergroup = host.data.get("usergroup", "root")
 # Create persistent Grav data directory
 files.directory(
     name="Create Grav data directory",
-    path=f"{homedir}/.docker/grav/data/",
+    path=f"{homedir}/.docker/grav/data/", # pylint: disable=undefined-variable
     user="www-data",
     group="www-data",
     mode="750",
@@ -80,7 +80,7 @@ files.directory(
 deploy_docker_service(
     service="grav",
     description="Grav CMS Docker Service",
-    homedir=homedir,
+    homedir=homedir, # pylint: disable=undefined-variable
     username=username,
     usergroup=usergroup,
     image=grav.get("image", "getgrav/grav:1.7"),

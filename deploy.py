@@ -1,3 +1,5 @@
+# pylint: disable=line-too-long, undefined-variable
+
 """
 Configure and execute local infrastructure provisioning tasks using pyinfra.
 

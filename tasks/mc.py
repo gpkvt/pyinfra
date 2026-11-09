@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Install and configure Midnight Commander (mc) using pyinfra.
 
@@ -51,7 +52,7 @@ apt.packages(
 files.put(
     name="Add mc skin",
     src="files/mc/solarized.ini",
-    dest=f"{homedir}/.config/mc/solarized.ini",
+    dest=f"{homedir}/.config/mc/solarized.ini", # pylint: disable=undefined-variable
     user=host.data.get("username", "root"),
     group=host.data.get("usergroup", "root"),
     mode="640",
@@ -60,8 +61,8 @@ files.put(
 
 files.line(
     name="Configure mc skin",
-    path=f"{homedir}/.config/mc/ini",
-    line=f"skin = {homedir}/.config/mc/solarized.ini",
+    path=f"{homedir}/.config/mc/ini", # pylint: disable=undefined-variable
+    line=f"skin = {homedir}/.config/mc/solarized.ini", # pylint: disable=undefined-variable
     replace="^skin\\s*=.*$",
     flags="m",
     _sudo=False,

@@ -1,3 +1,4 @@
+# pylint: disable=E0401, C0115, C0116
 
 """
 AppArmor hardening for Pop!_OS 24.04 LTS.

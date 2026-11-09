@@ -1,3 +1,4 @@
+# pylint: disable=C0301, E0401
 """
 Manage Mullvad Browser extensions and user preferences using pyinfra.
 

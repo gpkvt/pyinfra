@@ -1,4 +1,7 @@
-"""Configure COSMIC workspace settings."""
+# pylint: disable=E0401
+"""
+Configure COSMIC workspace settings.
+"""
 
 from pyinfra import host
 from tasks.cosmic.config import deploy_cosmic_values
