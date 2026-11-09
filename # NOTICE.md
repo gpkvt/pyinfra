@@ -7,7 +7,7 @@ This project includes or is derived from **pyinfra**, an infrastructure automati
 - **Project:** pyinfra
 - **Original repository:** [https://github.com/pyinfra-dev/pyinfra](<https://github.com/pyinfra-dev/pyinfra>)
 - **Fork:** [https://github.com/gpkvt/pyinfra](<https://github.com/gpkvt/pyinfra>)
-- **Website:** https://pyinfra.com
+- **Website:** <https://pyinfra.com>
 - **License:** MIT License
 - **License text:** LICENSE.md
 
