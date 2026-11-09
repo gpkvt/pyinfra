@@ -215,6 +215,10 @@ Services such as Docker, Caddy, WireGuard, and UFW can be configured independent
 
 The configuration files contain examples and defaults for the local environment. Adapt them to your own infrastructure before deployment.
 
+## Additional documentation
+
+You can find additional documentation in [docs](docs).
+
 ## Secrets management
 
 Sensitive configuration is maintained separately from ordinary host configuration and encrypted using GPG.
