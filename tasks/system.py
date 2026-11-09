@@ -31,6 +31,18 @@ Configuration:
         Parameters are applied immediately and persisted
         in /etc/sysctl.d/99-local.conf.
 
+    udev:
+        Dictionary of udev rules.
+        Keys are rule filenames, values are rule contents.
+
+    usbguard:
+        USBGuard configuration.
+        Supported settings:
+            enabled: Install and enable USBGuard.
+            rules: List of USBGuard policy rules.
+            implicit_policy: Default policy (block, allow, reject).
+            present_device_policy: Policy for already connected devices.
+
 Target:
     Debian / Ubuntu
 """
@@ -40,7 +52,7 @@ from io import StringIO
 
 from pyinfra import host
 from pyinfra.api import FactBase
-from pyinfra.operations import files, server
+from pyinfra.operations import apt, files, server
 
 # Custom fact: retrieve current system locale
 class SystemLocale(FactBase):
@@ -271,3 +283,175 @@ if sysctl:
             persist_file="/etc/sysctl.d/99-local.conf",
             _sudo=True,
         )
+
+# Configure udev rules
+udev = host.data.get("udev", {})
+udev_changed = False
+
+if udev:
+    if not isinstance(udev, dict):
+        raise ValueError("udev configuration must be a dictionary")
+
+    for filename, content in udev.items():
+        if not isinstance(filename, str) or not re.fullmatch(
+            r"[0-9]{2}-[a-zA-Z0-9_.-]+\.rules",
+            filename,
+        ):
+            raise ValueError(f"Invalid udev rule filename: {filename}")
+
+        if not isinstance(content, str):
+            raise ValueError(
+                f"udev rule content must be a string: {filename}"
+            )
+
+        result = files.put(
+            name=f"Configure udev rules: {filename}",
+            src=StringIO(content.rstrip() + "\n"),
+            dest=f"/etc/udev/rules.d/{filename}",
+            user="root",
+            group="root",
+            mode="644",
+            _sudo=True,
+        )
+
+        if result.changed:
+            udev_changed = True
+
+    if udev_changed:
+        server.shell(
+            name="Reload udev rules",
+            commands=["udevadm control --reload-rules"],
+            _sudo=True,
+        )
+
+# Configure USBGuard
+usbguard = host.data.get("usbguard", {})
+
+if usbguard:
+    if not isinstance(usbguard, dict):
+        raise ValueError("USBGuard configuration must be a dictionary")
+
+    enabled = usbguard.get("enabled", False)
+
+    if not isinstance(enabled, bool):
+        raise ValueError("USBGuard enabled must be a boolean")
+
+    if enabled:
+        rules = usbguard.get("rules", [])
+        implicit_policy = usbguard.get("implicit_policy", "block")
+        present_device_policy = usbguard.get(
+            "present_device_policy",
+            "apply-policy",
+        )
+
+        if not isinstance(rules, list) or not rules:
+            raise ValueError(
+                "USBGuard requires an explicit, non-empty rules list"
+            )
+
+        if implicit_policy not in ("allow", "block", "reject"):
+            raise ValueError(
+                f"Invalid USBGuard implicit policy: {implicit_policy}"
+            )
+
+        if present_device_policy not in (
+            "allow",
+            "block",
+            "reject",
+            "keep",
+            "apply-policy",
+        ):
+            raise ValueError(
+                "Invalid USBGuard present device policy: "
+                f"{present_device_policy}"
+            )
+
+        for rule in rules:
+            if (
+                not isinstance(rule, str)
+                or not re.match(r"^(allow|block|reject)\s", rule)
+                or "\n" in rule
+                or "\r" in rule
+                or "\x00" in rule
+            ):
+                raise ValueError(
+                    f"Invalid USBGuard rule: {rule}"
+                )
+
+        # Install USBGuard
+        apt.packages(
+            name="Install USBGuard",
+            packages=["usbguard"],
+            present=True,
+            _sudo=True,
+        )
+
+        # Create USBGuard configuration directory
+        files.directory(
+            name="Create USBGuard configuration directory",
+            path="/etc/usbguard",
+            present=True,
+            user="root",
+            group="root",
+            mode="700",
+            _sudo=True,
+        )
+
+        # Track configuration changes
+        usbguard_changed = False
+
+        # Configure USBGuard daemon
+        daemon_config = (
+            "RuleFile=/etc/usbguard/rules.conf\n"
+            f"ImplicitPolicyTarget={implicit_policy}\n"
+            f"PresentDevicePolicy={present_device_policy}\n"
+            "PresentControllerPolicy=keep\n"
+            "InsertedDevicePolicy=apply-policy\n"
+            "IPCAllowedUsers=root\n"
+        )
+
+        daemon_result = files.put(
+            name="Configure USBGuard daemon",
+            src=StringIO(daemon_config),
+            dest="/etc/usbguard/usbguard-daemon.conf",
+            user="root",
+            group="root",
+            mode="600",
+            _sudo=True,
+        )
+
+        if daemon_result.changed:
+            usbguard_changed = True
+
+        # Configure USBGuard rules
+        rules_result = files.put(
+            name="Configure USBGuard rules",
+            src=StringIO("\n".join(rules) + "\n"),
+            dest="/etc/usbguard/rules.conf",
+            user="root",
+            group="root",
+            mode="600",
+            _sudo=True,
+        )
+
+        if rules_result.changed:
+            usbguard_changed = True
+
+        # Enable and restart USBGuard only when necessary
+        if usbguard_changed:
+            server.shell(
+                name="Enable and restart USBGuard",
+                commands=[
+                    "systemctl enable usbguard",
+                    "systemctl restart usbguard",
+                ],
+                _sudo=True,
+            )
+        else:
+            server.service(
+                name="Ensure USBGuard is enabled and running",
+                service="usbguard",
+                running=True,
+                enabled=True,
+                _sudo=True,
+            )
