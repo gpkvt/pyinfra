@@ -31,10 +31,8 @@ These dependencies are distributed under their respective licenses. Their copyri
 
 In particular, third-party dependency licenses must be respected independently of the MIT License covering pyinfra itself.
 
-For the authoritative list of dependencies and their versions, see:
-
-- `pyproject.toml`
-- `uv.lock`
+This repo might contain content (most likely in `scripts`) which might not use
+the MIT License.
 
 Please consult the individual upstream projects for their applicable copyright notices and license texts.
 
