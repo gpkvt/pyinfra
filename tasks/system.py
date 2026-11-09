@@ -26,6 +26,11 @@ Configuration:
             variant: Keyboard variant (default: empty).
             options: Keyboard options (default: empty).
 
+    sysctl:
+        Dictionary of Linux kernel parameters.
+        Parameters are applied immediately and persisted
+        in /etc/sysctl.d/99-local.conf.
+
 Target:
     Debian / Ubuntu
 """
@@ -205,3 +210,64 @@ if keyboard:
         mode="644",
         _sudo=True,
     )
+
+# Configure sysctl parameters
+sysctl = host.data.get("sysctl", {})
+
+if sysctl:
+    if not isinstance(sysctl, dict):
+        raise ValueError(
+            "Sysctl configuration must be a dictionary"
+        )
+
+    for key, value in sysctl.items():
+        # Validate parameter name
+        if not isinstance(key, str) or not re.fullmatch(
+            r"[a-zA-Z0-9_.-]+",
+            key,
+        ):
+            raise ValueError(
+                f"Invalid sysctl parameter: {key}"
+            )
+
+        # Validate parameter value
+        if isinstance(value, bool):
+            raise ValueError(
+                f"Invalid sysctl value for {key}: {value}"
+            )
+
+        if isinstance(value, (str, int)):
+            values = [value]
+        elif isinstance(value, list):
+            values = value
+        else:
+            raise ValueError(
+                f"Invalid sysctl value type for {key}: "
+                f"{type(value).__name__}"
+            )
+
+        if not values:
+            raise ValueError(
+                f"Sysctl value cannot be empty: {key}"
+            )
+
+        for item in values:
+            if (
+                isinstance(item, bool)
+                or not isinstance(item, (str, int))
+                or not str(item)
+                or "\n" in str(item)
+                or "\r" in str(item)
+            ):
+                raise ValueError(
+                    f"Invalid sysctl value for {key}: {item}"
+                )
+
+        server.sysctl(
+            name=f"Configure sysctl: {key}",
+            key=key,
+            value=value,
+            persist=True,
+            persist_file="/etc/sysctl.d/99-local.conf",
+            _sudo=True,
+        )

@@ -84,6 +84,25 @@ powerline=True
 tmux=True
 powerline_fonts=False
 
+# Configure Linux kernel parameters
+sysctl = {
+    # Network security
+    "net.ipv4.conf.all.accept_redirects": 0,
+    "net.ipv4.conf.default.accept_redirects": 0,
+    "net.ipv4.conf.all.send_redirects": 0,
+    "net.ipv4.conf.default.send_redirects": 0,
+    "net.ipv4.conf.all.rp_filter": 1,
+    "net.ipv4.conf.default.rp_filter": 1,
+
+    # Network performance
+    "net.core.somaxconn": 4096,
+    "net.ipv4.tcp_syncookies": 1,
+
+    # Virtual memory
+    "vm.swappiness": 10,
+    "vm.vfs_cache_pressure": 50,
+}
+
 # Configure sudo
 sudoers_rules = [
     # WireGuard
@@ -98,7 +117,6 @@ sudoers_rules = [
 ]
 
 # Configure vscodium
-
 vscodium = {
     "extensions": [
         # GitHub
