@@ -93,3 +93,6 @@ if host.data.get("cosmic"):
 
 if host.data.get("mullvad_extensions"):
     local.include("tasks/mullvad-extensions.py")
+
+if host.data.get("vscodium"):
+    local.include("tasks/vscodium.py")

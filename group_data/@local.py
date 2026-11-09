@@ -97,6 +97,41 @@ sudoers_rules = [
     "%sudo ALL=(ALL) NOPASSWD: ALL",
 ]
 
+# Configure vscodium
+
+vscodium = {
+    "extensions": [
+        # GitHub
+        "GitHub.vscode-pull-request-github",
+
+        # Ansible
+        "5mdt.ansible-vault-editor",
+
+        # Containers and Docker
+        "ms-azuretools.vscode-containers",
+        "ms-azuretools.vscode-docker",
+
+        # Git
+        "mhutchie.git-graph",
+
+        # Remote access
+        "jeanp413.open-remote-ssh",
+        "Kelvin.vscode-sshfs",
+
+        # Python
+        "ms-python.python",
+        "ms-python.debugpy",
+        "ms-python.vscode-python-envs",
+
+        # Data formats
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+
+        # Formatting
+        "esbenp.prettier-vscode",
+    ],
+}
+
 # Configure COSMIC Desktop
 cosmic = {
   "enabled": True,
