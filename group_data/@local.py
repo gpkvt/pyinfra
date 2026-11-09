@@ -52,6 +52,16 @@ Notes:
 """
 
 # General settings
+hostname="chao"
+timezone = "Europe/Amsterdam"
+locale = "en_US.UTF-8"
+keyboard = {
+    "layout": "de",
+    "model": "pc105",
+    "variant": "",
+    "options": "",
+}
+
 username="gpkvt"
 usergroup="gpkvt"
 homedir="/home/gpkvt"
