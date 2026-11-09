@@ -163,6 +163,15 @@ sudoers_rules = [
     "%sudo ALL=(ALL) NOPASSWD: ALL",
 ]
 
+# Proton applications
+proton = {
+    "mail": True,
+    "bridge": True,
+    "vpn": True,
+    "pass": True,
+    "flatpak": True,
+}
+
 # Configure vscodium
 vscodium = {
     "extensions": [

@@ -89,3 +89,6 @@ if host.data.get("mullvad_extensions"):
 
 if host.data.get("vscodium"):
     local.include("tasks/vscodium.py")
+
+if host.data.get("proton"):
+    local.include("tasks/proton.py")
