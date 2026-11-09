@@ -1,211 +1,134 @@
-# Configuration
+# Host configuration
 
-Configuration is host-specific and lives in `group_data/`. The file `group_data/@local.py` contains the configuration for the local environment. Variables defined there are available in tasks as `host.data.<name>`.
+Host-specific desired state is stored as Python data in `group_data/`. pyinfra exposes the values for a target through `host.data`. The supplied `group_data/@local.py` is an example configuration for one environment, not a portable default. Audit and adapt it before running any deployment.
 
-> The shipped files contain examples and defaults for the author's local environment. **Adapt them to your own infrastructure before deployment.** Sensitive credentials and private keys are maintained separately in the encrypted secrets configuration (see `docs/secrets.md`). Default values for optional settings are determined by the consuming deployment modules.
+## Which file is used?
 
-## Configuration sections
+The inventory target name determines the corresponding group-data file. The local target uses `group_data/@local.py`; a target named `web01` should have `group_data/web01.py`.
 
-Per the module docstring of `group_data/@local.py`, settings are organized into logical sections:
+Keep configuration data separate from task logic. Put private keys, passwords, API tokens and credential-bearing URLs in the encrypted secrets file, not in group data. See [Secrets management](secrets.md).
 
-### General
+## Common settings
 
-Primary user, group, home directory, and system settings:
-
-| Variable | Meaning | Example in `@local.py` |
+| Setting | Purpose | Notes |
 | --- | --- | --- |
-| `hostname` | System hostname | `chao` |
-| `username` | Primary user name | `gpkvt` |
-| `usergroup` | Primary group | `gpkvt` |
-| `homedir` | Home directory (also published as `builtins.homedir`) | `/home/gpkvt` |
-| `timezone` | System timezone | `Europe/Amsterdam` |
-| `locale` | System locale | `en_US.UTF-8` |
-| `keyboard` | Keyboard layout, model, variant and options | `de` |
-| `editor` | Preferred editor | `mcedit` |
-| `local_network_cidr` | Local network, used by VPN/WireGuard tasks (default `10.0.0.0/24`) | `192.168.42.0/24` |
-| `wireguard_interface` | WireGuard interface name (default `False`) | `home` |
+| `hostname` | System hostname | Managed by `tasks/system.py`. |
+| `username` | Primary user | Used by user-scoped tasks; some tasks default to `root` if omitted. |
+| `usergroup` | Primary group | Used by user-scoped tasks; some tasks default to `root`. |
+| `homedir` | User home directory | Also published as `builtins.homedir`; defaults to `/root/` in `common.initialize()`. |
+| `timezone` | System timezone | Use a valid zoneinfo identifier. |
+| `locale` | System locale | Defaults to `en_US.UTF-8` in the system task; set to `None` to skip locale management. |
+| `keyboard` | XKB keyboard configuration | Empty dictionary disables management. |
+| `editor` / `visual_editor` | Default editors | `visual_editor` falls back to `editor`. |
 
-### Network — `/etc/hosts` mappings
+Example:
 
-The `hostnames` dictionary drives the `hosts` task (management of `/etc/hosts`). Example from `@local.py`:
+```python
+hostname = "workstation"
+username = "deploy"
+usergroup = "deploy"
+homedir = "/home/deploy"
+timezone = "Etc/UTC"
+locale = "en_US.UTF-8"
+editor = "vim"
+```
 
-python
+## Network and name resolution
+
+`hostnames` maps IP addresses to one or more hostnames and is consumed by `tasks/hosts.py` to manage `/etc/hosts`.
 
 ```python
 hostnames = {
-    "127.0.0.1": "localhost local.21x9.org timetagger.21x9.org",
-    "::1": "localhost local.21x9.org",
-    "192.168.42.100": "storage.intern.21x9.org paperless.intern.21x9.org",
-    "192.168.42.120": "storage.21x9.org",
+    "127.0.0.1": "localhost",
+    "::1": "localhost",
+    "192.0.2.10": "app.example.test app",
 }
 ```
 
-### System
+VPN-related settings:
 
-System-level configuration is managed through the following variables:
-
-| Variable | Purpose |
+| Setting | Purpose |
 | --- | --- |
-| `sysctl` | Linux kernel parameters |
-| `udev` | Custom udev rules |
-| `usbguard` | USBGuard settings and authorization rules |
+| `local_network_cidr` | IPv4 CIDR used to detect whether the host is on the trusted/local network. |
+| `wireguard_interface` | Interface name used by the VPN service task. |
+| `wireguard_config` | Mapping of interface names to WireGuard interface settings. |
 
-### User environment
+The VPN task currently checks globally scoped IPv4 addresses only. It starts/enables `wg-quick@<wireguard_interface>` when none belongs to the configured local CIDR. It does not evaluate IPv6 network membership.
 
-Configuration values controlling optional shell and terminal tooling:
+## Packages and repositories
 
-| Variable | Task gated | Effect |
+- `apt_packages`: list of Debian package names installed by `tasks/apt.py`.
+- `apt_sources`: mapping of repository identifiers to signing-key and APT source definitions. The task downloads keys and creates `.list` source files.
+- `flatpak_packages`: list of Flatpak application IDs. `tasks/flatpak.py` is included only when the Flatpak executable is detected.
+
+Example:
+
+```python
+apt_packages = ["curl", "git", "rsync"]
+flatpak_packages = ["org.mozilla.firefox"]
+```
+
+Review third-party repository URLs, distributions, architectures and signing-key sources before enabling them.
+
+## System hardening and access
+
+| Setting | Consumed by | Purpose |
 | --- | --- | --- |
-| `zsh` | `tasks/zsh.py` | Install/configure Zsh |
-| `tmux` | `tasks/tmux.py` | Install/configure tmux |
-| `powerline` | `tasks/powerline.py` | Install/configure Powerline |
-| `powerline_fonts` | Used by font configuration | Controls Powerline font installation |
-| `ssh_config` | `tasks/ssh_config.py` | Deploy SSH client configuration |
+| `sysctl` | `tasks/system.py` | Kernel parameters, applied immediately and persisted in `/etc/sysctl.d/99-local.conf`. |
+| `udev` | `tasks/system.py` | Mapping of `.rules` filenames to rule contents. |
+| `usbguard` | `tasks/system.py` | Daemon policy and explicit device authorization rules. |
+| `sudoers_rules` | `tasks/sudo.py` | Custom sudoers lines installed after `visudo` validation. |
+| `ssh_keys` | `tasks/ssh_keys.py` | SSH keypair definitions to generate when absent. |
+| `ssh_authorized_keys` | `tasks/ssh_keys.py` | Mapping of users to authorized public keys. |
+| `ssh_config` | `tasks/ssh_config.py` | SSH client configuration rendered from a template. |
+| `apparmor_profiles` | `tasks/apparmor.py` | Profiles to enforce. |
 
-### SSH
+For detailed validation, file paths and safety considerations, see [System configuration](system.md) and [Task reference](tasks.md).
 
-SSH configuration and key management use the following variables:
+## Optional user and desktop features
 
-| Variable | Purpose |
-| --- | --- |
-| `ssh_config` | SSH client host configuration |
-| `ssh_keys` | SSH keypairs to generate/manage |
-| `ssh_authorized_keys` | Public keys authorized to access the machine |
+| Setting | Module | Expected content |
+| --- | --- | --- |
+| `zsh` | `tasks/zsh.py` | Truthy enablement value. |
+| `tmux` | `tasks/tmux.py` | Truthy enablement value. |
+| `powerline` | `tasks/powerline.py` | Truthy enablement value. |
+| `powerline_fonts` | `tasks/fonts.py` | Boolean-like flag for optional patched fonts. |
+| `cosmic` | `tasks/cosmic/deploy.py` | COSMIC desktop configuration dictionary. |
+| `vscodium` | `tasks/vscodium.py` | Extension configuration dictionary. |
+| `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
+| `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
+| `proton` | `tasks/proton.py` | Proton application selection and options. |
 
-### Services and feature flags
-
-Optional infrastructure features are controlled through host configuration:
-
-| Variable | Task gated |
-| --- | --- |
-| `caddy_config` | `tasks/caddy.py` |
-| `ufw` | `tasks/ufw.py` |
-| `docker` | `tasks/docker.py` |
-| `apparmor_profiles` | `tasks/apparmor.py` |
-| `cosmic` | `tasks/cosmic/deploy.py` (COSMIC desktop) |
-| `mullvad_extensions` | `tasks/mullvad_extensions.py` |
-| `vscodium` | `tasks/vscodium.py` |
-| `proton` | `tasks/proton.py` |
-
-These variables can be dictionaries or lists containing the configuration consumed by the corresponding task modules; they are not necessarily simple Boolean flags.
-
-### Combined feature requirements
-
-Some tasks depend on multiple configuration values or external prerequisites:
-
-- **WireGuard tunnel:** requires `wireguard_config` in host data and a `wireguard` entry in secrets.
-- **VPN routing:** requires both `local_network_cidr` and `wireguard_interface` to be set.
-- **Certificates (dehydrated):** requires a `dehydrated` entry in secrets.
-- **Flatpak:** gated by detected availability (`builtins.flatpak`, checked via `initialize(host, check_flatpak=True)`), not by a configuration flag.
+## Service configuration
 
 ### Docker
 
-The `docker` dictionary defines containerized applications and their deployment options.
+`docker` is a mapping of service names to service-specific settings. The repository currently includes service modules for Miniflux, TimeTagger and Grav. Example keys in the supplied configuration include ports, image, database version and service-specific setup options. Consult the relevant `tasks/docker/` module and Compose template before adding or changing keys; the schema is service-specific.
 
-Example from `@local.py`:
+### Caddy
 
-python
+`caddy_config` maps site addresses to Caddy directives consumed by `tasks/caddy.py`. The example uses TLS certificate paths and reverse-proxy destinations. Ensure the referenced certificates exist and that upstream services are reachable.
 
-```python
-docker = {
-    "miniflux": {
-        "postgres_version": 12,
-        "port": "8005",
-    },
-    "timetagger": {
-        "port": "8010",
-    },
-    "grav": {
-        "image": "getgrav/grav:1.7",
-        "port": 8015,
-        "channel": "stable",
-        "setup": True,
-        "scheduler": True,
-        "fix_permissions": True,
-    },
-}
-```
+### Firewall
 
-Corresponding compose and service templates are located under `templates/docker/` (e.g. `miniflux/`, `timetagger/`).
+`ufw` maps application/profile names to policy actions used by `tasks/ufw.py`. Review the installed UFW application profiles and rules before enabling changes on a remote host.
 
-See `docs/tasks.md` (Docker) for details.
+## Secrets-dependent configuration
 
-### APT packages
+The following features combine host data with encrypted secrets:
 
-The `apt_packages` list defines system packages to install and maintain.
+- WireGuard requires `wireguard_config` plus matching `secrets.wireguard` entries.
+- dehydrated requires a `secrets.dehydrated` entry.
+- Git credentials are deployed only when `secrets.git_credentials` is present.
+- SSH key generation can use `secrets.ssh` passphrases.
+- Miniflux uses `secrets.docker.miniflux` for credentials.
 
-Additional repositories are configured through `apt_sources`, which contains repository URLs, signing keys, distributions, components and architectures.
+The absence of `secrets.json.gpg` does not stop the whole deployment; `common.initialize()` sets an empty secrets dictionary. See [Secrets management](secrets.md) for the supported structure.
 
-Both are consumed by `tasks/apt.py`.
+## Adding a host
 
-### Flatpak applications
-
-The `flatpak_packages` list contains Flatpak application IDs to install, consumed by `tasks/flatpak.py` when Flatpak is available.
-
-Examples from `@local.py` include:
-
-- `com.spotify.Client`
-- `com.obsproject.Studio`
-- `com.github.tchx84.Flatseal`
-- `com.github.wwmm.easyeffects`
-- Various COSMIC applets.
-
-### Proton
-
-The `proton` dictionary controls Proton application configuration.
-
-The current example includes:
-
-- Proton Mail
-- Proton Bridge
-- Proton VPN
-- Proton Pass
-- Flatpak support
-- Proton Drive CLI version
-
-The actual installation and configuration options are defined in `tasks/proton.py`.
-
-### VSCodium
-
-The `vscodium` dictionary contains the extensions to install.
-
-The current example includes extensions for:
-
-- GitHub
-- Ansible
-- Docker and containers
-- Git
-- Remote SSH
-- Python
-- XML and YAML
-- Prettier formatting
-
-See `tasks/vscodium.py` for implementation details.
-
-### Mullvad Browser extensions
-
-The `mullvad_extensions` dictionary defines browser extensions, including their extension IDs and download URLs.
-
-The `mullvad_browser_dir` variable specifies the browser profile directory.
-
-See `tasks/mullvad_extensions.py` for implementation details.
-
-### COSMIC Desktop
-
-The `cosmic` dictionary controls COSMIC desktop configuration, including:
-
-- Appearance and dark/light mode.
-- Panel position, size and applets.
-- Dock position, size and applets.
-- Workspace orientation and behavior.
-
-The `cosmic_config_files` dictionary defines the source and destination directories for static COSMIC configuration files.
-
-See `tasks/cosmic/deploy.py` for implementation details.
-
-## Adding a new host
-
-1. Add the host to `inventory.py` (SSH connection settings, sudo options).
-2. Create a matching file in `group_data/` (named after the host) with the required variables and feature configuration.
-3. Ensure the host is not listed in `disabled_hosts`.
-4. Review the configuration and test the deployment before applying changes.
+1. Add a target entry to `_all_hosts` in `inventory.py`.
+2. Add its name to `disabled_hosts` until it is ready, if you want to prevent accidental selection through `production`.
+3. Create `group_data/<host>.py` with only the settings needed by that host.
+4. Verify SSH and privilege escalation.
+5. Run a dry deployment with a host limit and review every proposed operation.

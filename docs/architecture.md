@@ -1,69 +1,78 @@
 # Architecture
 
-## Overview
+This project uses [pyinfra](https://pyinfra.com/) to turn Python host data into repeatable infrastructure operations. Its main separation is between **where to connect**, **what a host should look like**, and **how to implement each change**.
 
-This repository implements a configuration-driven infrastructure automation workflow on top of [pyinfra](<https://pyinfra.com>). Deployment logic, target definition, host configuration, and secrets are strictly separated:
-
-text
+## Repository layers
 
 ```text
-inventory.py ──► defines deployment targets (hosts) + SSH settings
-      │
-      ▼
-deploy.py ─────► orchestrator: selects which tasks to include
-      │            conditions come from host.data (group_data/) and secrets
-      ▼
-tasks/*.py ────► modular provisioning logic (operations)
-      │
-      ▼
-files/ + templates/ ─► static payloads (scripts, dotfiles) and Jinja2 templates
-      │
-      ▲
-common.py ─────► initialize(): decrypts secrets, exposes shared config via builtins
-      │
-      ▲
-group_data/ ───► host-specific configuration consumed as host.data
+inventory.py ─────── target names, SSH options and privilege escalation
+       │
+       ▼
+group_data/ ──────── per-host desired configuration (host.data)
+       │
+       ▼
+deploy.py ────────── initialization and conditional task selection
+       │
+       ▼
+tasks/*.py ───────── pyinfra operations and task-specific validation
+       │             ├── templates/  rendered, parameterized files
+       │             └── files/      static payloads
+       ▲
+common.py ────────── shared runtime values and decrypted secrets
 ```
-
-## Component responsibilities
 
 | Component | Responsibility |
 | --- | --- |
-| `inventory.py` | Defines deployment targets and SSH settings |
-| `group_data/` | Contains host-specific configuration |
-| `common.py` | Initializes shared configuration and decrypts secrets |
-| `deploy.py` | Selects and executes deployment tasks |
-| `tasks/` | Contains modular provisioning tasks |
-| `files/` | Contains scripts, dotfiles, and configuration files |
-| `templates/` | Contains Jinja2 templates |
-| `secrets.json.gpg.example` | Documents the expected secrets structure |
+| `inventory.py` | Declares target hosts, SSH connection settings and `_sudo` behavior. |
+| `group_data/` | Supplies target-specific settings, exposed to tasks as `host.data`. |
+| `deploy.py` | Calls initialization, includes core tasks and gates optional tasks. |
+| `common.py` | Loads the encrypted secrets file and publishes shared runtime values. |
+| `tasks/` | Declares operations for system, network, service and user configuration. |
+| `templates/` | Holds Jinja2 templates rendered by task modules. |
+| `files/` | Holds static files copied or synchronized by task modules. |
 
-## Execution flow
+## Execution lifecycle
 
-1. **Inventory resolution** — pyinfra loads `inventory.py`. The special `@local` host represents the local execution environment. Hosts listed in `disabled_hosts` are excluded from the production inventory.
-2. **Initialization** — `deploy.py` calls `common.initialize(host)`:
-   - `common.initialize()` checks whether `secrets.json.gpg` exists. If present, it runs `gpg --decrypt secrets.json.gpg`, parses the JSON output, and publishes it as `builtins.secrets`. If absent, it sets `builtins.secrets = {}` and prints "Loading Secrets: None, skipping…". Features requiring secrets are consequently skipped.
-   - Shared configuration values are published as builtins: `builtins.homedir` (from `host.data.homedir`), `builtins.ssh_dir` (`{homedir}/.ssh`), `builtins.wireguard_interface` (defaults `False`), `builtins.local_network_cidr` (default `10.0.0.0/24`).
-   - Optionally (`check_flatpak=True`), the Flatpak executable is detected via the `Which` fact and stored as `builtins.flatpak`.
-3. **Task selection** — `deploy.py` includes core tasks unconditionally and optional tasks according to host configuration, available software, and configured secrets (see `docs/deployment.md` for the exact conditions).
-4. **Execution** — pyinfra connects to each host (SSH or local) and executes the included operations, reporting changed vs. unchanged operations.
+1. **Inventory loading.** pyinfra loads `inventory.py`. `production` is built from `_all_hosts` after removing names in `disabled_hosts`. The special `@local` host represents the machine running pyinfra.
+2. **Initialization.** `deploy.py` calls `common.initialize(host, check_flatpak=True)`. The function checks for `secrets.json.gpg`; when present, it runs `gpg --decrypt`, parses JSON, and assigns the result to `builtins.secrets`. If absent, it assigns an empty dictionary. It also sets `builtins.homedir` and, when requested, `builtins.flatpak` from the `Which` fact.
+3. **Task selection.** Core task modules are included unconditionally. Optional modules are included when the relevant `host.data` value, secret entry, or detected executable is truthy. The exact gates are listed in [Deployment workflow](deployment.md).
+4. **Operation execution.** pyinfra evaluates the included operations against the selected hosts and reports changed and unchanged operations. Operations may use facts and conditional callbacks to decide whether a change is required.
 
-## Configuration access patterns
+## Configuration namespaces
 
-Per the module docstring in `deploy.py`:
+### Host data
 
-> Configuration values are accessed through `host.data`, while shared runtime configuration and secrets are exposed through builtins.
+Values in `group_data/<host>.py` are available as `host.data.<name>` or `host.data.get(<name>, default)`. Examples include `apt_packages`, `wireguard_config`, `docker`, `ufw`, and `zsh`.
 
-That means:
+### Shared builtins
 
-- **`host.data.*`** — everything defined in `group_data/<host>.py` (feature flags such as `host.data.zsh`, `host.data.docker`, etc.).
-- **Builtins** — cross-task runtime values (`secrets`, `homedir`, `ssh_dir`, `wireguard_interface`, `local_network_cidr`, `flatpak`), published by `common.initialize()`.
+`common.initialize()` currently publishes:
 
-## Modularity
+| Name | Meaning |
+| --- | --- |
+| `secrets` | Parsed decrypted JSON dictionary, or `{}` if no encrypted file is found. |
+| `homedir` | `host.data.homedir`, defaulting to `/root/`. |
+| `flatpak` | Result of the Flatpak `Which` fact when `check_flatpak=True`. |
 
-Each task file is self-contained and maps to one concern:
+Some task modules initialize `common` themselves when `homedir` has not yet been set. Avoid adding new implicit globals; prefer explicit task inputs where practical.
 
-- **Core tasks (always included):** `apt`, `hosts`, `sudo`, `system`, `ssh_keys`, `git`, `fonts`, `scripts`, `mc`.
-- **Optional tasks (condition-gated):** `flatpak`, `ssh_config`, `wireguard`, `vpn`, `dehydrated`, `caddy`, `zsh`, `tmux`, `powerline`, `ufw`, `docker`, `apparmor`, `cosmic` (via `tasks/cosmic/deploy.py`), `mullvad_extensions`, `vscodium`, `proton`.
+## Task organization
 
-Static payloads (dotfiles, scripts, firewall profiles) live under `files/`, dynamic configuration is rendered from `templates/` using Jinja2 (`ssh_config.j2`, `wireguard.conf.j2`, `dehydrated_config.j2`, `templates/docker/*`, `templates/dotfiles/`, `templates/git/`).
+Tasks are grouped by responsibility rather than by host. `deploy.py` owns orchestration and should remain the authoritative place for full-deployment feature gates. A task module should:
+
+- Read only the host data and secrets it needs.
+- Validate user-controlled configuration before creating operations where appropriate.
+- Keep file ownership and permissions explicit.
+- Avoid overwriting user-generated material unless that behavior is intentional and documented.
+- Be safe to run repeatedly and use pyinfra facts/conditions to minimize unnecessary changes.
+
+## Templates and static assets
+
+Use `templates/` when a file needs host-specific values or secrets at render time. Use `files/` for static content. A task is responsible for choosing the destination, owner, group, mode and reload/restart behavior. See [Templates and static files](templates.md).
+
+## Important boundaries
+
+- A task being present in the repository does not mean it is automatically deployed; `deploy.py` controls inclusion.
+- Secret availability and host configuration are separate conditions. WireGuard, for example, needs both a host-side interface definition and matching secret data.
+- The WireGuard task writes configuration but does not start the tunnel. The VPN task manages the `wg-quick@...` service based on IPv4 network detection.
+- The local target can change the machine executing pyinfra. Treat `@local` with the same care as a production host.

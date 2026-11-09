@@ -1,219 +1,76 @@
-# Task Reference
+# Task reference
 
-All deployment tasks live in `tasks/`. Each file is a pyinfra task module; static payloads come from `files/`, dynamic configuration from `templates/`.
+`deploy.py` is the authoritative task orchestrator. It always includes the core modules and includes optional modules only when their gate is truthy. This page summarizes each module; inspect the implementation and its templates for the definitive behavior and accepted data shape.
 
-## Core tasks (always included by `deploy.py`)
+## Core tasks
 
-### `tasks/apt.py`
+These task modules are included on every full deployment.
 
-Debian package management. Configures third-party APT repositories, downloads repository signing keys, updates package indexes, upgrades installed packages and installs the system packages listed in `apt_packages`.
+| Module | Responsibility | Main configuration |
+| --- | --- | --- |
+| `tasks/apt.py` | Downloads configured repository keys, writes APT source lists, updates package indexes, upgrades packages when the index changes, and installs packages. | `apt_sources`, `apt_packages` |
+| `tasks/hosts.py` | Manages `/etc/hosts` mappings. | `hostnames` |
+| `tasks/sudo.py` | Writes custom sudoers rules to `/etc/sudoers.d/99-local`, validates with `visudo`, and sets restrictive permissions. | `sudoers_rules` |
+| `tasks/system.py` | Manages hostname, timezone, locale, editor environment, keyboard, sysctl, udev and USBGuard. | See [System configuration](system.md). |
+| `tasks/ssh_keys.py` | Generates supported SSH keypairs only when absent and manages authorized keys. Existing private keys are not overwritten. | `ssh_keys`, `ssh_authorized_keys`, `secrets.ssh` |
+| `tasks/git.py` | Installs/configures Git and deploys Git-related configuration and credentials when available. | Git host data and `secrets.git_credentials` |
+| `tasks/fonts.py` | Installs font packages; optionally downloads Powerline-patched fonts. | `powerline_fonts` |
+| `tasks/scripts.py` | Synchronizes `files/scripts/` into the configured user's scripts directory and creates command links. Existing destination files not in the source are preserved. | `username`, `usergroup` |
+| `tasks/mc.py` | Installs and configures Midnight Commander. | `username`, `usergroup` |
 
-Repository configuration is read from `apt_sources` in the host configuration.
+## Optional tasks
 
-### `tasks/hosts.py`
+| Module | Inclusion condition | Responsibility |
+| --- | --- | --- |
+| `tasks/flatpak.py` | Flatpak executable detected during initialization | Installs configured Flatpak application IDs. |
+| `tasks/ssh_config.py` | `ssh_config` | Renders the user's SSH client configuration. |
+| `tasks/wireguard.py` | `wireguard_config` and `secrets.wireguard` | Installs WireGuard and writes `/etc/wireguard/<interface>.conf`; does not start the service. |
+| `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
+| `tasks/dehydrated.py` | `secrets.dehydrated` | Configures dehydrated for ACME certificate management and deploys its hook. |
+| `tasks/caddy.py` | `caddy_config` | Deploys Caddy configuration from host data. |
+| `tasks/zsh.py` | `zsh` | Installs/configures Zsh and related user configuration. |
+| `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
+| `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
+| `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
+| `tasks/docker.py` | `docker` | Deploys configured Docker Compose services and user-level systemd units. |
+| `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
+| `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
+| `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
+| `tasks/vscodium.py` | `vscodium` | Installs configured VSCodium extensions that are not already installed. |
+| `tasks/proton.py` | `proton` | Installs/configures selected Proton applications using the configured distribution sources. |
 
-Manages `/etc/hosts` entries from the `hostnames` mapping in `group_data/`.
+## Feature notes
 
-Defaults to configuring `127.0.0.1` as `localhost`.
+### APT
 
-### `tasks/sudo.py`
+Repository definitions include a signing-key URL and destination plus repository URL, distribution, components and optional architectures/types. Review third-party repository configuration carefully: adding a repository delegates package trust to that repository's signing key and publishing process.
 
-Manages custom sudoers rules from the `sudoers_rules` host configuration.
+### SSH keys
 
-Writes the rules to `/etc/sudoers.d/99-local`, validates the configuration using `visudo` before installation and sets permissions to `0440`.
+The task supports Ed25519 and RSA key generation; RSA keys must be at least 3072 bits. Private keys are not overwritten when they already exist. Passphrases can be supplied through `secrets.ssh`. Keep backups of keys and verify authorized-key changes before removing access paths.
 
-### `tasks/system.py`
+### WireGuard and VPN activation
 
-Manages basic operating-system configuration, including hostname, timezone, locale, default editors, keyboard layout, sysctl parameters, udev rules and USBGuard.
+The WireGuard task installs the package and renders one file per configured interface. The VPN task is separate: it inspects globally scoped IPv4 addresses using `ip -j -4 addr show scope global`, compares them with `local_network_cidr`, and enables/runs the configured `wg-quick@...` service when outside that network. IPv6 is not considered by the network-detection check.
 
-Configuration is read from the host data. See system.md for details.
+### Docker services
 
-### `tasks/ssh_keys.py`
+Service-specific definitions live in `tasks/docker/` and `templates/docker/`. The current repository includes Miniflux, TimeTagger and Grav modules. Compose files and user-level systemd units are deployed under the configured user's home/configuration directories. Changes can cause image pulls and service restarts.
 
-Manages SSH keypairs and authorized keys.
+### Browser and editor extensions
 
-Configuration:
+Mullvad extension downloads are defined by extension IDs and URLs. VSCodium extension installation is additive: already-installed extensions are detected and left in place. Review external download sources before enabling either task.
 
-- `ssh_keys`: List of SSH keypairs to generate.
-- `ssh_authorized_keys`: Mapping of system users to public keys.
+### Proton
 
-Supports Ed25519 and RSA keys. RSA keys must have at least 3072 bits.
+The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options.
 
-Private keys are never overwritten automatically. SSH key passphrases are retrieved from the decrypted secrets configuration.
+## Run an individual task
 
-### `tasks/git.py`
+For diagnosis or focused testing, pyinfra can run a task file directly. Example:
 
-Git configuration and dotfiles from `files/git/`, with templates from `templates/git/`.
+```bash
+pyinfra inventory.py tasks/system.py --dry --diff
+```
 
-### `tasks/fonts.py`
-
-Installs and configures system fonts through APT, including Fontconfig and a comprehensive collection of font packages.
-
-Optionally downloads and installs additional Powerline-patched fonts when `powerline_fonts` is enabled in the host configuration.
-
-### `tasks/scripts.py`
-
-Deploys arbitrary scripts from `files/scripts/` to the configured user's `~/scripts/` directory and creates symbolic links in `/usr/local/bin/`.
-
-Uses `username` and `usergroup` from the host configuration, defaulting to `root`.
-
-Existing destination files not present in the source directory are preserved.
-
-### `tasks/mc.py`
-
-Installs and configures Midnight Commander using configuration files from `files/mc/`.
-
-## Optional tasks (condition-gated)
-
-### `tasks/flatpak.py`
-
-Installs Flatpak applications listed in the host configuration (e.g. Spotify, OBS Studio, Flatseal, EasyEffects, COSMIC applets).
-
-Gated on Flatpak being detected on the host (`builtins.flatpak` fact via `Which`).
-
-### `tasks/ssh_config.py`
-
-Deploys the SSH client configuration rendered from `templates/ssh_config.j2`.
-
-Gated on `host.data.ssh_config`.
-
-### `tasks/wireguard.py`
-
-Deploys a WireGuard tunnel configuration from `templates/wireguard.conf.j2`.
-
-Requires both `host.data.wireguard_config` and a `wireguard` entry in the decrypted secrets.
-
-### `tasks/vpn.py`
-
-VPN routing/network integration.
-
-Requires both `local_network_cidr` and `wireguard_interface` to be configured.
-
-### `tasks/dehydrated.py`
-
-ACME (Let's Encrypt) certificate management via dehydrated; configuration rendered from `templates/dehydrated_config.j2`.
-
-Requires a `dehydrated` entry in secrets.
-
-### `tasks/caddy.py`
-
-Caddy web server / reverse proxy configuration.
-
-Gated on `host.data.caddy_config`.
-
-### `tasks/zsh.py`
-
-zsh shell setup.
-
-Gated on `host.data.zsh`.
-
-### `tasks/tmux.py`
-
-tmux configuration (payload from `files/tmux/`).
-
-Gated on `host.data.tmux`.
-
-### `tasks/powerline.py`
-
-Powerline prompt setup (payload from `files/powerline/`).
-
-Gated on `host.data.powerline`.
-
-### `tasks/ufw.py`
-
-UFW firewall rules (profiles from `files/ufw/`).
-
-Gated on `host.data.ufw`.
-
-### `tasks/docker.py`
-
-Docker installation and containerized application deployment.
-
-Sub-tasks in `tasks/docker/`; service definitions/templates under `templates/docker/` (e.g. `miniflux/`, `timetagger/`).
-
-Gated on `host.data.docker`.
-
-### `tasks/apparmor.py`
-
-AppArmor profile management.
-
-Gated on `host.data.apparmor_profiles`.
-
-### `tasks/cosmic/` (entry: `tasks/cosmic/deploy.py`)
-
-COSMIC desktop environment setup (payloads from `files/cosmic/`).
-
-Gated on `host.data.cosmic`.
-
-### `tasks/mullvad_extensions.py`
-
-Manages Mullvad Browser extensions and user preferences.
-
-Configuration:
-
-- `mullvad_browser_dir`: Mullvad Browser distribution directory. Defaults to `/usr/lib/mullvad-browser/distribution`.
-- `mullvad_extensions`: Dictionary of extensions to download, each containing a download URL and extension ID.
-- `username` and `usergroup`: Ownership of the extensions directory and downloaded extensions.
-
-Downloads configured XPI files into the browser's extensions directory and deploys `files/mullvad-user.js` as `user.js`.
-
-Gated on `host.data.mullvad_extensions`.
-
-Restart Mullvad Browser after deployment for changes to take effect.
-
-### `tasks/vscodium.py`
-
-Manages VSCodium extensions.
-
-Configuration:
-
-- `vscodium`: Dictionary containing an `extensions` list of extension IDs.
-- `username`: Target user for extension installation.
-
-Detects already installed extensions and schedules installation only for missing ones. Existing manually installed extensions are preserved.
-
-Gated on `host.data.vscodium`.
-
-### `tasks/proton.py`
-
-Installs Proton applications.
-
-Supported components:
-
-- Proton Mail
-- Proton Mail Bridge
-- Proton VPN
-- Proton Pass
-- Proton Drive CLI
-
-Uses the official APT repository, Flathub or official Proton DEB downloads depending on the application and configuration.
-
-Configuration is read from `host.data.proton`.
-
-Gated on `host.data.proton`.
-
-## Deployment order
-
-The complete deployment is orchestrated by `deploy.py`.
-
-Core tasks are included first, followed by optional tasks according to their respective conditions.
-
-The core task order is:
-
-1. `tasks/apt.py`
-2. `tasks/hosts.py`
-3. `tasks/sudo.py`
-4. `tasks/system.py`
-5. `tasks/ssh_keys.py`
-6. `tasks/git.py`
-7. `tasks/fonts.py`
-8. `tasks/scripts.py`
-9. `tasks/mc.py`
-
-Optional tasks are included when their corresponding configuration or prerequisites are available.
-
-## Notes
-
-The task descriptions above provide an overview of configuration, functionality and execution conditions. For detailed operation lists and implementation specifics, refer to the individual source files in `tasks/`.
-
-The deployment entry point is `deploy.py`.
+A task run directly may not have all initialization or feature-gate behavior of `deploy.py`; inspect whether the task initializes shared state itself. Prefer the full entry point for normal provisioning.
