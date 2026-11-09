@@ -36,12 +36,84 @@ Configuration:
         Keys are rule filenames, values are rule contents.
 
     usbguard:
-        USBGuard configuration.
-        Supported settings:
-            enabled: Install and enable USBGuard.
-            rules: List of USBGuard policy rules.
-            implicit_policy: Default policy (block, allow, reject).
-            present_device_policy: Policy for already connected devices.
+        USBGuard configuration for controlling USB device access.
+
+        USBGuard provides a default-deny security policy that allows
+        only explicitly authorized USB devices. Rules can identify
+        devices by vendor/product ID, serial number, device hash,
+        parent hash, physical port and USB interface.
+
+        Configuration is managed through host.data:
+            enabled:
+                Install and enable the USBGuard daemon.
+            implicit_policy:
+                Default action for devices not matching any rule
+                (allow, block or reject). Defaults to block.
+            present_device_policy:
+                Policy applied to devices already connected when
+                USBGuard starts.
+            rules:
+                List of USBGuard policy rules.
+
+        Rules are persisted in /etc/usbguard/rules.conf and
+        daemon settings in /etc/usbguard/usbguard-daemon.conf.
+        Changes trigger a USBGuard service restart.
+
+        Adding new USB devices:
+            1. Connect the new USB device.
+            2. List connected devices:
+                   sudo usbguard list-devices
+            3. Identify the device ID of the blocked device.
+            4. Temporarily authorize the device:
+                   sudo usbguard allow-device <ID>
+               Or permanently authorize it:
+                   sudo usbguard allow-device -p <ID>
+            5. Retrieve the generated policy rules:
+                   sudo usbguard list-rules
+            6. Copy the corresponding allow rule into
+               host.data['usbguard']['rules'] in group_data.
+            7. Deploy the updated configuration using pyinfra.
+
+        Useful commands:
+            List all devices:
+                sudo usbguard list-devices
+
+            List blocked devices:
+                sudo usbguard list-devices -b
+
+            List allowed devices:
+                sudo usbguard list-devices -a
+
+            List active rules:
+                sudo usbguard list-rules
+
+            Temporarily allow a device:
+                sudo usbguard allow-device <ID>
+
+            Permanently allow a device:
+                sudo usbguard allow-device -p <ID>
+
+            Temporarily block a device:
+                sudo usbguard block-device <ID>
+
+            Permanently reject a device:
+                sudo usbguard reject-device -p <ID>
+
+            Generate initial policy from connected devices:
+                sudo usbguard generate-policy
+
+        Important:
+            Permanent authorization modifies the active USBGuard
+            policy, but pyinfra manages rules.conf as the source
+            of truth. Always copy new rules into group_data to
+            preserve them across deployments.
+
+            Review generated rules before accepting them.
+            USBGuard rules may be tied to physical USB ports
+            and parent controllers.
+
+            Ensure keyboards, mice and other essential devices
+            are authorized before enabling a default-deny policy.
 
 Target:
     Debian / Ubuntu
@@ -328,6 +400,7 @@ if udev:
 usbguard = host.data.get("usbguard", {})
 
 if usbguard:
+    print(__doc__)
     if not isinstance(usbguard, dict):
         raise ValueError("USBGuard configuration must be a dictionary")
 
