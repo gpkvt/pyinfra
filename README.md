@@ -331,6 +331,7 @@ text
 ├── templates/
 │   ├── dehydrated_config.j2
 │   ├── docker/
+│   │   ├── grav/
 │   │   ├── miniflux/
 │   │   └── timetagger/
 │   ├── dotfiles/
