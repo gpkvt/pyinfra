@@ -45,11 +45,12 @@ initialize(host, check_flatpak=True)
 # Tasks
 local.include("tasks/apt.py")
 local.include("tasks/hosts.py")
-local.include("tasks/scripts.py")
-local.include("tasks/mc.py")
+local.include("tasks/sudo.py")
+local.include("tasks/ssh_keys.py")
 local.include("tasks/git.py")
 local.include("tasks/fonts.py")
-local.include("tasks/ssh_keys.py")
+local.include("tasks/scripts.py")
+local.include("tasks/mc.py")
 
 if flatpak:
     local.include("tasks/flatpak.py")

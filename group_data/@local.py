@@ -83,8 +83,20 @@ powerline=True
 tmux=True
 powerline_fonts=False
 
-# Configure COSMIC Desktop
+# Configure sudo
+sudoers_rules = [
+    # WireGuard
+    "ALL ALL=NOPASSWD: /usr/bin/wg show",
+    "ALL ALL=NOPASSWD: /usr/bin/wg-quick",
 
+    # User-specific permissions
+    "gpkvt ALL=(root) ALL",
+
+    # Passwordless sudo for sudo group
+    "%sudo ALL=(ALL) NOPASSWD: ALL",
+]
+
+# Configure COSMIC Desktop
 cosmic = {
   "enabled": True,
 
