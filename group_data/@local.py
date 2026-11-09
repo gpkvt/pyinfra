@@ -335,12 +335,25 @@ apt_sources = {
   "waydroid": {
       "key": {
           "url": "https://repo.waydro.id/waydroid.gpg",
-          "path": "/etc/apt/keyrings/waydroid-keychain.gpg",
+          "path": "/etc/apt/keyrings/waydroid-keyring.gpg",
       },
       "repository": {
           "url": "https://repo.waydro.id/",
           "distribution": "noble",
           "components": ["main"],
+          "architectures": ["amd64"],
+          "types": ["deb"],
+      },
+  },
+  "synaptics": {
+      "key": {
+          "url": "https://www.synaptics.com/sites/default/files/Ubuntu/synaptics-repository-keyring.gpg",
+          "path": "/usr/share/keyrings/synaptics-keyring.gpg",
+      },
+      "repository": {
+          "url": "https://www.synaptics.com/sites/default/files/Ubuntu",
+          "distribution": "stable",
+          "components": ["main", "non-free"],
           "architectures": ["amd64"],
           "types": ["deb"],
       },
