@@ -110,7 +110,7 @@ if host.data.get("powerline_fonts", False):
         name="Install Powerline fonts",
         commands=[
             f'find {EXTRACT_DIR}/fonts-master -type f '
-            r'\( -iname "*.ttf" -o -iname "*.otf" \) '
+            rf'\( -iname "*.ttf" -o -iname "*.otf" \) '
             f'-exec cp -n {{}} {FONT_DIR}/ \;'
         ],
     )
