@@ -492,6 +492,11 @@ The pre-commit configuration includes:
 - **Secure:** Credentials and private keys are separated from ordinary configuration and encrypted.
 - **Reusable:** Shared templates and configuration allow deployment logic to be reused across hosts.
 
+## Contributing
+
+Contributions are welcome! Please read
+[CONTRIBUTION.md](CONTRIBUTION.md) before submitting changes.
+
 ## License
 
 This project is licensed under the MIT License.
