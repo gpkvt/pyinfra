@@ -163,6 +163,7 @@ cosmic_config_files = {
     },
 }
 
+# Mullvad Browser extensions
 mullvad_browser_dir = "/home/gpkvt/.mullvad-browser/.mullvad/mullvadbrowser/i2xe179z.default-release"
 mullvad_extensions = {
     "ublock-origin": {
@@ -209,6 +210,33 @@ mullvad_extensions = {
         "id": "twitch5-fork@traumvogel",
         "url": "https://addons.mozilla.org/firefox/downloads/latest/alternate-player-for-twitch/latest.xpi",
     },
+}
+
+# SSH key management
+ssh_keys = [
+    {
+        "name": "id_ed25519",
+        "type": "ed25519",
+        "comment": "gpkvt@workstation",
+    },
+    {
+        "name": "id_github",
+        "type": "ed25519",
+        "comment": "github",
+    },
+    {
+        "name": "id_rsa_legacy",
+        "type": "rsa",
+        "bits": 4096,
+        "comment": "legacy-connection",
+    },
+]
+
+# Public keys authorized to access this machine.
+# Keys can be provided directly as strings.
+ssh_authorized_keys = {
+    "gpkvt": [
+    ],
 }
 
 # Enforce apparmor profiles
