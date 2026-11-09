@@ -358,6 +358,19 @@ apt_sources = {
           "types": ["deb"],
       },
   },
+  "winehq": {
+      "key": {
+          "url": "https://dl.winehq.org/wine-builds/winehq.key",
+          "path": "/etc/apt/keyrings/winehq-keyring.key",
+      },
+      "repository": {
+          "url": "https://dl.winehq.org/wine-builds/ubuntu",
+          "distribution": "noble",
+          "components": ["main"],
+          "architectures": ["amd64", "i386"],
+          "types": ["deb"],
+      },
+  },
 }
 
 # Install flatpak packages
