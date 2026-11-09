@@ -115,7 +115,7 @@ Notes:
     - Docker image updates are not automatically pulled.
 """
 
-from pyinfra import host, local
+from pyinfra import host
 from pyinfra.api import deploy
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
@@ -219,12 +219,3 @@ files.directory(
     group=host.data.get("usergroup", "root"),
     mode="750",
 )
-
-if "miniflux" in container:
-    local.include("tasks/docker/miniflux.py")
-
-if "timetagger" in container:
-    local.include("tasks/docker/timetagger.py")
-
-if "grav" in container:
-    local.include("tasks/docker/grav.py")
