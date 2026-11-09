@@ -53,6 +53,7 @@ if use_flatpak and flatpak_apps:
     flathub_remotes = host.get_fact(
         Command,
         command="flatpak remote-list --system --columns=name",
+        _sudo=False
     )
 
     server.shell(
@@ -62,12 +63,14 @@ if use_flatpak and flatpak_apps:
             "https://flathub.org/repo/flathub.flatpakrepo",
         ],
         _if=lambda: "flathub" not in flathub_remotes.splitlines(),
+        _sudo=False
     )
 
     # Check installed applications.
     installed_apps = host.get_fact(
         Command,
         command="flatpak list --system --app --columns=application",
+        _sudo=False
     )
 
     missing_apps = [
@@ -85,4 +88,5 @@ if use_flatpak and flatpak_apps:
                 "flathub "
                 + " ".join(missing_apps),
             ],
+            _sudo=False
         )
