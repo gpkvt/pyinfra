@@ -163,6 +163,54 @@ cosmic_config_files = {
     },
 }
 
+mullvad_browser_dir = "/home/gpkvt/.mullvad-browser/.mullvad/mullvadbrowser/i2xe179z.default-release"
+mullvad_extensions = {
+    "ublock-origin": {
+        "id": "uBlock0@raymondhill.net",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi",
+    },
+    "dark-reader": {
+        "id": "addon@darkreader.org",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/darkreader/latest.xpi",
+    },
+    "duckduckgo": {
+        "id": "jid1-ZAdIEUB7XOzOJw@jetpack",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/duckduckgo-for-firefox/latest.xpi",
+    },
+    "export-cookies": {
+        "id": "{36bdf805-c6f2-4f41-94d2-9b646342c1dc}",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/export-cookies-txt/latest.xpi",
+    },
+    "multi-account-containers": {
+        "id": "@testpilot-containers",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/multi-account-containers/latest.xpi",
+    },
+    "privacy-badger": {
+        "id": "jid1-MnnxcxisBPnSXQ@jetpack",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/privacy-badger17/latest.xpi",
+    },
+    "tab-discarder": {
+        "id": "tab-discarder@extension",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/automatic-tab-discarder/latest.xpi",
+    },
+    "video-downloadhelper": {
+        "id": "{b9db16a4-6edc-47ec-a1f4-b86292ed211d}",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/video-downloadhelper/latest.xpi",
+    },
+    "proton-vpn": {
+        "id": "vpn@proton.ch",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/proton-vpn-firefox-extension/latest.xpi",
+    },
+    "sponsorblock": {
+        "id": "sponsorBlocker@ajay.app",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/sponsorblock/latest.xpi",
+    },
+    "alternate-player-twitch": {
+        "id": "twitch5-fork@traumvogel",
+        "url": "https://addons.mozilla.org/firefox/downloads/latest/alternate-player-for-twitch/latest.xpi",
+    },
+}
+
 # Enforce apparmor profiles
 apparmor_profiles = [
     {

@@ -88,3 +88,6 @@ if host.data.get("apparmor_profiles"):
 
 if host.data.get("cosmic"):
     local.include("tasks/cosmic/deploy.py")
+
+if host.data.get("mullvad_extensions"):
+    local.include("tasks/mullvad-extensions.py")
