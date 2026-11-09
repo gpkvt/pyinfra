@@ -52,14 +52,14 @@ if use_flatpak and flatpak_apps:
     # Check configured Flatpak remotes.
     flathub_remotes = host.get_fact(
         Command,
-        command="flatpak remote-list --system --columns=name",
+        command="flatpak remote-list --user --columns=name",
         _sudo=False
     )
 
     server.shell(
         name="Configure Flathub",
         commands=[
-            "flatpak remote-add --system flathub "
+            "flatpak remote-add --user flathub "
             "https://flathub.org/repo/flathub.flatpakrepo",
         ],
         _if=lambda: "flathub" not in flathub_remotes.splitlines(),
@@ -69,7 +69,7 @@ if use_flatpak and flatpak_apps:
     # Check installed applications.
     installed_apps = host.get_fact(
         Command,
-        command="flatpak list --system --app --columns=application",
+        command="flatpak list --user --app --columns=application",
         _sudo=False
     )
 
