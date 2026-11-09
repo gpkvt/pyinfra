@@ -64,13 +64,3 @@ files.sync(
     dir_mode="750",
     _sudo=False
 )
-files.sync(
-    name="Install fonts",
-    src="files/powerline/fonts/",
-    dest=f"{homedir}/.fonts/", # pylint: disable=undefined-variable
-    user=host.data.get("username", "root"),
-    group=host.data.get("usergroup", "root"),
-    mode="640",
-    dir_mode="750",
-    _sudo=False
-)
