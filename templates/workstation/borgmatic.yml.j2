@@ -1,0 +1,90 @@
+# ============================================================
+# Borgmatic backup configuration
+# Notebook
+# ============================================================
+
+# Directories to back up
+source_directories:
+  - {{ homedir | default('/home') }}
+
+# Backup repository
+repositories:
+  - path: {{ mount | default('/mnt/backup/borg/notebook') }}
+    label: {{ label | default('notebook') }}
+
+# ============================================================
+# Exclusions
+# ============================================================
+
+exclude_patterns:
+  # Downloads
+  - /home/*/Downloads
+  - /home/*/downloads
+
+  # General cache directories
+  - /home/*/.cache
+  - /home/*/.local/share/Trash
+  - /home/*/.local/tmp
+  - /home/*/tmp
+  - /home/*/Temp
+  - /home/*/.thumbnails
+
+  # Firefox cache
+  - /home/*/.mozilla/firefox/*/cache2
+
+  # Chromium cache
+  - /home/*/.config/chromium/*/Cache
+  - /home/*/.config/google-chrome/*/Cache
+
+  # Mullvad Browser cache (Debian package)
+  - /home/*/.mullvad-browser/*/cache2
+  - /home/*/.mullvad-browser/*/startupCache
+  - /home/*/.mullvad-browser/*/thumbnails
+  - /home/*/.mullvad-browser/*/shader-cache
+
+  # Virtual environments and package caches
+  - /home/*/.venv
+  - /home/*/venv
+  - /home/*/.npm
+  - /home/*/.cargo/registry
+  - /home/*/.rustup
+  - /home/*/.gradle/caches
+
+  # Container storage
+  - /home/*/.local/share/containers
+
+  # Temporary editor files
+  - '*.swp'
+  - '*.swo'
+  - '*~'
+  - '*.tmp'
+  - '*.pyc'
+
+# Exclude directories containing CACHEDIR.TAG
+exclude_caches: true
+
+# ============================================================
+# Retention policy
+# ============================================================
+
+keep_daily: {{ keep_daily | default('7') }}
+keep_weekly: {{ keep_weekly | default('4') }}
+keep_monthly: {{ keep_monthly | default('6') }}
+keep_yearly: {{ keep_yearly | default('2') }}
+
+# ============================================================
+# Repository checks
+# ============================================================
+
+checks:
+  - name: repository
+    frequency: {{ check_repo_freq | default('1 week') }}
+
+  - name: archives
+    frequency: {{ check_archive_freq | default('1 month') }}
+
+# ============================================================
+# Compression
+# ============================================================
+
+compression: zstd

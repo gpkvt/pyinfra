@@ -18,7 +18,7 @@ Execution:
     4. Otherwise, update APT sources using a four-hour cache.
     5. Upgrade installed packages and remove obsolete dependencies
        when the package index has changed.
-    6. Install each configured package individually.
+    6. Install all configured packages in a single operation.
 """
 
 from pyinfra import host
@@ -53,6 +53,7 @@ def update_apt_sources(repository_operations):
 
     return forced_update, cached_update
 
+
 def upgrade_apt_packages(update_operations):
     """
     Upgrade installed APT packages.
@@ -71,20 +72,6 @@ def upgrade_apt_packages(update_operations):
         _if=any_changed(*update_operations),
     )
 
-def install_apt_package(package_name):
-    """
-    Install an individual APT package.
-
-    Ensures that the specified package is installed on the target
-    host. Each package is handled as a separate pyinfra operation.
-
-    Args:
-        package_name (str): Name of the package to install.
-    """
-    apt.packages(
-        name=f"Install {package_name}",
-        packages=[package_name],
-    )
 
 # Ensure keyring directory exists.
 files.directory(
@@ -147,18 +134,13 @@ for name, repo in apt_sources.items():
 apt_packages = host.data.get("apt_packages", [])
 
 # Execute package management operations.
-print("update_apt_sources():")
-print(update_apt_sources.__doc__)
-
 apt_update = update_apt_sources(apt_repository_operations)
-
-print("upgrade_apt_packages():")
-print(upgrade_apt_packages.__doc__)
 
 upgrade_apt_packages(apt_update)
 
-print("install_apt_package():")
-print(install_apt_package.__doc__)
-
-for package in apt_packages:
-    install_apt_package(package)
+# Install all configured APT packages in a single operation.
+if apt_packages:
+    apt.packages(
+        name="Install APT packages",
+        packages=apt_packages,
+    )

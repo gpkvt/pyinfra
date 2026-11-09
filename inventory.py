@@ -40,6 +40,10 @@ _all_hosts = {
     },
 }
 
+workstation = [
+    "@local",
+]
+
 production = [
     (hostname, options)
     for hostname, options in _all_hosts.items()
