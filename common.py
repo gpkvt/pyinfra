@@ -42,11 +42,6 @@ def initialize(host, check_flatpak=False):
         builtins.secrets: Decrypted secrets dictionary, or an empty
             dictionary if no secrets file exists.
         builtins.homedir: User's home directory.
-        builtins.ssh_dir: Path to the user's SSH directory.
-        builtins.wireguard_interface: Configured WireGuard interface,
-            or False if not configured.
-        builtins.local_network_cidr: Configured local network CIDR,
-            defaulting to 10.0.0.0/24.
         builtins.flatpak: Flatpak executable path/fact, only when
             check_flatpak is True.
 
@@ -72,14 +67,7 @@ def initialize(host, check_flatpak=False):
         print("    Loading Secrets: None, skipping...")
 
     # Configuration
-    builtins.homedir = host.data.homedir
-    builtins.ssh_dir = f"{host.data.homedir}/.ssh"
-    builtins.wireguard_interface = host.data.get(
-        "wireguard_interface", False
-    )
-    builtins.local_network_cidr = host.data.get(
-        "local_network_cidr", "10.0.0.0/24"
-    )
+    builtins.homedir = host.data.get("homedir", "/root/")
 
     # Optional facts
     if check_flatpak:

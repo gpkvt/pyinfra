@@ -1,4 +1,3 @@
-
 """
 Manage APT package updates, upgrades, and installations.
 
@@ -86,8 +85,6 @@ def install_apt_package(package_name):
         name=f"Install {package_name}",
         packages=[package_name],
     )
-
-print(__doc__)
 
 # Ensure keyring directory exists.
 files.directory(

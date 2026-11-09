@@ -32,6 +32,8 @@ if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
     initialize(host)
 
+ssh_dir = f"{host.data.homedir}/.ssh"
+
 files.template(
     name="Configure ssh client",
     src="templates/ssh_config.j2",

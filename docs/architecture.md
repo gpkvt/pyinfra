@@ -51,9 +51,6 @@ group_data/ ───► host-specific configuration consumed as host.data
      Features requiring secrets are consequently skipped.
    - Shared configuration values are published as builtins:
      `builtins.homedir` (from `host.data.homedir`),
-     `builtins.ssh_dir` (`{homedir}/.ssh`),
-     `builtins.wireguard_interface` (defaults `False`),
-     `builtins.local_network_cidr` (default `10.0.0.0/24`).
    - Optionally (`check_flatpak=True`), the Flatpak executable is detected
      via the `Which` fact and stored as `builtins.flatpak`.
 3. **Task selection** — `deploy.py` includes task modules conditionally

@@ -31,6 +31,8 @@ from common import initialize
 from pyinfra import host, local
 
 initialize(host, check_flatpak=True)
+local_network_cidr=host.data.get("local_network_cidr")
+wireguard_interface=host.data.get("wireguard_interface")
 
 # Tasks
 local.include("tasks/apt.py")

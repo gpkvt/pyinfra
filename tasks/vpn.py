@@ -52,6 +52,8 @@ if not success:
     raise RuntimeError("Unable to retrieve network interfaces")
 
 interfaces = json.loads("\n".join(output.stdout_lines))
+local_network_cidr = host.data.get("local_network_cidr", "10.0.0.0/24")
+wireguard_interface = host.data.get("wireguard_interface", False)
 network = ipaddress.ip_network(local_network_cidr) # pylint: disable=undefined-variable
 
 on_local_network = any(
