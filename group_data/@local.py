@@ -134,10 +134,16 @@ usbguard = {
 
         'allow id 1d6b:0003 serial "0000:c5:00.4" name "xHCI Host Controller" hash "KO1NQ7RUKlHxfOoXihmS1c3W/qdBBGVulR+zAZ0uOB4=" parent-hash "+fcV1hCPZJah+gDkMEtWVVjyjL+PGsIF1708cD0hIaM=" with-interface 09:00:00 with-connect-type ""',
 
+        # YubiKey OTP + FIDO + CCID
+        'allow id 1050:0407 serial "" name "YubiKey OTP+FIDO+CCID" hash "Q+A8QQReKclmBSaDIYja0w4Bx6ld2IU6wF7HFKdtJ3Q=" parent-hash "oSRBqitQDOgWuBAedOGgTHiwDU//ZY3Hg/EJsQfNmvM=" via-port "1-2" with-interface { 03:01:01 03:00:00 0b:00:00 } with-connect-type "hotplug"',
+
+        # USB 2.0 Hub
         'allow id 05e3:0610 serial "" name "USB2.0 Hub" hash "p0xurg8ayXbgrHAmFBL5BElzY8M/rvDA/w3li6d/wtw=" parent-hash "oSRBqitQDOgWuBAedOGgTHiwDU//ZY3Hg/EJsQfNmvM=" via-port "1-3" with-interface { 09:00:01 09:00:02 } with-connect-type "not used"',
 
-        'allow id 174f:11a8 serial "200901010001" name "Integrated Camera" hash "sBAoDzRbccuatqKpqEsFFW5f9RIM2sOpSXpUciJ9IRo=" parent-hash "yk4omAkIgm8hhcOiCo1YDe3mTaXCcxEIrpW0uIoamd0=" with-interface { 0e:01:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:01:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 fe:01:01 } with-connect-type "not used"',
+        # Integrated Camera
+        'allow id 174f:11a8 serial "200901010001" name "Integrated Camera" hash "sBAoDzRbccuatqKpqEsFFW5f9RIM2sOpSXpUciJ9IRo=" parent-hash "ytflbcUR58vOaTlsVdDp+prbapFyL+b4z2vdOAgegjM=" with-interface { 0e:01:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:01:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 0e:02:01 fe:01:01 } with-connect-type "not used"',
 
+        # USB device behind the hub
         'allow id 10ab:9309 serial "" name "" hash "whHOIdQrSVT8iQWv1Bg5SSP7oI4SXttsMYptqf04kXs=" parent-hash "p0xurg8ayXbgrHAmFBL5BElzY8M/rvDA/w3li6d/wtw=" via-port "1-3.1" with-interface { e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 } with-connect-type "not used"',
     ],
 }
