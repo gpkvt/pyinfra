@@ -1,5 +1,13 @@
 # pyinfra — Linux infrastructure and workstation automation
 
+[![Pre-commit](https://img.shields.io/github/actions/workflow/status/gpkvt/pyinfra/pre-commit.yml?branch=main&label=pre-commit&logo=githubactions&logoColor=white)](https://github.com/gpkvt/pyinfra/actions/workflows/pre-commit.yml)
+[![License: MIT](https://img.shields.io/github/license/gpkvt/pyinfra?label=license)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/gpkvt/pyinfra?style=flat&logo=github)](https://github.com/gpkvt/pyinfra/stargazers)
+[![Open issues](https://img.shields.io/github/issues/gpkvt/pyinfra?logo=github)](https://github.com/gpkvt/pyinfra/issues)
+[![Last commit](https://img.shields.io/github/last-commit/gpkvt/pyinfra?logo=git)](https://github.com/gpkvt/pyinfra/commits/main)
+![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Platforms: Debian and Ubuntu](https://img.shields.io/badge/platforms-Debian%20%7C%20Ubuntu-A81D33?logo=linux&logoColor=white)
+
 A configuration-driven automation repository built on [pyinfra](https://pyinfra.com). It provisions Linux hosts from a shared set of reusable tasks while keeping inventory, host-specific settings, deployment logic, templates, static files, and secrets separate.
 
 The repository is primarily designed around Debian/Ubuntu systems and includes both server infrastructure and desktop/workstation configuration. It is an opinionated starting point: the checked-in `group_data/@local.py` and `inventory.py` contain environment-specific examples and **must be reviewed before use**.
