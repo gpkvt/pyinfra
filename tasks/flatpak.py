@@ -16,6 +16,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 
 flatpak_packages = host.data.get("flatpak_packages", [])
 
+
 class FlatpakUpdates(FactBase):
     command = "flatpak remote-ls --updates --columns=application"
 
@@ -29,18 +30,23 @@ class FlatpakSystemUpdates(FactBase):
     def process(self, output):
         return [line for line in output if line.strip()]
 
+
+# Ensure Flatpak is installed.
 apt.packages(
     name="Install flatpak",
     packages=["flatpak"],
 )
 
-for package in flatpak_packages:
+# Install all configured Flatpak applications in a single operation.
+if flatpak_packages:
     flatpak.packages(
-        name=f"Install {package}",
-        packages=[package],
+        name="Install Flatpak applications",
+        packages=flatpak_packages,
         _sudo=False,
     )
 
+
+# Update system-wide Flatpak runtimes.
 server.shell(
     name="Update runtimes",
     commands=[
@@ -54,6 +60,8 @@ server.shell(
     _if=lambda: bool(host.get_fact(FlatpakSystemUpdates, _sudo=False)),
 )
 
+
+# Update user Flatpak applications.
 server.shell(
     name="Update packages",
     commands=[
@@ -66,6 +74,7 @@ server.shell(
     _sudo=False,
     _if=lambda: bool(host.get_fact(FlatpakUpdates, _sudo=False)),
 )
+
 
 def _output_as_text(result) -> str:
     """Normalize whatever run_shell_command returns into plain text."""
@@ -89,6 +98,7 @@ def _output_as_text(result) -> str:
             return "\n".join(str(line) for line in val)
 
     return repr(result)
+
 
 @operation()
 def uninstall_unused_packages():
@@ -118,11 +128,14 @@ def uninstall_unused_packages():
     logger.info("Unused flatpak refs removed")
     yield "true"  # change already happened via run_shell_command; record it
 
+
+# Remove unused user packages.
 uninstall_unused_packages(
     name="Remove unused packages",
     _sudo=False,
 )
 
+# Remove unused system runtimes.
 uninstall_unused_packages(
     name="Remove unused runtimes",
     _sudo=True,
