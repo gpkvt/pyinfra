@@ -6,13 +6,23 @@ locations, credentials, retention and source paths must be chosen explicitly.
 """
 
 from pyinfra import host
-from pyinfra.operations import apt
+from pyinfra.operations import apt, files
 
 config = host.data.get("workstation", {}).get("backup", {})
 if config.get("enabled", False):
     apt.packages(
         name="Install workstation backup tools",
-        packages=["restic", "borgbackup", "rsync"],
+        packages=["restic", "borgbackup", "rsync", "borgmatic"],
         present=True,
+        _sudo=True,
+    )
+
+    files.template(
+        name="Create borgmatic config",
+        src="templates/workstation/borgmatic.yml.j2",
+        dest="/etc/borgmatic/config.yaml",
+        mode="644",
+        user="root",
+        group="root",
         _sudo=True,
     )
