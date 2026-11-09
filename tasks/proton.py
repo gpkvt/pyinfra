@@ -83,7 +83,7 @@ if use_flatpak and flatpak_apps:
         server.shell(
             name="Install Proton Flatpak applications",
             commands=[
-                "flatpak install --system "
+                "flatpak install --user "
                 "--noninteractive --assumeyes "
                 "flathub "
                 + " ".join(missing_apps),
