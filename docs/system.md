@@ -14,6 +14,7 @@ Configuration is read from the current host's `host.data` object, normally popul
 | `editor` | string | `None` | Default command-line editor |
 | `visual_editor` | string | Value of `editor` | Default visual editor |
 | `keyboard` | dictionary | `{}` | Keyboard configuration |
+| `sysctl` | dictionary | `{}` | Linux kernel parameters |
 | `udev` | dictionary | `{}` | Custom udev rules |
 | `usbguard` | dictionary | `{}` | USBGuard configuration |
 
@@ -104,6 +105,51 @@ The task writes the configuration to `/etc/default/keyboard`.
 
 An empty keyboard dictionary disables keyboard configuration. The layout must not be empty when keyboard configuration is enabled.
 
+### Kernel parameters (sysctl)
+
+Linux kernel parameters can be configured through the `sysctl` dictionary.
+
+Example:
+
+python
+
+```python
+sysctl = {
+    "net.ipv4.ip_forward": 1,
+    "vm.swappiness": 10,
+    "net.ipv6.conf.all.disable_ipv6": 1,
+}
+```
+
+Each dictionary key represents a Linux kernel parameter, and its value specifies the parameter value.
+
+The task:
+
+1. Validates the parameter names and values.
+2. Applies each parameter using pyinfra's `server.sysctl` operation.
+3. Applies changes immediately.
+4. Persists the configuration in `/etc/sysctl.d/99-local.conf`.
+
+Supported values:
+
+- Strings.
+- Integers.
+- Lists containing strings and integers.
+
+Boolean values are explicitly rejected, despite Python treating booleans as integers.
+
+Empty lists are not supported. Values must not be empty or contain newline or carriage-return characters.
+
+Parameter names must match:
+
+regex
+
+```regex
+[a-zA-Z0-9_.-]+
+```
+
+The `sysctl` configuration must be a dictionary. An empty dictionary disables sysctl management.
+
 ## udev rules
 
 Custom udev rules are managed through the `udev` dictionary in the host configuration.
@@ -143,7 +189,7 @@ An empty `udev` dictionary disables udev rule management.
 
 ## USBGuard
 
-[USBGuard](<https://usbguard.github.io/>) provides USB device access control using a configurable authorization policy.
+USBGuard provides USB device access control using a configurable authorization policy.
 
 The system task can install and configure USBGuard, manage its daemon settings, and maintain a persistent list of authorized devices.
 
@@ -277,6 +323,7 @@ The task validates configuration values before generating operations.
 - Locales must use UTF-8 encoding.
 - Editor names must contain only supported characters.
 - Keyboard settings must be strings containing supported characters.
+- Sysctl configuration must be a dictionary containing valid parameter names and values. Boolean values and empty lists are rejected.
 - udev filenames and rule contents must meet their respective requirements.
 - USBGuard settings and authorization rules must use supported values and formats.
 
@@ -289,6 +336,7 @@ Invalid configuration raises `ValueError` and stops task preparation.
 | `/etc/default/locale` | System-wide locale |
 | `/etc/environment` | Default editor environment variables |
 | `/etc/default/keyboard` | XKB keyboard configuration |
+| `/etc/sysctl.d/99-local.conf` | Persistent Linux kernel parameters |
 | `/etc/udev/rules.d/*.rules` | Custom udev rules |
 | `/etc/usbguard/usbguard-daemon.conf` | USBGuard daemon configuration |
 | `/etc/usbguard/rules.conf` | USB device authorization rules |
@@ -315,7 +363,7 @@ bash
 pyinfra inventory.py deploy.py --sudo --diff
 ```
 
-**Note:** `tasks/system.py` is currently not included in `deploy.py`. Run it independently until the task is explicitly integrated into the deployment entry point.
+`tasks/system.py` is included in `deploy.py` and runs as part of the complete deployment.
 
 ## Implementation
 
@@ -323,7 +371,8 @@ The task uses:
 
 - `pyinfra.host` to retrieve host configuration.
 - `pyinfra.api.FactBase` to implement the custom `SystemLocale` fact.
-- `pyinfra.operations.server` for hostname, timezone and locale management.
+- `pyinfra.operations.server` for hostname, timezone, locale and sysctl management.
 - `pyinfra.operations.files` for configuration file management.
+- `pyinfra.operations.apt` for USBGuard installation.
 
 Locale changes are avoided when the requested locale already matches the current system configuration.

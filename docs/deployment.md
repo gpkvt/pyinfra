@@ -4,18 +4,18 @@ Deployments are executed through **pyinfra** from the repository root.
 
 ## Prerequisites
 
-- SSH connectivity and the required **sudo** permissions must be configured
-  on remote hosts before deployment.
+- SSH connectivity and the required **sudo** permissions must be configured on remote hosts before deployment.
 - Review the **inventory** and **host configuration** before executing.
-  Provisioning can modify system packages, network settings, firewall
-  policies, services, and user configuration.
+- Provisioning can modify system packages, network settings, firewall policies, services, and user configuration.
 
 ## Basic execution
 
 With the standard pyinfra CLI for this layout:
 
+bash
+
 ```bash
-# Preview changes (the project explicitly promotes --dry)
+# Preview changes
 pyinfra inventory.py deploy.py --diff --dry
 
 # Execute the deployment
@@ -24,31 +24,34 @@ pyinfra inventory.py deploy.py --diff
 # Target a single host
 pyinfra inventory.py deploy.py --limit @local
 
-# Example with sudo and auto-confirm (pattern seen in the project's scripts)
+# Example with sudo and auto-confirm
 pyinfra @local tasks/apt.py --sudo --diff -y
 ```
 
-> **Verification note:** The exact deployment command in the project README
-> could not be extracted verbatim at documentation time. The commands above
-> follow upstream pyinfra CLI conventions (docs.pyinfra.com) and the
-> `pyinfra @local tasks/apt.py --sudo --diff -y` pattern observed in the
-> repository's scripts. Verify against the README before running.
-
 ## What gets deployed
 
-`deploy.py` orchestrates task inclusion. **Core tasks are always included:**
+`deploy.py` orchestrates task inclusion.
 
-- `apt`, `hosts`, `scripts`, `mc`, `git`
+**Core tasks are always included:**
 
-**Optional tasks** are included depending on available software, host
-configuration, and configured secrets (conditions verbatim from `deploy.py`):
+- `tasks/apt.py`
+- `tasks/hosts.py`
+- `tasks/sudo.py`
+- `tasks/system.py`
+- `tasks/ssh_keys.py`
+- `tasks/git.py`
+- `tasks/fonts.py`
+- `tasks/scripts.py`
+- `tasks/mc.py`
 
-| Condition (from `deploy.py`) | Included task |
+**Optional tasks** are included depending on available software, host configuration, and configured secrets:
+
+| Condition | Included task |
 | --- | --- |
 | Flatpak detected (`builtins.flatpak`, via `check_flatpak=True`) | `tasks/flatpak.py` |
 | `host.data.ssh_config` | `tasks/ssh_config.py` |
-| `host.data.wireguard_config` **and** `secrets.wireguard` | `tasks/wireguard.py` |
-| `local_network_cidr` **and** `wireguard_interface` | `tasks/vpn.py` |
+| `host.data.wireguard_config` and `secrets.wireguard` | `tasks/wireguard.py` |
+| `local_network_cidr` and `wireguard_interface` | `tasks/vpn.py` |
 | `secrets.dehydrated` | `tasks/dehydrated.py` |
 | `host.data.caddy_config` | `tasks/caddy.py` |
 | `host.data.zsh` | `tasks/zsh.py` |
@@ -58,16 +61,15 @@ configuration, and configured secrets (conditions verbatim from `deploy.py`):
 | `host.data.docker` | `tasks/docker.py` |
 | `host.data.apparmor_profiles` | `tasks/apparmor.py` |
 | `host.data.cosmic` | `tasks/cosmic/deploy.py` |
+| `host.data.mullvad_extensions` | `tasks/mullvad_extensions.py` |
+| `host.data.vscodium` | `tasks/vscodium.py` |
+| `host.data.proton` | `tasks/proton.py` |
 
-Because missing secrets simply leave `secrets` empty, dropping
-`secrets.json.gpg` cleanly disables all secret-dependent features instead of
-failing the deployment.
+Because missing secrets simply leave `secrets` empty, removing `secrets.json.gpg` cleanly disables secret-dependent features instead of failing the deployment.
 
 ## Recommended workflow
 
-1. **Dry run**: `--dry` to review the intended changes.
-2. **Apply**: run without `--dry`.
-3. **Inspect**: pyinfra reports per-host, per-operation changed/unchanged
-   status.
-4. **Iterate**: adjust `group_data/` flags and re-run — deployments are
-   idempotent by pyinfra design.
+1. **Dry run**: Use `--dry` to review the intended changes.
+2. **Apply**: Run without `--dry`.
+3. **Inspect**: pyinfra reports per-host, per-operation changed/unchanged status.
+4. **Iterate**: Adjust `group_data/` flags and re-run. Deployments are designed to be idempotent.
