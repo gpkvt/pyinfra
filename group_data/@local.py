@@ -170,6 +170,7 @@ proton = {
     "vpn": True,
     "pass": True,
     "flatpak": True,
+    "drive_cli_version": "0.9.0"
 }
 
 # Configure vscodium

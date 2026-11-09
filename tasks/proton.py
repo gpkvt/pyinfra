@@ -90,3 +90,38 @@ if use_flatpak and flatpak_apps:
             ],
             _sudo=False
         )
+
+# Proton Drive CLI
+install_drive_cli = proton.get("drive_cli", True)
+
+if install_drive_cli:
+    drive_cli_version = host.data.get("proton", {}).get("drive_cll_version", "0.9.0")
+    drive_cli_platform = "linux-x64"
+
+    drive_cli_url = (
+        f"https://proton.me/download/drive/cli/"
+        f"{drive_cli_version}/{drive_cli_platform}/proton-drive"
+    )
+
+    apt.packages(
+        name="Install Proton Drive CLI dependencies",
+        packages=[
+            "curl",
+            "libsecret-1-0",
+        ],
+    )
+
+    installed_drive_cli = host.get_fact(
+        Command,
+        command="test -x /usr/local/bin/proton-drive && echo installed || true",
+    )
+
+    if "installed" not in (installed_drive_cli or "").splitlines():
+        server.shell(
+            name="Install Proton Drive CLI",
+            commands=[
+                f"curl -fsSL '{drive_cli_url}' -o /tmp/proton-drive",
+                "install -m 0755 /tmp/proton-drive /usr/local/bin/proton-drive",
+                "rm -f /tmp/proton-drive",
+            ],
+        )
