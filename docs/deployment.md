@@ -1,75 +1,92 @@
-# Deployment Workflow
+# Deployment workflow
 
-Deployments are executed through **pyinfra** from the repository root.
+Run deployments from the repository root. `deploy.py` initializes shared state and includes task modules according to the selected host's configuration and available secrets.
 
-## Prerequisites
+## Before the first deployment
 
-- SSH connectivity and the required **sudo** permissions must be configured on remote hosts before deployment.
-- Review the **inventory** and **host configuration** before executing.
-- Provisioning can modify system packages, network settings, firewall policies, services, and user configuration.
+1. Read the safety notes in the [README](../README.md).
+2. Review `inventory.py`; verify target names, SSH hostnames, ports, users and `_sudo` settings.
+3. Review the matching `group_data/<host>.py`. Remove example settings that do not belong on the target.
+4. Prepare `secrets.json.gpg` only if the enabled features need secrets.
+5. Confirm SSH connectivity and privilege escalation on remote targets.
+6. Back up important system and application configuration, and arrange console/out-of-band access for firewall or network changes.
 
-## Basic execution
-
-With the standard pyinfra CLI for this layout:
-
-bash
+## Preview and apply
 
 ```bash
-# Preview changes
-pyinfra inventory.py deploy.py --diff --dry
+# Show the planned changes without applying them
+pyinfra inventory.py deploy.py --dry --diff
 
-# Execute the deployment
+# Apply the deployment
 pyinfra inventory.py deploy.py --diff
-
-# Target a single host
-pyinfra inventory.py deploy.py --limit @local
-
-# Example with sudo and auto-confirm
-pyinfra @local tasks/apt.py --sudo --diff -y
 ```
 
-## What gets deployed
+Limit execution to one host when testing:
 
-`deploy.py` orchestrates task inclusion.
+```bash
+pyinfra inventory.py deploy.py --limit @local --dry --diff
+```
 
-**Core tasks are always included:**
+The precise CLI options can vary with pyinfra versions; consult `pyinfra --help` if an option is unavailable. `--diff` helps inspect file changes. A dry run is not a substitute for reviewing task code, backups, or recovery access.
 
-- `tasks/apt.py`
-- `tasks/hosts.py`
-- `tasks/sudo.py`
-- `tasks/system.py`
-- `tasks/ssh_keys.py`
-- `tasks/git.py`
-- `tasks/fonts.py`
-- `tasks/scripts.py`
-- `tasks/mc.py`
+## Task selection
 
-**Optional tasks** are included depending on available software, host configuration, and configured secrets:
+### Core tasks
 
-| Condition | Included task |
+These modules are always included by `deploy.py`:
+
+1. `tasks/apt.py`
+2. `tasks/hosts.py`
+3. `tasks/sudo.py`
+4. `tasks/system.py`
+5. `tasks/ssh_keys.py`
+6. `tasks/git.py`
+7. `tasks/fonts.py`
+8. `tasks/scripts.py`
+9. `tasks/mc.py`
+
+The core set can still have conditional behavior internally, but its modules are included on every deployment.
+
+### Optional tasks
+
+| Inclusion condition in `deploy.py` | Module |
 | --- | --- |
-| Flatpak detected (`builtins.flatpak`, via `check_flatpak=True`) | `tasks/flatpak.py` |
-| `host.data.ssh_config` | `tasks/ssh_config.py` |
-| `host.data.wireguard_config` and `secrets.wireguard` | `tasks/wireguard.py` |
-| `local_network_cidr` and `wireguard_interface` | `tasks/vpn.py` |
-| `secrets.dehydrated` | `tasks/dehydrated.py` |
-| `host.data.caddy_config` | `tasks/caddy.py` |
-| `host.data.zsh` | `tasks/zsh.py` |
-| `host.data.tmux` | `tasks/tmux.py` |
-| `host.data.powerline` | `tasks/powerline.py` |
-| `host.data.ufw` | `tasks/ufw.py` |
-| `host.data.docker` | `tasks/docker.py` |
-| `host.data.apparmor_profiles` | `tasks/apparmor.py` |
-| `host.data.cosmic` | `tasks/cosmic/deploy.py` |
-| `host.data.mullvad_extensions` | `tasks/mullvad_extensions.py` |
-| `host.data.vscodium` | `tasks/vscodium.py` |
-| `host.data.proton` | `tasks/proton.py` |
+| Flatpak executable detected by `Which` | `tasks/flatpak.py` |
+| `host.data.ssh_config` is truthy | `tasks/ssh_config.py` |
+| `host.data.wireguard_config` and `secrets.wireguard` are truthy | `tasks/wireguard.py` |
+| `local_network_cidr` and `wireguard_interface` are truthy | `tasks/vpn.py` |
+| `secrets.dehydrated` is truthy | `tasks/dehydrated.py` |
+| `host.data.caddy_config` is truthy | `tasks/caddy.py` |
+| `host.data.zsh` is truthy | `tasks/zsh.py` |
+| `host.data.tmux` is truthy | `tasks/tmux.py` |
+| `host.data.powerline` is truthy | `tasks/powerline.py` |
+| `host.data.ufw` is truthy | `tasks/ufw.py` |
+| `host.data.docker` is truthy | `tasks/docker.py` |
+| `host.data.apparmor_profiles` is truthy | `tasks/apparmor.py` |
+| `host.data.cosmic` is truthy | `tasks/cosmic/deploy.py` |
+| `host.data.mullvad_extensions` is truthy | `tasks/mullvad_extensions.py` |
+| `host.data.vscodium` is truthy | `tasks/vscodium.py` |
+| `host.data.proton` is truthy | `tasks/proton.py` |
 
-Because missing secrets simply leave `secrets` empty, removing `secrets.json.gpg` cleanly disables secret-dependent features instead of failing the deployment.
+A truthy dictionary or list is a common activation mechanism; these settings are not necessarily Boolean switches. The exact expected structure is described in [Configuration](configuration.md) and [Task reference](tasks.md).
 
-## Recommended workflow
+## Deployment behavior to understand
 
-1. **Dry run**: Use `--dry` to review the intended changes.
-2. **Apply**: Run without `--dry`.
-3. **Inspect**: pyinfra reports per-host, per-operation changed/unchanged status.
-4. **Iterate**: Adjust `group_data/` flags and re-run. Deployments are designed to be idempotent.
+- `tasks/apt.py` configures configured repositories, refreshes package indexes, upgrades packages when the index update changes, and installs configured packages.
+- `tasks/system.py` can change hostname, timezone, locale, editor environment, keyboard layout, sysctl, udev and USBGuard configuration.
+- `tasks/ufw.py` may change firewall policy. Validate remote access rules before applying.
+- `tasks/ssh_keys.py` does not overwrite existing private keys, but can manage authorized keys.
+- `tasks/wireguard.py` installs WireGuard and writes interface configuration; it does not start or enable the service.
+- `tasks/vpn.py` enables and starts `wg-quick@<interface>` when no globally scoped IPv4 address belongs to `local_network_cidr`. It only examines IPv4 addresses.
+- Docker tasks can pull images and restart user-level services when Compose or service definitions change.
+
+## Recommended operating loop
+
+1. Make one focused configuration change.
+2. Run a dry deployment against one host.
+3. Inspect the diff and the task implementation for high-impact operations.
+4. Apply to the test host.
+5. Verify the resulting service, network, access and application behavior.
+6. Expand to additional hosts only after validation.
+
+For task-level detail, see [Task reference](tasks.md). For implementation work, see [Development](development.md).

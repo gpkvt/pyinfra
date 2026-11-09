@@ -1,442 +1,176 @@
-# Infrastructure Configuration
+# pyinfra — Linux infrastructure and workstation automation
 
-A configuration-driven infrastructure automation project built with pyinfra.
+[![Pre-commit](https://img.shields.io/github/actions/workflow/status/gpkvt/pyinfra/pre-commit.yml?branch=main&label=pre-commit&logo=githubactions&logoColor=white)](https://github.com/gpkvt/pyinfra/actions/workflows/pre-commit.yml)
+[![License: MIT](https://img.shields.io/github/license/gpkvt/pyinfra?label=license)](LICENSE)
+[![Open issues](https://img.shields.io/github/issues/gpkvt/pyinfra?logo=github)](https://github.com/gpkvt/pyinfra/issues)
+[![Last commit](https://img.shields.io/github/last-commit/gpkvt/pyinfra?logo=git)](https://github.com/gpkvt/pyinfra/commits/main)
+![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Platforms: Debian and Ubuntu](https://img.shields.io/badge/platforms-Debian%20%7C%20Ubuntu-A81D33?logo=linux&logoColor=white)
+[![GitHub Checks](https://img.shields.io/github/checks-status/gpkvt/pyinfra/main?logo=githubactions&logoColor=white&label=checks)](https://github.com/gpkvt/pyinfra/actions)
 
-This repository provides automated provisioning and configuration of Linux systems. It manages system packages, networking, security, Docker services, desktop environments, and user configurations through reusable, modular deployment tasks.
+A configuration-driven automation repository built on [pyinfra](https://pyinfra.com). It provisions Linux hosts from a shared set of reusable tasks while keeping inventory, host-specific settings, deployment logic, templates, static files, and secrets separate.
 
-Host-specific settings are separated from deployment logic, allowing individual features and services to be enabled or disabled through configuration.
+The repository is primarily designed around Debian/Ubuntu systems and includes both server infrastructure and desktop/workstation configuration. It is an opinionated starting point: the checked-in `group_data/@local.py` and `inventory.py` contain environment-specific examples and **must be reviewed before use**.
 
-## Features
+> **Caution:** A deployment can install or upgrade packages, change system files and networking, enable services, and modify firewall or USB authorization policies. Start with a dry run and a non-production target. Do not deploy the example configuration unchanged.
 
-### System management
+## What it manages
 
-- APT package installation and upgrades
-- Flatpak application management
-- Hostname and `/etc/hosts` configuration
-- System configuration and directory management
-- Linux kernel parameters (sysctl)
-- Custom udev rules
-- USB device access control using USBGuard
-- Custom sudoers rules
-- SSH key generation and authorized keys
-- System and user font management
-- Custom scripts and dotfiles
+| Area | Capabilities |
+| --- | --- |
+| Base system | APT repositories and packages, hostname, timezone, locale, keyboard, editors, sysctl and udev |
+| Access and security | SSH keys and client configuration, sudoers rules, AppArmor profiles, USBGuard, UFW |
+| Networking | WireGuard configuration and conditional VPN activation based on local-network detection |
+| Services | Docker Compose services, Caddy reverse proxy, dehydrated ACME certificates |
+| Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications |
+| User environment | Zsh, tmux, Powerline, Git, Midnight Commander, scripts and dotfiles |
+| Secrets | GPG-encrypted JSON for private keys, API tokens and application credentials |
 
-### Networking
+Optional features are included by `deploy.py` only when their configuration and prerequisites are present. See [Task reference](docs/tasks.md) and [Deployment workflow](docs/deployment.md).
 
-- WireGuard VPN configuration
-- Automatic VPN activation based on local network detection
-- SSH client configuration
-- UFW firewall management
-- Caddy reverse proxy configuration
-- Let's Encrypt certificate management using dehydrated
+## How it works
 
-### Container services
+1. `inventory.py` defines local and remote targets and their connection options.
+2. `group_data/<host>.py` supplies the configuration for each target.
+3. `deploy.py` initializes shared values and selects task modules.
+4. Modules in `tasks/` declare pyinfra operations.
+5. `templates/` contains rendered Jinja2 configuration; `files/` contains static payloads.
+6. `common.py` decrypts `secrets.json.gpg` when present and exposes the resulting dictionary to tasks.
 
-- Docker installation and configuration
-- Docker Compose deployments
-- User-level systemd service management
-- Miniflux
-- TimeTagger
-- Grav
-
-### Desktop and user environment
-
-- COSMIC desktop configuration
-- VSCodium extension management
-- AppArmor profile management
-- Zsh and zplug
-- Powerlevel10k
-- Powerline
-- tmux and tmux-powerline
-- Midnight Commander
-- Git configuration and credentials
-- Mullvad browser extensions
-- Proton configuration
-- Custom scripts and dotfiles
-
-### Security
-
-- Encrypted secrets using GPG
-- SSH configuration and key management
-- Custom sudoers rules
-- Firewall policies
-- AppArmor profile enforcement
-- USBGuard USB device authorization
-- Restricted permissions for sensitive configuration files
+See [Architecture](docs/architecture.md) for the execution flow and [Configuration](docs/configuration.md) for the settings model.
 
 ## Requirements
 
-The project is primarily intended for Debian-based Linux systems.
+- Python 3.10 or newer is recommended (use a version supported by the pyinfra release you install).
+- [pyinfra](https://pyinfra.com/) installed in an isolated Python environment.
+- Debian- or Ubuntu-based target systems for the supplied task implementations.
+- SSH access to remote hosts and sufficient privilege escalation for system-level operations. The local target also needs the required privileges.
+- GPG on the machine executing the deployment when encrypted secrets are used.
+- systemd on targets for tasks that manage system services.
 
-### Required software
+Individual features may require additional software or capabilities, such as Docker, Flatpak, UFW, AppArmor, USBGuard, WireGuard, or a graphical COSMIC session. Their prerequisites are described in the relevant task documentation.
 
-- Python 3
-- pyinfra
-- OpenSSH
-- sudo privileges where required
-- GPG for encrypted secrets
+## Quick start
 
-### Optional software and services
-
-Depending on the enabled features:
-
-- Docker and Docker Compose
-- systemd
-- Flatpak
-- WireGuard
-- UFW
-- Caddy
-- dehydrated
-- COSMIC Desktop
-- AppArmor
-- USBGuard
-- VSCodium
-- Proton
-
-## Getting started
-
-### 1\. Clone the repository
-
-bash
+### 1. Get the repository
 
 ```bash
 git clone https://github.com/gpkvt/pyinfra.git
 cd pyinfra
 ```
 
-### 2\. Create a Python virtual environment
-
-bash
+### 2. Create an isolated Python environment
 
 ```bash
 python3 -m venv .venv
-source .venv/bin/activate
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install pyinfra
 ```
 
-### 3\. Install dependencies
+### 3. Review the inventory
 
-bash
+Edit `inventory.py`:
 
-```bash
-pip install pyinfra
-```
+- Replace example hostnames and SSH settings.
+- Keep only targets you intend to manage.
+- Remove or update entries in `disabled_hosts` as appropriate.
+- Confirm which user connects and whether `_sudo` is enabled.
 
-For development:
+The special `@local` target executes against the machine running pyinfra. It is not a remote host.
 
-bash
+### 4. Create host configuration
 
-```bash
-pip install pre-commit pylint
-pre-commit install
-```
+Create or edit `group_data/<inventory-host>.py`. For the local target, the supplied file is `group_data/@local.py`.
 
-### 4\. Configure the inventory
+At minimum, review the user identity and home directory, hostname, locale, timezone, package lists, network settings, and every optional service configuration. Remove settings that do not apply to your environment. See [Configuration](docs/configuration.md) for a categorized reference.
 
-The inventory is defined in `inventory.py`.
+### 5. Prepare secrets (optional)
 
-It contains the available hosts, SSH connection settings, and privilege escalation options.
-
-The special `@local` host represents the local execution environment.
-
-Example:
-
-python
-
-```python
-disabled_hosts = {
-    "dns",
-    "dmz",
-}
-_all_hosts = {
-    "@local": {
-        "_sudo": True,
-    },
-    "dns": {
-        "ssh_port": 22,
-        "ssh_hostname": "dns",
-        "ssh_user": "root",
-        "_sudo": True,
-    },
-}
-production = [
-    (hostname, options)
-    for hostname, options in _all_hosts.items()
-    if hostname not in disabled_hosts
-]
-```
-
-Hosts listed in `disabled_hosts` are excluded from the production inventory.
-
-### 5\. Configure host-specific settings
-
-Host-specific configuration is maintained in `group_data/`.
-
-The `group_data/@local.py` file contains the configuration for the local environment.
-
-Settings are organized into logical sections:
-
-| Section | Description |
-| --- | --- |
-| General | Username, group, home directory, hostname, timezone, locale, keyboard and editor |
-| Network | Local network CIDR and WireGuard interface |
-| Hosts | Hostname mappings |
-| APT | System packages |
-| System | Sysctl parameters, udev rules and USBGuard configuration |
-| Sudo | Custom sudoers rules |
-| SSH | SSH client configuration, keypairs and authorized keys |
-| Fonts | System and user fonts |
-| Flatpak | Desktop applications |
-| Docker | Containerized applications and services |
-| WireGuard | VPN interfaces and settings |
-| Firewall | UFW application policies |
-| Caddy | Reverse proxy and TLS configuration |
-| Zsh | Shell configuration and plugins |
-| tmux | Terminal multiplexer |
-| Powerline | Terminal themes and configuration |
-| VSCodium | Editor extensions |
-| COSMIC | Desktop appearance, panel, dock, and workspaces |
-| AppArmor | Profiles to enforce |
-
-Optional components are controlled through configuration values. For example:
-
-python
-
-```python
-zsh = True
-powerline = True
-tmux = True
-```
-
-Services such as Docker, Caddy, WireGuard, and UFW can be configured independently.
-
-The configuration files contain examples and defaults for the local environment. Adapt them to your own infrastructure before deployment.
-
-## Additional documentation
-
-You can find additional documentation in docs.
-
-## Secrets management
-
-Sensitive configuration is maintained separately from ordinary host configuration and encrypted using GPG.
-
-The repository provides `secrets.json.gpg.example` as a template.
-
-The actual `secrets.json.gpg` file is not included in version control.
-
-### Secret categories
-
-| Section | Description |
-| --- | --- |
-| `dehydrated` | Hetzner DNS API credentials |
-| `wireguard` | Private keys and peer configuration |
-| `git_credentials` | Authenticated Git repository URLs |
-| `docker` | Container application credentials |
-
-### Create the secrets file
-
-Copy the example:
-
-bash
+If you use features that require credentials, create a plaintext JSON file from the example, edit it, validate it, and encrypt it:
 
 ```bash
 cp secrets.json.gpg.example secrets.json
-```
-
-Edit `secrets.json` and replace all placeholder values with your own credentials.
-
-Encrypt the file:
-
-bash
-
-```bash
-gpg --symmetric --cipher-algo AES256 secrets.json
-```
-
-This creates `secrets.json.gpg`.
-
-After verifying that encryption succeeded, remove the plaintext file:
-
-bash
-
-```bash
+$EDITOR secrets.json
+python -m json.tool secrets.json
+gpg --symmetric --cipher-algo AES256 --output secrets.json.gpg secrets.json
 shred -u secrets.json
 ```
 
-The deployment initialization code automatically decrypts `secrets.json.gpg` when it is available.
+Keep the GPG passphrase available to the deployment operator. `common.py` invokes GPG interactively to decrypt the file. Without `secrets.json.gpg`, the deployment initializes an empty secrets dictionary; secret-dependent tasks are not included. See [Secrets management](docs/secrets.md).
 
-If the encrypted file does not exist, deployment continues with an empty secrets dictionary. Features requiring secrets are consequently skipped.
+### 6. Preview, then deploy
 
-### Manually decrypt secrets
-
-For inspection or maintenance:
-
-bash
+From the repository root:
 
 ```bash
-gpg --decrypt secrets.json.gpg > secrets.json
+# Preview planned operations without applying them
+pyinfra inventory.py deploy.py --dry --diff
+
+# Apply after reviewing the preview
+pyinfra inventory.py deploy.py --diff
 ```
 
-Remove the decrypted file after use.
-
-### Security recommendations
-
-- Never commit `secrets.json` or `secrets.json.gpg`.
-- Only commit the example template with placeholder values.
-- Use a strong GPG passphrase.
-- Restrict access to encrypted and decrypted secret files.
-- Never reuse credentials across services.
-- Rotate credentials if they are accidentally exposed.
-- Ensure sensitive files have restrictive permissions.
-
-For example:
-
-bash
+To target only the local inventory host:
 
 ```bash
-chmod 600 secrets.json.gpg
-chmod 600 secrets.json
+pyinfra inventory.py deploy.py --limit @local --dry --diff
 ```
 
-Keep the following entries in `.gitignore`:
+Check the CLI options supported by your installed pyinfra version with `pyinfra --help`. Do not assume a dry run replaces backups or change-control procedures.
 
-gitignore
+## Repository layout
 
-```gitignore
-secrets.json
-secrets.json.gpg
+```text
+.
+├── inventory.py             # Target hosts and connection options
+├── deploy.py                # Task orchestration and feature gates
+├── common.py                # Shared initialization and GPG secrets loading
+├── group_data/              # Per-host configuration
+├── tasks/                   # pyinfra task modules
+├── templates/               # Jinja2 templates
+├── files/                   # Static scripts, dotfiles and configuration
+├── secrets.json.gpg.example # Placeholder secrets schema/example
+└── docs/                    # Detailed project documentation
 ```
 
-## Repository structure
+## Documentation
 
-### Main components
+- [Architecture and execution model](docs/architecture.md)
+- [Host configuration reference](docs/configuration.md)
+- [Deployment workflow and safety checks](docs/deployment.md)
+- [Task catalogue](docs/tasks.md)
+- [Secrets management](docs/secrets.md)
+- [Templates and static assets](docs/templates.md)
+- [System configuration details](docs/system.md)
+- [Development and contribution workflow](docs/development.md)
 
-| Component | Responsibility |
-| --- | --- |
-| `inventory.py` | Defines deployment targets and SSH settings |
-| `group_data/` | Contains host-specific configuration |
-| `common.py` | Initializes shared configuration and decrypts secrets |
-| `deploy.py` | Selects and executes deployment tasks |
-| `tasks/` | Contains modular provisioning tasks |
-| `files/` | Contains scripts, dotfiles, and configuration files |
-| `templates/` | Contains Jinja2 templates |
-| `secrets.json.gpg.example` | Documents the expected secrets structure |
+## Operational and security notes
 
-## Deployment
-
-Deployments are executed through pyinfra.
-
-The `deploy.py` entry point initializes shared configuration and includes deployment tasks according to the active host configuration and available secrets.
-
-### Task execution
-
-The following tasks are always included:
-
-- APT package management (`apt.py`)
-- Host configuration (`hosts.py`)
-- Sudo configuration (`sudo.py`)
-- System configuration (`system.py`)
-- SSH key management (`ssh_keys.py`)
-- Font management (`fonts.py`)
-- Git configuration (`git.py`)
-- Custom scripts (`scripts.py`)
-- Midnight Commander (`mc.py`)
-
-Additional tasks are included conditionally:
-
-| Task | Activation condition |
-| --- | --- |
-| Flatpak | Flatpak is available |
-| SSH configuration | `ssh_config` is configured |
-| WireGuard | Configuration and secrets are available |
-| VPN | Local network and WireGuard interface are configured |
-| dehydrated | Dehydrated secrets are available |
-| Caddy | `caddy_config` is configured |
-| Zsh | `zsh` is enabled |
-| tmux | `tmux` is enabled |
-| Powerline | `powerline` is enabled |
-| UFW | `ufw` is configured |
-| Docker | `docker` is configured |
-| AppArmor | `apparmor_profiles` are configured |
-| COSMIC | `cosmic` is configured |
-| Mullvad extensions | `mullvad_extensions` is configured |
-| VSCodium | `vscodium` is configured |
-| Proton | `proton` is configured |
-
-### Execute a deployment
-
-Run the deployment using:
-
-bash
-
-```bash
-pyinfra inventory.py deploy.py --sudo --diff
-```
-
-The `--diff` option displays the changes pyinfra intends to make.
-
-For remote hosts, ensure SSH connectivity and the required sudo permissions are configured before deployment.
-
-**Important:** Review the inventory and host configuration before executing deployments. Provisioning can modify system packages, network settings, firewall policies, services, and user configuration.
+- Treat the checked-in host configuration as an example, not a portable default. It may contain hostnames, network ranges, usernames, repository definitions, and device-specific USBGuard rules.
+- Never put private keys, API tokens, passwords, or credential-bearing URLs in `group_data/`, task code, templates, or commits. Put supported secret values in the encrypted JSON file.
+- The encrypted file is only as safe as its passphrase, key management, filesystem permissions, and backups. Encryption does not make it safe to publish indiscriminately.
+- `deploy.py` includes core tasks unconditionally. Review their effects even when optional features are disabled.
+- WireGuard configuration deployment and VPN service activation are separate tasks. The former writes configuration; the latter conditionally enables `wg-quick@<interface>` based on IPv4 local-network detection.
+- Review firewall and USBGuard rules carefully. A default-deny USB policy or restrictive firewall can lock you out of a system or peripheral.
 
 ## Development
 
-The project uses pre-commit to validate Python code and configuration files.
-
-### Install development dependencies
-
-bash
+Install the development tools and hooks:
 
 ```bash
-pip install pre-commit pylint
+python -m pip install pre-commit pylint
 pre-commit install
 ```
 
-### Run all checks
-
-bash
+Run the configured checks:
 
 ```bash
 pre-commit run --all-files
 ```
 
-### Run individual checks
-
-bash
-
-```bash
-pre-commit run pylint --all-files
-pre-commit run check-yaml --all-files
-pre-commit run pretty-format-json --all-files
-```
-
-### Code quality
-
-The pre-commit configuration includes:
-
-- Python linting with Pylint
-- YAML validation and linting with yamllint
-- JSON validation and formatting
-- Large-file detection
-- Trailing whitespace removal
-- End-of-file newline validation
-- Merge conflict detection
-
-## Design principles
-
-- **Configuration-driven:** Host-specific behavior is controlled through configuration rather than hardcoded deployment logic.
-- **Modular:** Each service and system component has its own deployment module.
-- **Conditional:** Optional components are deployed only when enabled and their prerequisites are available.
-- **Idempotent:** pyinfra operations aim to maintain the desired system state without unnecessary changes.
-- **Secure:** Credentials and private keys are separated from ordinary configuration and encrypted.
-- **Reusable:** Shared templates and configuration allow deployment logic to be reused across hosts.
-
-## Contributing
-
-Contributions are welcome\! Please read CONTRIBUTING.md before submitting changes.
+See [Development](docs/development.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-This project is licensed under the MIT License.
-
-See LICENSE for details.
+The project is distributed under the MIT License. See [LICENSE](LICENSE) and [NOTICE.md](NOTICE.md).
