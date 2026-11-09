@@ -3,3 +3,4 @@ secrets.json.gpg
 pyinfra.code-workspace
 .venv
 *.log
+*.code-workspace
