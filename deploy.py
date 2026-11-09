@@ -92,3 +92,18 @@ if host.data.get("vscodium"):
 
 if host.data.get("proton"):
     local.include("tasks/proton.py")
+
+# Optional workstation features. All are disabled unless explicitly enabled
+# in group_data/<host>.py under the "workstation" dictionary.
+workstation = host.data.get("workstation", {})
+for feature, task in (
+    ("backup", "backup.py"),
+    ("power", "power.py"),
+    ("hardware", "hardware.py"),
+    ("storage", "storage.py"),
+    ("peripherals", "peripherals.py"),
+    ("desktop", "desktop.py"),
+    ("maintenance", "maintenance.py"),
+):
+    if workstation.get(feature, {}).get("enabled", False):
+        local.include(f"tasks/{task}")

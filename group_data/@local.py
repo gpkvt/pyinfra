@@ -72,6 +72,43 @@ local_network_cidr="192.168.42.0/24"
 wireguard_interface="home"
 editor = "mcedit"
 
+workstation = {
+    "backup": {
+        "enabled": False,
+        # Configure Restic/Borg repositories, credentials, source paths,
+        # retention and restore testing separately before scheduling backups.
+    },
+    "power": {
+        "enabled": True,
+        # Choose exactly one: "power-profiles-daemon" or "tlp".
+        "manager": "tlp",
+    },
+    "hardware": {
+        "enabled": True,
+        # Set to "intel" or "amd" after checking the actual CPU vendor.
+        "cpu_vendor": "amd",
+        # fwupd is installed, but firmware updates are not applied automatically.
+    },
+    "storage": {
+        "enabled": True,
+        # Installs smartmontools and nvme-cli; no polling schedule is created.
+    },
+    "peripherals": {
+        "enabled": False,
+        "printing": False,
+        "scanning": False,
+    },
+    "desktop": {
+        "enabled": False,
+        # Optional replacement for the default package list:
+        # "packages": ["xdg-utils", "xdg-user-dirs"],
+    },
+    "maintenance": {
+        "enabled": False,
+        # Installs maintenance utilities only. No unattended upgrades/reboots.
+    },
+}
+
 # Configure /etc/hosts
 hostnames = {
   "127.0.0.1": "localhost local.21x9.org timetagger.21x9.org grav.21x9.org",
