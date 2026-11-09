@@ -68,6 +68,7 @@ homedir="/home/gpkvt"
 
 local_network_cidr="192.168.42.0/24"
 wireguard_interface="home"
+editor = "mcedit"
 
 # Configure /etc/hosts
 hostnames = {

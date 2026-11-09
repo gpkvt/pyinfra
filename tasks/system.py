@@ -11,6 +11,12 @@ Configuration:
     locale:
         System-wide default locale (default: en_US.UTF-8).
 
+    editor:
+        Default CLI editor (e.g. mcedit).
+
+    visual_editor:
+        Default visual editor (e.g. cosmic-editor).
+
     keyboard:
         System-wide keyboard layout configuration.
 
@@ -31,6 +37,7 @@ from pyinfra import host
 from pyinfra.api import FactBase
 from pyinfra.operations import files, server
 
+# Custom fact: retrieve current system locale
 class SystemLocale(FactBase):
     """
     Return the current LANG setting from /etc/default/locale.
@@ -53,6 +60,10 @@ class SystemLocale(FactBase):
 hostname = host.data.get("hostname")
 timezone = host.data.get("timezone")
 locale = host.data.get("locale", "en_US.UTF-8")
+
+editor = host.data.get("editor")
+visual_editor = host.data.get("visual_editor", editor)
+
 keyboard = host.data.get("keyboard", {})
 
 # Configure hostname
@@ -119,6 +130,26 @@ if locale:
             group="root",
             mode="644",
             _sudo=True,
+        )
+
+# Configure default CLI editors
+for variable, value in {
+    "EDITOR": editor,
+    "VISUAL": visual_editor,
+}.items():
+    if value:
+        if not isinstance(value, str) or not re.fullmatch(
+            r"[a-zA-Z0-9_.+-]+",
+            value,
+        ):
+            raise ValueError(
+                f"Invalid {variable}: {value}"
+            )
+
+        files.line(
+            name=f"Set default {variable}: {value}",
+            path="/etc/environment",
+            line=f"{variable}={value}",
         )
 
 # Configure keyboard layout
