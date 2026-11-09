@@ -1,7 +1,5 @@
 # Infrastructure Configuration
 
-[\!\[python\](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python&logoColor=white)](<https://www.python.org>) [\!\[pre-commit\](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](<https://github.com/pre-commit/pre-commit>) [\!\[pyinfra\](https://img.shields.io/badge/pyinfra-v3.10.0-blue)](<https://pyinfra.com>) \!GitHub branch check suites [\!\[linting: pylint\](https://img.shields.io/badge/linting-pylint-yellowgreen)](<https://github.com/pylint-dev/pylint>) \!GitHub License
-
 A configuration-driven infrastructure automation project built with pyinfra.
 
 This repository provides automated provisioning and configuration of Linux systems. It manages system packages, networking, security, Docker services, desktop environments, and user configurations through reusable, modular deployment tasks.
