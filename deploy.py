@@ -48,6 +48,7 @@ local.include("tasks/hosts.py")
 local.include("tasks/scripts.py")
 local.include("tasks/mc.py")
 local.include("tasks/git.py")
+local.include("tasks/fonts.py")
 
 if flatpak:
     local.include("tasks/flatpak.py")
