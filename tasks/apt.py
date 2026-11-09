@@ -147,18 +147,9 @@ for name, repo in apt_sources.items():
 apt_packages = host.data.get("apt_packages", [])
 
 # Execute package management operations.
-print("update_apt_sources():")
-print(update_apt_sources.__doc__)
-
 apt_update = update_apt_sources(apt_repository_operations)
 
-print("upgrade_apt_packages():")
-print(upgrade_apt_packages.__doc__)
-
 upgrade_apt_packages(apt_update)
-
-print("install_apt_package():")
-print(install_apt_package.__doc__)
 
 for package in apt_packages:
     install_apt_package(package)
