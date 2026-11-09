@@ -72,8 +72,8 @@ usergroup = host.data.get("usergroup", "root")
 files.directory(
     name="Create Grav data directory",
     path=f"{homedir}/.docker/grav/data/",
-    user=username,
-    group=usergroup,
+    user="www-data",
+    group="www-data",
     mode="750",
 )
 
