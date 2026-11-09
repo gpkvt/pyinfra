@@ -332,6 +332,19 @@ apt_sources = {
           "types": ["deb"],
       },
   },
+  "waydroid": {
+      "key": {
+          "url": "https://repo.waydro.id/waydroid.gpg",
+          "path": "/etc/apt/keyrings/waydroid-keychain.gpg",
+      },
+      "repository": {
+          "url": "https://repo.waydro.id/",
+          "distribution": "noble",
+          "components": ["main"],
+          "architectures": ["amd64"],
+          "types": ["deb"],
+      },
+  },
 }
 
 # Install flatpak packages
