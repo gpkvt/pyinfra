@@ -45,6 +45,7 @@ Host-specific settings are separated from deployment logic, allowing individual 
 - User-level systemd service management
 - Miniflux
 - TimeTagger
+- Grav
 
 ### Desktop and user environment
 
