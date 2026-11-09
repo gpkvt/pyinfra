@@ -1,6 +1,6 @@
 """ Font deployment """
 
-from pyinfra.operations import apt
+from pyinfra.operations import apt, server
 
 apt.packages(
     name="Installing font packages",
@@ -78,3 +78,47 @@ apt.packages(
     ],
     _sudo=True,
 )
+
+if host.data.get("powerline_fonts", False):
+    FONT_DIR = "~/.local/share/fonts"
+    ARCHIVE = "/tmp/powerline-fonts.zip"
+    EXTRACT_DIR = "/tmp/powerline-fonts"
+
+    # Create font directory
+    files.directory(
+        name="Create user font directory",
+        path=FONT_DIR,
+    )
+
+    # Download Powerline fonts
+    files.download(
+        name="Download Powerline fonts",
+        src="https://github.com/powerline/fonts/archive/refs/heads/master.zip",
+        dest=ARCHIVE,
+    )
+
+    # Extract archive
+    files.unarchive(
+        name="Extract Powerline fonts",
+        src=ARCHIVE,
+        dest=EXTRACT_DIR,
+        remote_src=True,
+    )
+
+    # Install all TTF and OTF fonts
+    server.shell(
+        name="Install Powerline fonts",
+        commands=[
+            f'find {EXTRACT_DIR}/fonts-master -type f '
+            r'\( -iname "*.ttf" -o -iname "*.otf" \) '
+            f'-exec cp -n {{}} {FONT_DIR}/ \;'
+        ],
+    )
+
+    # Refresh font cache
+    server.shell(
+        name="Refresh font cache",
+        commands=[
+            f"fc-cache -f {FONT_DIR}"
+        ],
+    )
