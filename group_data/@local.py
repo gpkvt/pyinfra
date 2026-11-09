@@ -72,7 +72,7 @@ editor = "mcedit"
 
 # Configure /etc/hosts
 hostnames = {
-  "127.0.0.1": "localhost local.21x9.org timetagger.21x9.org",
+  "127.0.0.1": "localhost local.21x9.org timetagger.21x9.org grav.21x9.org",
   "::1": "localhost local.21x9.org",
   "192.168.42.100": "storage.intern.21x9.org paperless.intern.21x9.org huginn.intern.21x9.org grafana.intern.21x9.org ha.intern.21x9.org",
   "192.168.42.120": "storage.21x9.org",
@@ -387,13 +387,46 @@ apparmor_profiles = [
 
 # Install and configure docker container
 docker = {
-  "miniflux": {
-    "postgres_version": 12,
-    "port": "8005",
+    "miniflux": {
+        "postgres_version": 12,
+        "port": "8005",
+    },
+    "timetagger": {
+        "port": "8010",
+    },
+    "grav": {
+        "image": "getgrav/grav:1.7",
+        "port": 8015,
+        "channel": "stable",
+        "setup": True,
+        "scheduler": True,
+        "fix_permissions": True,
+    },
+}
+
+# Caddy configuration
+caddy_config = {
+  "local.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8005",
+    "header": [
+      "-Server"
+    ],
   },
-  "timetagger": {
-    "port": "8010",
-  }
+  "timetagger.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8010",
+    "header": [
+      "-Server"
+    ],
+  },
+  "grav.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8015",
+    "header": [
+      "-Server"
+    ],
+  },
 }
 
 # Install apt packages
@@ -660,23 +693,6 @@ ufw = {
   "kdeconnect": "Allow",
   "localsend": "Allow",
   "chromecast-dlna": "Deny",
-}
-
-caddy_config = {
-  "local.21x9.org:443": {
-    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
-    "reverse_proxy": "127.0.0.1:8005",
-    "header": [
-      "-Server"
-    ],
-  },
-  "timetagger.21x9.org:443": {
-    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
-    "reverse_proxy": "127.0.0.1:8010",
-    "header": [
-      "-Server"
-    ],
-  }
 }
 
 # Configure ssh client

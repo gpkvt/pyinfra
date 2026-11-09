@@ -123,6 +123,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
     initialize(host)
 
+
 @deploy("Deploy Docker service")
 def deploy_docker_service(
     service,
@@ -152,6 +153,16 @@ def deploy_docker_service(
         homedir=homedir,
         **template_vars,
         _sudo=False,
+    )
+
+    # Pull Docker images before restarting the service
+    server.shell(
+        name=f"Pull {service} Docker images",
+        commands=[
+            f"docker compose -f {homedir}/{service}/docker-compose.yml pull",
+        ],
+        _sudo=False,
+        _if=compose_file.did_change,
     )
 
     # Deploy systemd unit
@@ -214,3 +225,6 @@ if "miniflux" in container:
 
 if "timetagger" in container:
     local.include("tasks/docker/timetagger.py")
+
+if "grav" in container:
+    local.include("tasks/docker/grav.py")

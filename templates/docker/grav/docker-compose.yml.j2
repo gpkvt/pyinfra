@@ -1,0 +1,17 @@
+services:
+  grav:
+    image: {{ image }}
+    container_name: grav
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:{{ port }}:80"
+
+    volumes:
+      - {{ homedir }}/.docker/grav/data:/var/www/html
+
+    environment:
+      - GRAV_SETUP={{ "true" if setup else "false" }}
+      - GRAV_CHANNEL={{ channel }}
+      - GRAV_SCHEDULER={{ "true" if scheduler else "false" }}
+      - FIX_PERMISSIONS={{ "true" if fix_permissions else "false" }}
