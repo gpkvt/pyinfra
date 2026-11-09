@@ -1,4 +1,32 @@
-""" Font deployment """
+"""
+Deploy and configure system fonts.
+
+Installs a comprehensive collection of fonts and font configuration
+packages through the system package manager.
+
+Optionally downloads and installs additional Powerline-patched fonts
+when the ``powerline_fonts`` host data variable is enabled.
+
+Powerline fonts are downloaded from the official Powerline Fonts
+GitHub repository, extracted into a temporary directory, and copied
+to the user's local font directory (``~/.local/share/fonts``).
+
+Finally, refreshes the fontconfig cache to make newly installed fonts
+available to applications.
+
+Host data:
+    powerline_fonts (bool): Enable installation of additional
+        Powerline-patched fonts. Defaults to ``False``.
+
+Requirements:
+    - Debian/Ubuntu-based system with APT.
+    - Fontconfig.
+    - Internet access when downloading Powerline fonts.
+
+Example inventory configuration::
+
+    powerline_fonts = True
+"""
 
 from pyinfra.operations import apt, server, files
 from pyinfra.facts.files import Directory
