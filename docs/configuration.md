@@ -154,7 +154,37 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The repository includes service modules for Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag and Vaultwarden. Example keys include ports, image, database version and service-specific setup options. Consult the relevant `tasks/docker/` module and Compose template before adding or changing keys; the schema is service-specific. Portainer mounts `/var/run/docker.sock` and persists its data under `~/.docker/portainer/data/`; its web interface binds to loopback by default. Treat access to Portainer as administrative access to the Docker host. TasmoAdmin persists its configuration under `~/.docker/tasmoadmin/data/` and binds its HTTP interface to loopback port 8016 by default; the supplied local configuration publishes it through Caddy at `tasmoadmin.21x9.org`. Wallabag stores its SQLite database, application data and article images in Docker-managed named volumes, binds to loopback port 8017 by default, and is published through Caddy at `wallabag.21x9.org`. Docker-managed volumes avoid host bind-mount ownership problems for the container's `www-data` process. The Compose configuration disables public registration. When migrating from the former bind-mounted directories, back up and copy their contents into the new named volumes before deploying; Docker Compose does not migrate existing bind-mount data automatically. Change the default `wallabag` account password immediately after the first login. Vaultwarden stores its data in a Docker-managed named volume, binds to loopback port 8018 by default, and is published through Caddy at `vaultwarden.21x9.org`. Public signups and invitations are disabled. An optional Argon2 PHC admin-token hash is read from `secrets.docker.vaultwarden.admin_token`; generate it with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash` and keep it in the encrypted secrets file.
+`docker` is a mapping of service names to service-specific settings. The supported keys are `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag` and `vaultwarden`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
+
+All current services persist application data through host bind mounts below the configured user's home directory:
+
+| Service | Persistent host path | Default loopback port |
+| --- | --- | --- |
+| Miniflux | `~/.docker/miniflux/db/` (PostgreSQL database) | `8080` |
+| TimeTagger | `~/.docker/timetagger/` | `8080` |
+| Grav | `~/.docker/grav/data/` | `8080` |
+| Forgejo | `~/.docker/forgejo/data/` | `3000` (HTTP), `2222` (SSH) |
+| Portainer | `~/.docker/portainer/data/` | `9000` |
+| TasmoAdmin | `~/.docker/tasmoadmin/data/` | `8016` |
+| Wallabag | `~/.docker/wallabag/data/`, `~/.docker/wallabag/images/` | `8017` |
+| Vaultwarden | `~/.docker/vaultwarden/` | `8018` |
+
+The interfaces bind to `127.0.0.1` by default. The shared Docker helper renders Compose files under `~/<service>/` and user-level systemd units under `~/.config/systemd/user/`. A changed Compose file triggers an image pull; a changed Compose file or systemd unit triggers a service restart. No pull is performed when the Compose file is unchanged.
+
+Service-specific behavior:
+
+- **Miniflux** runs with a PostgreSQL companion container. Set its `postgres_version` and optional `port` in host data; credentials are supplied through `secrets.docker.miniflux`.
+- **TimeTagger** mounts its persistent directory at the container's `/root/_timetagger`.
+- **Grav** supports `image`, `port`, `channel`, `setup`, `scheduler` and `fix_permissions` options.
+- **Forgejo** supports `image`, `port`, `ssh_port`, `ssh_server` and `domain`. HTTP and SSH bind to loopback by default.
+- **Portainer** mounts the Docker socket, giving it administrative control over the Docker host. Keep its interface private or protect the reverse-proxy route with strong authentication.
+- **TasmoAdmin** mounts its data at `/data/tasmoadmin` inside the container, matching `TASMO_DATADIR`.
+- **Wallabag** uses SQLite, stores its database/application data and article images in the two host directories above, and disables public registration. Change the initial `wallabag` / `wallabag` account password immediately. The supplied local configuration publishes it through Caddy at `wallabag.21x9.org`.
+- **Vaultwarden** disables public signups and invitations. Its optional `admin_token` secret must contain an Argon2 PHC hash, generated with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. The supplied local configuration publishes it through Caddy at `vaultwarden.21x9.org`.
+
+**Migration note:** The current templates use host bind mounts. If a host was deployed while an earlier Wallabag or Vaultwarden template used Docker-managed named volumes, Compose does not migrate that data automatically. Back up and copy the named-volume contents into the corresponding host directory before switching. Data already present in the host directories is retained.
+
+`docker` service configuration is independent of encrypted credentials. Put Miniflux credentials and the optional Vaultwarden admin-token hash in the encrypted secrets file; see [Secrets management](secrets.md).
 
 ### Caddy
 
