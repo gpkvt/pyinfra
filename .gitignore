@@ -7,3 +7,4 @@ pyinfra.code-workspace
 __pycache__
 .pytest_cache
 uv.lock
+package-lock.json
