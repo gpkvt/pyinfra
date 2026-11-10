@@ -43,7 +43,7 @@ Exact paths can be service- or task-specific and should be confirmed in the impl
 
 | Path | Consumer / content |
 | --- | --- |
-| `files/scripts/` | User utility scripts. |
+| `files/scripts/` | User utility scripts, including `gpg-vault` for managing the encrypted secrets file. |
 | `files/dehydrated_hook.sh` | dehydrated hook script. |
 | `files/dotfiles/` | Shell and user dotfiles. |
 | `files/git/` | Git configuration. |
