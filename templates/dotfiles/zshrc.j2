@@ -7,7 +7,7 @@ TIMESTAMP="/var/lib/pyinfra/last-run"
 sudo mkdir -p /var/lib/pyinfra
 
 pushd ~/pyinfra > /dev/null
-pyinfra @local tasks/git.py --sudo --diff -y
+pyinfra @local tasks/vpn.py --sudo --diff -y
 
 # Run some PyInfra only if it hasn't run in the last hour
 if [[ -f "$TIMESTAMP" ]] && [[ $(find "$TIMESTAMP" -mmin -60 -print) ]]; then
