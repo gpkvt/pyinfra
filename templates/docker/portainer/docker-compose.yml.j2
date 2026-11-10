@@ -1,0 +1,12 @@
+services:
+  portainer:
+    image: {{ image }}
+    container_name: portainer
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:{{ port }}:9000"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ homedir }}/.docker/portainer/data:/data

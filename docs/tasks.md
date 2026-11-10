@@ -33,7 +33,7 @@ These task modules are included on every full deployment.
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
-| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger, Grav and Forgejo services. |
+| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger, Grav, Forgejo and Portainer services. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
 | `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
@@ -82,7 +82,7 @@ The WireGuard task installs the package and renders one file per configured inte
 
 ### Docker services
 
-When `host.data.docker` is truthy, `deploy.py` includes both `tasks/docker.py` and `tasks/docker_container.py`. The first installs Docker and defines `deploy_docker_service()`; the second includes `tasks/docker/miniflux.py`, `tasks/docker/timetagger.py` and `tasks/docker/grav.py` when their matching keys are present. Service definitions live in `tasks/docker/` and `templates/docker/`. Compose files and user-level systemd units are deployed under the configured user's home/configuration directories. A changed Compose file triggers `docker compose pull` and a service restart; a changed unit triggers a user-systemd daemon reload, enable and restart. Forgejo persists its application data under `~/.docker/forgejo/data/`, exposes its web interface on loopback port 3000 and SSH on loopback port 2222 by default, and can be published through Caddy using the configured domain.
+When `host.data.docker` is truthy, `deploy.py` includes both `tasks/docker.py` and `tasks/docker_container.py`. The first installs Docker and defines `deploy_docker_service()`; the second includes the service modules under `tasks/docker/` when their matching keys are present. Service definitions live in `tasks/docker/` and `templates/docker/`. Compose files and user-level systemd units are deployed under the configured user's home/configuration directories. A changed Compose file triggers `docker compose pull` and a service restart; a changed unit triggers a user-systemd daemon reload, enable and restart. Forgejo persists its application data under `~/.docker/forgejo/data/`, exposes its web interface on loopback port 3000 and SSH on loopback port 2222 by default, and can be published through Caddy using the configured domain. Portainer persists its data under `~/.docker/portainer/data/`, mounts the Docker socket for host management, and exposes its HTTP interface on loopback port 9000 by default; publish it through Caddy only on a trusted, authenticated hostname.
 
 ### Browser and editor extensions
 
