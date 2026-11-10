@@ -15,13 +15,13 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and choose:
 | Command | What it does |
 | --- | --- |
 | **GPG Vault: Encrypt Current File** | Encrypts the active saved or unsaved text document into a sibling `.gpg` file. The source is kept by default. |
-| **GPG Vault: Decrypt Current .gpg File** | Decrypts the active `.gpg` file into the filename without the `.gpg` suffix. Existing destination files are never overwritten. |
+| **GPG Vault: Decrypt Current .gpg File** | Decrypts the active `.gpg` file into the filename without the `.gpg` suffix. Existing destination files are never overwritten. You can also right-click a `.gpg` file in the Explorer and choose this command, including for binary files created by the shell helper. |
 | **GPG Vault: Encrypt Selection** | Replaces the selected text with an ASCII-armored GPG message. |
 | **GPG Vault: Decrypt Selection** | Replaces the selected armored GPG message with plaintext. |
 
 The file workflow mirrors the `secrets.json` / `secrets.json.gpg` pair used by `gpg-vault`. Encryption creates an ASCII-armored GPG file; this is fully readable by GPG and by the repository's `gpg-vault` and deployment-time decryption. The command-line helper currently creates binary GPG output, which this extension can also decrypt.
 
-File encryption never overwrites an existing `.gpg` file. File decryption never overwrites an existing plaintext file. Decrypted files are created with owner-only permissions where the operating system supports POSIX file modes. Temporary working files are placed in a private temporary directory and removed after each operation.
+File encryption never overwrites an existing `.gpg` file. File decryption never overwrites an existing plaintext file. Explorer context-menu decryption can read both ASCII-armored and binary GPG files, including ciphertext produced by the shell helper. Decrypted files are created with owner-only permissions where the operating system supports POSIX file modes. Temporary working files are placed in a private temporary directory and removed after each operation.
 
 ## Settings
 
