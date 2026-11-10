@@ -21,7 +21,7 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and choose:
 
 The file workflow mirrors the `secrets.json` / `secrets.json.gpg` pair used by `gpg-vault`. Encryption creates an ASCII-armored GPG file; this is fully readable by GPG and by the repository's `gpg-vault` and deployment-time decryption. The command-line helper currently creates binary GPG output, which this extension can also decrypt.
 
-File encryption asks before replacing an existing `.gpg` file. File decryption never overwrites an existing plaintext file. Explorer context-menu decryption can read both ASCII-armored and binary GPG files, including ciphertext produced by the shell helper. Decrypted files are created with owner-only permissions where the operating system supports POSIX file modes. Temporary working files are placed in a private temporary directory and removed after each operation.
+File encryption automatically replaces an existing `.gpg` file without a confirmation prompt. File decryption never overwrites an existing plaintext file. Explorer context-menu decryption can read both ASCII-armored and binary GPG files, including ciphertext produced by the shell helper. Decrypted files are created with owner-only permissions where the operating system supports POSIX file modes. Temporary working files are placed in a private temporary directory and removed after each operation.
 
 ## Settings
 
