@@ -191,16 +191,9 @@ async function encryptFile(): Promise<void> {
     await fs.unlink(temporaryPath).catch(() => undefined);
   }
 
-  const deleteSource = vscode.workspace
-    .getConfiguration("gpg-vault")
-    .get<boolean>("deletePlaintextAfterEncrypt", true);
-
-  if (deleteSource) {
-    // Encryption has completed and the ciphertext is safely in place. Remove
-    // the exact plaintext file that was encrypted; abort deletion if it changed
-    // or was replaced while GPG was running.
-    await securelyDeletePlaintext(sourcePath, plaintext, plaintextInfo);
-  }
+  // Always remove the plaintext after the ciphertext has been written.
+  // Abort cleanup if the source changed or was replaced while GPG was running.
+  await securelyDeletePlaintext(sourcePath, plaintext, plaintextInfo);
 
   const encryptedDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(encryptedPath));
   await vscode.window.showTextDocument(encryptedDocument, { preview: false });
