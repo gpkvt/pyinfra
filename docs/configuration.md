@@ -8,7 +8,7 @@ The inventory target name determines its host-data file: the local target uses `
 
 The workstation group is optional. Add a host to the `workstation` inventory group only if it should receive that role's configuration and eligible workstation tasks.
 
-Keep configuration data separate from task logic. Put private keys, passwords, API tokens and credential-bearing URLs in the encrypted secrets file, not in group data. See [Secrets management](secrets.md).
+Keep configuration data separate from task logic. Put private keys, passwords, API tokens and credential-bearing URLs in the encrypted secrets file, not in group data. Use the deployed `gpg-vault` command to manage that file without routinely handling plaintext manually. See [Secrets management](secrets.md).
 
 ## Common settings
 
