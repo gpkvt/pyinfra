@@ -218,19 +218,22 @@ async function decryptFile(): Promise<void> {
   }
   const plaintextPath = encryptedPath.slice(0, -4);
 
-  try {
-    await fs.access(plaintextPath);
-    throw new Error(`Refusing to overwrite existing file: ${plaintextPath}`);
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      throw error;
-    }
-  }
-
   const ciphertext = await fs.readFile(encryptedPath);
   const plaintext = await transformBytes("decrypt", ciphertext);
-  await fs.writeFile(plaintextPath, plaintext, { flag: "wx", mode: 0o600 });
-  await fs.chmod(plaintextPath, 0o600).catch(() => undefined);
+
+  // Stage beside the destination and rename into place. On POSIX this
+  // atomically replaces an existing plaintext file without a confirmation.
+  const temporaryPath = path.join(
+    path.dirname(plaintextPath),
+    `.${path.basename(plaintextPath)}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`
+  );
+  try {
+    await fs.writeFile(temporaryPath, plaintext, { flag: "wx", mode: 0o600 });
+    await fs.rename(temporaryPath, plaintextPath);
+    await fs.chmod(plaintextPath, 0o600).catch(() => undefined);
+  } finally {
+    await fs.unlink(temporaryPath).catch(() => undefined);
+  }
 
   const openDecrypted = vscode.workspace
     .getConfiguration("gpg-vault")
