@@ -21,13 +21,15 @@ exclude_patterns:
   - /home/*/Downloads
   - /home/*/downloads
 
-  # flatpak
+  # flatpak, Cargo
   - /home/*/.local/share/flatpak
+  - /home/*/.cargo
 
   # General cache directories
   - /home/*/.cache
   - /home/*/.local/share/Trash
   - /home/*/.local/tmp
+  - /home/*/.local/lib
   - /home/*/tmp
   - /home/*/Temp
   - /home/*/.thumbnails
@@ -37,6 +39,9 @@ exclude_patterns:
   - /home/*/History
   - /home/*/logs
   - "/home/*/Crash Reports"
+
+  # Thunderbird imap folder
+  - /home/*/.thunderbird/*/ImapMail
 
   # Firefox cache
   - /home/*/.mozilla/firefox/*/cache2
@@ -68,8 +73,13 @@ exclude_patterns:
   - /home/*/.vscode
   - /home/*/.config/vivaldi
   - /home/*/translate-env
+  - /home/*/.mediathek3
+  - /home/*/.npm
+  - /home/*/.paradoxlauncher
 
   # Games, wine
+  - /home/*/.local/share/Steam
+  - /home/*/.local/share/lutris
   - /home/*/Games
   - /home/*/.wine
 
