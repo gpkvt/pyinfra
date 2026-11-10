@@ -14,6 +14,7 @@ managed through Syncthing's GUI or REST/CLI interface.
 import shlex
 
 from pyinfra import host
+from pyinfra.facts.server import Command
 from pyinfra.operations import apt, server, systemd
 
 if not hasattr(__import__("builtins"), "homedir"):
@@ -41,12 +42,19 @@ systemd.service(
 
 # Configure the running instance as its owning user. Keeping the GUI bound
 # to loopback by default avoids exposing the unauthenticated setup wizard.
+# Read the current value as a fact so the operation is skipped when already
+# configured; this keeps repeated deployments idempotent.
+cli_prefix = f"runuser --user {shlex.quote(username)} -- syncthing cli config gui raw-address"
+current_gui_address = host.get_fact(
+    Command,
+    command=f"{cli_prefix} get",
+)
+
 server.shell(
     name="Configure Syncthing GUI listen address",
     commands=[
-        "runuser --user "
-        f"{shlex.quote(username)} -- "
-        f"syncthing cli config gui raw-address set {shlex.quote(gui_address)}"
+        f"{cli_prefix} set {shlex.quote(gui_address)}"
     ],
     _sudo=True,
+    _if=lambda: current_gui_address.strip() != gui_address,
 )
