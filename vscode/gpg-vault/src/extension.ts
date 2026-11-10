@@ -142,7 +142,17 @@ async function encryptFile(): Promise<void> {
     }
   }
 
-  const plaintext = Buffer.from(document.getText(), "utf8");
+  // Save first so the bytes encrypted are exactly the bytes that will later be
+  // securely deleted from disk. This also avoids deleting an older on-disk
+  // version while encrypting newer, unsaved editor contents.
+  if (document.isDirty) {
+    const saved = await document.save();
+    if (!saved) {
+      throw new Error("Could not save the plaintext file; encryption was cancelled.");
+    }
+  }
+
+  const plaintext = await fs.readFile(sourcePath);
   const ciphertext = await transformBytes("encrypt", plaintext);
 
   // Stage the ciphertext beside the destination so the final operation stays
@@ -176,15 +186,6 @@ async function encryptFile(): Promise<void> {
       "Delete plaintext"
     );
     if (answer === "Delete plaintext") {
-      if (document.isDirty) {
-        const saved = await document.save();
-        if (!saved) {
-          void vscode.window.showWarningMessage(
-            "The encrypted copy was created, but the plaintext source was not deleted because the document could not be saved."
-          );
-          return;
-        }
-      }
       await securelyDeletePlaintext(sourcePath);
     }
   }
