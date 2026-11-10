@@ -30,7 +30,7 @@ Templates may receive host data, runtime values initialized by `common.py`, and 
 | SSH client configuration | `~/.ssh/config`, restrictive mode `0600`. |
 | WireGuard interface | `/etc/wireguard/<interface>.conf`, owned by root with mode `0640`. The task does not start the interface. |
 | dehydrated config | `/etc/dehydrated/config`, root-owned with mode `0600`. |
-| Borgmatic config | `/etc/borgmatic/config.yaml`, root-owned with mode `0644`; review and complete its repository/source settings before relying on it. The current template also contains the literal fallback passphrase `B0rgm4t1C!`—do not use that default for real backups. |
+| Borgmatic config | `/etc/borgmatic/config.yaml`, root-owned with mode `0600`; review and complete its repository/source settings before relying on it. The current template also contains the literal fallback passphrase `B0rgm4t1C!`—do not use that default for real backups. |
 | dehydrated hook | `/etc/dehydrated/hook.sh`, root-owned with executable permissions. |
 | Docker Compose | Service-specific directory under the configured user's home. |
 | Docker systemd unit | `~/.config/systemd/user/<service>.service`. |
