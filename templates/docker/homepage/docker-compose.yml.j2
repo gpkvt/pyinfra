@@ -1,0 +1,14 @@
+services:
+  homepage:
+    image: {{ image }}
+    container_name: homepage
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:{{ port }}:3000"
+
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: "{{ domain }}"
+
+    volumes:
+      - {{ homedir }}/.docker/homepage/config:/app/config
