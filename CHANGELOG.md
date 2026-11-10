@@ -9,6 +9,17 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ### Added
 
+- Added the VS Code GPG Vault extension for file and selection encryption/decryption, including a keyboard shortcut to toggle file encryption ([#21](https://github.com/gpkvt/pyinfra/pull/21)).
+- Added VPN task integration with the Zsh configuration workflow ([#19](https://github.com/gpkvt/pyinfra/pull/19)).
+
+### Changed
+
+- Corrected the UFW active-state fact handling ([#20](https://github.com/gpkvt/pyinfra/pull/20)).
+- Added JSON linting to the configured development checks ([#22](https://github.com/gpkvt/pyinfra/pull/22)).
+- Updated the VS Code GPG Vault workflow to replace existing destination files without prompting and remove plaintext after successful encryption.
+
+### Added
+
 - Added the `gpg-vault` command-line helper for creating, editing, viewing, encrypting, decrypting and rekeying the GPG-encrypted secrets file. The helper is deployed with the user scripts and does not replace deployment-time secret loading ([#13](https://github.com/gpkvt/pyinfra/pull/13)).
 - Added a `uv` project configuration with a Python 3.12 development environment and a development dependency group for pytest, coverage, pre-commit and deptry ([#15](https://github.com/gpkvt/pyinfra/pull/15)).
 
