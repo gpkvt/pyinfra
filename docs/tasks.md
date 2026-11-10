@@ -23,7 +23,7 @@ These task modules are included on every full deployment.
 | Module | Inclusion condition | Responsibility |
 | --- | --- | --- |
 | `tasks/flatpak.py` | Flatpak executable detected during initialization | Installs configured Flatpak application IDs. |
-| `tasks/ssh_config.py` | `ssh_config` | Renders the user's SSH client configuration. |
+| `tasks/ssh_config.py` | `ssh_config` | Renders the user's SSH client configuration with a hardened global baseline followed by configured host entries. |
 | `tasks/wireguard.py` | `wireguard_config` and `secrets.wireguard` | Installs WireGuard and writes `/etc/wireguard/<interface>.conf`; does not start the service. |
 | `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
 | `tasks/dehydrated.py` | `secrets.dehydrated` | Configures dehydrated for ACME certificate management and deploys its hook. |
@@ -69,9 +69,11 @@ The supplied `group_data/workstation.py` enables backup, power, hardware and sto
 
 Repository definitions include a signing-key URL and destination plus repository URL, distribution, components and optional architectures/types. Review third-party repository configuration carefully: adding a repository delegates package trust to that repository's signing key and publishing process.
 
-### SSH keys
+### SSH keys and client hardening
 
-The task supports Ed25519 and RSA key generation; RSA keys must be at least 3072 bits. Private keys are not overwritten when they already exist. Passphrases can be supplied through `secrets.ssh`. Keep backups of keys and verify authorized-key changes before removing access paths.
+The key task supports Ed25519 and RSA key generation; RSA keys must be at least 3072 bits. Private keys are not overwritten when they already exist. Passphrases can be supplied through `secrets.ssh`. Keep backups of keys and verify authorized-key changes before removing access paths.
+
+The SSH client task writes a global `Host *` baseline before the configured `ssh_config` host entries. It enables `HashKnownHosts`, `StrictHostKeyChecking accept-new`, `UpdateHostKeys`, and public-key authentication; disables agent forwarding, X11 forwarding, local commands and configured forwarding; and sets connection timeout/keepalive values. With OpenSSH's first-obtained-value behavior, these baseline options take precedence over later host-specific entries. `accept-new` automatically records previously unseen host keys but still rejects changed keys; verify host fingerprints through a trusted channel when onboarding sensitive systems.
 
 ### WireGuard and VPN activation
 
