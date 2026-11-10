@@ -154,7 +154,7 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The supported keys are `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden` and `nocodb`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
+`docker` is a mapping of service names to service-specific settings. The supported keys are `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb` and `homepage`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
 
 All current services persist application data through host bind mounts below the configured user's home directory:
 
@@ -168,7 +168,7 @@ All current services persist application data through host bind mounts below the
 | TasmoAdmin | `~/.docker/tasmoadmin/data/` | `8016` |
 | Wallabag | `~/.docker/wallabag/data/`, `~/.docker/wallabag/images/` | `8017` |
 | Vaultwarden | `~/.docker/vaultwarden/` | `8018` |
-| NocoDB | `~/.docker/nocodb/data/` | `8019` |
+| NocoDB | `~/.docker/nocodb/data/` | `8019` |\n| Homepage | `~/.docker/homepage/config/` | `8020` |
 
 The interfaces bind to `127.0.0.1` by default. The shared Docker helper renders Compose files under `~/<service>/` and user-level systemd units under `~/.config/systemd/user/`. A changed Compose file triggers an image pull; a changed Compose file or systemd unit triggers a service restart. No pull is performed when the Compose file is unchanged.
 
@@ -182,7 +182,7 @@ Service-specific behavior:
 - **TasmoAdmin** mounts its data at `/data/tasmoadmin` inside the container, matching `TASMO_DATADIR`.
 - **Wallabag** uses SQLite, stores its database/application data and article images in the two host directories above, and disables public registration. Change the initial `wallabag` / `wallabag` account password immediately. The supplied local configuration publishes it through Caddy at `wallabag.21x9.org`.
 - **Vaultwarden** disables public signups and invitations. Its optional `admin_token` secret must contain an Argon2 PHC hash, generated with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. The supplied local configuration publishes it through Caddy at `vaultwarden.21x9.org`.
-- **NocoDB** persists its application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. It supports `image`, `port` and `domain`; the supplied local configuration publishes it through Caddy at `nocodb.21x9.org`.
+- **NocoDB** persists its application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. It supports `image`, `port` and `domain`; the supplied local configuration publishes it through Caddy at `nocodb.21x9.org`.\n- **Homepage** persists its dashboard configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It supports `image`, `port` and `domain`; `domain` is passed to `HOMEPAGE_ALLOWED_HOSTS` and must contain the hostname (and port, if applicable), not a URL scheme. The supplied local configuration publishes it through Caddy at `homepage.21x9.org`. Docker socket integration is not enabled by default; configure a restricted socket proxy separately if container discovery is required. Since widgets can display sensitive data, protect the dashboard with reverse-proxy authentication, Homepage authentication, or a VPN.
 
 **Migration note:** The current templates use host bind mounts. If a host was deployed while an earlier Wallabag or Vaultwarden template used Docker-managed named volumes, Compose does not migrate that data automatically. Back up and copy the named-volume contents into the corresponding host directory before switching. Data already present in the host directories is retained.
 
