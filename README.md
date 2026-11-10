@@ -20,7 +20,7 @@ The repository is primarily designed around Debian/Ubuntu systems and includes b
 | Base system | APT repositories and packages, hostname, timezone, locale, keyboard, editors, sysctl and udev |
 | Access and security | SSH keys and client configuration, sudoers rules, AppArmor profiles, USBGuard, UFW |
 | Networking | WireGuard configuration and conditional VPN activation based on local-network detection |
-| Services | Docker Compose services, Caddy reverse proxy, dehydrated ACME certificates |
+| Services | Docker Compose services, Caddy reverse proxy, Syncthing file synchronization, dehydrated ACME certificates |
 | Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications, optional workstation desktop utilities |
 | Workstation maintenance | Backup tools and Borgmatic config, power management, firmware/microcode tools, storage health utilities, optional printer/scanner support and maintenance tools |
 | User environment | Zsh, tmux, Powerline, Git, Midnight Commander, scripts and dotfiles |
