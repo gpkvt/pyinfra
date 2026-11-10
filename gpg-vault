@@ -1,0 +1,278 @@
+#!/usr/bin/env bash
+#
+# gpg-vault - Manage GPG-encrypted secret files.
+#
+# Usage:
+#   gpg-vault [--file FILE] COMMAND
+#
+# Commands:
+#   create    Create a new encrypted file
+#   edit      Edit an encrypted file
+#   view      Display decrypted contents
+#   encrypt   Encrypt an existing plaintext file
+#   decrypt   Decrypt to a plaintext file
+#   rekey     Change the encryption passphrase
+#   status    Show encryption status
+#
+
+set -Eeuo pipefail
+umask 077
+
+# ---------------------------------------------------------------------------
+# Configuration
+# ---------------------------------------------------------------------------
+
+FILE="secrets.json"
+
+EDITOR="${EDITOR:-nano}"
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [--file FILE] COMMAND
+
+Commands:
+  create    Create a new encrypted file
+  edit      Edit an encrypted file
+  view      Display decrypted contents
+  encrypt   Encrypt an existing plaintext file
+  decrypt   Decrypt to a plaintext file
+  rekey     Change the encryption passphrase
+  status    Show encryption status
+
+Options:
+  -f, --file FILE    Plaintext filename (default: secrets.json)
+  -h, --help         Show this help
+
+Examples:
+  $(basename "$0") create
+  $(basename "$0") edit
+  $(basename "$0") view
+  $(basename "$0") encrypt
+  $(basename "$0") decrypt
+  $(basename "$0") rekey
+EOF
+}
+
+die() {
+    echo "Error: $*" >&2
+    exit 1
+}
+
+info() {
+    echo "==> $*"
+}
+
+check_gpg() {
+    command -v gpg >/dev/null 2>&1 ||
+        die "GPG is not installed."
+}
+
+# Create a private temporary directory.
+TEMP_DIR=$(mktemp -d)
+trap 'rm -rf "$TEMP_DIR"' EXIT
+
+ENCRYPTED="${FILE}.gpg"
+
+# ---------------------------------------------------------------------------
+# GPG operations
+# ---------------------------------------------------------------------------
+
+decrypt_to() {
+    local source="$1"
+    local destination="$2"
+
+    gpg \
+        --quiet \
+        --decrypt \
+        --output "$destination" \
+        "$source"
+}
+
+encrypt_to() {
+    local source="$1"
+    local destination="$2"
+
+    gpg \
+        --quiet \
+        --symmetric \
+        --cipher-algo AES256 \
+        --output "$destination" \
+        "$source"
+}
+
+# ---------------------------------------------------------------------------
+# Commands
+# ---------------------------------------------------------------------------
+
+create() {
+    [[ ! -e "$FILE" ]] ||
+        die "$FILE already exists."
+
+    [[ ! -e "$ENCRYPTED" ]] ||
+        die "$ENCRYPTED already exists."
+
+    local plaintext="$TEMP_DIR/plaintext"
+
+    info "Creating new secrets file..."
+
+    "$EDITOR" "$plaintext"
+
+    [[ -s "$plaintext" ]] ||
+        die "Empty secrets file. Aborting."
+
+    encrypt_to "$plaintext" "$TEMP_DIR/encrypted"
+
+    mv "$TEMP_DIR/encrypted" "$ENCRYPTED"
+
+    info "Created $ENCRYPTED"
+}
+
+edit() {
+    [[ -f "$ENCRYPTED" ]] ||
+        die "$ENCRYPTED does not exist."
+
+    local plaintext="$TEMP_DIR/plaintext"
+
+    info "Decrypting $ENCRYPTED..."
+
+    decrypt_to "$ENCRYPTED" "$plaintext"
+
+    info "Opening editor..."
+
+    "$EDITOR" "$plaintext"
+
+    info "Encrypting changes..."
+
+    encrypt_to "$plaintext" "$TEMP_DIR/encrypted"
+
+    # Replace encrypted file only after successful encryption.
+    mv "$TEMP_DIR/encrypted" "$ENCRYPTED"
+
+    info "Updated $ENCRYPTED"
+}
+
+view() {
+    [[ -f "$ENCRYPTED" ]] ||
+        die "$ENCRYPTED does not exist."
+
+    decrypt_to "$ENCRYPTED" -
+}
+
+encrypt() {
+    [[ -f "$FILE" ]] ||
+        die "$FILE does not exist."
+
+    [[ ! -e "$ENCRYPTED" ]] ||
+        die "$ENCRYPTED already exists."
+
+    info "Encrypting $FILE..."
+
+    encrypt_to "$FILE" "$TEMP_DIR/encrypted"
+
+    mv "$TEMP_DIR/encrypted" "$ENCRYPTED"
+
+    rm -f "$FILE"
+
+    info "Encrypted successfully: $ENCRYPTED"
+}
+
+decrypt() {
+    [[ -f "$ENCRYPTED" ]] ||
+        die "$ENCRYPTED does not exist."
+
+    [[ ! -e "$FILE" ]] ||
+        die "$FILE already exists. Refusing to overwrite."
+
+    info "Decrypting $ENCRYPTED..."
+
+    decrypt_to "$ENCRYPTED" "$TEMP_DIR/plaintext"
+
+    mv "$TEMP_DIR/plaintext" "$FILE"
+
+    chmod 600 "$FILE"
+
+    info "Decrypted successfully: $FILE"
+}
+
+rekey() {
+    [[ -f "$ENCRYPTED" ]] ||
+        die "$ENCRYPTED does not exist."
+
+    info "Decrypting with current passphrase..."
+
+    decrypt_to "$ENCRYPTED" "$TEMP_DIR/plaintext"
+
+    info "Encrypting with new passphrase..."
+
+    encrypt_to "$TEMP_DIR/plaintext" "$TEMP_DIR/encrypted"
+
+    mv "$TEMP_DIR/encrypted" "$ENCRYPTED"
+
+    info "Passphrase changed successfully."
+}
+
+status() {
+    echo "Plaintext:  $FILE"
+    echo "Encrypted:  $ENCRYPTED"
+
+    if [[ -f "$ENCRYPTED" ]]; then
+        echo "Status:     Encrypted file exists"
+    else
+        echo "Status:     No encrypted file"
+    fi
+
+    if [[ -f "$FILE" ]]; then
+        echo "Warning:    Plaintext file exists!"
+    fi
+}
+
+# ---------------------------------------------------------------------------
+# Argument parsing
+# ---------------------------------------------------------------------------
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -f|--file)
+            [[ $# -ge 2 ]] || die "Missing filename."
+            FILE="$2"
+            shift 2
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        -*)
+            die "Unknown option: $1"
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
+
+COMMAND="${1:-}"
+
+[[ -n "$COMMAND" ]] || {
+    usage
+    exit 1
+}
+
+check_gpg
+
+case "$COMMAND" in
+    create)  create ;;
+    edit)    edit ;;
+    view)    view ;;
+    encrypt) encrypt ;;
+    decrypt) decrypt ;;
+    rekey)   rekey ;;
+    status)  status ;;
+    *)
+        usage
+        die "Unknown command: $COMMAND"
+        ;;
+esac
