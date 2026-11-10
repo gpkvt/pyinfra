@@ -24,7 +24,7 @@ common.py ────────── shared runtime values and decrypted sec
 | Component | Responsibility |
 | --- | --- |
 | `inventory.py` | Declares target hosts, SSH connection settings and `_sudo` behavior. |
-| `group_data/` | Supplies target-specific settings, exposed to tasks as `host.data`. |
+| `group_data/` | Supplies target-specific and group/role settings, exposed together through `host.data`. |
 | `deploy.py` | Calls initialization, includes core tasks and gates optional tasks. |
 | `common.py` | Loads the encrypted secrets file and publishes shared runtime values. |
 | `tasks/` | Declares operations for system, network, service and user configuration. |
@@ -35,14 +35,14 @@ common.py ────────── shared runtime values and decrypted sec
 
 1. **Inventory loading.** pyinfra loads `inventory.py`. `production` is built from `_all_hosts` after removing names in `disabled_hosts`. The special `@local` host represents the machine running pyinfra.
 2. **Initialization.** `deploy.py` calls `common.initialize(host, check_flatpak=True)`. The function checks for `secrets.json.gpg`; when present, it runs `gpg --decrypt`, parses JSON, and assigns the result to `builtins.secrets`. If absent, it assigns an empty dictionary. It also sets `builtins.homedir` and, when requested, `builtins.flatpak` from the `Which` fact.
-3. **Task selection.** Core task modules are included unconditionally. Optional modules are included when the relevant `host.data` value, secret entry, or detected executable is truthy. The exact gates are listed in [Deployment workflow](deployment.md).
+3. **Task selection.** Core task modules are included unconditionally. Optional modules are included when the relevant `host.data` value, secret entry, or detected executable is truthy. The workstation role is an inventory group: `workstation = ["@local"]` assigns the local target to that group, and pyinfra loads `group_data/workstation.py` alongside the host's own data. `deploy.py` then includes each `tasks/workstation/*.py` module only when its matching `workstation.<feature>.enabled` setting is true. The exact gates are listed in [Deployment workflow](deployment.md).
 4. **Operation execution.** pyinfra evaluates the included operations against the selected hosts and reports changed and unchanged operations. Operations may use facts and conditional callbacks to decide whether a change is required.
 
 ## Configuration namespaces
 
-### Host data
+### Host and group data
 
-Values in `group_data/<host>.py` are available as `host.data.<name>` or `host.data.get(<name>, default)`. Examples include `apt_packages`, `wireguard_config`, `docker`, `ufw`, and `zsh`.
+Values in `group_data/<host>.py` and matching group-data files are exposed through `host.data`. A target can therefore receive both its host-specific settings and shared role settings. For example, `workstation = ["@local"]` in `inventory.py` assigns `@local` to the `workstation` group, whose settings are defined in `group_data/workstation.py`. Tasks access these values with `host.data.<name>` or `host.data.get(<name>, default)`. Existing host settings include `apt_packages`, `wireguard_config`, `docker`, `ufw`, and `zsh`; workstation role settings are nested under `host.data.workstation`.
 
 ### Shared builtins
 
@@ -58,7 +58,7 @@ Some task modules initialize `common` themselves when `homedir` has not yet been
 
 ## Task organization
 
-Tasks are grouped by responsibility rather than by host. `deploy.py` owns orchestration and should remain the authoritative place for full-deployment feature gates. A task module should:
+Tasks are grouped by responsibility rather than by host. General tasks live directly under `tasks/`; optional workstation-role tasks are grouped under `tasks/workstation/`. `deploy.py` owns orchestration and should remain the authoritative place for full-deployment feature gates. A task module should:
 
 - Read only the host data and secrets it needs.
 - Validate user-controlled configuration before creating operations where appropriate.

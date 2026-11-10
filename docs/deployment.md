@@ -6,7 +6,7 @@ Run deployments from the repository root. `deploy.py` initializes shared state a
 
 1. Read the safety notes in the [README](../README.md).
 2. Review `inventory.py`; verify target names, SSH hostnames, ports, users and `_sudo` settings.
-3. Review the matching `group_data/<host>.py`. Remove example settings that do not belong on the target.
+3. Review the matching `group_data/<host>.py` and every group-data file for groups assigned to that target. Remove example settings that do not belong on the target. For example, `@local` belongs to the `workstation` group in the supplied inventory and therefore receives `group_data/workstation.py`.
 4. Prepare `secrets.json.gpg` only if the enabled features need secrets.
 5. Confirm SSH connectivity and privilege escalation on remote targets.
 6. Back up important system and application configuration, and arrange console/out-of-band access for firewall or network changes.
@@ -69,6 +69,24 @@ The core set can still have conditional behavior internally, but its modules are
 | `host.data.proton` is truthy | `tasks/proton.py` |
 
 A truthy dictionary or list is a common activation mechanism; these settings are not necessarily Boolean switches. The exact expected structure is described in [Configuration](configuration.md) and [Task reference](tasks.md).
+
+### Workstation role tasks
+
+The workstation role is assigned through inventory group membership, not by naming a host `workstation`. In the supplied inventory, `workstation = ["@local"]` assigns the local target to the group; its shared settings are in `group_data/workstation.py`.
+
+`deploy.py` checks these nested `workstation` flags and includes the matching module only when `enabled` is true:
+
+| Setting | Module | Notes |
+| --- | --- | --- |
+| `workstation.backup.enabled` | `tasks/workstation/backup.py` | Installs backup tools and renders Borgmatic configuration; does not schedule or run backups. |
+| `workstation.power.enabled` | `tasks/workstation/power.py` | Installs/enables either TLP or Power Profiles Daemon and removes the conflicting manager. |
+| `workstation.hardware.enabled` | `tasks/workstation/hardware.py` | Installs fwupd and optional Intel/AMD microcode; no unattended firmware updates. |
+| `workstation.storage.enabled` | `tasks/workstation/storage.py` | Installs SMART/NVMe inspection tools; no polling or alert schedule. |
+| `workstation.peripherals.enabled` | `tasks/workstation/peripherals.py` | Printer and scanner packages are separately controlled by `printing` and `scanning`; printing enables CUPS. |
+| `workstation.desktop.enabled` | `tasks/workstation/desktop.py` | Installs common desktop integration packages; optional `packages` replaces the defaults. |
+| `workstation.maintenance.enabled` | `tasks/workstation/maintenance.py` | Installs maintenance utilities only; no unattended upgrades or scheduled reboots. |
+
+The supplied group-data file enables backup, power, hardware and storage, while peripherals, desktop and maintenance are disabled. Audit these values before applying a deployment.
 
 ## Deployment behavior to understand
 
