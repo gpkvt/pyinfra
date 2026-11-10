@@ -1,0 +1,79 @@
+{
+  "name": "pyinfra-gpg-vault",
+  "displayName": "GPG Vault",
+  "description": "Encrypt and decrypt files and selections with GPG, compatible with pyinfra's gpg-vault workflow.",
+  "version": "0.1.0",
+  "publisher": "gpkvt",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Security"
+  ],
+  "keywords": [
+    "gpg",
+    "vault",
+    "encryption",
+    "secrets",
+    "pyinfra"
+  ],
+  "activationEvents": [
+    "onCommand:gpg-vault.encryptFile",
+    "onCommand:gpg-vault.decryptFile",
+    "onCommand:gpg-vault.encryptSelection",
+    "onCommand:gpg-vault.decryptSelection"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "gpg-vault.encryptFile",
+        "title": "GPG Vault: Encrypt Current File"
+      },
+      {
+        "command": "gpg-vault.decryptFile",
+        "title": "GPG Vault: Decrypt Current .gpg File"
+      },
+      {
+        "command": "gpg-vault.encryptSelection",
+        "title": "GPG Vault: Encrypt Selection"
+      },
+      {
+        "command": "gpg-vault.decryptSelection",
+        "title": "GPG Vault: Decrypt Selection"
+      }
+    ],
+    "configuration": {
+      "title": "GPG Vault",
+      "properties": {
+        "gpg-vault.gpgPath": {
+          "type": "string",
+          "default": "gpg",
+          "description": "Path to the GPG executable."
+        },
+        "gpg-vault.deletePlaintextAfterEncrypt": {
+          "type": "boolean",
+          "default": false,
+          "description": "After creating the encrypted .gpg file, ask before deleting the original plaintext file."
+        },
+        "gpg-vault.openDecryptedFile": {
+          "type": "boolean",
+          "default": true,
+          "description": "Open the decrypted file in the editor after successful decryption."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  }
+}
