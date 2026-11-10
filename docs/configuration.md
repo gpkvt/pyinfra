@@ -125,7 +125,9 @@ For detailed validation, file paths and safety considerations, see [System confi
 
 | Setting | Module | Expected content |
 | --- | --- | --- |
-| `zsh` | `tasks/zsh.py` | Truthy enablement value. |
+| `zsh` | `tasks/zsh.py` | Truthy enablement value; includes the Zsh dotfiles and generates `.zshrc`. |
+| `zshrc_imports` | `tasks/zsh.py` | Optional list of additional Zsh configuration files or import statements inserted into the generated `.zshrc`; defaults to an empty list. |
+| `zplug_plugins` | `tasks/zsh.py` | Optional list of zplug plugin definitions; defaults to an empty list. |
 | `tmux` | `tasks/tmux.py` | Truthy enablement value. |
 | `powerline` | `tasks/powerline.py` | Truthy enablement value. |
 | `powerline_fonts` | `tasks/fonts.py` | Boolean-like flag for optional patched fonts. |
@@ -134,6 +136,19 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
 | `proton` | `tasks/proton.py` | Proton application selection and options. |
+
+Example:
+
+```python
+zsh = True
+zshrc_imports = [
+    "source ~/.config/zsh/local.zsh",
+    "source ~/.config/zsh/secrets.zsh",
+]
+zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highlighting"]
+```
+
+`zshrc_imports` entries are rendered into the generated `.zshrc`; ensure referenced files exist for the configured user. Keep credentials out of these files unless they are protected separately.
 
 ## Service configuration
 
