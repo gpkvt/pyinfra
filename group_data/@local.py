@@ -74,7 +74,7 @@ editor = "mcedit"
 
 # Configure /etc/hosts
 hostnames = {
-  "127.0.0.1": "localhost local.21x9.org rss.21x9.org timetagger.21x9.org grav.21x9.org forgejo.21x9.org portainer.21x9.org",
+  "127.0.0.1": "localhost local.21x9.org rss.21x9.org timetagger.21x9.org grav.21x9.org forgejo.21x9.org portainer.21x9.org tasmoadmin.21x9.org",
   "::1": "localhost local.21x9.org",
   "192.168.42.100": "storage.intern.21x9.org paperless.intern.21x9.org huginn.intern.21x9.org grafana.intern.21x9.org ha.intern.21x9.org",
   "192.168.42.120": "storage.21x9.org",
@@ -425,6 +425,10 @@ docker = {
         "image": "portainer/portainer-ce:lts",
         "port": 9000,
     },
+    "tasmoadmin": {
+        "image": "ghcr.io/tasmoadmin/tasmoadmin:latest",
+        "port": 8016,
+    },
 }
 
 # Caddy configuration
@@ -460,6 +464,13 @@ caddy_config = {
   "portainer.21x9.org:443": {
     "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
     "reverse_proxy": "127.0.0.1:9000",
+    "header": [
+      "-Server"
+    ],
+  },
+  "tasmoadmin.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8016",
     "header": [
       "-Server"
     ],
