@@ -14,7 +14,7 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and choose:
 
 | Command | What it does |
 | --- | --- |
-| **GPG Vault: Encrypt Current File** | Encrypts the active saved or unsaved text document into a sibling `.gpg` file. The source is kept by default. |
+| **GPG Vault: Encrypt Current File** | Encrypts the active saved or unsaved text document into a sibling `.gpg` file. After successful encryption, it asks whether to securely overwrite and delete the plaintext source (enabled by default). |
 | **GPG Vault: Decrypt Current .gpg File** | Decrypts the active `.gpg` file into the filename without the `.gpg` suffix. Existing destination files are never overwritten. You can also right-click a `.gpg` file in the Explorer and choose this command, including for binary files created by the shell helper. |
 | **GPG Vault: Encrypt Selection** | Replaces the selected text with an ASCII-armored GPG message. |
 | **GPG Vault: Decrypt Selection** | Replaces the selected armored GPG message with plaintext. |
@@ -28,7 +28,7 @@ File encryption never overwrites an existing `.gpg` file. File decryption never 
 | Setting | Default | Description |
 | --- | --- | --- |
 | `gpg-vault.gpgPath` | `gpg` | GPG executable path. |
-| `gpg-vault.deletePlaintextAfterEncrypt` | `false` | Ask for confirmation before deleting the plaintext source after a successful file encryption. |
+| `gpg-vault.deletePlaintextAfterEncrypt` | `true` | Ask for confirmation before best-effort overwriting and deleting the plaintext source after successful file encryption. Set to `false` to keep plaintext files. |
 | `gpg-vault.openDecryptedFile` | `true` | Open the decrypted file in the editor after decryption. |
 
 ## Install from source
@@ -52,7 +52,7 @@ For development, open this directory as a VS Code workspace and press F5 to laun
 ## Security notes
 
 - GPG controls passphrase entry through your configured pinentry/GPG-agent setup. Do not configure loopback passphrase entry or put passphrases in VS Code settings.
-- The extension does not silently delete plaintext. If you enable `deletePlaintextAfterEncrypt`, it asks for confirmation each time.
+- The extension never silently deletes plaintext. With `deletePlaintextAfterEncrypt` enabled (the default), it asks for confirmation after successful encryption, then overwrites the plaintext file with random data, flushes it, and unlinks it. Files with multiple hard links are not overwritten or deleted.
 - Encryption does not make it safe to commit or share secret files. Keep encrypted files and backups protected, and review your Git ignore rules.
 - Avoid using selection commands on very large documents. They temporarily stage the selected content in a private temporary directory.
 - The extension operates on local `file:` documents for file-level commands. Selection commands work in any editable text document.
