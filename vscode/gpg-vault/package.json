@@ -55,8 +55,8 @@
         },
         "gpg-vault.deletePlaintextAfterEncrypt": {
           "type": "boolean",
-          "default": false,
-          "description": "After creating the encrypted .gpg file, ask before deleting the original plaintext file."
+          "default": true,
+          "description": "After creating the encrypted .gpg file, ask before securely overwriting and deleting the original plaintext file."
         },
         "gpg-vault.openDecryptedFile": {
           "type": "boolean",
