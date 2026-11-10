@@ -160,6 +160,18 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 `caddy_config` maps site addresses to Caddy directives consumed by `tasks/caddy.py`. The example uses TLS certificate paths and reverse-proxy destinations. Ensure the referenced certificates exist and that upstream services are reachable.
 
+### Syncthing
+
+Set `syncthing` to a dictionary to install Syncthing and enable its per-user systemd service (`syncthing@<username>`). The task uses the top-level `username` setting to select the service account and configures the GUI listen address through the Syncthing CLI. The GUI defaults to loopback-only (`127.0.0.1:8384`); change this only when remote access is deliberately secured, for example behind an authenticated reverse proxy or VPN.
+
+```python
+syncthing = {
+    "gui_address": "127.0.0.1:8384",
+}
+```
+
+The package creates the device identity and initial configuration on first start. Add remote devices and shared folders through the Syncthing GUI or its CLI/API; this task does not replace the generated device identity or overwrite the complete `config.xml`.
+
 ### Firewall
 
 `ufw` maps supported application/service names to `Allow` or `Deny` actions. The current keys are `chromecast-dlna`, `kdeconnect`, `localsend` and `ssh` (TCP port 22); unsupported keys and values are ignored. The task sets default incoming traffic to deny and outgoing traffic to allow, applies the configured rules, and enables UFW. For example:
