@@ -710,11 +710,6 @@ ufw = {
 
 # Configure ssh client
 ssh_config = {
-    "*": """
-  IdentitiesOnly yes
-  Compression yes
-  ForwardAgent no
-    """,
     "192.168.42.*": """
   HostKeyAlgorithms +ssh-rsa
   PubkeyAcceptedKeyTypes +ssh-rsa
