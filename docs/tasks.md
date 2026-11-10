@@ -28,6 +28,7 @@ These task modules are included on every full deployment.
 | `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
 | `tasks/dehydrated.py` | `secrets.dehydrated` | Configures dehydrated for ACME certificate management and deploys its hook. |
 | `tasks/caddy.py` | `caddy_config` | Deploys Caddy configuration from host data. |
+| `tasks/syncthing.py` | `syncthing` | Installs Syncthing, enables `syncthing@<username>`, and configures its GUI listen address (loopback by default). Device and folder sharing is configured separately in Syncthing. |
 | `tasks/zsh.py` | `zsh` | Installs/configures Zsh and related user configuration. |
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
