@@ -9,9 +9,5 @@ services:
       SYMFONY__ENV__FOSUSER_REGISTRATION: "false"
       SYMFONY__ENV__FOSUSER_CONFIRMATION: "true"
     volumes:
-      - wallabag_data:/var/www/wallabag/data
-      - wallabag_images:/var/www/wallabag/web/assets/images
-
-volumes:
-  wallabag_data:
-  wallabag_images:
+      - {{ homedir }}/.docker/wallabag/data:/var/www/wallabag/data
+      - {{ homedir }}/.docker/wallabag/images:/var/www/wallabag/web/assets/images
