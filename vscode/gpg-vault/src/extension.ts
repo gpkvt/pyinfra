@@ -173,8 +173,17 @@ async function encryptFile(): Promise<void> {
     }
   }
 
-  const plaintext = await fs.readFile(sourcePath);
   const plaintextInfo = await fs.stat(sourcePath);
+  const plaintext = await fs.readFile(sourcePath);
+  const afterReadInfo = await fs.stat(sourcePath);
+  if (
+    plaintextInfo.dev !== afterReadInfo.dev ||
+    plaintextInfo.ino !== afterReadInfo.ino ||
+    plaintextInfo.size !== afterReadInfo.size ||
+    plaintextInfo.mtimeMs !== afterReadInfo.mtimeMs
+  ) {
+    throw new Error("Plaintext file changed while being read; encryption was cancelled.");
+  }
   const ciphertext = await transformBytes("encrypt", plaintext);
 
   // Stage the ciphertext beside the destination so the final operation stays
