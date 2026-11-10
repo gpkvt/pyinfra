@@ -98,6 +98,7 @@ Conditional service deployments:
 
         - miniflux: tasks/docker/miniflux.py
         - timetagger: tasks/docker/timetagger.py
+        - wallabag: tasks/docker/wallabag.py
 
 Notes:
     - Docker Compose and systemd configurations are generated using

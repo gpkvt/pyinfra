@@ -1,0 +1,13 @@
+services:
+  wallabag:
+    image: {{ image }}
+    restart: always
+    ports:
+      - "127.0.0.1:{{ port }}:80"
+    environment:
+      SYMFONY__ENV__DOMAIN_NAME: "{{ domain }}"
+      SYMFONY__ENV__FOSUSER_REGISTRATION: "false"
+      SYMFONY__ENV__FOSUSER_CONFIRMATION: "true"
+    volumes:
+      - {{ homedir }}/.docker/wallabag/data:/var/www/wallabag/data
+      - {{ homedir }}/.docker/wallabag/images:/var/www/wallabag/web/assets/images

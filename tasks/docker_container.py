@@ -21,3 +21,6 @@ if "portainer" in container:
 
 if "tasmoadmin" in container:
     local.include("tasks/docker/tasmoadmin.py")
+
+if "wallabag" in container:
+    local.include("tasks/docker/wallabag.py")
