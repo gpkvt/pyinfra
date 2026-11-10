@@ -1,0 +1,20 @@
+services:
+  forgejo:
+    image: {{ image }}
+    container_name: forgejo
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:{{ port }}:3000"
+      - "127.0.0.1:{{ ssh_port }}:22"
+
+    volumes:
+      - {{ homedir }}/.docker/forgejo/data:/data
+
+    environment:
+      - FORGEJO__server__DOMAIN={{ domain }}
+      - FORGEJO__server__ROOT_URL=https://{{ domain }}/
+      - FORGEJO__server__HTTP_PORT=3000
+      - FORGEJO__server__SSH_DOMAIN={{ domain }}
+      - FORGEJO__server__SSH_PORT={{ ssh_port }}
+      - FORGEJO__server__START_SSH_SERVER=true

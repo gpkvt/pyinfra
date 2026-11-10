@@ -12,3 +12,6 @@ if "timetagger" in container:
 
 if "grav" in container:
     local.include("tasks/docker/grav.py")
+
+if "forgejo" in container:
+    local.include("tasks/docker/forgejo.py")
