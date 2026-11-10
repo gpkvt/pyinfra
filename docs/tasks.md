@@ -82,7 +82,71 @@ The WireGuard task installs the package and renders one file per configured inte
 
 ### Docker services
 
-When `host.data.docker` is truthy, `deploy.py` includes both `tasks/docker.py` and `tasks/docker_container.py`. The first installs Docker and defines `deploy_docker_service()`; the second includes the service modules under `tasks/docker/` when their matching keys are present. Service definitions live in `tasks/docker/` and `templates/docker/`. Compose files and user-level systemd units are deployed under the configured user's home/configuration directories. A changed Compose file triggers `docker compose pull` and a service restart; a changed unit triggers a user-systemd daemon reload, enable and restart. Forgejo persists its application data under `~/.docker/forgejo/data/`, exposes its web interface on loopback port 3000 and SSH on loopback port 2222 by default, and can be published through Caddy using the configured domain. Portainer persists its data under `~/.docker/portainer/data/`, mounts the Docker socket for host management, and exposes its HTTP interface on loopback port 9000 by default; publish it through Caddy only on a trusted, authenticated hostname. TasmoAdmin persists its data under `~/.docker/tasmoadmin/data/` and exposes its HTTP interface on loopback port 8016 by default. Wallabag stores its SQLite database, application data and article images in Docker-managed named volumes, and exposes its HTTP interface on loopback port 8017 by default. Wallabag's Caddy site is configured at `wallabag.21x9.org`. Vaultwarden stores its data and attachments in a Docker-managed named volume, binds its HTTP interface to loopback port 8018 by default, and is published through Caddy at `vaultwarden.21x9.org`. The Compose template uses SQLite and Docker-managed named volumes so the container's `www-data` process can write to its database and image storage. Existing data in the former bind-mounted `~/.docker/wallabag/data/` and `~/.docker/wallabag/images/` directories is not copied automatically when switching to named volumes; back it up and migrate it before deploying this change if it contains data. The initial Wallabag account uses the upstream image default credentials (`wallabag` / `wallabag`); change them immediately after the first login.
+When `host.data.docker` is truthy, `deploy.py` includes two modules:
+
+- `tasks/docker.py`
+  - Installs Docker.
+  - Defines the shared `deploy_docker_service()` helper.
+- `tasks/docker_container.py`
+  - Includes service modules from `tasks/docker/` when their matching configuration keys are present.
+
+Service definitions and templates are located in:
+
+- `tasks/docker/`
+- `templates/docker/`
+
+**Deployment behavior:**
+
+- Compose files are deployed under the configured user's home directory.
+- User-level systemd units are deployed in the user's configuration directories.
+- A changed Compose file triggers `docker compose pull` and a service restart.
+- A changed systemd unit triggers a user-systemd daemon reload, enable and restart.
+
+**Available services:**
+
+| Service | Data storage | Default interface |
+| --- | --- | --- |
+| Forgejo | `~/.docker/forgejo/data/` | Web: `127.0.0.1:3000`, SSH: `127.0.0.1:2222` |
+| Portainer | `~/.docker/portainer/data/` | `127.0.0.1:9000` |
+| TasmoAdmin | `~/.docker/tasmoadmin/data/` | `127.0.0.1:8016` |
+| Wallabag | Docker-managed named volumes | `127.0.0.1:8017` |
+| Vaultwarden | Docker-managed named volume | `127.0.0.1:8018` |
+
+**Service-specific notes:**
+
+- **Forgejo**
+  - Application data persists under `~/.docker/forgejo/data/`.
+  - Web interface and SSH are bound to loopback by default.
+  - Can be published through Caddy using the configured domain.
+
+- **Portainer**
+  - Persists data under `~/.docker/portainer/data/`.
+  - Mounts the Docker socket for host management.
+  - Only publish through Caddy on a trusted, authenticated hostname.
+
+- **TasmoAdmin**
+  - Persists data under `~/.docker/tasmoadmin/data/`.
+  - Exposes its HTTP interface on loopback port 8016.
+
+- **Wallabag**
+  - Uses SQLite.
+  - Stores its database, application data and article images in Docker-managed named volumes.
+  - The named volumes allow the container's `www-data` process to write to its database and image storage.
+  - Its HTTP interface uses loopback port 8017.
+  - Its Caddy site is configured at `wallabag.21x9.org`.
+  - Initial credentials are `wallabag` / `wallabag`. Change them immediately after the first login.
+
+  **Migration warning:** Existing data in the former bind-mounted directories is not copied automatically:
+
+  - `~/.docker/wallabag/data/`
+  - `~/.docker/wallabag/images/`
+
+  Back up and migrate existing data before deploying this change if those directories contain data.
+
+- **Vaultwarden**
+  - Stores data and attachments in a Docker-managed named volume.
+  - Binds its HTTP interface to loopback port 8018 by default.
+  - Is published through Caddy at `vaultwarden.21x9.org`.
 
 ### Browser and editor extensions
 
