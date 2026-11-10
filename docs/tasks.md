@@ -82,71 +82,47 @@ The WireGuard task installs the package and renders one file per configured inte
 
 ### Docker services
 
-When `host.data.docker` is truthy, `deploy.py` includes two modules:
+When `host.data.docker` is truthy, `deploy.py` includes `tasks/docker.py` and `tasks/docker_container.py`. The first installs Docker and defines the shared `deploy_docker_service()` helper. The second includes a service module from `tasks/docker/` for each configured service key.
 
-- `tasks/docker.py`
-  - Installs Docker.
-  - Defines the shared `deploy_docker_service()` helper.
-- `tasks/docker_container.py`
-  - Includes service modules from `tasks/docker/` when their matching configuration keys are present.
+**Deployment behavior**
 
-Service definitions and templates are located in:
+- Compose files are rendered to `~/<service>/docker-compose.yml`.
+- User-level systemd units are rendered to `~/.config/systemd/user/<service>.service`.
+- Persistent data and per-service Docker directories live under the configured user's `~/.docker/` directory.
+- A changed Compose file triggers `docker compose pull`; a changed Compose file or systemd unit triggers a service restart.
+- An unchanged Compose file does not trigger an image pull. Image updates therefore require a configuration change or a separate manual pull.
 
-- `tasks/docker/`
-- `templates/docker/`
+**Available services**
 
-**Deployment behavior:**
+All persistent application data currently uses host bind mounts. The paths below are relative to the configured user's home directory.
 
-- Compose files are deployed under the configured user's home directory.
-- User-level systemd units are deployed in the user's configuration directories.
-- A changed Compose file triggers `docker compose pull` and a service restart.
-- A changed systemd unit triggers a user-systemd daemon reload, enable and restart.
-
-**Available services:**
-
-| Service | Data storage | Default interface |
+| Service | Persistent data | Default loopback interface |
 | --- | --- | --- |
-| Forgejo | `~/.docker/forgejo/data/` | Web: `127.0.0.1:3000`, SSH: `127.0.0.1:2222` |
+| Miniflux | `~/.docker/miniflux/db/` (PostgreSQL) | `127.0.0.1:8080` |
+| TimeTagger | `~/.docker/timetagger/` | `127.0.0.1:8080` |
+| Grav | `~/.docker/grav/data/` | `127.0.0.1:8080` |
+| Forgejo | `~/.docker/forgejo/data/` | Web: `127.0.0.1:3000`; SSH: `127.0.0.1:2222` |
 | Portainer | `~/.docker/portainer/data/` | `127.0.0.1:9000` |
 | TasmoAdmin | `~/.docker/tasmoadmin/data/` | `127.0.0.1:8016` |
-| Wallabag | Docker-managed named volumes | `127.0.0.1:8017` |
-| Vaultwarden | Docker-managed named volume | `127.0.0.1:8018` |
+| Wallabag | `~/.docker/wallabag/data/`, `~/.docker/wallabag/images/` | `127.0.0.1:8017` |
+| Vaultwarden | `~/.docker/vaultwarden/` | `127.0.0.1:8018` |
 
-**Service-specific notes:**
+**Service-specific notes**
 
-- **Forgejo**
-  - Application data persists under `~/.docker/forgejo/data/`.
-  - Web interface and SSH are bound to loopback by default.
-  - Can be published through Caddy using the configured domain.
+- **Miniflux** uses a PostgreSQL companion container. Its database is persisted in `~/.docker/miniflux/db/`; administrator and database credentials are read from `secrets.docker.miniflux`.
+- **TimeTagger** stores its data in `~/.docker/timetagger/`, mounted at the container's `/root/_timetagger` directory.
+- **Grav** persists the complete web application data directory in `~/.docker/grav/data/`. Its `setup`, `scheduler` and `fix_permissions` options are configurable.
+- **Forgejo** persists application data in `~/.docker/forgejo/data/`. Its web and SSH ports bind to loopback by default; the public domain is configurable.
+- **Portainer** persists data in `~/.docker/portainer/data/` and mounts `/var/run/docker.sock`. Access to Portainer effectively grants administrative control over the Docker host; expose it only through a trusted, authenticated reverse proxy.
+- **TasmoAdmin** mounts `~/.docker/tasmoadmin/data/` at `/data/tasmoadmin`, matching its `TASMO_DATADIR` setting.
+- **Wallabag** uses SQLite and persists its database/application data and article images in the two host directories shown above. The directories are mounted into the container paths used by Wallabag's `www-data` process. The supplied local Caddy configuration publishes it as `wallabag.21x9.org`; the initial credentials are `wallabag` / `wallabag`, which must be changed after first login.
+- **Vaultwarden** persists its data in `~/.docker/vaultwarden/`. Public signups and invitations are disabled. An optional Argon2 PHC admin-token hash is read from `secrets.docker.vaultwarden.admin_token`; generate it with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. Its supplied local Caddy hostname is `vaultwarden.21x9.org`.
 
-- **Portainer**
-  - Persists data under `~/.docker/portainer/data/`.
-  - Mounts the Docker socket for host management.
-  - Only publish through Caddy on a trusted, authenticated hostname.
+**Storage migration**
 
-- **TasmoAdmin**
-  - Persists data under `~/.docker/tasmoadmin/data/`.
-  - Exposes its HTTP interface on loopback port 8016.
+The current Compose templates use host bind mounts, not Docker-managed named volumes. If a service was previously deployed using an earlier named-volume template (notably Wallabag or Vaultwarden), Docker Compose will not copy that volume's contents into the new host directory. Back up the old volume and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.
 
-- **Wallabag**
-  - Uses SQLite.
-  - Stores its database, application data and article images in Docker-managed named volumes.
-  - The named volumes allow the container's `www-data` process to write to its database and image storage.
-  - Its HTTP interface uses loopback port 8017.
-  - Its Caddy site is configured at `wallabag.21x9.org`.
-  - Initial credentials are `wallabag` / `wallabag`. Change them immediately after the first login.
-
-  **Migration warning:** Existing data in the former bind-mounted directories is not copied automatically:
-
-  - `~/.docker/wallabag/data/`
-  - `~/.docker/wallabag/images/`
-
-  Back up and migrate existing data before deploying this change if those directories contain data.
-
-- **Vaultwarden**
-  - Stores data and attachments in a Docker-managed named volume.
-  - Binds its HTTP interface to loopback port 8018 by default.
-  - Is published through Caddy at `vaultwarden.21x9.org`.
+`tasks/docker/` contains the service-specific configuration and `templates/docker/` contains the corresponding Compose files. Consult both before changing a service's supported host-data keys or storage layout.
 
 ### Browser and editor extensions
 
