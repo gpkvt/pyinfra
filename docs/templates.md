@@ -30,12 +30,14 @@ Templates may receive host data, runtime values initialized by `common.py`, and 
 | SSH client configuration | `~/.ssh/config`, restrictive mode `0600`. |
 | WireGuard interface | `/etc/wireguard/<interface>.conf`, owned by root with mode `0640`. The task does not start the interface. |
 | dehydrated config | `/etc/dehydrated/config`, root-owned with mode `0600`. |
-| Borgmatic config | `/etc/borgmatic/config.yaml`, root-owned with mode `0644`; review and complete its repository/source settings before relying on it. |
+| Borgmatic config | `/etc/borgmatic/config.yaml`, root-owned with mode `0644`; review and complete its repository/source settings before relying on it. The current template also contains the literal fallback passphrase `B0rgm4t1C!`—do not use that default for real backups. |
 | dehydrated hook | `/etc/dehydrated/hook.sh`, root-owned with executable permissions. |
 | Docker Compose | Service-specific directory under the configured user's home. |
 | Docker systemd unit | `~/.config/systemd/user/<service>.service`. |
 | Git credentials | `~/.git-credentials`, mode `0600`, only when matching secrets exist. |
 | User scripts | `~/scripts/`; symlinks are created in `/usr/local/bin/`. |
+
+**Security issue to resolve in implementation:** `templates/workstation/borgmatic.yml.j2` currently renders `storage.encryption_passphrase` from `borg_passphrase` or the literal fallback `B0rgm4t1C!`. The backup task writes the resulting configuration root-owned with mode `0644`. Do not rely on the fallback for real repositories; supply a unique secret through a verified secret-safe rendering path and ensure the resulting configuration is not readable by untrusted users. The current backup task does not explicitly pass a `borg_passphrase` argument, so verify the template context before assuming a host-data value overrides the fallback.
 
 Exact paths can be service- or task-specific and should be confirmed in the implementation before changing them.
 

@@ -32,7 +32,7 @@ These task modules are included on every full deployment.
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
-| `tasks/docker.py` | `docker` | Deploys configured Docker Compose services and user-level systemd units. |
+| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger and Grav services. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
 | `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
@@ -61,6 +61,10 @@ The supplied `group_data/workstation.py` enables backup, power, hardware and sto
 
 `tasks/scripts.py` deploys `files/scripts/gpg-vault` with the other user scripts and creates its command link. The helper provides `create`, `edit`, `view`, `encrypt`, `decrypt`, `rekey` and `status`; see [Secrets management](secrets.md). It is not invoked by `deploy.py`: `common.initialize()` remains responsible for decrypting `secrets.json.gpg` during deployment.
 
+### UFW firewall
+
+`tasks/ufw.py` supports the `chromecast-dlna`, `kdeconnect` and `localsend` application profiles plus `ssh` (TCP port 22). Each configured value must be `Allow` or `Deny`; unsupported keys and values are ignored. The task sets default incoming policy to deny and outgoing policy to allow, applies configured rules, and then enables UFW. Review the resulting policy before applying it remotely. The supplied `group_data/@local.py` currently sets `ssh` to `Deny`, so do not copy that policy to a remotely managed host without a separate recovery path.
+
 ### APT
 
 Repository definitions include a signing-key URL and destination plus repository URL, distribution, components and optional architectures/types. Review third-party repository configuration carefully: adding a repository delegates package trust to that repository's signing key and publishing process.
@@ -75,7 +79,7 @@ The WireGuard task installs the package and renders one file per configured inte
 
 ### Docker services
 
-Service-specific definitions live in `tasks/docker/` and `templates/docker/`. The current repository includes Miniflux, TimeTagger and Grav modules. Compose files and user-level systemd units are deployed under the configured user's home/configuration directories. Changes can cause image pulls and service restarts.
+When `host.data.docker` is truthy, `deploy.py` includes both `tasks/docker.py` and `tasks/docker_container.py`. The first installs Docker and defines `deploy_docker_service()`; the second includes `tasks/docker/miniflux.py`, `tasks/docker/timetagger.py` and `tasks/docker/grav.py` when their matching keys are present. Service definitions live in `tasks/docker/` and `templates/docker/`. Compose files and user-level systemd units are deployed under the configured user's home/configuration directories. A changed Compose file triggers `docker compose pull` and a service restart; a changed unit triggers a user-systemd daemon reload, enable and restart.
 
 ### Browser and editor extensions
 
