@@ -151,7 +151,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
     initialize(host)
 
 class UfwActive(FactBase):
-    command = "ufw statusAllow"
+    command = "ufw status"
 
     def process(self, output):
         return bool(output and output[0] == "Status: active")
