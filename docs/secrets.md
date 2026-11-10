@@ -12,6 +12,8 @@ The project stores sensitive values in a JSON document encrypted with GPG. Ordin
 
 Both real secret files are listed in `.gitignore`.
 
+The repository includes `files/scripts/gpg-vault`, an interactive helper deployed by `tasks/scripts.py`. It manages the plaintext/encrypted file pair locally; it does not change the JSON schema or the way pyinfra loads secrets.
+
 ## How loading works
 
 `common.initialize()` checks for `secrets.json.gpg` using pyinfra's `File` fact. If found, it executes `gpg --decrypt secrets.json.gpg`, parses standard output as JSON, and assigns the resulting dictionary to `builtins.secrets`. If the file is absent, `builtins.secrets` becomes `{}` and deployment continues.
@@ -76,46 +78,42 @@ Use `secrets.json.gpg.example` as the authoritative example. A simplified struct
 
 Do not use the placeholder values in a real deployment. Avoid storing secrets in shell history or temporary files on shared systems.
 
-## Create and encrypt the file
+## Manage secrets with `gpg-vault`
+
+`gpg-vault` is installed as a user utility by `tasks/scripts.py`. Once `files/scripts/` has been synchronized and the `/usr/local/bin/` link created, run it from the repository root (or pass an explicit path with `--file`). It requires GPG and uses the executable named by `$EDITOR`, defaulting to `nano`.
 
 ```bash
-cp secrets.json.gpg.example secrets.json
-${EDITOR:-vi} secrets.json
-python -m json.tool secrets.json
+gpg-vault create   # Create a new encrypted file in the editor
+gpg-vault edit     # Decrypt, edit and re-encrypt
+gpg-vault view     # Print decrypted contents to standard output
+gpg-vault encrypt  # Encrypt secrets.json and remove plaintext on success
+gpg-vault decrypt  # Decrypt to secrets.json; refuses to overwrite
+gpg-vault rekey    # Change the GPG passphrase
+gpg-vault status  # Show file presence
+```
 
+The default pair is `secrets.json` and `secrets.json.gpg`. Select another plaintext filename by placing `--file FILE` before the command:
+
+```bash
+gpg-vault --file /path/to/credentials.json create
+gpg-vault --file /path/to/credentials.json edit
+gpg-vault --file /path/to/credentials.json status
+```
+
+`create` and `edit` stage plaintext in a private temporary directory and replace the encrypted file only after encryption succeeds. `encrypt` removes the source plaintext after successful encryption. `decrypt` refuses to overwrite an existing plaintext file and sets its mode to `0600`. `view` writes decrypted data to the terminal; do not capture its output in logs. `status` reports file presence only, not passphrase or JSON validity.
+
+The `view` and `decrypt` commands intentionally expose plaintext. Keep the terminal, filesystem and any resulting plaintext file secure. Temporary-directory cleanup is best-effort and does not replace sound host security or backups.
+
+## Manual GPG fallback
+
+The helper wraps symmetric AES-256 GPG encryption. If it is unavailable, the basic operations are:
+
+```bash
 gpg --symmetric --cipher-algo AES256 --output secrets.json.gpg secrets.json
-```
-
-Verify that the encrypted file can be read before removing plaintext:
-
-```bash
 gpg --decrypt secrets.json.gpg | python -m json.tool >/dev/null
-shred -u secrets.json
 ```
 
-`shred` cannot guarantee secure erasure on every filesystem, SSD, snapshotting storage or backup system. Prefer encrypted storage and minimize the lifetime of plaintext secrets. Ensure the encrypted file has restrictive permissions:
-
-```bash
-chmod 600 secrets.json.gpg
-```
-
-## Inspect or update secrets
-
-Decrypt to a temporary file only when necessary:
-
-```bash
-gpg --decrypt secrets.json.gpg > secrets.json
-${EDITOR:-vi} secrets.json
-python -m json.tool secrets.json
-
-gpg --symmetric --cipher-algo AES256 --output secrets.json.gpg.new secrets.json
-# Verify the new encrypted file before replacing the old one.
-gpg --decrypt secrets.json.gpg.new | python -m json.tool >/dev/null
-mv secrets.json.gpg.new secrets.json.gpg
-shred -u secrets.json
-```
-
-Keep a secure backup of the previous encrypted file until the new one has been verified and deployed.
+For manual workflows, verify encrypted output before deleting plaintext. `shred` cannot guarantee secure erasure on every filesystem, SSD, snapshotting storage or backup system. Prefer encrypted storage and minimize plaintext lifetime. Ensure `secrets.json.gpg` has restrictive permissions (`chmod 600 secrets.json.gpg`). Keep a secure backup of the previous encrypted file until the new one has been verified and deployed.
 
 ## Security checklist
 

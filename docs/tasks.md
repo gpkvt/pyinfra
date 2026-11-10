@@ -15,7 +15,7 @@ These task modules are included on every full deployment.
 | `tasks/ssh_keys.py` | Generates supported SSH keypairs only when absent and manages authorized keys. Existing private keys are not overwritten. | `ssh_keys`, `ssh_authorized_keys`, `secrets.ssh` |
 | `tasks/git.py` | Installs/configures Git and deploys Git-related configuration and credentials when available. | Git host data and `secrets.git_credentials` |
 | `tasks/fonts.py` | Installs font packages; optionally downloads Powerline-patched fonts. | `powerline_fonts` |
-| `tasks/scripts.py` | Synchronizes `files/scripts/` into the configured user's scripts directory and creates command links. Existing destination files not in the source are preserved. | `username`, `usergroup` |
+| `tasks/scripts.py` | Synchronizes `files/scripts/` into the configured user's scripts directory and creates command links. This includes `gpg-vault`, the helper for managing `secrets.json.gpg`. Existing destination files not in the source are preserved. | `username`, `usergroup` |
 | `tasks/mc.py` | Installs and configures Midnight Commander. | `username`, `usergroup` |
 
 ## Optional tasks
@@ -56,6 +56,10 @@ The modules below are included by `deploy.py` only when the matching nested sett
 The supplied `group_data/workstation.py` enables backup, power, hardware and storage by default. Peripheral support, desktop utilities and maintenance utilities are disabled. Review the group data before assigning additional hosts to the workstation group.
 
 ## Feature notes
+
+### GPG secret utility
+
+`tasks/scripts.py` deploys `files/scripts/gpg-vault` with the other user scripts and creates its command link. The helper provides `create`, `edit`, `view`, `encrypt`, `decrypt`, `rekey` and `status`; see [Secrets management](secrets.md). It is not invoked by `deploy.py`: `common.initialize()` remains responsible for decrypting `secrets.json.gpg` during deployment.
 
 ### APT
 

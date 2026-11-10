@@ -29,14 +29,15 @@ common.py ────────── shared runtime values and decrypted sec
 | `common.py` | Loads the encrypted secrets file and publishes shared runtime values. |
 | `tasks/` | Declares operations for system, network, service and user configuration. |
 | `templates/` | Holds Jinja2 templates rendered by task modules. |
-| `files/` | Holds static files copied or synchronized by task modules. |
+| `files/` | Holds static files copied or synchronized by task modules, including the `gpg-vault` secret-management utility. |
 
 ## Execution lifecycle
 
 1. **Inventory loading.** pyinfra loads `inventory.py`. `production` is built from `_all_hosts` after removing names in `disabled_hosts`. The special `@local` host represents the machine running pyinfra.
 2. **Initialization.** `deploy.py` calls `common.initialize(host, check_flatpak=True)`. The function checks for `secrets.json.gpg`; when present, it runs `gpg --decrypt`, parses JSON, and assigns the result to `builtins.secrets`. If absent, it assigns an empty dictionary. It also sets `builtins.homedir` and, when requested, `builtins.flatpak` from the `Which` fact.
 3. **Task selection.** Core task modules are included unconditionally. Optional modules are included when the relevant `host.data` value, secret entry, or detected executable is truthy. The workstation role is an inventory group: `workstation = ["@local"]` assigns the local target to that group, and pyinfra loads `group_data/workstation.py` alongside the host's own data. `deploy.py` then includes each `tasks/workstation/*.py` module only when its matching `workstation.<feature>.enabled` setting is true. The exact gates are listed in [Deployment workflow](deployment.md).
-4. **Operation execution.** pyinfra evaluates the included operations against the selected hosts and reports changed and unchanged operations. Operations may use facts and conditional callbacks to decide whether a change is required.
+4. **Local secret maintenance.** `files/scripts/gpg-vault` is synchronized to the configured user's scripts directory by `tasks/scripts.py` and linked into `/usr/local/bin/`. It is an operator-facing tool; `common.initialize()` continues to decrypt `secrets.json.gpg` itself during deployment.
+5. **Operation execution.** pyinfra evaluates the included operations against the selected hosts and reports changed and unchanged operations. Operations may use facts and conditional callbacks to decide whether a change is required.
 
 ## Configuration namespaces
 

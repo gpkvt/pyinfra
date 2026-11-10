@@ -37,6 +37,7 @@ Optional features are included by `deploy.py` only when their configuration and 
 4. Modules in `tasks/` declare pyinfra operations.
 5. `templates/` contains rendered Jinja2 configuration; `files/` contains static payloads.
 6. `common.py` decrypts `secrets.json.gpg` when present and exposes the resulting dictionary to tasks.
+7. `files/scripts/gpg-vault` provides an interactive command-line workflow for creating, editing, viewing, encrypting, decrypting and rekeying the secrets file.
 
 See [Architecture](docs/architecture.md) for the execution flow and [Configuration](docs/configuration.md) for the settings model.
 
@@ -88,17 +89,16 @@ At minimum, review the user identity and home directory, hostname, locale, timez
 
 ### 5. Prepare secrets (optional)
 
-If you use features that require credentials, create a plaintext JSON file from the example, edit it, validate it, and encrypt it:
+If you use features that require credentials, manage the encrypted file with `gpg-vault` (deployed from `files/scripts/` into the user's scripts directory and linked into `/usr/local/bin/` by `tasks/scripts.py`):
 
 ```bash
-cp secrets.json.gpg.example secrets.json
-$EDITOR secrets.json
-python -m json.tool secrets.json
-gpg --symmetric --cipher-algo AES256 --output secrets.json.gpg secrets.json
-shred -u secrets.json
+gpg-vault create
+gpg-vault edit
+gpg-vault view
+gpg-vault status
 ```
 
-Keep the GPG passphrase available to the deployment operator. `common.py` invokes GPG interactively to decrypt the file. Without `secrets.json.gpg`, the deployment initializes an empty secrets dictionary; secret-dependent tasks are not included. See [Secrets management](docs/secrets.md).
+The utility defaults to `secrets.json` / `secrets.json.gpg`; use `gpg-vault --file path/to/other.json COMMAND` for another file. It requires GPG and uses `$EDITOR` (default `nano`) for `create` and `edit`. `view` prints decrypted contents to the terminal. Keep the GPG passphrase available to the deployment operator. `common.py` still decrypts `secrets.json.gpg` directly during deployment; `gpg-vault` is a local management helper, not part of deployment-time secret loading. Without `secrets.json.gpg`, the deployment initializes an empty secrets dictionary; secret-dependent tasks are not included. See [Secrets management](docs/secrets.md).
 
 ### 6. Preview, then deploy
 
