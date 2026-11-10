@@ -7,7 +7,7 @@ Run deployments from the repository root. `deploy.py` initializes shared state a
 1. Read the safety notes in the [README](../README.md).
 2. Review `inventory.py`; verify target names, SSH hostnames, ports, users and `_sudo` settings.
 3. Review the matching `group_data/<host>.py` and every group-data file for groups assigned to that target. Remove example settings that do not belong on the target. For example, `@local` belongs to the `workstation` group in the supplied inventory and therefore receives `group_data/workstation.py`.
-4. Prepare `secrets.json.gpg` only if the enabled features need secrets.
+4. Prepare `secrets.json.gpg` only if the enabled features need secrets. Use `gpg-vault create` or `gpg-vault edit` after the script has been deployed; see [Secrets management](secrets.md).
 5. Confirm SSH connectivity and privilege escalation on remote targets.
 6. Back up important system and application configuration, and arrange console/out-of-band access for firewall or network changes.
 
@@ -45,7 +45,7 @@ These modules are always included by `deploy.py`:
 8. `tasks/scripts.py`
 9. `tasks/mc.py`
 
-The core set can still have conditional behavior internally, but its modules are included on every deployment.
+The core set can still have conditional behavior internally, but its modules are included on every deployment. `tasks/scripts.py` also deploys the `gpg-vault` utility from `files/scripts/` and creates its command link.
 
 ### Optional tasks
 
