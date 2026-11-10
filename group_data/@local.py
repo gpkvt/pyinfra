@@ -414,6 +414,12 @@ docker = {
         "scheduler": True,
         "fix_permissions": True,
     },
+    "forgejo": {
+        "image": "codeberg.org/forgejo/forgejo:stable",
+        "port": 3000,
+        "ssh_port": 2222,
+        "domain": "forgejo.21x9.org",
+    },
 }
 
 # Caddy configuration
@@ -435,6 +441,13 @@ caddy_config = {
   "grav.21x9.org:443": {
     "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
     "reverse_proxy": "127.0.0.1:8015",
+    "header": [
+      "-Server"
+    ],
+  },
+  "forgejo.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:3000",
     "header": [
       "-Server"
     ],
