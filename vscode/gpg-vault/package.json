@@ -1,31 +1,8 @@
 {
-  "name": "pyinfra-gpg-vault",
-  "displayName": "GPG Vault",
-  "description": "Encrypt and decrypt files and selections with GPG, compatible with pyinfra's gpg-vault workflow.",
-  "version": "0.1.0",
-  "publisher": "gpkvt",
-  "license": "MIT",
-  "engines": {
-    "vscode": "^1.85.0"
-  },
+  "activationEvents": [],
   "categories": [
-    "Other",
-    "Security"
+    "Other"
   ],
-  "keywords": [
-    "gpg",
-    "vault",
-    "encryption",
-    "secrets",
-    "pyinfra"
-  ],
-  "activationEvents": [
-    "onCommand:gpg-vault.encryptFile",
-    "onCommand:gpg-vault.decryptFile",
-    "onCommand:gpg-vault.encryptSelection",
-    "onCommand:gpg-vault.decryptSelection"
-  ],
-  "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
@@ -45,35 +22,65 @@
         "title": "GPG Vault: Decrypt Selection"
       }
     ],
-    "menus": {\n      "explorer/context": [\n        {\n          "command": "gpg-vault.decryptFile",\n          "when": "resourceExtname == .gpg",\n          "group": "1_modification"\n        }\n      ]\n    },\n    "configuration": {
-      "title": "GPG Vault",
+    "configuration": {
       "properties": {
-        "gpg-vault.gpgPath": {
-          "type": "string",
-          "default": "gpg",
-          "description": "Path to the GPG executable."
-        },
         "gpg-vault.deletePlaintextAfterEncrypt": {
-          "type": "boolean",
           "default": false,
-          "description": "After creating the encrypted .gpg file, ask before deleting the original plaintext file."
+          "description": "After creating the encrypted .gpg file, ask before deleting the original plaintext file.",
+          "type": "boolean"
+        },
+        "gpg-vault.gpgPath": {
+          "default": "gpg",
+          "description": "Path to the GPG executable.",
+          "type": "string"
         },
         "gpg-vault.openDecryptedFile": {
-          "type": "boolean",
           "default": true,
-          "description": "Open the decrypted file in the editor after successful decryption."
+          "description": "Open the decrypted file in the editor after successful decryption.",
+          "type": "boolean"
         }
-      }
+      },
+      "title": "GPG Vault"
+    },
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "gpg-vault.decryptFile",
+          "group": "1_modification",
+          "when": "resourceExtname == .gpg"
+        }
+      ]
     }
   },
-  "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
-    "watch": "tsc -watch -p ./"
-  },
+  "description": "Encrypt and decrypt files and selections with GPG, compatible with pyinfra's gpg-vault workflow.",
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
     "typescript": "^5.3.3"
-  }
+  },
+  "displayName": "GPG Vault",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "keywords": [
+    "gpg",
+    "vault",
+    "encryption",
+    "secrets",
+    "pyinfra"
+  ],
+  "license": "MIT",
+  "main": "./out/extension.js",
+  "name": "pyinfra-gpg-vault",
+  "publisher": "gpkvt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gpkvt/pyinfra.git"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run compile",
+    "watch": "tsc -watch -p ./"
+  },
+  "version": "0.1.0"
 }
