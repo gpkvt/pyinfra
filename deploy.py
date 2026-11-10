@@ -63,6 +63,9 @@ if secrets.get("dehydrated"):
 if host.data.get("caddy_config"):
     local.include("tasks/caddy.py")
 
+if host.data.get("syncthing"):
+    local.include("tasks/syncthing.py")
+
 if host.data.get("zsh"):
     local.include("tasks/zsh.py")
 
