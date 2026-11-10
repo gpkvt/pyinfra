@@ -1,0 +1,16 @@
+services:
+  vaultwarden:
+    image: {{ image }}
+    restart: always
+    ports:
+      - "127.0.0.1:{{ port }}:80"
+    environment:
+      DOMAIN: "{{ domain }}"
+      SIGNUPS_ALLOWED: "false"
+      INVITATIONS_ALLOWED: "false"
+      ADMIN_TOKEN: "{{ admin_token | replace('$', '$$') }}"
+    volumes:
+      - vaultwarden_data:/data
+
+volumes:
+  vaultwarden_data:
