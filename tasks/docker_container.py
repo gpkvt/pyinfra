@@ -18,3 +18,6 @@ if "forgejo" in container:
 
 if "portainer" in container:
     local.include("tasks/docker/portainer.py")
+
+if "tasmoadmin" in container:
+    local.include("tasks/docker/tasmoadmin.py")
