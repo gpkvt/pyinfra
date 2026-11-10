@@ -42,8 +42,9 @@ deploy_docker_service(
     homedir=homedir,  # pylint: disable=undefined-variable
     username=username,
     usergroup=usergroup,
-    image=forgejo.get("image", "codeberg.org/forgejo/forgejo:stable"),
+    image=forgejo.get("image", "codeberg.org/forgejo/forgejo:17"),
     port=forgejo.get("port", 3000),
     ssh_port=forgejo.get("ssh_port", 2222),
+    ssh_server=forgejo.get("ssh_server", False),
     domain=forgejo.get("domain", "forgejo.21x9.org"),
 )

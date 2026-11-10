@@ -415,9 +415,10 @@ docker = {
         "fix_permissions": True,
     },
     "forgejo": {
-        "image": "codeberg.org/forgejo/forgejo:stable",
+        "image": "codeberg.org/forgejo/forgejo:17",
         "port": 3000,
         "ssh_port": 2222,
+        "ssh_server": False,
         "domain": "forgejo.21x9.org",
     },
 }
