@@ -30,6 +30,7 @@ The example file documents the current data shape:
 | `dehydrated` | `tasks/dehydrated.py` | Hetzner DNS API token. |
 | `git_credentials` | `tasks/git.py` | List of credential-bearing Git URLs. |
 | `docker.miniflux` | `tasks/docker/miniflux.py` | Miniflux admin and PostgreSQL credentials. |
+| `docker.vaultwarden` | `tasks/docker/vaultwarden.py` | Optional Argon2 PHC hash for the Vaultwarden admin token (`admin_token`). |
 | `ssh` | `tasks/ssh_keys.py` | Default and per-key passphrases. |
 
 A secret entry alone does not necessarily activate a task. For example, WireGuard also needs `wireguard_config` in host data. See [Deployment workflow](deployment.md).
@@ -61,6 +62,9 @@ Use `secrets.json.gpg.example` as the authoritative example. A simplified struct
     "https://user:REPLACE_ME@git.example.net"
   ],
   "docker": {
+    "vaultwarden": {
+      "admin_token": "$argon2id$REPLACE_WITH_GENERATED_HASH"
+    },
     "miniflux": {
       "admin_username": "admin@example.net",
       "admin_password": "REPLACE_ME",
