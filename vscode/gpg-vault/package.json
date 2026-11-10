@@ -45,7 +45,7 @@
         "title": "GPG Vault: Decrypt Selection"
       }
     ],
-    "configuration": {
+    "menus": {\n      "explorer/context": [\n        {\n          "command": "gpg-vault.decryptFile",\n          "when": "resourceExtname == .gpg",\n          "group": "1_modification"\n        }\n      ]\n    },\n    "configuration": {
       "title": "GPG Vault",
       "properties": {
         "gpg-vault.gpgPath": {
