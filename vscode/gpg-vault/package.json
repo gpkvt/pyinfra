@@ -24,11 +24,6 @@
     ],
     "configuration": {
       "properties": {
-        "gpg-vault.deletePlaintextAfterEncrypt": {
-          "default": true,
-          "description": "Securely overwrite and delete the original plaintext file after successful encryption.",
-          "type": "boolean"
-        },
         "gpg-vault.gpgPath": {
           "default": "gpg",
           "description": "Path to the GPG executable.",
