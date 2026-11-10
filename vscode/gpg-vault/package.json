@@ -14,6 +14,10 @@
         "title": "GPG Vault: Decrypt Current .gpg File"
       },
       {
+        "command": "gpg-vault.toggleFileEncryption",
+        "title": "GPG Vault: Toggle File Encryption"
+      },
+      {
         "command": "gpg-vault.encryptSelection",
         "title": "GPG Vault: Encrypt Selection"
       },
@@ -45,7 +49,15 @@
           "when": "resourceExtname == .gpg"
         }
       ]
-    }
+    },
+    "keybindings": [
+      {
+        "command": "gpg-vault.toggleFileEncryption",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorTextFocus && !editorReadonly"
+      }
+    ]
   },
   "description": "Encrypt and decrypt files and selections with GPG, compatible with pyinfra's gpg-vault workflow.",
   "devDependencies": {
