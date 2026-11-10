@@ -87,7 +87,7 @@ gpg-vault create   # Create a new encrypted file in the editor
 gpg-vault edit     # Decrypt, edit and re-encrypt
 gpg-vault view     # Print decrypted contents to standard output
 gpg-vault encrypt  # Encrypt secrets.json and remove plaintext on success
-gpg-vault decrypt  # Decrypt to secrets.json; refuses to overwrite
+gpg-vault decrypt  # Decrypt to secrets.json
 gpg-vault rekey    # Change the GPG passphrase
 gpg-vault status  # Show file presence
 ```
@@ -102,7 +102,17 @@ gpg-vault --file /path/to/credentials.json status
 
 `create` and `edit` stage plaintext in a private temporary directory and replace the encrypted file only after encryption succeeds. `encrypt` removes the source plaintext after successful encryption. `decrypt` refuses to overwrite an existing plaintext file and sets its mode to `0600`. `view` writes decrypted data to the terminal; do not capture its output in logs. `status` reports file presence only, not passphrase or JSON validity.
 
-The `view` and `decrypt` commands intentionally expose plaintext. Keep the terminal, filesystem and any resulting plaintext file secure. Temporary-directory cleanup is best-effort and does not replace sound host security or backups.\n\n## Use the VS Code extension\n\nThe repository's `vscode/gpg-vault/` directory contains a standalone VS Code extension. It provides Command Palette actions to encrypt the active file into a sibling `.gpg` file, decrypt a `.gpg` file back to its original filename, and encrypt or decrypt selected text in place. It invokes the local GPG executable and delegates passphrase entry to GPG Agent/pinentry; it does not store passphrases in VS Code.\n\nThe extension uses symmetric AES-256 like the shell helper. Its encrypted output is ASCII-armored for convenient text-file handling; the standard GPG format is compatible with `gpg-vault` and `common.py`. It can also decrypt the binary ciphertext produced by the shell helper. By default, encryption keeps the plaintext source and refuses to overwrite an existing encrypted or decrypted destination. See the [extension README](../vscode/gpg-vault/README.md) for installation, commands and settings.
+The `view` and `decrypt` commands intentionally expose plaintext. Keep the terminal, filesystem and any resulting plaintext file secure. Temporary-directory cleanup is best-effort and does not replace sound host security or backups.
+
+## Use the VS Code extension
+
+The `vscode/gpg-vault/` directory contains a standalone VS Code extension. It provides Command Palette commands to encrypt or decrypt the active local file, toggle a file between encrypted and decrypted states, and encrypt or decrypt selected text. The toggle command is also bound to `Ctrl+Alt+E` on Windows/Linux and `Cmd+Alt+E` on macOS. A `.gpg` file can also be decrypted from the VS Code Explorer context menu.
+
+The extension invokes the local GPG executable and delegates passphrase entry to GPG Agent/pinentry; it does not store passphrases in VS Code. It uses symmetric AES-256 and produces ASCII-armored ciphertext. GPG and the command-line `gpg-vault` helper can decrypt this output, and the extension can also decrypt the binary ciphertext produced by the shell helper.
+
+File encryption saves the active document first, writes or replaces the sibling `.gpg` file without an overwrite prompt, and then removes the plaintext source. It attempts to overwrite the regular plaintext file with random data and flush it before unlinking, but this is best-effort sanitization rather than a guarantee of physical erasure. File decryption writes the original filename and replaces an existing plaintext destination without prompting. Decrypted files are created with owner-only permissions where supported. The `gpg-vault.openDecryptedFile` setting (default `true`) controls whether the decrypted file is opened in the editor; `gpg-vault.gpgPath` selects the GPG executable.
+
+Selection commands replace the selected text in the editor with its encrypted or decrypted form. The extension stages operation data in a private temporary directory and removes that directory after the operation. See the [extension README](../vscode/gpg-vault/README.md) for installation and command details.
 
 ## Manual GPG fallback
 

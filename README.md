@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/github/license/gpkvt/pyinfra?label=license)](LICENSE)
 [![Open issues](https://img.shields.io/github/issues/gpkvt/pyinfra?logo=github)](https://github.com/gpkvt/pyinfra/issues)
 [![Last commit](https://img.shields.io/github/last-commit/gpkvt/pyinfra?logo=git)](https://github.com/gpkvt/pyinfra/commits/main)
-![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
+![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![Platforms: Debian and Ubuntu](https://img.shields.io/badge/platforms-Debian%20%7C%20Ubuntu-A81D33?logo=linux&logoColor=white)
 [![GitHub Checks](https://img.shields.io/github/checks-status/gpkvt/pyinfra/main?logo=githubactions&logoColor=white&label=checks)](https://github.com/gpkvt/pyinfra/actions)
 
@@ -43,7 +43,7 @@ See [Architecture](docs/architecture.md) for the execution flow and [Configurati
 
 ## Requirements
 
-- Python 3.10 or newer is recommended (use a version supported by the pyinfra release you install).
+- Python 3.12 or newer, as required by `pyproject.toml`.
 - [pyinfra](https://pyinfra.com/) installed in an isolated Python environment.
 - Debian- or Ubuntu-based target systems for the supplied task implementations.
 - SSH access to remote hosts and sufficient privilege escalation for system-level operations. The local target also needs the required privileges.
@@ -64,10 +64,8 @@ cd pyinfra
 ### 2. Create an isolated Python environment
 
 ```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install pyinfra
+uv sync --dev
+source .venv/bin/activate
 ```
 
 ### 3. Review the inventory
@@ -159,12 +157,14 @@ Check the CLI options supported by your installed pyinfra version with `pyinfra 
 
 ## Development
 
-Install the development tools and hooks:
+Install the pinned project dependencies and development tools with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-python -m pip install pre-commit pylint
+uv sync --dev
 pre-commit install
 ```
+
+The project requires Python 3.12 or newer. `pyproject.toml` defines the runtime dependencies and the `dev` dependency group; `uv.lock` pins the resolved environment. Use `uv sync --dev` after changing the dependency definitions or updating the lockfile.
 
 Run the configured checks and the repository's mocked task regression tests:
 

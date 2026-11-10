@@ -4,17 +4,22 @@ This guide covers local development, validation and the conventions used when ex
 
 ## Development environment
 
-Create and activate a virtual environment, then install the runtime and development tools:
+The project requires Python 3.12 or newer. Runtime dependencies are declared in `pyproject.toml`, development tools are in the `dev` dependency group, and `uv.lock` pins the resolved versions.
+
+Install [uv](https://docs.astral.sh/uv/) if it is not already available, then synchronize the environment:
 
 ```bash
-python3 -m venv .venv
-. .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install pyinfra pre-commit pylint
+uv sync --dev
 pre-commit install
 ```
 
-The repository does not currently define a pinned Python dependency file, so install versions compatible with the pyinfra version used by your environment. Consider recording tested dependencies when reproducibility becomes a project requirement.
+Activate the created virtual environment when running commands interactively:
+
+```bash
+source .venv/bin/activate
+```
+
+After changing dependencies in `pyproject.toml`, update the lockfile with `uv lock` and run `uv sync --dev` again. Prefer `uv add PACKAGE` for runtime dependencies and `uv add --dev PACKAGE` for development dependencies so the project metadata and lockfile stay consistent.
 
 ## Run checks
 
@@ -36,11 +41,10 @@ The source of truth for hook versions and arguments is `.pre-commit-config.yaml`
 
 ## Run the test suite
 
-Install pytest and run the mocked task regression tests:
+Run the mocked task regression tests in the synchronized development environment:
 
 ```bash
-python -m pip install pytest
-python -m pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. The GitHub Actions workflow `.github/workflows/pytest.yml` runs this command on pushes and pull requests targeting `main`; it installs pytest but does not install or exercise a real pyinfra deployment.
@@ -97,7 +101,7 @@ Some hooks modify files automatically. Review the resulting diff after running t
 - [ ] Operations have been reviewed for privilege, destructive effects and remote lockout risk.
 - [ ] Dry-run output has been reviewed on a suitable target.
 - [ ] `pre-commit run --all-files` passes.
-- [ ] `python -m pytest tests/ -v` passes.
+- [ ] `uv run pytest tests/ -v` passes.
 - [ ] README and relevant documentation have been updated.
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for repository contribution guidance.
