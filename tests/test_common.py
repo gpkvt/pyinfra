@@ -1,11 +1,13 @@
 # pylint: disable=C1803, E1101
-"""Tests for shared deployment initialization."""
+"""Tests for shared deployment initialization and host secret selection."""
 
 import builtins
 import json
 import subprocess
 import sys
 import types
+
+import pytest
 
 from conftest import load_module
 
@@ -30,6 +32,7 @@ def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_no_secrets")
     host = types.SimpleNamespace(
+        name="test-host",
         get_fact=lambda *_args, **_kwargs: None,
         data={"homedir": "/home/tester"},
     )
@@ -41,11 +44,18 @@ def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
     assert builtins.flatpak is None
 
 
-def test_initialize_decrypts_secrets(monkeypatch):
+def test_initialize_decrypts_and_selects_host_secrets(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_with_secrets")
-    secret_data = {"wireguard": {"private_key": "example"}}
+    secret_data = {
+        "shared": {"git_credentials": ["https://example.test/shared"]},
+        "hosts": {
+            "test-host": {"wireguard": {"home": {"privatekey": "host-key"}}},
+            "other-host": {"wireguard": {"home": {"privatekey": "other-key"}}},
+        },
+    }
     host = types.SimpleNamespace(
+        name="test-host",
         get_fact=lambda *_args, **_kwargs: True,
         data={},
     )
@@ -57,5 +67,68 @@ def test_initialize_decrypts_secrets(monkeypatch):
 
     common.initialize(host)
 
-    assert builtins.secrets == secret_data
+    assert builtins.secrets == {
+        "git_credentials": ["https://example.test/shared"],
+        "wireguard": {"home": {"privatekey": "host-key"}},
+    }
     assert builtins.homedir == "/root/"
+
+
+def test_select_host_secrets_recursively_merges_host_over_shared(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_merge")
+    data = {
+        "shared": {
+            "docker": {
+                "miniflux": {"admin_username": "shared-user", "admin_password": "shared-pass"},
+                "vaultwarden": {"admin_token": "shared-token"},
+            },
+            "git_credentials": ["shared-credential"],
+        },
+        "hosts": {
+            "host-a": {
+                "docker": {
+                    "miniflux": {"admin_password": "host-pass"},
+                },
+                "git_credentials": ["host-credential"],
+            },
+        },
+    }
+
+    assert common.select_host_secrets(data, "host-a") == {
+        "docker": {
+            "miniflux": {"admin_username": "shared-user", "admin_password": "host-pass"},
+            "vaultwarden": {"admin_token": "shared-token"},
+        },
+        "git_credentials": ["host-credential"],
+    }
+    assert common.select_host_secrets(data, "host-b") == data["shared"]
+
+
+def test_select_host_secrets_preserves_legacy_flat_structure(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_legacy")
+    legacy = {"wireguard": {"home": {"privatekey": "legacy-key"}}}
+
+    assert common.select_host_secrets(legacy, "test-host") == legacy
+
+
+@pytest.mark.parametrize("data", [[], "invalid", None])
+def test_select_host_secrets_rejects_non_object_document(monkeypatch, data):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_invalid_document")
+
+    with pytest.raises(ValueError, match="expected a JSON object"):
+        common.select_host_secrets(data, "test-host")
+
+
+def test_select_host_secrets_rejects_invalid_sections(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_invalid_sections")
+
+    with pytest.raises(ValueError, match="'shared' must be an object"):
+        common.select_host_secrets({"shared": [], "hosts": {}}, "test-host")
+    with pytest.raises(ValueError, match="'hosts' must be an object"):
+        common.select_host_secrets({"shared": {}, "hosts": []}, "test-host")
+    with pytest.raises(ValueError, match="Invalid secrets for host"):
+        common.select_host_secrets({"hosts": {"test-host": []}}, "test-host")
