@@ -4,3 +4,5 @@ pyinfra.code-workspace
 .venv
 *.log
 *.code-workspace
+__pycache__
+.pytest_cache
