@@ -1,0 +1,81 @@
+{
+  "activationEvents": [],
+  "categories": [
+    "Other"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "gpg-vault.encryptFile",
+        "title": "GPG Vault: Encrypt Current File"
+      },
+      {
+        "command": "gpg-vault.decryptFile",
+        "title": "GPG Vault: Decrypt Current .gpg File"
+      },
+      {
+        "command": "gpg-vault.encryptSelection",
+        "title": "GPG Vault: Encrypt Selection"
+      },
+      {
+        "command": "gpg-vault.decryptSelection",
+        "title": "GPG Vault: Decrypt Selection"
+      }
+    ],
+    "configuration": {
+      "properties": {
+        "gpg-vault.gpgPath": {
+          "default": "gpg",
+          "description": "Path to the GPG executable.",
+          "type": "string"
+        },
+        "gpg-vault.openDecryptedFile": {
+          "default": true,
+          "description": "Open the decrypted file in the editor after successful decryption.",
+          "type": "boolean"
+        }
+      },
+      "title": "GPG Vault"
+    },
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "gpg-vault.decryptFile",
+          "group": "1_modification",
+          "when": "resourceExtname == .gpg"
+        }
+      ]
+    }
+  },
+  "description": "Encrypt and decrypt files and selections with GPG, compatible with pyinfra's gpg-vault workflow.",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.3"
+  },
+  "displayName": "GPG Vault",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "keywords": [
+    "gpg",
+    "vault",
+    "encryption",
+    "secrets",
+    "pyinfra"
+  ],
+  "license": "MIT",
+  "main": "./out/extension.js",
+  "name": "pyinfra-gpg-vault",
+  "publisher": "gpkvt",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gpkvt/pyinfra.git"
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "vscode:prepublish": "npm run compile",
+    "watch": "tsc -watch -p ./"
+  },
+  "version": "0.1.0"
+}
