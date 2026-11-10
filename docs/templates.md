@@ -17,11 +17,31 @@ The consuming task controls the destination, owner, group, permissions and any s
 | `templates/dehydrated_config.j2` | `tasks/dehydrated.py` | dehydrated configuration. |
 | `templates/workstation/borgmatic.yml.j2` | `tasks/workstation/backup.py` | Borgmatic configuration deployed to `/etc/borgmatic/config.yaml`. |
 | `templates/Caddyfile.j2` | `tasks/caddy.py` | Caddy site configuration. |
-| `templates/docker/*` | Docker task modules | Compose and user-level systemd service definitions. |
+| `templates/docker/*` | Docker task modules | Service-specific Compose definitions and the shared user-level systemd service unit. |
 | `templates/git/*` | `tasks/git.py` | Git credentials/configuration fragments. |
 | `templates/dotfiles/*` | User environment tasks | Rendered user dotfiles. |
 
 Templates may receive host data, runtime values initialized by `common.py`, and explicit keyword arguments from the calling task. Do not assume every template has access to every variable: inspect the call site to determine the actual context.
+
+## Docker Compose templates and persistent data
+
+Each service has a Compose template under `templates/docker/<service>/docker-compose.yml.j2`; the shared systemd unit is `templates/docker/systemd.service.j2`. Compose files are deployed to `~/<service>/docker-compose.yml`. Persistent data is stored in host directories under `~/.docker/` and mounted into the containers:
+
+| Service | Host path | Container path |
+| --- | --- | --- |
+| Miniflux PostgreSQL | `~/.docker/miniflux/db/` | `/var/lib/postgresql/data` |
+| TimeTagger | `~/.docker/timetagger/` | `/root/_timetagger` |
+| Grav | `~/.docker/grav/data/` | `/var/www/html` |
+| Forgejo | `~/.docker/forgejo/data/` | `/data` |
+| Portainer | `~/.docker/portainer/data/` | `/data` |
+| TasmoAdmin | `~/.docker/tasmoadmin/data/` | `/data/tasmoadmin` |
+| Wallabag data | `~/.docker/wallabag/data/` | `/var/www/wallabag/data` |
+| Wallabag images | `~/.docker/wallabag/images/` | `/var/www/wallabag/web/assets/images` |
+| Vaultwarden | `~/.docker/vaultwarden/` | `/data` |
+
+These are host bind mounts, not Docker-managed named volumes. The task creates service configuration directories, but the service modules may also create or assign ownership to application data directories where required. Review the individual Compose template and task before changing mount paths: application UID/GID requirements differ between images.
+
+Wallabag and Vaultwarden previously used named-volume templates. Switching from one of those templates to the current host bind mounts does not copy existing volume contents; migrate the data explicitly before applying the change on a host that still has data in the old volume.
 
 ## Important generated destinations
 
