@@ -35,6 +35,7 @@ SSH:
     Defines SSH client connection settings and host-specific options.
 
 Zsh plugins:
+
     Defines plugins and themes managed through zplug.
 
 Zsh configuration:
@@ -54,6 +55,8 @@ Notes:
 """
 
 # General settings
+secrets_handler="gpg"
+
 hostname="chao"
 timezone = "Europe/Amsterdam"
 locale = "en_US.UTF-8"

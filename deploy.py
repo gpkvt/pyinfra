@@ -1,5 +1,4 @@
-# pylint: disable=line-too-long, undefined-variable
-
+# pylint: disable=line-too-long, undefined-variable, W0621, C0413
 """
 Configure and execute local infrastructure provisioning tasks using pyinfra.
 
@@ -27,8 +26,27 @@ host configuration, and configured secrets:
 Note: Configuration values are accessed through host.data, while shared runtime configuration and secrets are exposed through builtins.
 """
 
-from common import initialize
+import _socket
+
+"""
+Compatibility workaround for pyinfra's custom integer types
+when used with gevent's DNS resolver.
+"""
+
+_original_getaddrinfo = _socket.getaddrinfo
+
+def _compatible_getaddrinfo(host, port, *args, **kwargs):
+    # gevent's resolver expects a native Python int or str.
+    # pyinfra may supply its own integer subclass (_CustomInt).
+    if port is not None and type(port) not in (int, str):
+        port = int(port)
+
+    return _original_getaddrinfo(host, port, *args, **kwargs)
+
+_socket.getaddrinfo = _compatible_getaddrinfo
+
 from pyinfra import host, local
+from common import initialize
 
 initialize(host, check_flatpak=True)
 local_network_cidr=host.data.get("local_network_cidr")

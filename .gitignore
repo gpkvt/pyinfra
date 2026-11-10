@@ -6,3 +6,5 @@ pyinfra.code-workspace
 *.code-workspace
 __pycache__
 .pytest_cache
+secrets.yml
+secrets.yml.vault
