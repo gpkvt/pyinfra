@@ -89,7 +89,7 @@ gpg-vault view     # Print decrypted contents to standard output
 gpg-vault encrypt  # Encrypt secrets.json and remove plaintext on success
 gpg-vault decrypt  # Decrypt to secrets.json; refuses to overwrite
 gpg-vault rekey    # Change the GPG passphrase
- gpg-vault status  # Show file presence
+gpg-vault status  # Show file presence
 ```
 
 The default pair is `secrets.json` and `secrets.json.gpg`. Select another plaintext filename by placing `--file FILE` before the command:
