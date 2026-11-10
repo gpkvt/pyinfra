@@ -14,7 +14,7 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and choose:
 
 | Command | What it does |
 | --- | --- |
-| **GPG Vault: Encrypt Current File** | Encrypts the active saved or unsaved text document into a sibling `.gpg` file. After successful encryption, it asks whether to securely overwrite and delete the plaintext source (enabled by default). |
+| **GPG Vault: Encrypt Current File** | Encrypts the active saved or unsaved text document into a sibling `.gpg` file. After successful encryption, it securely overwrites and deletes the plaintext source by default; set `gpg-vault.deletePlaintextAfterEncrypt` to `false` to keep it. |
 | **GPG Vault: Decrypt Current .gpg File** | Decrypts the active `.gpg` file into the filename without the `.gpg` suffix. Existing destination files are never overwritten. You can also right-click a `.gpg` file in the Explorer and choose this command, including for binary files created by the shell helper. |
 | **GPG Vault: Encrypt Selection** | Replaces the selected text with an ASCII-armored GPG message. |
 | **GPG Vault: Decrypt Selection** | Replaces the selected armored GPG message with plaintext. |
@@ -28,7 +28,7 @@ File encryption asks before replacing an existing `.gpg` file. File decryption n
 | Setting | Default | Description |
 | --- | --- | --- |
 | `gpg-vault.gpgPath` | `gpg` | GPG executable path. |
-| `gpg-vault.deletePlaintextAfterEncrypt` | `true` | Ask for confirmation before best-effort overwriting and deleting the plaintext source after successful file encryption. Set to `false` to keep plaintext files. |
+| `gpg-vault.deletePlaintextAfterEncrypt` | `true` | Best-effort overwrite and delete the plaintext source automatically after successful file encryption. Set to `false` to keep plaintext files. |
 | `gpg-vault.openDecryptedFile` | `true` | Open the decrypted file in the editor after decryption. |
 
 ## Install from source
@@ -52,7 +52,7 @@ For development, open this directory as a VS Code workspace and press F5 to laun
 ## Security notes
 
 - GPG controls passphrase entry through your configured pinentry/GPG-agent setup. Do not configure loopback passphrase entry or put passphrases in VS Code settings.
-- The extension never silently deletes plaintext. With `deletePlaintextAfterEncrypt` enabled (the default), it first saves the document, encrypts the exact bytes on disk, and asks for confirmation after successful encryption. On confirmation, it overwrites the regular plaintext file with random data, flushes the file, and unlinks it. Files with multiple hard links are not overwritten or deleted. This is best-effort sanitization: SSD wear-leveling, copy-on-write filesystems, snapshots, backups, and storage-level journaling can retain previous blocks, so software overwrite cannot guarantee physical erasure. For stronger assurance, use full-disk encryption and manage snapshots/backups accordingly.
+- The extension never silently deletes plaintext. With `deletePlaintextAfterEncrypt` enabled (the default), it first saves the document and encrypts the bytes on disk. After successful encryption, it overwrites the regular plaintext file with random data, flushes the file, and unlinks it. It refuses deletion if the file changed or was replaced during encryption. Files with multiple hard links are not overwritten or deleted. This is best-effort sanitization: SSD wear-leveling, copy-on-write filesystems, snapshots, backups, and storage-level journaling can retain previous blocks, so software overwrite cannot guarantee physical erasure. For stronger assurance, use full-disk encryption and manage snapshots/backups accordingly.
 - Encryption does not make it safe to commit or share secret files. Keep encrypted files and backups protected, and review your Git ignore rules.
 - Avoid using selection commands on very large documents. They temporarily stage the selected content in a private temporary directory.
 - The extension operates on local `file:` documents for file-level commands. Selection commands work in any editable text document.
