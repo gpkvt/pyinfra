@@ -1,0 +1,11 @@
+services:
+  tasmoadmin:
+    image: {{ image }}
+    container_name: tasmoadmin
+    restart: unless-stopped
+
+    ports:
+      - "127.0.0.1:{{ port }}:80"
+
+    volumes:
+      - {{ homedir }}/.docker/tasmoadmin/data:/data
