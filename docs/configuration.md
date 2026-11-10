@@ -193,3 +193,35 @@ The absence of `secrets.json.gpg` does not stop the whole deployment; `common.in
 3. Create `group_data/<host>.py` with only the settings needed by that host.
 4. Verify SSH and privilege escalation.
 5. Run a dry deployment with a host limit and review every proposed operation.
+
+
+## SSH client configuration
+
+Set `ssh_config` to a mapping of OpenSSH `Host` patterns to configuration lines. The `tasks/ssh_config.py` task renders these entries into the configured user's `~/.ssh/config`.
+
+The generated file begins with a hardened `Host *` baseline that applies to all destinations:
+
+- `HashKnownHosts yes` hashes hostnames in `known_hosts`.
+- `StrictHostKeyChecking accept-new` accepts and records new host keys, but rejects changed keys.
+- `UpdateHostKeys yes` allows OpenSSH to learn additional host keys after a trusted connection.
+- `PubkeyAuthentication yes` and `IdentitiesOnly yes` prefer explicitly configured public-key identities.
+- `ForwardAgent no`, `ForwardX11 no`, `PermitLocalCommand no` and `ClearAllForwardings yes` disable common forwarding and local-command features.
+- `ConnectTimeout 15`, `ServerAliveInterval 60` and `ServerAliveCountMax 3` bound connection setup and detect unresponsive peers.
+
+The baseline is intentionally rendered before custom host entries. OpenSSH uses the first obtained value for most options, so later entries cannot override these baseline values. Other per-host settings remain available:
+
+```python
+ssh_config = {
+    "github.com": """
+  HostName github.com
+  IdentityFile ~/.ssh/id_github
+  User git
+    """,
+    "192.0.2.*": """
+  User deploy
+  Port 2222
+    """,
+}
+```
+
+When connecting to a new host, verify its fingerprint through a trusted channel where practical. `accept-new` protects against changed keys, but the first connection still relies on trusting the key presented at that time.
