@@ -21,6 +21,9 @@ exclude_patterns:
   - /home/*/Downloads
   - /home/*/downloads
 
+  # flatpak
+  - /home/*/.local/share/flatpak
+
   # General cache directories
   - /home/*/.cache
   - /home/*/.local/share/Trash
@@ -28,6 +31,12 @@ exclude_patterns:
   - /home/*/tmp
   - /home/*/Temp
   - /home/*/.thumbnails
+  - /home/*/CachedData
+  - /home/*/CachedExtensions
+  - /home/*/Cache
+  - /home/*/History
+  - /home/*/logs
+  - "/home/*/Crash Reports"
 
   # Firefox cache
   - /home/*/.mozilla/firefox/*/cache2
@@ -52,6 +61,23 @@ exclude_patterns:
 
   # Container storage
   - /home/*/.local/share/containers
+
+  # dot userspace storage
+  - /home/*/.local
+  - /home/*/.var
+  - /home/*/.vscode
+  - /home/*/.config/vivaldi
+  - /home/*/translate-env
+
+  # Games, wine
+  - /home/*/Games
+  - /home/*/.wine
+
+  # Nextcloud, Protondrive
+  - /home/*/Nextcloud*
+  - /home/*/nextcloud*
+  - /home/*/Protondrive
+  - /home/*/protondrive
 
   # Temporary editor files
   - '*.swp'
