@@ -12,7 +12,7 @@ The project stores sensitive values in a JSON document encrypted with GPG. Ordin
 
 Both real secret files are listed in `.gitignore`.
 
-The repository includes `files/scripts/gpg-vault`, an interactive helper deployed by `tasks/scripts.py`. It manages the plaintext/encrypted file pair locally; it does not change the JSON schema or the way pyinfra loads secrets.
+The repository includes `files/scripts/gpg-vault`, an interactive helper deployed by `tasks/scripts.py`. It manages the plaintext/encrypted file pair locally; it does not change the JSON schema or the way pyinfra loads secrets. The repository also includes a [Visual Studio Code extension](../vscode/gpg-vault/README.md) for performing the same GPG operations from the editor.
 
 ## How loading works
 
@@ -102,7 +102,7 @@ gpg-vault --file /path/to/credentials.json status
 
 `create` and `edit` stage plaintext in a private temporary directory and replace the encrypted file only after encryption succeeds. `encrypt` removes the source plaintext after successful encryption. `decrypt` refuses to overwrite an existing plaintext file and sets its mode to `0600`. `view` writes decrypted data to the terminal; do not capture its output in logs. `status` reports file presence only, not passphrase or JSON validity.
 
-The `view` and `decrypt` commands intentionally expose plaintext. Keep the terminal, filesystem and any resulting plaintext file secure. Temporary-directory cleanup is best-effort and does not replace sound host security or backups.
+The `view` and `decrypt` commands intentionally expose plaintext. Keep the terminal, filesystem and any resulting plaintext file secure. Temporary-directory cleanup is best-effort and does not replace sound host security or backups.\n\n## Use the VS Code extension\n\nThe repository's `vscode/gpg-vault/` directory contains a standalone VS Code extension. It provides Command Palette actions to encrypt the active file into a sibling `.gpg` file, decrypt a `.gpg` file back to its original filename, and encrypt or decrypt selected text in place. It invokes the local GPG executable and delegates passphrase entry to GPG Agent/pinentry; it does not store passphrases in VS Code.\n\nThe extension uses symmetric AES-256 like the shell helper. Its encrypted output is ASCII-armored for convenient text-file handling; the standard GPG format is compatible with `gpg-vault` and `common.py`. It can also decrypt the binary ciphertext produced by the shell helper. By default, encryption keeps the plaintext source and refuses to overwrite an existing encrypted or decrypted destination. See the [extension README](../vscode/gpg-vault/README.md) for installation, commands and settings.
 
 ## Manual GPG fallback
 
