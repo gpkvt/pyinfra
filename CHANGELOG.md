@@ -7,6 +7,15 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ## [10.11.2026]
 
+### Changed
+
+- Added shared and per-host secret scopes with recursive host-over-shared merging, while retaining support for the legacy flat secrets format.
+
+### Tests
+
+- Added coverage for host isolation, nested secret merging, legacy compatibility, and invalid secrets documents.
+
+
 ### Added
 
 - Added the VS Code GPG Vault extension for file and selection encryption/decryption, including a keyboard shortcut to toggle file encryption ([#21](https://github.com/gpkvt/pyinfra/pull/21)).

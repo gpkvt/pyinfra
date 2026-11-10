@@ -16,7 +16,7 @@ The repository includes `files/scripts/gpg-vault`, an interactive helper deploye
 
 ## How loading works
 
-`common.initialize()` checks for `secrets.json.gpg` using pyinfra's `File` fact. If found, it executes `gpg --decrypt secrets.json.gpg`, parses standard output as JSON, and assigns the resulting dictionary to `builtins.secrets`. If the file is absent, `builtins.secrets` becomes `{}` and deployment continues.
+`common.initialize()` checks for `secrets.json.gpg` using pyinfra's `File` fact. If found, it executes `gpg --decrypt secrets.json.gpg`, parses standard output as JSON, selects the current inventory host's secrets, and assigns the resolved dictionary to `builtins.secrets`. If the file is absent, `builtins.secrets` becomes `{}` and deployment continues.
 
 Decryption failures and invalid JSON are not silently ignored: GPG errors and JSON parsing errors stop initialization. The GPG process may prompt for the passphrase depending on the local GPG agent configuration.
 
@@ -26,12 +26,27 @@ The example file documents the current data shape:
 
 | Key | Consumer | Values |
 | --- | --- | --- |
-| `wireguard` | `tasks/wireguard.py` | Interface-indexed private keys and peer values, including optional preshared keys. |
-| `dehydrated` | `tasks/dehydrated.py` | Hetzner DNS API token. |
-| `git_credentials` | `tasks/git.py` | List of credential-bearing Git URLs. |
-| `docker.miniflux` | `tasks/docker/miniflux.py` | Miniflux admin and PostgreSQL credentials. |
-| `docker.vaultwarden` | `tasks/docker/vaultwarden.py` | Optional Argon2 PHC hash for the Vaultwarden admin token (`admin_token`). |
-| `ssh` | `tasks/ssh_keys.py` | Default and per-key passphrases. |
+| `shared.git_credentials` | `tasks/git.py` | Git credentials inherited by every host unless overridden. |
+| `hosts.<hostname>.wireguard` | `tasks/wireguard.py` | Interface-indexed private keys and peer values, including optional preshared keys. |
+| `hosts.<hostname>.dehydrated` | `tasks/dehydrated.py` | Hetzner DNS API token. |
+| `hosts.<hostname>.docker.miniflux` | `tasks/docker/miniflux.py` | Miniflux admin and PostgreSQL credentials. |
+| `hosts.<hostname>.docker.vaultwarden` | `tasks/docker/vaultwarden.py` | Optional Argon2 PHC hash for the Vaultwarden admin token (`admin_token`). |
+| `hosts.<hostname>.ssh` | `tasks/ssh_keys.py` | Default and per-key passphrases. |
+
+
+
+### Shared and host-specific values
+
+The document has two top-level sections:
+
+- `shared`: values inherited by every inventory host.
+- `hosts`: values scoped to an exact pyinfra inventory hostname, such as `@local` or `dns`.
+
+At initialization, `common.py` recursively merges the selected host's values over `shared`. Host-specific scalar values and lists replace shared values; nested objects are merged recursively. A host without an entry under `hosts` receives only the shared values. Secrets for other hosts are never included in the resolved dictionary.
+
+Existing flat-format files remain supported for migration. Once migrated, keep all secrets under `shared` or `hosts.<hostname>`; do not mix legacy top-level secret categories with the new sections.
+
+The inventory hostname must match the key under `hosts` exactly. This is the value exposed as `host.name` by pyinfra.
 
 A secret entry alone does not necessarily activate a task. For example, WireGuard also needs `wireguard_config` in host data. See [Deployment workflow](deployment.md).
 
@@ -41,40 +56,39 @@ Use `secrets.json.gpg.example` as the authoritative example. A simplified struct
 
 ```json
 {
-  "dehydrated": {
-    "hetzner_api_token": "REPLACE_ME"
+  "shared": {
+    "git_credentials": ["https://user:REPLACE_ME@git.example.net"]
   },
-  "wireguard": {
-    "wg0": {
-      "privatekey": "REPLACE_ME",
-      "peers": [
-        {
-          "PublicKey": "REPLACE_ME",
-          "PresharedKey": "REPLACE_ME",
-          "AllowedIPs": "0.0.0.0/0,::/0",
-          "Endpoint": "vpn.example.net:51820",
-          "PersistentKeepalive": 25
+  "hosts": {
+    "@local": {
+      "dehydrated": {"hetzner_api_token": "REPLACE_ME"},
+      "wireguard": {
+        "wg0": {
+          "privatekey": "REPLACE_ME",
+          "peers": [{
+            "PublicKey": "REPLACE_ME",
+            "PresharedKey": "REPLACE_ME",
+            "AllowedIPs": "0.0.0.0/0,::/0",
+            "Endpoint": "vpn.example.net:51820",
+            "PersistentKeepalive": 25
+          }]
         }
-      ]
-    }
-  },
-  "git_credentials": [
-    "https://user:REPLACE_ME@git.example.net"
-  ],
-  "docker": {
-    "vaultwarden": {
-      "admin_token": "$argon2id$REPLACE_WITH_GENERATED_HASH"
+      },
+      "docker": {
+        "vaultwarden": {"admin_token": "$argon2id$REPLACE_WITH_GENERATED_HASH"},
+        "miniflux": {
+          "admin_username": "admin@example.net",
+          "admin_password": "REPLACE_ME",
+          "postgres_password": "REPLACE_ME"
+        }
+      },
+      "ssh": {
+        "default_passphrase": "REPLACE_ME",
+        "id_ed25519": {"passphrase": "REPLACE_ME"}
+      }
     },
-    "miniflux": {
-      "admin_username": "admin@example.net",
-      "admin_password": "REPLACE_ME",
-      "postgres_password": "REPLACE_ME"
-    }
-  },
-  "ssh": {
-    "default_passphrase": "REPLACE_ME",
-    "id_ed25519": {
-      "passphrase": "REPLACE_ME"
+    "dns": {
+      "dehydrated": {"hetzner_api_token": "REPLACE_WITH_DNS_TOKEN"}
     }
   }
 }
