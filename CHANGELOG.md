@@ -9,6 +9,25 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ### Added
 
+- Added the `gpg-vault` command-line helper for creating, editing, viewing, encrypting, decrypting and rekeying the GPG-encrypted secrets file. The helper is deployed with the user scripts and does not replace deployment-time secret loading ([#13](https://github.com/gpkvt/pyinfra/pull/13)).
+- Added a `uv` project configuration with a Python 3.12 development environment and a development dependency group for pytest, coverage, pre-commit and deptry ([#15](https://github.com/gpkvt/pyinfra/pull/15)).
+
+### Changed
+
+- Updated the pinned pip dependency from 24.0 to 26.2 ([#16](https://github.com/gpkvt/pyinfra/pull/16)).
+
+### Security
+
+- Restricted the deployed Borgmatic configuration file permissions from `0644` to `0600`, limiting access to the root-owned file ([#17](https://github.com/gpkvt/pyinfra/pull/17)).
+
+### Documentation
+
+- Expanded deployment and task documentation to cover Docker service dispatch, UFW rules and remote lockout risk, mocked pytest coverage and its GitHub Actions workflow, and the Borgmatic template's fallback-passphrase warning ([#14](https://github.com/gpkvt/pyinfra/pull/14)).
+- Documented the `gpg-vault` workflow, its commands, deployment, and security considerations ([#13](https://github.com/gpkvt/pyinfra/pull/13)).
+
+
+### Added
+
 - Added a script to temporarily disable the keyboard for 60 seconds.
 - Added Chromecast and DLNA firewall rules.
 - Added task and module docstrings to improve documentation and discoverability.
