@@ -61,12 +61,14 @@ The core set can still have conditional behavior internally, but its modules are
 | `host.data.tmux` is truthy | `tasks/tmux.py` |
 | `host.data.powerline` is truthy | `tasks/powerline.py` |
 | `host.data.ufw` is truthy | `tasks/ufw.py` |
-| `host.data.docker` is truthy | `tasks/docker.py` |
+| `host.data.docker` is truthy | `tasks/docker.py` and `tasks/docker_container.py` |
 | `host.data.apparmor_profiles` is truthy | `tasks/apparmor.py` |
 | `host.data.cosmic` is truthy | `tasks/cosmic/deploy.py` |
 | `host.data.mullvad_extensions` is truthy | `tasks/mullvad_extensions.py` |
 | `host.data.vscodium` is truthy | `tasks/vscodium.py` |
 | `host.data.proton` is truthy | `tasks/proton.py` |
+
+`tasks/docker.py` installs Docker and defines the shared service deployment helper; `tasks/docker_container.py` dispatches to Miniflux, TimeTagger and Grav modules when their corresponding keys exist in `host.data.docker`.
 
 A truthy dictionary or list is a common activation mechanism; these settings are not necessarily Boolean switches. The exact expected structure is described in [Configuration](configuration.md) and [Task reference](tasks.md).
 
@@ -92,7 +94,7 @@ The supplied group-data file enables backup, power, hardware and storage, while 
 
 - `tasks/apt.py` configures configured repositories, refreshes package indexes, upgrades packages when the index update changes, and installs configured packages.
 - `tasks/system.py` can change hostname, timezone, locale, editor environment, keyboard layout, sysctl, udev and USBGuard configuration.
-- `tasks/ufw.py` may change firewall policy. Validate remote access rules before applying.
+- `tasks/ufw.py` sets default incoming traffic to deny and outgoing traffic to allow, applies supported application/port rules, then enables UFW. Supported keys are `chromecast-dlna`, `kdeconnect`, `localsend` and `ssh`; each accepts `Allow` or `Deny`, while unknown keys/values are ignored. Explicitly allow the actual remote-management port before deployment: the checked-in local example sets `ssh` to `Deny`, which can cut off remote access.
 - `tasks/ssh_keys.py` does not overwrite existing private keys, but can manage authorized keys.
 - `tasks/wireguard.py` installs WireGuard and writes interface configuration; it does not start or enable the service.
 - `tasks/vpn.py` enables and starts `wg-quick@<interface>` when no globally scoped IPv4 address belongs to `local_network_cidr`. It only examines IPv4 addresses.

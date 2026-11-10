@@ -155,6 +155,7 @@ Check the CLI options supported by your installed pyinfra version with `pyinfra 
 - `deploy.py` includes core tasks unconditionally. Review their effects even when optional features are disabled.
 - WireGuard configuration deployment and VPN service activation are separate tasks. The former writes configuration; the latter conditionally enables `wg-quick@<interface>` based on IPv4 local-network detection.
 - Review firewall and USBGuard rules carefully. A default-deny USB policy or restrictive firewall can lock you out of a system or peripheral.
+- **Borgmatic warning:** the checked-in Borgmatic template currently contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and is deployed as `/etc/borgmatic/config.yaml` with mode `0644`. Do not rely on that fallback for real backups; resolve the passphrase handling before using this configuration.
 
 ## Development
 
@@ -165,11 +166,14 @@ python -m pip install pre-commit pylint
 pre-commit install
 ```
 
-Run the configured checks:
+Run the configured checks and the repository's mocked task regression tests:
 
 ```bash
 pre-commit run --all-files
+python -m pytest tests/ -v
 ```
+
+The pytest suite uses mocked pyinfra APIs; it does not deploy to or modify a real host. GitHub Actions runs it on pushes and pull requests targeting `main`.
 
 See [Development](docs/development.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 

@@ -67,7 +67,7 @@ workstation = {
 }
 ```
 
-Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups.
+Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0644`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
 
 ## Network and name resolution
 
@@ -147,7 +147,17 @@ For detailed validation, file paths and safety considerations, see [System confi
 
 ### Firewall
 
-`ufw` maps application/profile names to policy actions used by `tasks/ufw.py`. Review the installed UFW application profiles and rules before enabling changes on a remote host.
+`ufw` maps supported application/service names to `Allow` or `Deny` actions. The current keys are `chromecast-dlna`, `kdeconnect`, `localsend` and `ssh` (TCP port 22); unsupported keys and values are ignored. The task sets default incoming traffic to deny and outgoing traffic to allow, applies the configured rules, and enables UFW. For example:
+
+```python
+ufw = {
+    "ssh": "Allow",
+    "kdeconnect": "Allow",
+    "localsend": "Allow",
+}
+```
+
+Review the effective rules before enabling changes on a remote host. The checked-in `group_data/@local.py` currently sets `ssh` to `Deny`; that example must not be copied to a remotely managed host unless another management path is available.
 
 ## Secrets-dependent configuration
 

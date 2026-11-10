@@ -34,6 +34,17 @@ pre-commit run check-json --all-files
 
 The source of truth for hook versions and arguments is `.pre-commit-config.yaml`.
 
+## Run the test suite
+
+Install pytest and run the mocked task regression tests:
+
+```bash
+python -m pip install pytest
+python -m pytest tests/ -v
+```
+
+The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. The GitHub Actions workflow `.github/workflows/pytest.yml` runs this command on pushes and pull requests targeting `main`; it installs pytest but does not install or exercise a real pyinfra deployment.
+
 ## Configured checks
 
 | Check | Purpose |
@@ -86,6 +97,7 @@ Some hooks modify files automatically. Review the resulting diff after running t
 - [ ] Operations have been reviewed for privilege, destructive effects and remote lockout risk.
 - [ ] Dry-run output has been reviewed on a suitable target.
 - [ ] `pre-commit run --all-files` passes.
+- [ ] `python -m pytest tests/ -v` passes.
 - [ ] README and relevant documentation have been updated.
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for repository contribution guidance.
