@@ -25,8 +25,8 @@
     "configuration": {
       "properties": {
         "gpg-vault.deletePlaintextAfterEncrypt": {
-          "default": false,
-          "description": "After creating the encrypted .gpg file, ask before deleting the original plaintext file.",
+          "default": true,
+          "description": "Ask before securely overwriting and deleting the original plaintext file after successful encryption.",
           "type": "boolean"
         },
         "gpg-vault.gpgPath": {
