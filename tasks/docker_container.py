@@ -30,3 +30,6 @@ if "vaultwarden" in container:
 
 if "nocodb" in container:
     local.include("tasks/docker/nocodb.py")
+
+if "homepage" in container:
+    local.include("tasks/docker/homepage.py")
