@@ -4,6 +4,9 @@ services:
     container_name: tasmoadmin
     restart: unless-stopped
 
+    environment:
+      TASMO_DATADIR: /data/tasmoadmin/
+
     ports:
       - "127.0.0.1:{{ port }}:80"
 
