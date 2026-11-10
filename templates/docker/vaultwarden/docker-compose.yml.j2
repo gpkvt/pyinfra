@@ -10,7 +10,4 @@ services:
       INVITATIONS_ALLOWED: "false"
       ADMIN_TOKEN: "{{ admin_token | replace('$', '$$') }}"
     volumes:
-      - vaultwarden_data:/data
-
-volumes:
-  vaultwarden_data:
+      - {{ homedir }}/.docker/vaultwarden:/data
