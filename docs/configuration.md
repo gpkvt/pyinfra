@@ -133,7 +133,7 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `powerline_fonts` | `tasks/fonts.py` | Boolean-like flag for optional patched fonts. |
 | `cosmic` | `tasks/cosmic/deploy.py` | COSMIC desktop configuration dictionary. |
 | `vscodium` | `tasks/vscodium.py` | Extension configuration dictionary. |
-| `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs; the supplied local configuration includes Wallabagger. |
+| `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
 | `proton` | `tasks/proton.py` | Proton application selection and options. |
 
