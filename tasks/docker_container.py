@@ -27,3 +27,6 @@ if "wallabag" in container:
 
 if "vaultwarden" in container:
     local.include("tasks/docker/vaultwarden.py")
+
+if "nocodb" in container:
+    local.include("tasks/docker/nocodb.py")
