@@ -67,29 +67,36 @@ async function transformBytes(
 
 async function securelyDeletePlaintext(
   filePath: string,
-  expected: Awaited<ReturnType<typeof fs.stat>>
+  expected: Buffer,
+  expectedInfo: Awaited<ReturnType<typeof fs.stat>>
 ): Promise<void> {
-  const fileInfo = await fs.lstat(filePath);
-  if (!fileInfo.isFile() || fileInfo.isSymbolicLink()) {
+  // Work through an open handle so the content we verify is the same file
+  // that we overwrite. Do not follow symlinks or erase files with hard links.
+  const pathInfo = await fs.lstat(filePath);
+  if (!pathInfo.isFile() || pathInfo.isSymbolicLink()) {
     throw new Error("Refusing secure deletion: plaintext path is not a regular file.");
   }
-  if (fileInfo.nlink > 1) {
+  if (pathInfo.nlink > 1) {
     throw new Error("Refusing secure deletion: plaintext file has multiple hard links.");
   }
-  if (
-    fileInfo.dev !== expected.dev ||
-    fileInfo.ino !== expected.ino ||
-    fileInfo.size !== expected.size ||
-    fileInfo.mtimeMs !== expected.mtimeMs
-  ) {
-    throw new Error("Plaintext file changed after encryption; refusing to delete it.");
+  if (pathInfo.dev !== expectedInfo.dev || pathInfo.ino !== expectedInfo.ino) {
+    throw new Error("Plaintext file was replaced after encryption; refusing to delete it.");
   }
 
   const handle = await fs.open(filePath, "r+");
   try {
     const openedInfo = await handle.stat();
-    if (openedInfo.dev !== expected.dev || openedInfo.ino !== expected.ino) {
-      throw new Error("Plaintext file was replaced; refusing secure deletion.");
+    if (
+      openedInfo.dev !== expectedInfo.dev ||
+      openedInfo.ino !== expectedInfo.ino ||
+      openedInfo.size !== expected.length
+    ) {
+      throw new Error("Plaintext file changed after encryption; refusing to delete it.");
+    }
+
+    const currentContents = await handle.readFile();
+    if (!currentContents.equals(expected)) {
+      throw new Error("Plaintext contents changed after encryption; refusing to delete them.");
     }
 
     const bufferSize = 64 * 1024;
@@ -100,7 +107,9 @@ async function securelyDeletePlaintext(
       let written = 0;
       while (written < length) {
         const result = await handle.write(randomData, written, length - written, position + written);
-        if (result.bytesWritten === 0) throw new Error("Could not overwrite the complete plaintext file.");
+        if (result.bytesWritten === 0) {
+          throw new Error("Could not overwrite the complete plaintext file.");
+        }
         written += result.bytesWritten;
       }
       position += length;
@@ -111,7 +120,7 @@ async function securelyDeletePlaintext(
   }
 
   const currentInfo = await fs.lstat(filePath);
-  if (currentInfo.dev !== expected.dev || currentInfo.ino !== expected.ino) {
+  if (currentInfo.dev !== expectedInfo.dev || currentInfo.ino !== expectedInfo.ino) {
     throw new Error("Plaintext file was replaced during secure deletion; refusing to unlink it.");
   }
   await fs.unlink(filePath);
@@ -214,7 +223,7 @@ async function encryptFile(): Promise<void> {
     // Encryption has completed and the ciphertext is safely in place. Remove
     // the exact plaintext file that was encrypted; abort deletion if it changed
     // or was replaced while GPG was running.
-    await securelyDeletePlaintext(sourcePath, plaintextInfo);
+    await securelyDeletePlaintext(sourcePath, plaintext, plaintextInfo);
   }
 
   const encryptedDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(encryptedPath));
