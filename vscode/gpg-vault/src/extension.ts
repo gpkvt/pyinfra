@@ -153,25 +153,6 @@ async function encryptFile(): Promise<void> {
   }
   const encryptedPath = `${sourcePath}.gpg`;
 
-  let overwrite = false;
-  try {
-    await fs.lstat(encryptedPath);
-    const answer = await vscode.window.showWarningMessage(
-      `The encrypted file already exists: ${encryptedPath}. Replace it?`,
-      { modal: true },
-      "Overwrite",
-      "Cancel"
-    );
-    if (answer !== "Overwrite") {
-      return;
-    }
-    overwrite = true;
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
-      throw error;
-    }
-  }
-
   // Save first so the bytes encrypted are exactly the bytes that will later be
   // securely deleted from disk. This also avoids deleting an older on-disk
   // version while encrypting newer, unsaved editor contents.
@@ -196,20 +177,15 @@ async function encryptFile(): Promise<void> {
   const ciphertext = await transformBytes("encrypt", plaintext);
 
   // Stage the ciphertext beside the destination so the final operation stays
-  // on the same filesystem. A hard link gives new files no-clobber semantics;
-  // rename atomically replaces an existing file only after explicit consent.
+  // on the same filesystem. Rename atomically replaces an existing encrypted
+  // file without prompting, or creates it when it does not yet exist.
   const temporaryPath = path.join(
     path.dirname(encryptedPath),
     `.${path.basename(encryptedPath)}.${Date.now()}.${Math.random().toString(16).slice(2)}.tmp`
   );
   try {
     await fs.writeFile(temporaryPath, ciphertext, { flag: "wx", mode: 0o600 });
-    if (overwrite) {
-      await fs.rename(temporaryPath, encryptedPath);
-    } else {
-      await fs.link(temporaryPath, encryptedPath);
-      await fs.unlink(temporaryPath);
-    }
+    await fs.rename(temporaryPath, encryptedPath);
     await fs.chmod(encryptedPath, 0o600).catch(() => undefined);
   } finally {
     await fs.unlink(temporaryPath).catch(() => undefined);
@@ -229,9 +205,7 @@ async function encryptFile(): Promise<void> {
   const encryptedDocument = await vscode.workspace.openTextDocument(vscode.Uri.file(encryptedPath));
   await vscode.window.showTextDocument(encryptedDocument, { preview: false });
   void vscode.window.showInformationMessage(
-    overwrite
-      ? `Encrypted file replaced: ${path.basename(encryptedPath)}`
-      : `Encrypted file created: ${path.basename(encryptedPath)}`
+    `Encrypted file saved: ${path.basename(encryptedPath)}`
   );
 }
 
