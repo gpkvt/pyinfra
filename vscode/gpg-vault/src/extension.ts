@@ -70,60 +70,56 @@ async function securelyDeletePlaintext(
   expected: Buffer,
   expectedInfo: Awaited<ReturnType<typeof fs.stat>>
 ): Promise<void> {
-  // Work through an open handle so the content we verify is the same file
-  // that we overwrite. Do not follow symlinks or erase files with hard links.
-  const pathInfo = await fs.lstat(filePath);
-  if (!pathInfo.isFile() || pathInfo.isSymbolicLink()) {
-    throw new Error("Refusing secure deletion: plaintext path is not a regular file.");
-  }
-  if (pathInfo.nlink > 1) {
-    throw new Error("Refusing secure deletion: plaintext file has multiple hard links.");
-  }
-  if (pathInfo.dev !== expectedInfo.dev || pathInfo.ino !== expectedInfo.ino) {
-    throw new Error("Plaintext file was replaced after encryption; refusing to delete it.");
-  }
-
-  const handle = await fs.open(filePath, "r+");
+  // Deletion is mandatory after successful encryption. Overwriting the file
+  // first is best-effort because SSDs, CoW filesystems and open handles can
+  // prevent reliable physical erasure. Never let a failed wipe leave plaintext
+  // on disk: unlink the path in all cases.
   try {
-    const openedInfo = await handle.stat();
+    const pathInfo = await fs.lstat(filePath);
     if (
-      openedInfo.dev !== expectedInfo.dev ||
-      openedInfo.ino !== expectedInfo.ino ||
-      openedInfo.size !== expected.length
+      pathInfo.isFile() &&
+      !pathInfo.isSymbolicLink() &&
+      pathInfo.nlink === 1 &&
+      pathInfo.dev === expectedInfo.dev &&
+      pathInfo.ino === expectedInfo.ino
     ) {
-      throw new Error("Plaintext file changed after encryption; refusing to delete it.");
-    }
-
-    const currentContents = await handle.readFile();
-    if (!currentContents.equals(expected)) {
-      throw new Error("Plaintext contents changed after encryption; refusing to delete them.");
-    }
-
-    const bufferSize = 64 * 1024;
-    let position = 0;
-    while (position < openedInfo.size) {
-      const length = Math.min(bufferSize, openedInfo.size - position);
-      const randomData = randomBytes(length);
-      let written = 0;
-      while (written < length) {
-        const result = await handle.write(randomData, written, length - written, position + written);
-        if (result.bytesWritten === 0) {
-          throw new Error("Could not overwrite the complete plaintext file.");
+      const handle = await fs.open(filePath, "r+");
+      try {
+        const openedInfo = await handle.stat();
+        if (
+          openedInfo.dev === expectedInfo.dev &&
+          openedInfo.ino === expectedInfo.ino &&
+          openedInfo.size === expected.length
+        ) {
+          const currentContents = await handle.readFile();
+          if (currentContents.equals(expected)) {
+            const bufferSize = 64 * 1024;
+            let position = 0;
+            while (position < openedInfo.size) {
+              const length = Math.min(bufferSize, openedInfo.size - position);
+              const randomData = randomBytes(length);
+              let written = 0;
+              while (written < length) {
+                const result = await handle.write(randomData, written, length - written, position + written);
+                if (result.bytesWritten === 0) throw new Error("Could not overwrite plaintext.");
+                written += result.bytesWritten;
+              }
+              position += length;
+            }
+            await handle.sync();
+          }
         }
-        written += result.bytesWritten;
+      } finally {
+        await handle.close();
       }
-      position += length;
     }
-    await handle.sync();
+  } catch {
+    // Continue to unlink even if secure overwriting is unavailable.
   } finally {
-    await handle.close();
+    await fs.unlink(filePath).catch(async (error: NodeJS.ErrnoException) => {
+      if (error.code !== "ENOENT") throw error;
+    });
   }
-
-  const currentInfo = await fs.lstat(filePath);
-  if (currentInfo.dev !== expectedInfo.dev || currentInfo.ino !== expectedInfo.ino) {
-    throw new Error("Plaintext file was replaced during secure deletion; refusing to unlink it.");
-  }
-  await fs.unlink(filePath);
 }
 async function showFailure(action: () => Promise<void>): Promise<void> {
   try {
@@ -185,6 +181,9 @@ async function encryptFile(): Promise<void> {
   );
   try {
     await fs.writeFile(temporaryPath, ciphertext, { flag: "wx", mode: 0o600 });
+    // Explicitly remove the previous ciphertext so replacement never invokes
+    // an editor/workspace overwrite flow or depends on platform rename rules.
+    await fs.rm(encryptedPath, { force: true });
     await fs.rename(temporaryPath, encryptedPath);
     await fs.chmod(encryptedPath, 0o600).catch(() => undefined);
   } finally {
