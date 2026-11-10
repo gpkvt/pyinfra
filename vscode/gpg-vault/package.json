@@ -41,6 +41,14 @@
       },
       "title": "GPG Vault"
     },
+    "keybindings": [
+      {
+        "command": "gpg-vault.toggleFileEncryption",
+        "key": "ctrl+alt+e",
+        "mac": "cmd+alt+e",
+        "when": "editorTextFocus && !editorReadonly"
+      }
+    ],
     "menus": {
       "explorer/context": [
         {
@@ -49,15 +57,7 @@
           "when": "resourceExtname == .gpg"
         }
       ]
-    },
-    "keybindings": [
-      {
-        "command": "gpg-vault.toggleFileEncryption",
-        "key": "ctrl+alt+e",
-        "mac": "cmd+alt+e",
-        "when": "editorTextFocus && !editorReadonly"
-      }
-    ]
+    }
   },
   "description": "Encrypt and decrypt files and selections with GPG, compatible with pyinfra's gpg-vault workflow.",
   "devDependencies": {
