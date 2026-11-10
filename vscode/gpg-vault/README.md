@@ -31,9 +31,11 @@ You can also right-click a `.gpg` file in the Explorer and choose **GPG Vault: D
 
 File encryption saves the document first so the bytes encrypted match the on-disk source. It writes the encrypted output beside the source and replaces an existing `.gpg` destination without an overwrite confirmation. After the ciphertext has been written, the plaintext source is removed.
 
+**Encrypted files are written as ASCII-armored text**, beginning with `-----BEGIN PGP MESSAGE-----`. This matches the shell-based `files/scripts/gpg-vault` helper. Decryption remains compatible with both ASCII-armored files and existing binary GPG ciphertext.
+
 Before unlinking plaintext, the extension attempts to overwrite the regular file with random data and flush the changes. This is best-effort sanitization, not guaranteed physical erasure: SSD wear-leveling, copy-on-write filesystems, snapshots, backups, journaling and open handles can retain previous data. Use full-disk encryption and manage snapshots/backups appropriately.
 
-File decryption replaces an existing plaintext destination without prompting and applies owner-only permissions where supported. The encrypted source is retained. Decryption can read both ASCII-armored output from this extension and binary ciphertext produced by the shell helper.
+File decryption replaces an existing plaintext destination without prompting and applies owner-only permissions where supported. The encrypted source is retained.
 
 Selection commands transform the selected text in place. Decrypted selection data must be valid UTF-8 text.
 
@@ -72,4 +74,4 @@ For development, open this directory as a VS Code workspace and press F5 to laun
 
 ## Compatibility
 
-GPG symmetric encryption uses AES-256, the same cipher selected by the repository's `gpg-vault` script. GPG's standard encrypted data format is used; no custom container or metadata is added.
+GPG symmetric encryption uses AES-256, the same cipher selected by the repository's `gpg-vault` script. Both the extension and shell helper create ASCII-armored GPG messages. GPG's standard encrypted data format is used; no custom container or metadata is added.

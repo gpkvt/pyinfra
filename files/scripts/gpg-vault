@@ -14,7 +14,6 @@
 #   rekey     Change the encryption passphrase
 #   status    Show encryption status
 #
-
 set -Eeuo pipefail
 umask 077
 
@@ -98,6 +97,7 @@ encrypt_to() {
     gpg \
         --quiet \
         --symmetric \
+        --armor \
         --cipher-algo AES256 \
         --output "$destination" \
         "$source"
