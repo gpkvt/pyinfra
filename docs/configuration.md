@@ -195,6 +195,7 @@ The following features combine host data with encrypted secrets:
 - Git credentials are deployed only when `secrets.git_credentials` is present.
 - SSH key generation can use `secrets.ssh` passphrases.
 - Miniflux uses `secrets.docker.miniflux` for credentials.
+- Vaultwarden optionally uses `secrets.docker.vaultwarden.admin_token` for its Argon2 PHC admin-token hash.
 
 The absence of `secrets.json.gpg` does not stop the whole deployment; `common.initialize()` sets an empty secrets dictionary. See [Secrets management](secrets.md) for the supported structure.
 
