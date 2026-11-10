@@ -6,7 +6,6 @@
 [![Last commit](https://img.shields.io/github/last-commit/gpkvt/pyinfra?logo=git)](https://github.com/gpkvt/pyinfra/commits/main)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
 ![Platforms: Debian and Ubuntu](https://img.shields.io/badge/platforms-Debian%20%7C%20Ubuntu-A81D33?logo=linux&logoColor=white)
-[![GitHub Checks](https://img.shields.io/github/checks-status/gpkvt/pyinfra/main?logo=githubactions&logoColor=white&label=checks)](https://github.com/gpkvt/pyinfra/actions)
 
 A configuration-driven automation repository built on [pyinfra](https://pyinfra.com). It provisions Linux hosts from a shared set of reusable tasks while keeping inventory, host-specific settings, deployment logic, templates, static files, and secrets separate.
 
@@ -37,7 +36,8 @@ Optional features are included by `deploy.py` only when their configuration and 
 4. Modules in `tasks/` declare pyinfra operations.
 5. `templates/` contains rendered Jinja2 configuration; `files/` contains static payloads.
 6. `common.py` decrypts `secrets.json.gpg` when present and exposes the resulting dictionary to tasks.
-7. `files/scripts/gpg-vault` provides an interactive command-line workflow for creating, editing, viewing, encrypting, decrypting and rekeying the secrets file.\n8. `vscode/gpg-vault/` contains a VS Code extension for encrypting/decrypting files and selected text with the same GPG format.
+7. `files/scripts/gpg-vault` provides an interactive command-line workflow for creating, editing, viewing, encrypting, decrypting and rekeying the secrets file.
+8. `vscode/gpg-vault/` contains a VS Code extension for encrypting/decrypting files and selected text with the same GPG format.
 
 See [Architecture](docs/architecture.md) for the execution flow and [Configuration](docs/configuration.md) for the settings model.
 
@@ -46,7 +46,7 @@ See [Architecture](docs/architecture.md) for the execution flow and [Configurati
 - Python 3.12 or newer, as required by `pyproject.toml`.
 - [pyinfra](https://pyinfra.com/) installed in an isolated Python environment.
 - Debian- or Ubuntu-based target systems for the supplied task implementations.
-- SSH access to remote hosts and sufficient privilege escalation for system-level operations. The local target also needs the required privileges.
+- SSH access to remote hosts and sufficient privilege escalation for system-level operations. The local target also needs the required privileges.igen
 - GPG on the machine executing the deployment when encrypted secrets are used.
 - systemd on targets for tasks that manage system services.
 
@@ -140,7 +140,8 @@ Check the CLI options supported by your installed pyinfra version with `pyinfra 
 - [Host configuration reference](docs/configuration.md)
 - [Deployment workflow and safety checks](docs/deployment.md)
 - [Task catalogue](docs/tasks.md)
-- [Secrets management](docs/secrets.md)\n- [VS Code GPG Vault extension](vscode/gpg-vault/README.md)
+- [Secrets management](docs/secrets.md)
+- [VS Code GPG Vault extension](vscode/gpg-vault/README.md)
 - [Templates and static assets](docs/templates.md)
 - [System configuration details](docs/system.md)
 - [Development and contribution workflow](docs/development.md)
