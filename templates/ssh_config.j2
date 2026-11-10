@@ -1,3 +1,20 @@
+# Apply secure defaults to every destination. Keep this block first:
+# OpenSSH uses the first obtained value for each option, so later host
+# entries cannot accidentally weaken these baseline settings.
+Host *
+    HashKnownHosts yes
+    StrictHostKeyChecking accept-new
+    UpdateHostKeys yes
+    PubkeyAuthentication yes
+    IdentitiesOnly yes
+    ForwardAgent no
+    ForwardX11 no
+    PermitLocalCommand no
+    ClearAllForwardings yes
+    ConnectTimeout 15
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+
 {% for name, config in host.data.ssh_config.items() %}
 Host {{ name }}
 {{ config }}
