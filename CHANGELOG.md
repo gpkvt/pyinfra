@@ -7,47 +7,14 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ## [10.11.2026]
 
-### Changed
+### Added
 
 - Added shared and per-host secret scopes with recursive host-over-shared merging, while retaining support for the legacy flat secrets format.
-
-### Tests
-
-- Added coverage for host isolation, nested secret merging, legacy compatibility, and invalid secrets documents.
-
-
-### Added
-
 - Added the VS Code GPG Vault extension for file and selection encryption/decryption, including a keyboard shortcut to toggle file encryption ([#21](https://github.com/gpkvt/pyinfra/pull/21)).
 - Added VPN task integration with the Zsh configuration workflow ([#19](https://github.com/gpkvt/pyinfra/pull/19)).
-
-### Changed
-
-- Corrected the UFW active-state fact handling ([#20](https://github.com/gpkvt/pyinfra/pull/20)).
-- Added JSON linting to the configured development checks ([#22](https://github.com/gpkvt/pyinfra/pull/22)).
-- Updated the VS Code GPG Vault workflow to replace existing destination files without prompting and remove plaintext after successful encryption.
-
-### Added
-
 - Added the `gpg-vault` command-line helper for creating, editing, viewing, encrypting, decrypting and rekeying the GPG-encrypted secrets file. The helper is deployed with the user scripts and does not replace deployment-time secret loading ([#13](https://github.com/gpkvt/pyinfra/pull/13)).
 - Added a `uv` project configuration with a Python 3.12 development environment and a development dependency group for pytest, coverage, pre-commit and deptry ([#15](https://github.com/gpkvt/pyinfra/pull/15)).
-
-### Changed
-
-- Updated the pinned pip dependency from 24.0 to 26.2 ([#16](https://github.com/gpkvt/pyinfra/pull/16)).
-
-### Security
-
-- Restricted the deployed Borgmatic configuration file permissions from `0644` to `0600`, limiting access to the root-owned file ([#17](https://github.com/gpkvt/pyinfra/pull/17)).
-
-### Documentation
-
-- Expanded deployment and task documentation to cover Docker service dispatch, UFW rules and remote lockout risk, mocked pytest coverage and its GitHub Actions workflow, and the Borgmatic template's fallback-passphrase warning ([#14](https://github.com/gpkvt/pyinfra/pull/14)).
-- Documented the `gpg-vault` workflow, its commands, deployment, and security considerations ([#13](https://github.com/gpkvt/pyinfra/pull/13)).
-
-
-### Added
-
+- Added Docker services for Forgejo, Portainer, TasmoAdmin, Wallabag and Vaultwarden, including persistent storage, local hostnames and Caddy reverse proxy integration ([#31](https://github.com/gpkvt/pyinfra/pull/31), [#34](https://github.com/gpkvt/pyinfra/pull/34), [#36](https://github.com/gpkvt/pyinfra/pull/36), [#39](https://github.com/gpkvt/pyinfra/pull/39), [#41](https://github.com/gpkvt/pyinfra/pull/41)).
 - Added a script to temporarily disable the keyboard for 60 seconds.
 - Added Chromecast and DLNA firewall rules.
 - Added task and module docstrings to improve documentation and discoverability.
@@ -56,13 +23,34 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ### Changed
 
+- Updated the Docker service storage layout to use persistent volume directories and corrected service-specific volume mappings, including Wallabag and TimeTagger ([#42](https://github.com/gpkvt/pyinfra/pull/42), [#43](https://github.com/gpkvt/pyinfra/pull/43), [#47](https://github.com/gpkvt/pyinfra/pull/47)).
+- Replaced Wallabag bind-mounted application storage with Docker-managed named volumes to resolve SQLite permission problems; existing data requires manual migration ([#40](https://github.com/gpkvt/pyinfra/pull/40)).
+- Corrected TasmoAdmin's persistent data directory and container mount path ([#37](https://github.com/gpkvt/pyinfra/pull/37), [#38](https://github.com/gpkvt/pyinfra/pull/38)).
+- Updated Forgejo SSH configuration and local hostname handling ([#32](https://github.com/gpkvt/pyinfra/pull/32), [#33](https://github.com/gpkvt/pyinfra/pull/33)).
+- Updated the Miniflux local hostname configuration ([#35](https://github.com/gpkvt/pyinfra/pull/35)).
+- Switched GPG Vault encryption output to ASCII-armored format while retaining compatibility with existing binary ciphertext ([#45](https://github.com/gpkvt/pyinfra/pull/45)).
+- Corrected the UFW active-state fact handling ([#20](https://github.com/gpkvt/pyinfra/pull/20)).
+- Added JSON linting to the configured development checks ([#22](https://github.com/gpkvt/pyinfra/pull/22)).
+- Updated the VS Code GPG Vault workflow to replace existing destination files without prompting and remove plaintext after successful encryption.
+- Updated the pinned pip dependency from 24.0 to 26.2 ([#16](https://github.com/gpkvt/pyinfra/pull/16)).
 - Improved APT repository handling, including automatic source renewal when repository configuration changes.
 - Improved SSH key handling and generation.
 - Improved documentation for deployment, system configuration, secrets, udev, and USBGuard.
 - Consolidated configured APT and Flatpak application installation into batch operations instead of creating one operation per package ([#4](https://github.com/gpkvt/pyinfra/pull/4)).
 
+### Security
+
+- Restricted the deployed Borgmatic configuration file permissions from `0644` to `0600`, limiting access to the root-owned file ([#17](https://github.com/gpkvt/pyinfra/pull/17)).
+
+### Tests
+
+- Added coverage for host isolation, nested secret merging, legacy compatibility, and invalid secrets documents.
+
 ### Documentation
 
+- Expanded deployment and task documentation to cover Docker service dispatch, UFW rules and remote lockout risk, mocked pytest coverage and its GitHub Actions workflow, and the Borgmatic template's fallback-passphrase warning ([#14](https://github.com/gpkvt/pyinfra/pull/14)).
+- Documented the `gpg-vault` workflow, its commands, deployment, and security considerations ([#13](https://github.com/gpkvt/pyinfra/pull/13)).
+- Improved the Docker task reference, clarified service-specific configuration and storage behavior, and documented volume migration considerations ([#46](https://github.com/gpkvt/pyinfra/pull/46), [#48](https://github.com/gpkvt/pyinfra/pull/48)).
 - Added usage instructions for udev and USBGuard.
 - Added contribution guidelines and a security policy.
 - Improved the README and deployment documentation.
