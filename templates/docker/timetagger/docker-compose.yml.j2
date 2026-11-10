@@ -4,7 +4,7 @@ services:
     ports:
       - "127.0.0.1:{{ port }}:80"
     volumes:
-      - ./_timetagger:/{{ homedir }}/.docker/timetagger
+      - {{ homedir }}/.docker/timetagger:/root/_timetagger
     environment:
       - TIMETAGGER_BIND=0.0.0.0:80
       - TIMETAGGER_DATADIR=/root/_timetagger
