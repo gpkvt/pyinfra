@@ -74,7 +74,7 @@ editor = "mcedit"
 
 # Configure /etc/hosts
 hostnames = {
-  "127.0.0.1": "localhost local.21x9.org rss.21x9.org timetagger.21x9.org grav.21x9.org forgejo.21x9.org portainer.21x9.org tasmoadmin.21x9.org wallabag.21x9.org vaultwarden.21x9.org nocodb.21x9.org",
+  "127.0.0.1": "localhost local.21x9.org rss.21x9.org timetagger.21x9.org grav.21x9.org forgejo.21x9.org portainer.21x9.org tasmoadmin.21x9.org wallabag.21x9.org vaultwarden.21x9.org nocodb.21x9.org homepage.21x9.org",
   "::1": "localhost local.21x9.org",
   "192.168.42.100": "storage.intern.21x9.org paperless.intern.21x9.org huginn.intern.21x9.org grafana.intern.21x9.org ha.intern.21x9.org",
   "192.168.42.120": "storage.21x9.org",
@@ -448,6 +448,11 @@ docker = {
         "port": 8019,
         "domain": "https://nocodb.21x9.org",
     },
+    "homepage": {
+        "image": "ghcr.io/gethomepage/homepage:latest",
+        "port": 8020,
+        "domain": "homepage.21x9.org",
+    },
 }
 
 # Caddy configuration
@@ -504,6 +509,13 @@ caddy_config = {
   "vaultwarden.21x9.org:443": {
     "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
     "reverse_proxy": "127.0.0.1:8018",
+    "header": [
+      "-Server"
+    ],
+  },
+  "homepage.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8020",
     "header": [
       "-Server"
     ],
