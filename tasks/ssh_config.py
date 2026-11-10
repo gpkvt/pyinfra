@@ -2,27 +2,22 @@
 """
 Configure the user's SSH client using a Jinja2 template and pyinfra.
 
-This module deploys the SSH client configuration file from templates/ssh_config.j2 to the user's SSH configuration directory.
+The generated ~/.ssh/config starts with a hardened Host * baseline:
+known-host hashing, accept-new host-key verification, host-key updates,
+public-key authentication, restricted agent/forwarding behavior, and
+connection timeouts/keepalives. Per-host entries from ssh_config are
+rendered afterwards for additional host-specific settings.
 
-Configuration: ssh_dir (str): Path to the user's SSH directory, typically ~/.ssh, used as the destination for the SSH configuration.
+OpenSSH keeps the first value obtained for each option. The baseline
+therefore intentionally takes precedence over later host entries for
+the hardened options.
 
-Operations:
+Configuration:
+    ssh_config (dict): Mapping of OpenSSH Host patterns to configuration
+        lines.
+    homedir (str): Home directory used to locate ~/.ssh/config.
 
-1. Render the SSH configuration template.
-2. Deploy the generated configuration to `~/.ssh/config`.
-3. Set restrictive file permissions.
-
-File permissions:
-
-- SSH configuration: 0600.
-
-Notes:
-
-- Configuration deployment runs without sudo.
-- The SSH configuration is dynamically generated using Jinja2.
-- Restrictive permissions help protect sensitive SSH client
-  configuration settings.
-
+The configuration is deployed without sudo with mode 0600.
 """
 
 from pyinfra import host
@@ -35,7 +30,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 ssh_dir = f"{host.data.homedir}/.ssh"
 
 files.template(
-    name="Configure ssh client",
+    name="Configure hardened ssh client",
     src="templates/ssh_config.j2",
     dest=f"{ssh_dir}/config", # pylint: disable=undefined-variable
     mode="600",
