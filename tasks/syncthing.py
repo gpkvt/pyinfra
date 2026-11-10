@@ -46,7 +46,7 @@ server.shell(
     commands=[
         "runuser --user "
         f"{shlex.quote(username)} -- "
-        f"syncthing cli config gui address set {shlex.quote(gui_address)}"
+        f"syncthing cli config gui raw-address set {shlex.quote(gui_address)}"
     ],
     _sudo=True,
 )
