@@ -95,7 +95,7 @@ if host.data.get("proton"):
     local.include("tasks/proton.py")
 
 # Optional workstation features. All are disabled unless explicitly enabled
-# in group_data/<host>.py under the "workstation" dictionary.
+# in group_data/workstation.py.
 workstation = host.data.get("workstation", {})
 for feature, task in (
     ("backup", "backup.py"),
