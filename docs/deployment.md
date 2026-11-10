@@ -68,7 +68,7 @@ The core set can still have conditional behavior internally, but its modules are
 | `host.data.vscodium` is truthy | `tasks/vscodium.py` |
 | `host.data.proton` is truthy | `tasks/proton.py` |
 
-`tasks/docker.py` installs Docker and defines the shared service deployment helper; `tasks/docker_container.py` dispatches to Miniflux, TimeTagger and Grav modules when their corresponding keys exist in `host.data.docker`.
+`tasks/docker.py` installs Docker and defines the shared service deployment helper. `tasks/docker_container.py` dispatches to Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag and Vaultwarden modules when their corresponding keys exist in `host.data.docker`.
 
 A truthy dictionary or list is a common activation mechanism; these settings are not necessarily Boolean switches. The exact expected structure is described in [Configuration](configuration.md) and [Task reference](tasks.md).
 
