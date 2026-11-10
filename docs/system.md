@@ -1,6 +1,6 @@
 # System configuration
 
-`tasks/system.py` manages operating-system settings from the current target's `host.data`. It is included in every full deployment. The supplied implementation targets Debian/Ubuntu-style system configuration files and Linux system facilities.
+`tasks/system.py` manages operating-system settings from the current target's `host.data`. It is included in every full deployment. The supplied implementation targets Debian/Ubuntu-style system configuration files and Linux system facilities. The `gpg-vault` utility is deployed separately as a user script and does not change these system settings; see [Secrets management](secrets.md).
 
 ## Settings overview
 
