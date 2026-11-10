@@ -64,7 +64,7 @@ cd pyinfra
 ### 2. Create an isolated Python environment
 
 ```bash
-uv sync --dev
+uv sync
 source .venv/bin/activate
 ```
 
