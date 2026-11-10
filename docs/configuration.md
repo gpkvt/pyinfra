@@ -154,7 +154,7 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The repository currently includes service modules for Miniflux, TimeTagger and Grav. Example keys in the supplied configuration include ports, image, database version and service-specific setup options. Consult the relevant `tasks/docker/` module and Compose template before adding or changing keys; the schema is service-specific.
+`docker` is a mapping of service names to service-specific settings. The repository includes service modules for Miniflux, TimeTagger, Grav, Forgejo and Portainer. Example keys include ports, image, database version and service-specific setup options. Consult the relevant `tasks/docker/` module and Compose template before adding or changing keys; the schema is service-specific. Portainer mounts `/var/run/docker.sock` and persists its data under `~/.docker/portainer/data/`; its web interface binds to loopback by default. Treat access to Portainer as administrative access to the Docker host.
 
 ### Caddy
 
