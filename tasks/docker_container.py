@@ -24,3 +24,6 @@ if "tasmoadmin" in container:
 
 if "wallabag" in container:
     local.include("tasks/docker/wallabag.py")
+
+if "vaultwarden" in container:
+    local.include("tasks/docker/vaultwarden.py")
