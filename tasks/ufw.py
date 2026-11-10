@@ -1,92 +1,145 @@
-# pylint: disable=C0301, E0401, C0115, C0116
+# pylint: disable=C0301, E0401, C0115, C0116, W0621
+
 """
 Install, configure, and manage the UFW firewall using pyinfra.
 
-This module installs UFW, configures default firewall policies, manages application-specific firewall rules, and ensures the firewall is enabled. Firewall rules are applied conditionally based on the host configuration and the current firewall state.
+This module installs UFW, configures default firewall policies,
+manages application-specific firewall profiles and port-based
+rules, and ensures the firewall is enabled.
 
-Configuration: host.data.ufw (dict): Firewall configuration defining which applications and services are allowed or denied.
+Firewall rules are configured generically based on host.data.ufw.
+Supported applications and services are mapped to their respective
+UFW application profiles or network ports.
 
-    Supported keys:
-        chromecast-dlna (str): Allow or deny Chromecast/DLNA traffic.
-        kdeconnect (str): Allow or deny KDE Connect traffic.
-        localsend (str): Allow or deny LocalSend traffic.
-        ssh (str): Allow or deny SSH traffic on TCP port 22.
+Configuration:
 
-    Values:
-        "Allow": Add an allow rule.
-        Any other configured value: Remove the corresponding
-        allow rule or add a deny rule for SSH.
+    host.data.ufw (dict):
+        Defines which applications and services are allowed or
+        denied by the firewall.
 
-Facts: UfwActive: Checks whether UFW is currently active using ufw status.
+        Supported applications:
+            chromecast-dlna (str): Chromecast/DLNA traffic.
+            kdeconnect (str): KDE Connect traffic.
+            localsend (str): LocalSend traffic.
 
-    Returns:
-        bool: True if the firewall is active, otherwise False.
+        Supported services:
+            ssh (str): SSH access on TCP port 22.
 
-UfwRules:
-    Retrieves the currently configured UFW rules using
-    `sudo ufw status` and filters out status and header lines.
+        Values:
+            "Allow": Create an allow rule.
+            "Deny": Create an explicit deny rule.
 
-    Returns:
-        set[str]: Existing firewall rules.
+        Example:
+            ufw = {
+                "kdeconnect": "Allow",
+                "localsend": "Allow",
+                "chromecast-dlna": "Deny",
+                "ssh": "Allow",
+            }
 
-UfwDefaults:
-    Retrieves the default incoming and outgoing firewall policies
-    using `sudo ufw status verbose`.
+Facts:
 
-    Returns:
-        dict: Default firewall policies, such as incoming and
-        outgoing actions.
+    UfwActive:
+        Checks whether UFW is currently active using
+        `ufw status`.
 
-Helper functions: ufw_rule_exists(rule, action="ALLOW", scope="Anywhere"): Checks whether a firewall rule matching the specified rule, action, and scope exists.
+        Returns:
+            bool: True if the firewall is active, otherwise False.
 
-    Returns:
-        bool: True if a matching rule exists, otherwise False.
+    UfwRules:
+        Retrieves the currently configured UFW rules using
+        `sudo ufw status` and filters out status and header lines.
+
+        Returns:
+            set[str]: Existing firewall rules.
+
+    UfwDefaults:
+        Retrieves the default incoming and outgoing firewall
+        policies using `sudo ufw status verbose`.
+
+        Returns:
+            dict: Default firewall policies, such as incoming and
+            outgoing actions.
+
+Helper functions:
+
+    ufw_rule_exists(rule, action="ALLOW", scope="Anywhere"):
+        Checks whether a firewall rule matching the specified
+        rule, action, and scope exists.
+
+        Returns:
+            bool: True if a matching rule exists, otherwise False.
 
 Operations:
 
-1. Install UFW using APT.
+    1. Install UFW:
+       - Install UFW using APT.
 
-2. Configure default firewall policies:
-    - Deny incoming connections.
-    - Allow outgoing connections.
-   Changes are applied only when the current policies differ.
+    2. Configure default firewall policies:
+       - Deny incoming connections.
+       - Allow outgoing connections.
+       - Apply changes only when the current policies differ.
 
-3. Configure application profiles when enabled in host configuration:
-    - Chromecast/DLNA: Deploy the application profile and
-      allow or remove its firewall rule.
-    - KDE Connect: Deploy the application profile and
-      allow or remove its firewall rule.
-    - LocalSend: Deploy the application profile and
-      allow or remove its firewall rule.
+    3. Configure application profiles and port-based rules:
+       - Iterate over the entries in host.data.ufw.
+       - Ignore unsupported configuration keys and invalid values.
+       - Deploy application profiles for configured applications.
+       - Configure allow or deny rules according to the specified
+         action.
+       - Support both UFW application profiles and explicit
+         network port definitions.
+       - Check existing rules before applying changes to avoid
+         unnecessary operations.
 
-4. Configure SSH access:
-    - Allow TCP port 22 when SSH is configured as "Allow".
-    - Deny TCP port 22 otherwise.
-   SSH rules are configured before enabling the firewall to
-   help prevent accidental loss of remote access.
-
-5. Enable UFW when it is not already active.
+    4. Enable firewall:
+       - Enable UFW when it is not already active.
+       - Configure all application and port-based rules before
+         activating the firewall to prevent accidental loss of
+         remote access.
 
 Application profiles:
 
-- Chromecast/DLNA: `/etc/ufw/applications.d/chromecast-dlna`
-- KDE Connect: `/etc/ufw/applications.d/kdeconnect`
-- LocalSend: `/etc/ufw/applications.d/localsend`
+    Chromecast/DLNA:
+        Profile: /etc/ufw/applications.d/chromecast-dlna
+        UFW name: cast
+
+    KDE Connect:
+        Profile: /etc/ufw/applications.d/kdeconnect
+        UFW name: kdeconnect
+
+    LocalSend:
+        Profile: /etc/ufw/applications.d/localsend
+        UFW name: localsend
+
+Port-based rules:
+
+    SSH:
+        Protocol: TCP
+        Port: 22
 
 File permissions:
 
-- Application profiles: root:root, mode 0640.
+    Application profiles:
+        Owner: root
+        Group: root
+        Mode: 0640
 
 Notes:
 
-- Firewall configuration commands require sudo.
-- Application profiles are deployed only when their corresponding
-  configuration keys are present.
-- Existing rules are checked before adding or removing rules
-  to avoid unnecessary changes.
-- UFW is enabled non-interactively using `--force`.
-- Default incoming traffic is denied and outgoing traffic is allowed.
-- SSH access is explicitly configured before firewall activation.
+    - Firewall configuration commands require sudo.
+    - Application profiles are deployed only when their
+      corresponding configuration keys are present.
+    - Port-based rules do not require application profiles.
+    - Only explicitly supported applications and services are
+      configured.
+    - Unsupported configuration keys and values are ignored.
+    - Existing rules are checked before adding new rules to avoid
+      unnecessary changes.
+    - Allow and deny rules are managed independently.
+    - Default incoming traffic is denied and outgoing traffic
+      is allowed.
+    - All configured rules are applied before firewall activation.
+    - UFW is enabled non-interactively using `--force`.
 """
 
 from pyinfra.operations import apt, server, files
@@ -98,7 +151,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
     initialize(host)
 
 class UfwActive(FactBase):
-    command = "ufw status"
+    command = "ufw statusAllow"
 
     def process(self, output):
         return bool(output and output[0] == "Status: active")
@@ -157,108 +210,61 @@ server.shell(
     )
 )
 
-if host.data.ufw.get("chromecast-dlna"):
-    files.put(
-        name="Configure chromecast dlna",
-        src="files/ufw/chromecast-dlna",
-        dest="/etc/ufw/applications.d/chromecast-dlna",
-        user="root",
-        group="root",
-        mode="640"
-    )
+# Configure application profiles and port rules
+ufw = host.data.get("ufw", {})
 
-    if host.data.ufw.get("chromecast-dlna") == "Allow":
-        server.shell(
-            name="Allow chromecast dlna",
-            commands=[
-                "ufw allow cast",
-            ],
+ufw_applications = {
+    "chromecast-dlna": "cast",
+    "kdeconnect": "kdeconnect",
+    "localsend": "localsend",
+}
+
+ufw_ports = {
+    "ssh": "22/tcp",
+}
+
+for app, action in ufw.items():
+    if action not in ("Allow", "Deny"):
+        continue
+
+    if app in ufw_applications:
+        application = ufw_applications[app]
+
+        # Deploy application profile
+        files.put(
+            name=f"Configure {app}",
+            src=f"files/ufw/{app}",
+            dest=f"/etc/ufw/applications.d/{app}",
+            user="root",
+            group="root",
+            mode="640",
             _sudo=True,
-            _if=lambda: not ufw_rule_exists("cast"),
         )
+
+        rule = application
+
+    elif app in ufw_ports:
+        rule = ufw_ports[app]
+
+    else:
+        continue
+
+    if action == "Allow":
+        server.shell(
+            name=f"Allow {app}",
+            commands=[f"ufw allow {rule}"],
+            _sudo=True,
+            _if=lambda rule=rule: not ufw_rule_exists(rule),
+        )
+
     else:
         server.shell(
-            name="Remove chromecast dlna rules",
-            commands=[
-                "ufw delete allow cast",
-            ],
+            name=f"Deny {app}",
+            commands=[f"ufw deny {rule}"],
             _sudo=True,
-            _if=lambda: ufw_rule_exists("cast"),
-        )
-
-if host.data.ufw.get("kdeconnect"):
-    files.put(
-        name="Configure kdeconnect",
-        src="files/ufw/kdeconnect",
-        dest="/etc/ufw/applications.d/kdeconnect",
-        user="root",
-        group="root",
-        mode="640"
-    )
-
-    if host.data.ufw.get("kdeconnect") == "Allow":
-        server.shell(
-            name="Allow kdeconnect",
-            commands=[
-                "ufw allow kdeconnect",
-            ],
-            _sudo=True,
-            _if=lambda: not ufw_rule_exists("kdeconnect"),
-        )
-    else:
-        server.shell(
-            name="Remove kdeconnect rules",
-            commands=[
-                "ufw delete allow kdeconnect",
-            ],
-            _sudo=True,
-            _if=lambda: ufw_rule_exists("kdeconnect"),
-        )
-
-if host.data.ufw.get("localsend"):
-    files.put(
-        name="Configure localsend",
-        src="files/ufw/localsend",
-        dest="/etc/ufw/applications.d/localsend",
-        user="root",
-        group="root",
-        mode="640"
-    )
-
-    if host.data.ufw.get("localsend") == "Allow":
-        server.shell(
-            name="Allow localsend",
-            commands=[
-                "ufw allow localsend",
-            ],
-            _sudo=True,
-            _if=lambda: not ufw_rule_exists("localsend"),
-        )
-    else:
-        server.shell(
-            name="Remove localsend rules",
-            commands=[
-                "ufw delete allow localsend",
-            ],
-            _sudo=True,
-            _if=lambda: ufw_rule_exists("localsend"),
-        )
-
-if host.data.ufw.get("ssh"):
-    if host.data.ufw.get("ssh") == "Allow":
-        # Allow SSH before enabling the firewall!
-        server.shell(
-            name="Allow SSH",
-            commands=["ufw allow 22/tcp"],
-            _sudo=True,
-            _if=lambda: not ufw_rule_exists("22/tcp"),
-        )
-    else:
-        server.shell(
-            name="Deny SSH",
-            commands=["ufw deny 22/tcp"],
-            _sudo=True,
-            _if=lambda: ufw_rule_exists("22/tcp"),
+            _if=lambda rule=rule: not ufw_rule_exists(
+                rule, action="DENY"
+            ),
         )
 
 # Enable firewall
