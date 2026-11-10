@@ -21,7 +21,7 @@ if config.get("enabled", False):
         name="Create borgmatic config",
         src="templates/workstation/borgmatic.yml.j2",
         dest="/etc/borgmatic/config.yaml",
-        mode="644",
+        mode="600",
         user="root",
         group="root",
         _sudo=True,
