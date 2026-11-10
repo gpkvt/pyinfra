@@ -4,6 +4,7 @@ import { promisify } from "node:util";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { randomBytes } from "node:crypto";
 
 const execFileAsync = promisify(execFile);
 
@@ -64,6 +65,36 @@ async function transformBytes(
   });
 }
 
+async function securelyDeletePlaintext(filePath: string): Promise<void> {
+  const fileInfo = await fs.lstat(filePath);
+  if (!fileInfo.isFile() || fileInfo.isSymbolicLink()) {
+    throw new Error("Refusing secure deletion: plaintext path is not a regular file.");
+  }
+  if (fileInfo.nlink > 1) {
+    throw new Error("Refusing secure deletion: plaintext file has multiple hard links.");
+  }
+
+  const handle = await fs.open(filePath, "r+");
+  try {
+    const bufferSize = 64 * 1024;
+    let position = 0;
+    while (position < fileInfo.size) {
+      const length = Math.min(bufferSize, fileInfo.size - position);
+      const randomData = randomBytes(length);
+      let written = 0;
+      while (written < length) {
+        const result = await handle.write(randomData, written, length - written, position + written);
+        if (result.bytesWritten === 0) throw new Error("Could not overwrite the complete plaintext file.");
+        written += result.bytesWritten;
+      }
+      position += length;
+    }
+    await handle.sync();
+  } finally {
+    await handle.close();
+  }
+  await fs.unlink(filePath);
+}
 async function showFailure(action: () => Promise<void>): Promise<void> {
   try {
     await action();
@@ -136,7 +167,7 @@ async function encryptFile(): Promise<void> {
 
   const deleteSource = vscode.workspace
     .getConfiguration("gpg-vault")
-    .get<boolean>("deletePlaintextAfterEncrypt", false);
+    .get<boolean>("deletePlaintextAfterEncrypt", true);
 
   if (deleteSource) {
     const answer = await vscode.window.showWarningMessage(
@@ -154,7 +185,7 @@ async function encryptFile(): Promise<void> {
           return;
         }
       }
-      await fs.unlink(sourcePath);
+      await securelyDeletePlaintext(sourcePath);
     }
   }
 
