@@ -107,4 +107,4 @@ for feature, task in (
     ("maintenance", "maintenance.py"),
 ):
     if workstation.get(feature, {}).get("enabled", False):
-        local.include(f"tasks/{task}")
+        local.include(f"tasks/workstation/{task}")
