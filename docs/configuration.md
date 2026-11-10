@@ -147,7 +147,17 @@ For detailed validation, file paths and safety considerations, see [System confi
 
 ### Firewall
 
-`ufw` maps application/profile names to policy actions used by `tasks/ufw.py`. Review the installed UFW application profiles and rules before enabling changes on a remote host.
+`ufw` maps supported application/service names to `Allow` or `Deny` actions. The current keys are `chromecast-dlna`, `kdeconnect`, `localsend` and `ssh` (TCP port 22); unsupported keys and values are ignored. The task sets default incoming traffic to deny and outgoing traffic to allow, applies the configured rules, and enables UFW. For example:
+
+```python
+ufw = {
+    "ssh": "Allow",
+    "kdeconnect": "Allow",
+    "localsend": "Allow",
+}
+```
+
+Review the effective rules before enabling changes on a remote host. The checked-in `group_data/@local.py` currently sets `ssh` to `Deny`; that example must not be copied to a remotely managed host unless another management path is available.
 
 ## Secrets-dependent configuration
 
