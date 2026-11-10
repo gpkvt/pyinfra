@@ -25,7 +25,7 @@ The repository is primarily designed around Debian/Ubuntu systems and includes b
 | Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications, optional workstation desktop utilities |
 | Workstation maintenance | Backup tools and Borgmatic config, power management, firmware/microcode tools, storage health utilities, optional printer/scanner support and maintenance tools |
 | User environment | Zsh, tmux, Powerline, Git, Midnight Commander, scripts and dotfiles |
-| Secrets | GPG-encrypted JSON for private keys, API tokens and application credentials |
+| Secrets | GPG-encrypted JSON for private keys, API tokens and application credentials; command-line and VS Code vault workflows |
 
 Optional features are included by `deploy.py` only when their configuration and prerequisites are present. See [Task reference](docs/tasks.md) and [Deployment workflow](docs/deployment.md).
 
@@ -37,7 +37,7 @@ Optional features are included by `deploy.py` only when their configuration and 
 4. Modules in `tasks/` declare pyinfra operations.
 5. `templates/` contains rendered Jinja2 configuration; `files/` contains static payloads.
 6. `common.py` decrypts `secrets.json.gpg` when present and exposes the resulting dictionary to tasks.
-7. `files/scripts/gpg-vault` provides an interactive command-line workflow for creating, editing, viewing, encrypting, decrypting and rekeying the secrets file.
+7. `files/scripts/gpg-vault` provides an interactive command-line workflow for creating, editing, viewing, encrypting, decrypting and rekeying the secrets file.\n8. `vscode/gpg-vault/` contains a VS Code extension for encrypting/decrypting files and selected text with the same GPG format.
 
 See [Architecture](docs/architecture.md) for the execution flow and [Configuration](docs/configuration.md) for the settings model.
 
@@ -142,7 +142,7 @@ Check the CLI options supported by your installed pyinfra version with `pyinfra 
 - [Host configuration reference](docs/configuration.md)
 - [Deployment workflow and safety checks](docs/deployment.md)
 - [Task catalogue](docs/tasks.md)
-- [Secrets management](docs/secrets.md)
+- [Secrets management](docs/secrets.md)\n- [VS Code GPG Vault extension](vscode/gpg-vault/README.md)
 - [Templates and static assets](docs/templates.md)
 - [System configuration details](docs/system.md)
 - [Development and contribution workflow](docs/development.md)
