@@ -106,7 +106,8 @@ All persistent application data currently uses host bind mounts. The paths below
 | TasmoAdmin | `~/.docker/tasmoadmin/data/` | `127.0.0.1:8016` |
 | Wallabag | `~/.docker/wallabag/data/`, `~/.docker/wallabag/images/` | `127.0.0.1:8017` |
 | Vaultwarden | `~/.docker/vaultwarden/` | `127.0.0.1:8018` |
-| NocoDB | `~/.docker/nocodb/data/` | `127.0.0.1:8019` |\n| Homepage | `~/.docker/homepage/config/` | `127.0.0.1:8020` |
+| NocoDB | `~/.docker/nocodb/data/` | `127.0.0.1:8019` |
+| Homepage | `~/.docker/homepage/config/` | `127.0.0.1:8020` |
 
 **Service-specific notes**
 
@@ -118,7 +119,8 @@ All persistent application data currently uses host bind mounts. The paths below
 - **TasmoAdmin** mounts `~/.docker/tasmoadmin/data/` at `/data/tasmoadmin`, matching its `TASMO_DATADIR` setting.
 - **Wallabag** uses SQLite and persists its database/application data and article images in the two host directories shown above. The directories are mounted into the container paths used by Wallabag's `www-data` process. The supplied local Caddy configuration publishes it as `wallabag.21x9.org`; the initial credentials are `wallabag` / `wallabag`, which must be changed after first login.
 - **Vaultwarden** persists its data in `~/.docker/vaultwarden/`. Public signups and invitations are disabled. An optional Argon2 PHC admin-token hash is read from `secrets.docker.vaultwarden.admin_token`; generate it with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. Its supplied local Caddy hostname is `vaultwarden.21x9.org`.
-- **NocoDB** persists application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. Its HTTP interface binds to loopback on port `8019` by default; the supplied local Caddy hostname is `nocodb.21x9.org`.\n- **Homepage** stores its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It binds to loopback on port `8020` and sets `HOMEPAGE_ALLOWED_HOSTS` to the configured hostname; the supplied local Caddy hostname is `homepage.21x9.org`. Docker socket access is not enabled by default. Homepage dashboards may expose sensitive widget data, so protect access with a trusted reverse proxy authentication policy, Homepage authentication, or a VPN.
+- **NocoDB** persists application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. Its HTTP interface binds to loopback on port `8019` by default; the supplied local Caddy hostname is `nocodb.21x9.org`.
+- **Homepage** stores its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It binds to loopback on port `8020` and sets `HOMEPAGE_ALLOWED_HOSTS` to the configured hostname; the supplied local Caddy hostname is `homepage.21x9.org`. Docker socket access is not enabled by default. Homepage dashboards may expose sensitive widget data, so protect access with a trusted reverse proxy authentication policy, Homepage authentication, or a VPN.
 
 **Storage migration**
 
