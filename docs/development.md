@@ -56,7 +56,7 @@ Some hooks modify files automatically. Review the resulting diff after running t
 2. Add or update a focused task module under `tasks/` (use a subdirectory such as `tasks/workstation/` for a cohesive role).
 3. Add static payloads to `files/` or parameterized Jinja2 templates to `templates/`.
 4. Add the task inclusion condition to `deploy.py` if it is optional. For grouped roles, gate each task on a nested role feature setting (for example, `host.data.get("workstation", {}).get("backup", {}).get("enabled", False)`).
-5. Keep credentials in the encrypted secrets document and update `secrets.json.gpg.example` with placeholders when the schema changes.
+5. Keep credentials in the encrypted secrets document and update `secrets.json.gpg.example` with placeholders when the schema changes. `files/scripts/gpg-vault` is the interactive workflow for maintaining that encrypted file; keep its command help and [Secrets management](secrets.md) documentation in sync when changing it.
 6. Document configuration keys, prerequisites, side effects and recovery considerations.
 7. Run pre-commit and test a dry run against a disposable or non-production target.
 
