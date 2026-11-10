@@ -21,7 +21,7 @@ Open the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`) and choose:
 
 The file workflow mirrors the `secrets.json` / `secrets.json.gpg` pair used by `gpg-vault`. Encryption creates an ASCII-armored GPG file; this is fully readable by GPG and by the repository's `gpg-vault` and deployment-time decryption. The command-line helper currently creates binary GPG output, which this extension can also decrypt.
 
-File encryption never overwrites an existing `.gpg` file. File decryption never overwrites an existing plaintext file. Explorer context-menu decryption can read both ASCII-armored and binary GPG files, including ciphertext produced by the shell helper. Decrypted files are created with owner-only permissions where the operating system supports POSIX file modes. Temporary working files are placed in a private temporary directory and removed after each operation.
+File encryption asks before replacing an existing `.gpg` file. File decryption never overwrites an existing plaintext file. Explorer context-menu decryption can read both ASCII-armored and binary GPG files, including ciphertext produced by the shell helper. Decrypted files are created with owner-only permissions where the operating system supports POSIX file modes. Temporary working files are placed in a private temporary directory and removed after each operation.
 
 ## Settings
 
@@ -52,7 +52,7 @@ For development, open this directory as a VS Code workspace and press F5 to laun
 ## Security notes
 
 - GPG controls passphrase entry through your configured pinentry/GPG-agent setup. Do not configure loopback passphrase entry or put passphrases in VS Code settings.
-- The extension never silently deletes plaintext. With `deletePlaintextAfterEncrypt` enabled (the default), it asks for confirmation after successful encryption, then overwrites the plaintext file with random data, flushes it, and unlinks it. Files with multiple hard links are not overwritten or deleted.
+- The extension never silently deletes plaintext. With `deletePlaintextAfterEncrypt` enabled (the default), it first saves the document, encrypts the exact bytes on disk, and asks for confirmation after successful encryption. On confirmation, it overwrites the regular plaintext file with random data, flushes the file, and unlinks it. Files with multiple hard links are not overwritten or deleted. This is best-effort sanitization: SSD wear-leveling, copy-on-write filesystems, snapshots, backups, and storage-level journaling can retain previous blocks, so software overwrite cannot guarantee physical erasure. For stronger assurance, use full-disk encryption and manage snapshots/backups accordingly.
 - Encryption does not make it safe to commit or share secret files. Keep encrypted files and backups protected, and review your Git ignore rules.
 - Avoid using selection commands on very large documents. They temporarily stage the selected content in a private temporary directory.
 - The extension operates on local `file:` documents for file-level commands. Selection commands work in any editable text document.
