@@ -2,9 +2,11 @@
 
 Host-specific desired state is stored as Python data in `group_data/`. pyinfra exposes the values for a target through `host.data`. The supplied `group_data/@local.py` is an example configuration for one environment, not a portable default. Audit and adapt it before running any deployment.
 
-## Which file is used?
+## Which files are used?
 
-The inventory target name determines the corresponding group-data file. The local target uses `group_data/@local.py`; a target named `web01` should have `group_data/web01.py`.
+The inventory target name determines its host-data file: the local target uses `group_data/@local.py`, and a target named `web01` uses `group_data/web01.py`. Inventory groups can add shared configuration for a role or class of hosts. For example, `workstation = ["@local"]` in `inventory.py` makes `@local` a member of the `workstation` group, so pyinfra also loads `group_data/workstation.py`. Group data and host data are both available through `host.data`; keep role-wide defaults in the group file and host-specific overrides in the host file.
+
+The workstation group is optional. Add a host to the `workstation` inventory group only if it should receive that role's configuration and eligible workstation tasks.
 
 Keep configuration data separate from task logic. Put private keys, passwords, API tokens and credential-bearing URLs in the encrypted secrets file, not in group data. See [Secrets management](secrets.md).
 
@@ -32,6 +34,40 @@ timezone = "Etc/UTC"
 locale = "en_US.UTF-8"
 editor = "vim"
 ```
+
+## Workstation role
+
+The supplied `group_data/workstation.py` defines a shared, nested `workstation` configuration. `deploy.py` checks each feature's `enabled` flag and includes its corresponding task only when that flag is true. Features are independently gated; a disabled feature is not installed by the workstation task set.
+
+| Setting | Default in supplied group data | Effect |
+| --- | --- | --- |
+| `workstation.backup.enabled` | `True` | Installs Restic, Borg, rsync and Borgmatic, and renders `/etc/borgmatic/config.yaml`. It does not create or run a backup job; repository locations, credentials, sources, retention and restore testing still need configuration. |
+| `workstation.power.enabled` | `True` | Installs and enables the selected power manager. `manager` must be `tlp` or `power-profiles-daemon`; the other manager is removed. |
+| `workstation.hardware.enabled` | `True` | Installs `fwupd` and, when selected, CPU microcode (`intel` or `amd`). Firmware updates are not applied automatically. |
+| `workstation.storage.enabled` | `True` | Installs `smartmontools` and `nvme-cli`; no monitoring schedule or alerting is configured. |
+| `workstation.peripherals.enabled` | `False` | Enables optional printer/scanner support. Set `printing` and/or `scanning` to true; CUPS is enabled when printing is selected. |
+| `workstation.desktop.enabled` | `False` | Installs common desktop integration utilities. `packages` can replace the default package list. |
+| `workstation.maintenance.enabled` | `False` | Installs `needrestart`, `debian-goodies` and `apt-file`; no unattended upgrades or automatic reboots are enabled. |
+
+Example role configuration:
+
+```python
+workstation = {
+    "backup": {"enabled": True},
+    "power": {"enabled": True, "manager": "tlp"},
+    "hardware": {"enabled": True, "cpu_vendor": "amd"},
+    "storage": {"enabled": True},
+    "peripherals": {
+        "enabled": False,
+        "printing": False,
+        "scanning": False,
+    },
+    "desktop": {"enabled": False},
+    "maintenance": {"enabled": False},
+}
+```
+
+Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups.
 
 ## Network and name resolution
 

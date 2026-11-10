@@ -22,7 +22,8 @@ The repository is primarily designed around Debian/Ubuntu systems and includes b
 | Access and security | SSH keys and client configuration, sudoers rules, AppArmor profiles, USBGuard, UFW |
 | Networking | WireGuard configuration and conditional VPN activation based on local-network detection |
 | Services | Docker Compose services, Caddy reverse proxy, dehydrated ACME certificates |
-| Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications |
+| Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications, optional workstation desktop utilities |
+| Workstation maintenance | Backup tools and Borgmatic config, power management, firmware/microcode tools, storage health utilities, optional printer/scanner support and maintenance tools |
 | User environment | Zsh, tmux, Powerline, Git, Midnight Commander, scripts and dotfiles |
 | Secrets | GPG-encrypted JSON for private keys, API tokens and application credentials |
 
@@ -31,7 +32,7 @@ Optional features are included by `deploy.py` only when their configuration and 
 ## How it works
 
 1. `inventory.py` defines local and remote targets and their connection options.
-2. `group_data/<host>.py` supplies the configuration for each target.
+2. `group_data/<host>.py` supplies host-specific configuration; group memberships in `inventory.py` can also load shared role configuration such as `group_data/workstation.py`.
 3. `deploy.py` initializes shared values and selects task modules.
 4. Modules in `tasks/` declare pyinfra operations.
 5. `templates/` contains rendered Jinja2 configuration; `files/` contains static payloads.
@@ -83,7 +84,7 @@ The special `@local` target executes against the machine running pyinfra. It is 
 
 Create or edit `group_data/<inventory-host>.py`. For the local target, the supplied file is `group_data/@local.py`.
 
-At minimum, review the user identity and home directory, hostname, locale, timezone, package lists, network settings, and every optional service configuration. Remove settings that do not apply to your environment. See [Configuration](docs/configuration.md) for a categorized reference.
+At minimum, review the user identity and home directory, hostname, locale, timezone, package lists, network settings, and every optional service configuration. Inventory groups can apply shared role data: the supplied `workstation = ["@local"]` group membership loads `group_data/workstation.py` for `@local`. Remove settings that do not apply to your environment. See [Configuration](docs/configuration.md) for a categorized reference.
 
 ### 5. Prepare secrets (optional)
 
@@ -126,8 +127,9 @@ Check the CLI options supported by your installed pyinfra version with `pyinfra 
 ├── inventory.py             # Target hosts and connection options
 ├── deploy.py                # Task orchestration and feature gates
 ├── common.py                # Shared initialization and GPG secrets loading
-├── group_data/              # Per-host configuration
+├── group_data/              # Per-host and role/group configuration
 ├── tasks/                   # pyinfra task modules
+│   └── workstation/         # Opt-in workstation feature tasks
 ├── templates/               # Jinja2 templates
 ├── files/                   # Static scripts, dotfiles and configuration
 ├── secrets.json.gpg.example # Placeholder secrets schema/example

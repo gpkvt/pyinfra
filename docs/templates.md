@@ -15,6 +15,7 @@ The consuming task controls the destination, owner, group, permissions and any s
 | `templates/ssh_config.j2` | `tasks/ssh_config.py` | User SSH client configuration. |
 | `templates/wireguard.conf.j2` | `tasks/wireguard.py` | WireGuard interface configuration. |
 | `templates/dehydrated_config.j2` | `tasks/dehydrated.py` | dehydrated configuration. |
+| `templates/workstation/borgmatic.yml.j2` | `tasks/workstation/backup.py` | Borgmatic configuration deployed to `/etc/borgmatic/config.yaml`. |
 | `templates/Caddyfile.j2` | `tasks/caddy.py` | Caddy site configuration. |
 | `templates/docker/*` | Docker task modules | Compose and user-level systemd service definitions. |
 | `templates/git/*` | `tasks/git.py` | Git credentials/configuration fragments. |
@@ -29,6 +30,7 @@ Templates may receive host data, runtime values initialized by `common.py`, and 
 | SSH client configuration | `~/.ssh/config`, restrictive mode `0600`. |
 | WireGuard interface | `/etc/wireguard/<interface>.conf`, owned by root with mode `0640`. The task does not start the interface. |
 | dehydrated config | `/etc/dehydrated/config`, root-owned with mode `0600`. |
+| Borgmatic config | `/etc/borgmatic/config.yaml`, root-owned with mode `0644`; review and complete its repository/source settings before relying on it. |
 | dehydrated hook | `/etc/dehydrated/hook.sh`, root-owned with executable permissions. |
 | Docker Compose | Service-specific directory under the configured user's home. |
 | Docker systemd unit | `~/.config/systemd/user/<service>.service`. |
