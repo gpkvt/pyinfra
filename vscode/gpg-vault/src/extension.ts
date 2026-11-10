@@ -244,6 +244,19 @@ async function decryptFile(): Promise<void> {
   void vscode.window.showInformationMessage(`Decrypted file created: ${path.basename(plaintextPath)}`);
 }
 
+async function toggleFileEncryption(): Promise<void> {
+  const editor = vscode.window.activeTextEditor;
+  if (!editor || editor.document.uri.scheme !== "file") {
+    throw new Error("Open a local file before toggling encryption.");
+  }
+
+  if (editor.document.uri.fsPath.toLowerCase().endsWith(".gpg")) {
+    await decryptFile();
+  } else {
+    await encryptFile();
+  }
+}
+
 async function transformSelection(operation: GpgOperation): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
@@ -274,6 +287,9 @@ export function activate(context: vscode.ExtensionContext): void {
     ),
     vscode.commands.registerCommand("gpg-vault.decryptFile", () =>
       showFailure(decryptFile)
+    ),
+    vscode.commands.registerCommand("gpg-vault.toggleFileEncryption", () =>
+      showFailure(toggleFileEncryption)
     ),
     vscode.commands.registerCommand("gpg-vault.encryptSelection", () =>
       showFailure(() => transformSelection("encrypt"))
