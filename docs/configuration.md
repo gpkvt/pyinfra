@@ -154,7 +154,7 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The repository includes service modules for Miniflux, TimeTagger, Grav, Forgejo and Portainer. Example keys include ports, image, database version and service-specific setup options. Consult the relevant `tasks/docker/` module and Compose template before adding or changing keys; the schema is service-specific. Portainer mounts `/var/run/docker.sock` and persists its data under `~/.docker/portainer/data/`; its web interface binds to loopback by default. Treat access to Portainer as administrative access to the Docker host.
+`docker` is a mapping of service names to service-specific settings. The repository includes service modules for Miniflux, TimeTagger, Grav, Forgejo, Portainer and TasmoAdmin. Example keys include ports, image, database version and service-specific setup options. Consult the relevant `tasks/docker/` module and Compose template before adding or changing keys; the schema is service-specific. Portainer mounts `/var/run/docker.sock` and persists its data under `~/.docker/portainer/data/`; its web interface binds to loopback by default. Treat access to Portainer as administrative access to the Docker host. TasmoAdmin persists its configuration under `~/.docker/tasmoadmin/data/` and binds its HTTP interface to loopback port 8016 by default; the supplied local configuration publishes it through Caddy at `tasmoadmin.21x9.org`.
 
 ### Caddy
 
