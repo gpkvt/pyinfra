@@ -702,9 +702,10 @@ wireguard_config = {
 
 # Configure firewall
 ufw = {
-  "kdeconnect": "Allow",
-  "localsend": "Allow",
-  "chromecast-dlna": "Deny",
+    "kdeconnect": "Allow",
+    "localsend": "Allow",
+    "chromecast-dlna": "Deny",
+    "ssh": "Deny",
 }
 
 # Configure ssh client

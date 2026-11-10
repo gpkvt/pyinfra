@@ -1,4 +1,4 @@
-# pylint: disable=C0301, E0401, C0115, C0116
+# pylint: disable=C0301, E0401, C0115, C0116, W0621
 """
 Install, configure, and manage the UFW firewall using pyinfra.
 
@@ -98,7 +98,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
     initialize(host)
 
 class UfwActive(FactBase):
-    command = "ufw status"
+    command = "ufw statusAllow"
 
     def process(self, output):
         return bool(output and output[0] == "Status: active")
@@ -157,108 +157,61 @@ server.shell(
     )
 )
 
-if host.data.ufw.get("chromecast-dlna"):
-    files.put(
-        name="Configure chromecast dlna",
-        src="files/ufw/chromecast-dlna",
-        dest="/etc/ufw/applications.d/chromecast-dlna",
-        user="root",
-        group="root",
-        mode="640"
-    )
+# Configure application profiles and port rules
+ufw = host.data.get("ufw", {})
 
-    if host.data.ufw.get("chromecast-dlna") == "Allow":
-        server.shell(
-            name="Allow chromecast dlna",
-            commands=[
-                "ufw allow cast",
-            ],
+ufw_applications = {
+    "chromecast-dlna": "cast",
+    "kdeconnect": "kdeconnect",
+    "localsend": "localsend",
+}
+
+ufw_ports = {
+    "ssh": "22/tcp",
+}
+
+for app, action in ufw.items():
+    if action not in ("Allow", "Deny"):
+        continue
+
+    if app in ufw_applications:
+        application = ufw_applications[app]
+
+        # Deploy application profile
+        files.put(
+            name=f"Configure {app}",
+            src=f"files/ufw/{app}",
+            dest=f"/etc/ufw/applications.d/{app}",
+            user="root",
+            group="root",
+            mode="640",
             _sudo=True,
-            _if=lambda: not ufw_rule_exists("cast"),
         )
+
+        rule = application
+
+    elif app in ufw_ports:
+        rule = ufw_ports[app]
+
+    else:
+        continue
+
+    if action == "Allow":
+        server.shell(
+            name=f"Allow {app}",
+            commands=[f"ufw allow {rule}"],
+            _sudo=True,
+            _if=lambda rule=rule: not ufw_rule_exists(rule),
+        )
+
     else:
         server.shell(
-            name="Remove chromecast dlna rules",
-            commands=[
-                "ufw delete allow cast",
-            ],
+            name=f"Deny {app}",
+            commands=[f"ufw deny {rule}"],
             _sudo=True,
-            _if=lambda: ufw_rule_exists("cast"),
-        )
-
-if host.data.ufw.get("kdeconnect"):
-    files.put(
-        name="Configure kdeconnect",
-        src="files/ufw/kdeconnect",
-        dest="/etc/ufw/applications.d/kdeconnect",
-        user="root",
-        group="root",
-        mode="640"
-    )
-
-    if host.data.ufw.get("kdeconnect") == "Allow":
-        server.shell(
-            name="Allow kdeconnect",
-            commands=[
-                "ufw allow kdeconnect",
-            ],
-            _sudo=True,
-            _if=lambda: not ufw_rule_exists("kdeconnect"),
-        )
-    else:
-        server.shell(
-            name="Remove kdeconnect rules",
-            commands=[
-                "ufw delete allow kdeconnect",
-            ],
-            _sudo=True,
-            _if=lambda: ufw_rule_exists("kdeconnect"),
-        )
-
-if host.data.ufw.get("localsend"):
-    files.put(
-        name="Configure localsend",
-        src="files/ufw/localsend",
-        dest="/etc/ufw/applications.d/localsend",
-        user="root",
-        group="root",
-        mode="640"
-    )
-
-    if host.data.ufw.get("localsend") == "Allow":
-        server.shell(
-            name="Allow localsend",
-            commands=[
-                "ufw allow localsend",
-            ],
-            _sudo=True,
-            _if=lambda: not ufw_rule_exists("localsend"),
-        )
-    else:
-        server.shell(
-            name="Remove localsend rules",
-            commands=[
-                "ufw delete allow localsend",
-            ],
-            _sudo=True,
-            _if=lambda: ufw_rule_exists("localsend"),
-        )
-
-if host.data.ufw.get("ssh"):
-    if host.data.ufw.get("ssh") == "Allow":
-        # Allow SSH before enabling the firewall!
-        server.shell(
-            name="Allow SSH",
-            commands=["ufw allow 22/tcp"],
-            _sudo=True,
-            _if=lambda: not ufw_rule_exists("22/tcp"),
-        )
-    else:
-        server.shell(
-            name="Deny SSH",
-            commands=["ufw deny 22/tcp"],
-            _sudo=True,
-            _if=lambda: ufw_rule_exists("22/tcp"),
+            _if=lambda rule=rule: not ufw_rule_exists(
+                rule, action="DENY"
+            ),
         )
 
 # Enable firewall
