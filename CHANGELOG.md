@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added Firefly III with MariaDB, scheduled maintenance, and the FinTS importer; application, database and importer configuration persist under `~/.docker/firefly-iii/` with Caddy routes for both web interfaces.
 - Added Paperless-ngx with PostgreSQL, Valkey, Gotenberg and Tika, persistent host-directory mounts under `~/.docker/paperless/`, and the `paperless.21x9.org` Caddy reverse-proxy route.
 - Added the WG-Easy Docker service with persistent WireGuard configuration under `~/.docker/wg-easy/`, loopback-only administration UI publishing and Caddy reverse proxy integration.
 - Expanded Homepage bookmarks with personal links grouped into Misc, Social, Entertainment and Proton categories, including locally stored service icons.
