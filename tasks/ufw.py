@@ -192,6 +192,8 @@ class UfwAddedRules(FactBase):
 def ufw_custom_rule_exists(action, rule):
     """Match a custom rule, tolerating UFW's optional explicit in token."""
     expected = ["ufw", action.lower(), *shlex.split(rule)]
+    if len(expected) > 2 and expected[2] == "in":
+        expected.pop(2)
     for line in host.get_fact(UfwAddedRules):
         tokens = line.split()
         if len(tokens) > 2 and tokens[2] == "in":
