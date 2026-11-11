@@ -147,8 +147,7 @@ usbguard = {
 
         # USB device behind the hub
         'allow id 10ab:9309 serial "" name "" hash "whHOIdQrSVT8iQWv1Bg5SSP7oI4SXttsMYptqf04kXs=" parent-hash "p0xurg8ayXbgrHAmFBL5BElzY8M/rvDA/w3li6d/wtw=" via-port "1-3.1" with-interface { e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 e0:01:01 } with-connect-type "not used"',
-    ],
-}
+    ],}
 
 # Configure sudo
 sudoers_rules = [
@@ -297,8 +296,7 @@ cosmic_config_files = {
 }
 
 # Mullvad Browser extensions
-mullvad_browser_dir = "/home/gpkvt/.mullvad-browser/.mullvad/mullvadbrowser/i2xe179z.default-release"
-mullvad_extensions = {
+mullvad_browser_dir = "/home/gpkvt/.mullvad-browser/.mullvad/mullvadbrowser/i2xe179z.default-release"mullvad_extensions = {
     "ublock-origin": {
         "id": "uBlock0@raymondhill.net",
         "url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi",
@@ -474,6 +472,11 @@ docker = {
                     "columns": 3,
                 },
             },
+            # Keep the API key in secrets.json.gpg; Homepage resolves this
+            # environment placeholder through its shared provider configuration.
+            "providers": {
+                "openweathermap": "{{HOMEPAGE_VAR_OPENWEATHERMAP_API_KEY}}",
+            },
         },
         # Homepage services are configured as groups containing service entries.
         # Override or extend these entries here; the task renders services.yaml.
@@ -607,6 +610,19 @@ docker = {
                         "timeStyle": "short",
                         "hourCycle": "h23",
                         "timeZone": "Europe/Amsterdam",
+                    },
+                },
+            },
+            {
+                "openweathermap": {
+                    "label": "Amsterdam",
+                    "latitude": 52.3676,
+                    "longitude": 4.9041,
+                    "units": "metric",
+                    "provider": "openweathermap",
+                    "cache": 5,
+                    "format": {
+                        "maximumFractionDigits": 1,
                     },
                 },
             },
@@ -747,8 +763,7 @@ apt_packages = [
   "nmon",
   "powertop",
   "pv",
-  "pwgen",
-  "reptyr",
+  "pwgen",  "reptyr",
   "restic",
   "rsync",
   "taskd",
@@ -897,8 +912,7 @@ flatpak_packages = [
   "de.willuhn.Jameica",
   "dev.DBrox.CosmicPrivacyIndicator",
   "dev.cappsy.CosmicExtAppletDict",
-  "dev.cappsy.CosmicExtAppletDrives",
-  "dev.cappsy.CosmicExtAppletLogoMenu",
+  "dev.cappsy.CosmicExtAppletDrives",  "dev.cappsy.CosmicExtAppletLogoMenu",
   "dev.edfloreshz.Calculator",
   "dev.edfloreshz.CosmicTweaks",
   "dev.heppen.webapps",
