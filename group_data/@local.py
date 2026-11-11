@@ -74,7 +74,7 @@ editor = "mcedit"
 
 # Configure /etc/hosts
 hostnames = {
-  "127.0.0.1": "localhost local.21x9.org rss.21x9.org timetagger.21x9.org grav.21x9.org forgejo.21x9.org portainer.21x9.org tasmoadmin.21x9.org wallabag.21x9.org vaultwarden.21x9.org nocodb.21x9.org homepage.21x9.org linkwarden.21x9.org vpn.21x9.org",
+  "127.0.0.1": "localhost local.21x9.org rss.21x9.org timetagger.21x9.org grav.21x9.org forgejo.21x9.org portainer.21x9.org tasmoadmin.21x9.org vaultwarden.21x9.org nocodb.21x9.org homepage.21x9.org linkwarden.21x9.org",
   "::1": "localhost local.21x9.org",
   "192.168.42.100": "storage.intern.21x9.org paperless.intern.21x9.org huginn.intern.21x9.org grafana.intern.21x9.org ha.intern.21x9.org",
   "192.168.42.120": "storage.21x9.org",
@@ -343,10 +343,6 @@ mullvad_extensions = {
         "id": "twitch5-fork@traumvogel",
         "url": "https://addons.mozilla.org/firefox/downloads/latest/alternate-player-for-twitch/latest.xpi",
     },
-    "wallabagger": {
-        "id": "wallabagger@wallabag.org",
-        "url": "https://addons.mozilla.org/firefox/downloads/latest/wallabagger/latest.xpi",
-    },
 }
 
 # SSH key management
@@ -409,7 +405,6 @@ docker_power_save = [
         "grav",
         "nocodb",
         "vaultwarden-vaultwarden-1",
-        "wallabag-wallabag-1",
         "timetagger-timetagger-1",
     ]
 
@@ -444,11 +439,6 @@ docker = {
         "image": "ghcr.io/tasmoadmin/tasmoadmin:latest",
         "port": 8016,
     },
-    "wallabag": {
-        "image": "wallabag/wallabag:latest",
-        "port": 8017,
-        "domain": "https://wallabag.21x9.org",
-    },
     "vaultwarden": {
         "image": "vaultwarden/server:latest",
         "port": 8018,
@@ -463,10 +453,6 @@ docker = {
         "image": "ghcr.io/linkwarden/linkwarden:latest",
         "port": 8021,
         "domain": "linkwarden.21x9.org",
-    },
-    "wg-easy": {
-        "image": "ghcr.io/wg-easy/wg-easy:15",
-        "ui_port": 51821,
     },
     "homepage": {
         "image": "ghcr.io/gethomepage/homepage:latest",
@@ -735,13 +721,6 @@ docker = {
                             "icon": "/icons/tasmoadmin.png",
                             "href": "https://tasmoadmin.21x9.org",
                             "description": "Tasmota device management",
-                        },
-                    },
-                    {
-                        "Wallabag": {
-                            "icon": "/icons/wallabag.png",
-                            "href": "https://wallabag.21x9.org",
-                            "description": "Read-it-later",
                         },
                     },
                     {

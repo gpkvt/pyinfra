@@ -5,6 +5,7 @@ services:
     restart: unless-stopped
     environment:
       INSECURE: "true"
+      DISABLE_IPV6: "true"
     ports:
       - "51820:51820/udp"
       - "127.0.0.1:{{ ui_port }}:51821/tcp"
