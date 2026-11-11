@@ -486,10 +486,10 @@ docker = {
                 "Development": [
                     {
                         "GitHub": [
-                                {
-                                    "icon": "/icons/github.png",
-                                    "href": "https://github.com/",
-                                },
+                            {
+                                "icon": "/icons/github.png",
+                                "href": "https://github.com/",
+                            },
                         ],
                     },
                 ],
@@ -498,10 +498,10 @@ docker = {
                 "Social": [
                     {
                         "Reddit": [
-                                {
-                                    "icon": "/icons/reddit.png",
-                                    "href": "https://www.reddit.com/",
-                                },
+                            {
+                                "icon": "/icons/reddit.png",
+                                "href": "https://www.reddit.com/",
+                            },
                         ],
                     },
                 ],
@@ -510,10 +510,10 @@ docker = {
                 "Entertainment": [
                     {
                         "YouTube": [
-                                {
-                                    "icon": "/icons/youtube.png",
-                                    "href": "https://www.youtube.com/",
-                                },
+                            {
+                                "icon": "/icons/youtube.png",
+                                "href": "https://www.youtube.com/",
+                            },
                         ],
                     },
                 ],
