@@ -189,8 +189,13 @@ def test_cosmic_config_file_paths_are_relative_and_complete(local_data):
 
 def test_ufw_rules_use_supported_actions(local_data):
     assert local_data["ufw"]
-    assert all(action in {"Allow", "Deny", "Reject", "Limit"}
-               for action in local_data["ufw"].values())
+
+    for config in local_data["ufw"].values():
+        if isinstance(config, dict):
+            assert config["action"] in {"Allow", "Deny", "Reject", "Limit"}
+            assert isinstance(config["rule"], str) and config["rule"].strip()
+        else:
+            assert config in {"Allow", "Deny", "Reject", "Limit"}
 
 
 def test_zsh_configuration_lists_are_non_empty_and_unique(local_data):
