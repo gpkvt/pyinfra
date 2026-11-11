@@ -722,6 +722,19 @@ docker = {
                         },
                     },
                     {
+                        "Paperless-ngx": {
+                            "icon": "mdi-file-document-multiple",
+                            "href": "https://paperless.21x9.org",
+                            "description": "Document management",
+                            "widget": {
+                                "type": "paperlessngx",
+                                "url": "https://paperless.21x9.org",
+                                "key": "{{HOMEPAGE_VAR_PAPERLESS_API_KEY}}",
+                                "fields": ["total", "inbox"],
+                            },
+                        },
+                    },
+                    {
                         "Portainer": {
                             "icon": "/icons/portainer.png",
                             "href": "https://portainer.21x9.org",
