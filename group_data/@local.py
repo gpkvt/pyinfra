@@ -498,20 +498,6 @@ docker = {
                         },
                     },
                     {
-                        "TimeTagger": {
-                            "icon": "/icons/timetagger.png",
-                            "href": "https://timetagger.21x9.org",
-                            "description": "Time tracking",
-                        },
-                    },
-                    {
-                        "Grav": {
-                            "icon": "/icons/grav.png",
-                            "href": "https://grav.21x9.org",
-                            "description": "CMS",
-                        },
-                    },
-                    {
                         "Forgejo": {
                             "icon": "/icons/forgejo.png",
                             "href": "https://forgejo.21x9.org",
@@ -531,9 +517,23 @@ docker = {
                             "widget": {
                                 "type": "portainer",
                                 "url": "https://portainer.21x9.org",
-                                "env": 1,
+                                "env": 3,
                                 "key": "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}",
                             },
+                        },
+                    },
+                    {
+                        "TimeTagger": {
+                            "icon": "/icons/timetagger.png",
+                            "href": "https://timetagger.21x9.org",
+                            "description": "Time tracking",
+                        },
+                    },
+                    {
+                        "Grav": {
+                            "icon": "/icons/grav.png",
+                            "href": "https://grav.21x9.org",
+                            "description": "CMS",
                         },
                     },
                     {
@@ -604,6 +604,12 @@ docker = {
                 },
             },
             {
+                    "search": {
+                        "provider": "duckduckgo",
+                        "target": "_blank",
+                    },
+            },
+            {
                 "datetime": {
                     "text_size": "xl",
                     "locale": "de-DE",
@@ -617,21 +623,15 @@ docker = {
             },
             {
                 "openweathermap": {
-                    "label": "Amsterdam",
-                    "latitude": 52.3676,
-                    "longitude": 4.9041,
+                    "label": "Köln",
+                    "latitude": 50.9375,
+                    "longitude": 6.9603,
                     "units": "metric",
                     "provider": "openweathermap",
                     "cache": 5,
                     "format": {
                         "maximumFractionDigits": 1,
                     },
-                },
-            },
-            {
-                "search": {
-                    "provider": "duckduckgo",
-                    "target": "_blank",
                 },
             },
         ],
