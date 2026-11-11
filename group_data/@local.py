@@ -712,7 +712,7 @@ docker = {
                             "widget": {
                                 "type": "linkwarden",
                                 "url": "https://linkwarden.21x9.org",
-                                "key": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..fyZtpfPKead9U3LT.eXKFmpD1_Vm1u6tdFZAJktYyZmk4VGe7g7XRuXuiDWwJqesBoxZUYHJ0YPzjMzCk8Dqu8mskRTun3ldCsfmr2Oe270BNvnXxxz5fiYeEpuo9e8BuP5Z3.X2ARro7fDp9P_GrikBGGDg",
+                                "key": "{{HOMEPAGE_VAR_LINKWARDEN_API_KEY}}",
                             }
                         },
                     },
