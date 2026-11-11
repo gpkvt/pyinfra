@@ -120,7 +120,7 @@ All persistent application data currently uses host bind mounts. The paths below
 - **Wallabag** uses SQLite and persists its database/application data and article images in the two host directories shown above. The directories are mounted into the container paths used by Wallabag's `www-data` process. The supplied local Caddy configuration publishes it as `wallabag.21x9.org`; the initial credentials are `wallabag` / `wallabag`, which must be changed after first login.
 - **Vaultwarden** persists its data in `~/.docker/vaultwarden/`. Public signups and invitations are disabled. An optional Argon2 PHC admin-token hash is read from `secrets.docker.vaultwarden.admin_token`; generate it with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. Its supplied local Caddy hostname is `vaultwarden.21x9.org`.
 - **NocoDB** persists application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. Its HTTP interface binds to loopback on port `8019` by default; the supplied local Caddy hostname is `nocodb.21x9.org`.
-- **Homepage** stores its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It binds to loopback on port `8020` and sets `HOMEPAGE_ALLOWED_HOSTS` to the configured hostname; the supplied local Caddy hostname is `homepage.21x9.org`. Optional host-data keys `settings`, `services`, `bookmarks`, `widgets`, `docker`, `kubernetes` and `proxmox` are rendered to their matching `*.yaml` files. Each file is rendered only when its key is present; omitted sections are left untouched. The supplied `group_data/@local.py` includes service links to the locally deployed applications, each with a local PNG icon. The icons are stored in `files/homepage/icons/` and synchronized idempotently to `~/.docker/homepage/public/icons/`; synchronization does not delete destination files, so local-only icons are preserved. The Compose service mounts the icon and image directories separately at `/app/public/icons` and `/app/public/images`. Set each service's `icon` to a path such as `/icons/miniflux.png`. Configure the dashboard background under `docker.homepage.settings.background`; the local example uses `/images/background.jpg`. Place that image in `~/.docker/homepage/public/images/background.jpg` or change the configured image to an externally hosted URL. Homepage also supports `blur`, `saturate` and `brightness` background options. The local example configures `settings.layout.Services` with `style: row` and `columns: 3`, arranging service cards in three columns. Adjust the column count in host data to suit the display. Docker socket access is not enabled by default. Homepage dashboards may expose sensitive widget data, so protect access with a trusted reverse proxy authentication policy, Homepage authentication, or a VPN.
+- **Homepage** stores its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It binds to loopback on port `8020` and sets `HOMEPAGE_ALLOWED_HOSTS` to the configured hostname; the supplied local Caddy hostname is `homepage.21x9.org`. Optional host-data keys `settings`, `services`, `bookmarks`, `widgets`, `docker`, `kubernetes` and `proxmox` are rendered to their matching `*.yaml` files. Each file is rendered only when its key is present; omitted sections are left untouched. The supplied `group_data/@local.py` includes service links to the locally deployed applications, each with a local PNG icon. The icons are stored in `files/homepage/icons/` and synchronized idempotently to `~/.docker/homepage/public/icons/`; synchronization does not delete destination files, so local-only icons are preserved. The Compose service mounts the icon and image directories separately at `/app/public/icons` and `/app/public/images`. Set each service's `icon` to a path such as `/icons/miniflux.png`. Configure the dashboard background under `docker.homepage.settings.background`; the local example uses the official Homepage sample image hosted by Unsplash. Replace the URL or use a local image such as `/images/background.jpg` stored in `~/.docker/homepage/public/images/`. Homepage also supports `blur`, `saturate` and `brightness` background options. The local example configures `settings.layout.Services` with `style: row` and `columns: 3`, arranging service cards in three columns. Adjust the column count in host data to suit the display. Docker socket access is not enabled by default. Homepage dashboards may expose sensitive widget data, so protect access with a trusted reverse proxy authentication policy, Homepage authentication, or a VPN.
 
 Homepage supports two distinct widget types: service widgets are configured inside each service entry in services.yaml, while header/info widgets are configured in widgets.yaml. Both are supplied through the docker.homepage.services and docker.homepage.widgets host-data keys. The local example enables:
 - **FRITZ!Box** status, uptime and transfer rates at 192.168.42.1. Enable *Allow access for applications* and *Transmit status information over UPnP* in the FRITZ!Box network settings. The widget does not require credentials and supports at most four fields.
@@ -132,6 +132,58 @@ Homepage supports two distinct widget types: service widgets are configured insi
 The API credentials are injected through Homepage's supported HOMEPAGE_VAR_* environment substitution. The Compose template accepts an optional docker.homepage.environment mapping and writes its entries into the container environment. Replace the CHANGE_ME values in the local host configuration with real API keys, and keep those values out of version control (prefer the encrypted secrets workflow). The supplied service widget URLs use the configured HTTPS hostnames so the Homepage container can reach services that are published only on the host loopback interface.
 
 **Optional integrations:** Homepage also supports widgets for WGEasy, Grafana, Home Assistant and Paperless-ngx. These applications are not deployed by this repository's Docker service tasks (Grafana, Home Assistant and Paperless-ngx are referenced only as external LAN services; WGEasy is not currently configured as a service). Add them as service entries only when the corresponding application is reachable from the Homepage container. For WGEasy v15 and newer, use widget type wgeasy, version 2, and the configured username/password; older releases use API version 1. See the [WGEasy widget documentation](https://gethomepage.dev/widgets/services/wgeasy/). The FRITZ!Box, Miniflux, Forgejo/Gitea and Portainer widget schemas are documented in the [Homepage service widget reference](https://gethomepage.dev/widgets/services/).
+
+Example optional service entries (add them to a group in docker.homepage.services and replace the URLs and credentials with values reachable from the Homepage container):
+
+```python
+{
+    "WG-Easy": {
+        "href": "https://wg-easy.example.org",
+        "widget": {
+            "type": "wgeasy",
+            "url": "http://wg-easy:51821",
+            "version": 2,  # WGEasy v15+
+            "username": "{{HOMEPAGE_VAR_WGEASY_USERNAME}}",
+            "password": "{{HOMEPAGE_VAR_WGEASY_PASSWORD}}",
+        },
+    },
+},
+{
+    "Grafana": {
+        "href": "https://grafana.example.org",
+        "widget": {
+            "type": "grafana",
+            "version": 2,  # Grafana > 10.4
+            "url": "http://grafana:3000",
+            "username": "{{HOMEPAGE_VAR_GRAFANA_USERNAME}}",
+            "password": "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}",
+        },
+    },
+},
+{
+    "Home Assistant": {
+        "href": "https://ha.example.org",
+        "widget": {
+            "type": "homeassistant",
+            "url": "http://homeassistant:8123",
+            "key": "{{HOMEPAGE_VAR_HOME_ASSISTANT_TOKEN}}",
+        },
+    },
+},
+{
+    "Paperless-ngx": {
+        "href": "https://paperless.example.org",
+        "widget": {
+            "type": "paperlessngx",
+            "url": "http://paperless:8000",
+            "key": "{{HOMEPAGE_VAR_PAPERLESS_TOKEN}}",
+            "fields": ["total", "inbox"],
+        },
+    },
+},
+```
+
+The matching environment variables can be added to docker.homepage.environment. Do not put real credentials in tracked host-data files; supply them through the encrypted secrets workflow or an untracked local override. For WGEasy v15 and newer, use widget type wgeasy and version 2; older releases use API version 1. See the [WGEasy widget documentation](https://gethomepage.dev/widgets/services/wgeasy/), [Grafana](https://gethomepage.dev/widgets/services/grafana/), [Home Assistant](https://gethomepage.dev/widgets/services/homeassistant/) and [Paperless-ngx](https://gethomepage.dev/widgets/services/paperlessngx/) documentation.
 
 Header widgets and service widgets can expose network and application data. Keep Homepage behind trusted authentication, a VPN, or an authenticated reverse proxy. API keys must have only the permissions needed for read-only dashboard access.
 
