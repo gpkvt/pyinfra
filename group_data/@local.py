@@ -575,7 +575,25 @@ docker = {
             },
         ],
         # Header widgets are separate from service widgets in services.yaml.
+        # Glances listens only on Docker's default bridge gateway. Homepage
+        # reaches it through host.docker.internal without publishing the API port.
+        "glances": {
+            "bind_address": "172.17.0.1",
+            "port": 61208,
+        },
         "widgets": [
+            {
+                "glances": {
+                    "url": "http://host.docker.internal:61208",
+                    "cpu": True,
+                    "mem": True,
+                    "cputemp": True,
+                    "uptime": True,
+                    "disk": "/",
+                    "expanded": True,
+                    "label": "chao",
+                },
+            },
             {
                 "resources": {
                     "cpu": True,

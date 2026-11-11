@@ -1,0 +1,15 @@
+[Unit]
+Description=Glances web server for Homepage metrics
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/glances -w -B {{ bind_address }} -p {{ port }}
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=default.target
