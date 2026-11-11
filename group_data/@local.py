@@ -734,11 +734,6 @@ docker = {
                             "icon": "/icons/forgejo.png",
                             "href": "https://forgejo.21x9.org",
                             "description": "Git service",
-                            "widget": {
-                                "type": "gitea",
-                                "url": "https://forgejo.21x9.org",
-                                "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
-                            },
                         },
                     },
                     {
@@ -804,17 +799,26 @@ docker = {
                 ],
             },
             {
-                "Network": [
+                "Network & News": [
                     {
                         "FRITZ!Box": {
                             "icon": "mdi-router-wireless",
                             "href": "http://192.168.42.1",
                             "description": "Router and internet connection",
-                            "widget": {
-                                "type": "fritzbox",
-                                "url": "http://192.168.42.1",
-                                "fields": ["connectionStatus", "uptime", "down", "up"],
-                            },
+                            "widgets": [
+                                {
+                                    "type": "fritzbox",
+                                    "url": "http://192.168.42.1",
+                                    "fields": ["connectionStatus", "uptime", "down", "up"],
+                                },
+                                {
+                                    "type": "feed",
+                                    "url": "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml",
+                                    "maxItems": 12,
+                                    "layout": "grid",
+                                    "images": True,
+                                },
+                            ],
                         },
                     },
                 ],
