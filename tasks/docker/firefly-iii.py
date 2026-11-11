@@ -49,7 +49,7 @@ files.directory(
 # The FinTS importer persists bank connection configurations here.
 files.directory(
     name="Ensure Firefly III FinTS configuration directory",
-    path=f"{homedir}/.docker/firefly-iii/fints",
+    path=f"{homedir}/.docker/firefly-iii/fints",  # pylint: disable=undefined-variable
     user=username,
     group=usergroup,
     mode="750",
