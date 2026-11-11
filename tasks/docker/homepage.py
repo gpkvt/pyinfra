@@ -33,7 +33,7 @@ files.directory(
     path=f"{homedir}/.docker/homepage/public/icons/",  # pylint: disable=undefined-variable
     user=username,
     group=usergroup,
-    mode="755",
+    mode="775",
 )
 
 files.directory(
@@ -48,6 +48,10 @@ files.sync(
     name="Deploy Homepage service icons",
     src="files/homepage/icons/",
     dest=f"{homedir}/.docker/homepage/public/icons/",  # pylint: disable=undefined-variable
+    user=username,
+    group=usergroup,
+    mode="664",
+    dir_mode="775",
     delete=False,
     _sudo=True,
 )

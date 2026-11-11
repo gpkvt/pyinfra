@@ -22,6 +22,7 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 - Corrected the Mullvad configuration structure ([#78](https://github.com/gpkvt/pyinfra/pull/78)).
 - Fixed a missing host import in the Homepage task ([#79](https://github.com/gpkvt/pyinfra/pull/79)).
+- Aligned Homepage icon directory and file permissions with the running container, preventing repeated permission changes on subsequent deployments.
 
 ## [10.11.2026]
 
