@@ -954,6 +954,18 @@ ufw = {
     "localsend": "Allow",
     "chromecast-dlna": "Deny",
     "ssh": "Deny",
+
+    # Allow Docker containers to access Caddy on the host.
+    "docker-host-https": {
+        "action": "Allow",
+        "rule": "in from 172.16.0.0/12 to 172.17.0.1 port 443 proto tcp",
+    },
+
+    # Allow Homepage containers to access Glances on the host.
+    "docker-host-glances": {
+        "action": "Allow",
+        "rule": "from 172.27.0.0/16 to 172.17.0.1 port 61208 proto tcp",
+    },
 }
 
 # Configure ssh client
