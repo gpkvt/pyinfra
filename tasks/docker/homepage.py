@@ -44,7 +44,7 @@ files.directory(
     mode="755",
 )
 
-files.sync(
+homepage_icons = files.sync(
     name="Deploy Homepage service icons",
     src="files/homepage/icons/",
     dest=f"{homedir}/.docker/homepage/public/icons/",  # pylint: disable=undefined-variable
@@ -151,6 +151,7 @@ deploy_docker_service(
     homedir=homedir,  # pylint: disable=undefined-variable
     username=username,
     usergroup=usergroup,
+    restart_if=homepage_icons,
     image=homepage.get("image", "ghcr.io/gethomepage/homepage:latest"),
     port=homepage.get("port", 8020),
     domain=homepage.get("domain", "homepage.21x9.org"),
