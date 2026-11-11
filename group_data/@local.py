@@ -452,6 +452,68 @@ docker = {
         "image": "ghcr.io/gethomepage/homepage:latest",
         "port": 8020,
         "domain": "homepage.21x9.org",
+        # Homepage services are configured as groups containing service entries.
+        # Override or extend these entries here; the task renders services.yaml.
+        "services": [
+            {
+                "Services": [
+                    {
+                        "Miniflux": {
+                            "href": "https://rss.21x9.org",
+                            "description": "RSS reader",
+                        },
+                    },
+                    {
+                        "TimeTagger": {
+                            "href": "https://timetagger.21x9.org",
+                            "description": "Time tracking",
+                        },
+                    },
+                    {
+                        "Grav": {
+                            "href": "https://grav.21x9.org",
+                            "description": "CMS",
+                        },
+                    },
+                    {
+                        "Forgejo": {
+                            "href": "https://forgejo.21x9.org",
+                            "description": "Git service",
+                        },
+                    },
+                    {
+                        "Portainer": {
+                            "href": "https://portainer.21x9.org",
+                            "description": "Docker management",
+                        },
+                    },
+                    {
+                        "TasmoAdmin": {
+                            "href": "https://tasmoadmin.21x9.org",
+                            "description": "Tasmota device management",
+                        },
+                    },
+                    {
+                        "Wallabag": {
+                            "href": "https://wallabag.21x9.org",
+                            "description": "Read-it-later",
+                        },
+                    },
+                    {
+                        "Vaultwarden": {
+                            "href": "https://vaultwarden.21x9.org",
+                            "description": "Password manager",
+                        },
+                    },
+                    {
+                        "NocoDB": {
+                            "href": "https://nocodb.21x9.org",
+                            "description": "Database platform",
+                        },
+                    },
+                ],
+            },
+        ],
     },
 }
 

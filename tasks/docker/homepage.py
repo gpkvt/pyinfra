@@ -50,7 +50,9 @@ files.directory(
 )
 
 for config_name, filename in config_files.items():
-    if config_name in homepage:
+    config = homepage.get(config_name)
+
+    if config is not None:
         files.template(
             name=f"Configure Homepage {config_name}",
             src=f"templates/docker/homepage/{filename}.j2",
@@ -58,7 +60,7 @@ for config_name, filename in config_files.items():
             user=username,
             group=usergroup,
             mode="640",
-            config=homepage[config_name],
+            config=config,
         )
 
 deploy_docker_service(
