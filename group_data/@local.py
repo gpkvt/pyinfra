@@ -197,8 +197,7 @@ vscodium = {
         "ms-python.debugpy",
         "ms-python.vscode-python-envs",
 
-        # Data formats
-        "redhat.vscode-xml",
+        # Data formats        "redhat.vscode-xml",
         "redhat.vscode-yaml",
 
         # Formatting
@@ -397,8 +396,7 @@ apparmor_profiles = [
         "path": "/etc/apparmor.d/usr.lib.libreoffice.program.soffice.bin",
         "names": [
             "libreoffice-soffice",
-        ],
-    },
+        ],    },
 ]
 
 # Install and configure docker container
@@ -567,7 +565,7 @@ docker = {
                     {
                         "Proton Mail": [
                             {
-                                "icon": "mdi-email-lock",
+                                "icon": "https://mail.proton.me/favicon.ico",
                                 "href": "https://mail.proton.me",
                             },
                         ],
@@ -575,7 +573,7 @@ docker = {
                     {
                         "Proton Calendar": [
                             {
-                                "icon": "mdi-calendar-lock",
+                                "icon": "https://calendar.proton.me/favicon.ico",
                                 "href": "https://calendar.proton.me",
                             },
                         ],
@@ -583,7 +581,7 @@ docker = {
                     {
                         "Proton Drive": [
                             {
-                                "icon": "mdi-cloud-lock",
+                                "icon": "https://drive.proton.me/favicon.ico",
                                 "href": "https://drive.proton.me",
                             },
                         ],
@@ -591,15 +589,14 @@ docker = {
                     {
                         "Proton Docs": [
                             {
-                                "icon": "mdi-file-document",
+                                "icon": "https://docs.proton.me/favicon.ico",
                                 "href": "https://account.proton.me/docs",
                             },
                         ],
                     },
                     {
-                        "Proton Sheets": [
-                            {
-                                "icon": "mdi-file-table",
+                        "Proton Sheets": [                            {
+                                "icon": "https://sheets.proton.me/favicon.ico",
                                 "href": "https://account.proton.me/sheets",
                             },
                         ],
@@ -607,7 +604,7 @@ docker = {
                     {
                         "Proton VPN": [
                             {
-                                "icon": "si-protonvpn",
+                                "icon": "https://account.protonvpn.com/favicon.ico",
                                 "href": "https://account.protonvpn.com",
                             },
                         ],
@@ -615,7 +612,7 @@ docker = {
                     {
                         "Proton Pass": [
                             {
-                                "icon": "si-protonpass",
+                                "icon": "https://pass.proton.me/favicon.ico",
                                 "href": "https://pass.proton.me",
                             },
                         ],
@@ -623,7 +620,7 @@ docker = {
                     {
                         "Proton Authenticator": [
                             {
-                                "icon": "mdi-shield-key",
+                                "icon": "https://proton.me/favicon.ico",
                                 "href": "https://proton.me/authenticator",
                             },
                         ],
@@ -631,7 +628,7 @@ docker = {
                     {
                         "Proton Wallet": [
                             {
-                                "icon": "mdi-wallet",
+                                "icon": "https://wallet.proton.me/favicon.ico",
                                 "href": "https://wallet.proton.me",
                             },
                         ],
@@ -639,7 +636,7 @@ docker = {
                     {
                         "Proton Meet": [
                             {
-                                "icon": "mdi-video-lock",
+                                "icon": "https://meet.proton.me/favicon.ico",
                                 "href": "https://account.proton.me/meet",
                             },
                         ],
@@ -647,7 +644,7 @@ docker = {
                     {
                         "Lumo": [
                             {
-                                "icon": "mdi-robot",
+                                "icon": "https://lumo.proton.me/favicon.ico",
                                 "href": "https://lumo.proton.me",
                             },
                         ],
@@ -797,8 +794,7 @@ docker = {
                     "locale": "de-DE",
                     "format": {
                         "dateStyle": "medium",
-                        "timeStyle": "short",
-                        "hourCycle": "h23",
+                        "timeStyle": "short",                        "hourCycle": "h23",
                         "timeZone": "Europe/Amsterdam",
                     },
                 },
@@ -997,8 +993,7 @@ apt_sources = {
       "key": {
           "url": "https://repo.protonvpn.com/debian/public_key.asc",
           "path": "/etc/apt/keyrings/proton-keyring.asc",
-      },
-      "repository": {
+      },      "repository": {
           "url": "https://repo.protonvpn.com/debian",
           "distribution": "stable",
           "components": ["main"],
@@ -1197,8 +1192,7 @@ ssh_config = {
   IdentitiesOnly yes
   ForwardAgent no
   User git
-    """,
-    "dns 192.168.42.100": """
+    """,    "dns 192.168.42.100": """
   HostName 192.168.42.100
 
   PasswordAuthentication no
