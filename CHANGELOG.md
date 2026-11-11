@@ -9,6 +9,7 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ### Added
 
+- Added Linkwarden with PostgreSQL and Meilisearch, persistent Docker volumes under `~/.docker/linkwarden/`, configurable credentials, loopback publishing and Caddy integration.
 - Added shared and per-host secret scopes with recursive host-over-shared merging, while retaining support for the legacy flat secrets format.
 - Added the VS Code GPG Vault extension for file and selection encryption/decryption, including a keyboard shortcut to toggle file encryption ([#21](https://github.com/gpkvt/pyinfra/pull/21)).
 - Added VPN task integration with the Zsh configuration workflow ([#19](https://github.com/gpkvt/pyinfra/pull/19)).

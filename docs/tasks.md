@@ -33,7 +33,7 @@ These task modules are included on every full deployment.
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
-| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag, Vaultwarden, NocoDB and Homepage services. |
+| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag, Vaultwarden, NocoDB, Linkwarden and Homepage services. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
 | `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
@@ -94,7 +94,7 @@ When `host.data.docker` is truthy, `deploy.py` includes `tasks/docker.py` and `t
 
 **Available services**
 
-All persistent application data currently uses host bind mounts. The paths below are relative to the configured user's home directory.
+Most existing services use host-directory mounts. Linkwarden uses Docker-managed local named volumes whose backing directories are explicitly located under `~/.docker/linkwarden/`. The paths below are relative to the configured user's home directory.
 
 | Service | Persistent data | Default loopback interface |
 | --- | --- | --- |
@@ -108,6 +108,7 @@ All persistent application data currently uses host bind mounts. The paths below
 | Vaultwarden | `~/.docker/vaultwarden/` | `127.0.0.1:8018` |
 | NocoDB | `~/.docker/nocodb/data/` | `127.0.0.1:8019` |
 | Homepage | `~/.docker/homepage/config/` | `127.0.0.1:8020` |
+| Linkwarden | `~/.docker/linkwarden/postgres/`, `~/.docker/linkwarden/data/`, `~/.docker/linkwarden/meili/` | `127.0.0.1:8021` |
 
 **Service-specific notes**
 
@@ -120,6 +121,7 @@ All persistent application data currently uses host bind mounts. The paths below
 - **Wallabag** uses SQLite and persists its database/application data and article images in the two host directories shown above. The directories are mounted into the container paths used by Wallabag's `www-data` process. The supplied local Caddy configuration publishes it as `wallabag.21x9.org`; the initial credentials are `wallabag` / `wallabag`, which must be changed after first login.
 - **Vaultwarden** persists its data in `~/.docker/vaultwarden/`. Public signups and invitations are disabled. An optional Argon2 PHC admin-token hash is read from `secrets.docker.vaultwarden.admin_token`; generate it with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. Its supplied local Caddy hostname is `vaultwarden.21x9.org`.
 - **NocoDB** persists application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. Its HTTP interface binds to loopback on port `8019` by default; the supplied local Caddy hostname is `nocodb.21x9.org`.
+- **Linkwarden** uses PostgreSQL 16 and Meilisearch alongside the application. Three Docker-managed local named volumes store PostgreSQL data, Linkwarden archives/uploads and the Meilisearch index in `~/.docker/linkwarden/postgres/`, `~/.docker/linkwarden/data/` and `~/.docker/linkwarden/meili/`, respectively. Its web interface binds to loopback on port `8021`; the supplied local Caddy hostname is `linkwarden.21x9.org`. Database, NextAuth and Meilisearch secrets are read from `secrets.docker.linkwarden`; use distinct, URL-safe values for all three secrets. `NEXTAUTH_URL` is generated as `https://linkwarden.21x9.org/api/v1/auth` (or the configured domain). The local named volumes use the Docker local volume driver with host directories under `~/.docker/`, rather than direct host-path volume entries in the service definitions.
 - **Homepage** stores its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It binds to loopback on port `8020` and sets `HOMEPAGE_ALLOWED_HOSTS` to the configured hostname; the supplied local Caddy hostname is `homepage.21x9.org`. Optional host-data keys `settings`, `services`, `bookmarks`, `widgets`, `docker`, `kubernetes` and `proxmox` are rendered to their matching `*.yaml` files. Each file is rendered only when its key is present; omitted sections are left untouched. The supplied `group_data/@local.py` includes service links to the locally deployed applications, each with a local PNG icon. The icons are stored in `files/homepage/icons/` and synchronized idempotently to `~/.docker/homepage/public/icons/`; synchronization does not delete destination files, so local-only icons are preserved. The public asset directories use mode `0755`; icon synchronization does not enforce per-file ownership or permissions, avoiding repeated metadata changes if the Homepage container adjusts mounted asset metadata. The Compose service mounts the icon and image directories separately at `/app/public/icons` and `/app/public/images`. Set each service's `icon` to a path such as `/icons/miniflux.png`. Configure the dashboard background under `docker.homepage.settings.background`; the local example uses the official Homepage sample image hosted by Unsplash. Replace the URL or use a local image such as `/images/background.jpg` stored in `~/.docker/homepage/public/images/`. Homepage also supports `blur`, `saturate` and `brightness` background options. The local example configures `settings.layout.Services` with `style: row` and `columns: 3`, arranging service cards in three columns. Adjust the column count in host data to suit the display. Docker socket access is not enabled by default. Homepage dashboards may expose sensitive widget data, so protect access with a trusted reverse proxy authentication policy, Homepage authentication, or a VPN.
 
 Homepage supports two distinct widget types: service widgets are configured inside each service entry in services.yaml, while header/info widgets are configured in widgets.yaml. Both are supplied through the docker.homepage.services and docker.homepage.widgets host-data keys. The local example enables:
