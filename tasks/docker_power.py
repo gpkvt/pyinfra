@@ -3,7 +3,7 @@ Deploy and configure docker-power-monitor and docker-power-manager
 """
 
 from pyinfra import host
-from pyinfra.operations import files
+from pyinfra.operations import files, server
 
 battery_container = host.data.get("docker_power_save", {})
 scripts = [
@@ -40,3 +40,24 @@ files.template(
     mode="640",
     containers=battery_container,
 )
+
+systemd_result = files.put(
+    name="Create systemd service",
+    src="files/docker-battery-saver/docker-power-monitor.service",
+    dest="/etc/systemd/system/docker-power-monitor.service",
+    mode="644",
+    user="root",
+    group="root",
+    _sudo=True,
+)
+
+if systemd_result.changed:
+    server.shell(
+        name="Enable and restart power manager",
+        commands=[
+            "systemctl daemon-reload",
+            "systemctl enable docker-power-manager",
+            "systemctl restart docker-power-manager",
+        ],
+        _sudo=True,
+    )

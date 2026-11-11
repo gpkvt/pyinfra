@@ -406,6 +406,9 @@ docker_power_save = [
         "nocodb",
         "vaultwarden-vaultwarden-1",
         "timetagger-timetagger-1",
+        "linkwarden-meilisearch-1",
+        "linkwarden-postgres-1",
+        "linkwarden",
     ]
 
 docker = {
@@ -787,6 +790,8 @@ docker = {
                     "search": {
                         "provider": "duckduckgo",
                         "target": "_blank",
+                        "suggestionUrl": "https://duckduckgo.com/ac/?q=<query>&type=list",
+                        "showSearchSuggestions": True,
                     },
             },
             {
