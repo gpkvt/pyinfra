@@ -14,6 +14,8 @@ from tasks.docker import deploy_docker_service
 
 paperless = host.data.get("docker", {}).get("paperless", {})
 paperless_secrets = secrets.get("docker", {}).get("paperless", {})  # pylint: disable=undefined-variable
+if not paperless_secrets.get("postgres_password") or not paperless_secrets.get("secret_key"):
+    raise ValueError("Paperless-ngx requires docker.paperless.postgres_password and docker.paperless.secret_key in encrypted secrets")
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 uid = int(paperless.get("uid", 1000))
