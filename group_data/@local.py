@@ -197,7 +197,8 @@ vscodium = {
         "ms-python.debugpy",
         "ms-python.vscode-python-envs",
 
-        # Data formats        "redhat.vscode-xml",
+        # Data formats
+        "redhat.vscode-xml",
         "redhat.vscode-yaml",
 
         # Formatting
@@ -396,7 +397,8 @@ apparmor_profiles = [
         "path": "/etc/apparmor.d/usr.lib.libreoffice.program.soffice.bin",
         "names": [
             "libreoffice-soffice",
-        ],    },
+        ],
+    },
 ]
 
 # Install and configure docker container
@@ -595,7 +597,8 @@ docker = {
                         ],
                     },
                     {
-                        "Proton Sheets": [                            {
+                        "Proton Sheets": [
+                            {
                                 "icon": "https://sheets.proton.me/favicon.ico",
                                 "href": "https://account.proton.me/sheets",
                             },
@@ -794,7 +797,8 @@ docker = {
                     "locale": "de-DE",
                     "format": {
                         "dateStyle": "medium",
-                        "timeStyle": "short",                        "hourCycle": "h23",
+                        "timeStyle": "short",
+                        "hourCycle": "h23",
                         "timeZone": "Europe/Amsterdam",
                     },
                 },
@@ -993,7 +997,8 @@ apt_sources = {
       "key": {
           "url": "https://repo.protonvpn.com/debian/public_key.asc",
           "path": "/etc/apt/keyrings/proton-keyring.asc",
-      },      "repository": {
+      },
+      "repository": {
           "url": "https://repo.protonvpn.com/debian",
           "distribution": "stable",
           "components": ["main"],
@@ -1192,7 +1197,8 @@ ssh_config = {
   IdentitiesOnly yes
   ForwardAgent no
   User git
-    """,    "dns 192.168.42.100": """
+    """,
+    "dns 192.168.42.100": """
   HostName 192.168.42.100
 
   PasswordAuthentication no
