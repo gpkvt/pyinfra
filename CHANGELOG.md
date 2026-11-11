@@ -4,6 +4,7 @@
 
 ### Added
 
+- Added Paperless-ngx with PostgreSQL, Valkey, Gotenberg and Tika, persistent host-directory mounts under `~/.docker/paperless/`, and the `paperless.21x9.org` Caddy reverse-proxy route.
 - Added the WG-Easy Docker service with persistent WireGuard configuration under `~/.docker/wg-easy/`, loopback-only administration UI publishing and Caddy reverse proxy integration.
 - Expanded Homepage bookmarks with personal links grouped into Misc, Social, Entertainment and Proton categories, including locally stored service icons.
 - Added local Homepage icon assets and idempotent synchronization to the dashboard's public icon directory.
