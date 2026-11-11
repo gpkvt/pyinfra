@@ -26,6 +26,35 @@ homepage = host.data.get("docker", {}).get("homepage", {})
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
+# Deploy version-controlled service icons. Synchronization is additive so local-only
+# icons are preserved when the task is run again.
+files.directory(
+    name="Create Homepage public icon directory",
+    path=f"{homedir}/.docker/homepage/public/icons/",  # pylint: disable=undefined-variable
+    user=username,
+    group=usergroup,
+    mode="750",
+)
+
+files.directory(
+    name="Create Homepage public image directory",
+    path=f"{homedir}/.docker/homepage/public/images/",  # pylint: disable=undefined-variable
+    user=username,
+    group=usergroup,
+    mode="750",
+)
+
+files.sync(
+    name="Deploy Homepage service icons",
+    src="files/homepage/icons/",
+    dest=f"{homedir}/.docker/homepage/public/icons/",  # pylint: disable=undefined-variable
+    delete=False,
+    user=username,
+    group=usergroup,
+    mode="644",
+    _sudo=False,
+)
+
 # Homepage reads each configuration area from its own YAML file. Only render
 # files explicitly present in host data, preserving Homepage defaults for the
 # other areas and avoiding empty files that could override built-in behavior.
