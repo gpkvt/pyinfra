@@ -136,6 +136,7 @@ def deploy_docker_service(
     homedir,
     username="root",
     usergroup="root",
+    restart_if=None,
     **template_vars,
 ):
     # Create Docker service directory
