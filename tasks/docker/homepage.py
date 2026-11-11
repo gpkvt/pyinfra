@@ -18,8 +18,7 @@ Security:
 """
 
 from pyinfra import host
-from pyinfra.operations import files, server
-from pyinfra.operations.util import any_changed
+from pyinfra.operations import files, systemd
 
 from tasks.docker import deploy_docker_service
 
@@ -34,7 +33,7 @@ files.directory(
     path=f"{homedir}/.docker/homepage/public/icons/",  # pylint: disable=undefined-variable
     user=username,
     group=usergroup,
-    mode="750",
+    mode="755",
 )
 
 files.directory(
@@ -42,7 +41,7 @@ files.directory(
     path=f"{homedir}/.docker/homepage/public/images/",  # pylint: disable=undefined-variable
     user=username,
     group=usergroup,
-    mode="750",
+    mode="755",
 )
 
 files.sync(
@@ -50,9 +49,6 @@ files.sync(
     src="files/homepage/icons/",
     dest=f"{homedir}/.docker/homepage/public/icons/",  # pylint: disable=undefined-variable
     delete=False,
-    user=username,
-    group=usergroup,
-    mode="644",
     _sudo=True,
 )
 
@@ -108,14 +104,18 @@ if glances:
         port=glances.get("port", 61208),
     )
 
-    server.shell(
-        name="Enable Glances web service",
-        commands=[
-            "systemctl --user daemon-reload",
-            "systemctl --user enable --now glances-web",
-        ],
-        _sudo=False,
+    systemd.daemon_reload(
+        name="Reload user systemd configuration",
+        user_mode=True,
         _if=glances_unit.did_change,
+    )
+
+    systemd.service(
+        name="Ensure Glances web service is enabled and running",
+        service="glances-web.service",
+        running=True,
+        enabled=True,
+        user_mode=True,
     )
 
 homepage_environment = homepage.get("environment", {}).copy()
