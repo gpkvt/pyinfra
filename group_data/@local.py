@@ -403,12 +403,16 @@ docker_power_save = [
         "portainer",
         "tasmoadmin",
         "grav",
-        "nocodb",
+#        "nocodb",
         "vaultwarden-vaultwarden-1",
-        "timetagger-timetagger-1",
+#        "timetagger-timetagger-1",
         "linkwarden-meilisearch-1",
-        "linkwarden-postgres-1",
-        "linkwarden",
+#        "linkwarden-postgres-1",
+#        "linkwarden",
+        "paperless-webserver-1",
+        "paperless-gotenberg-1",
+        "paperless-tika-1",
+        "paperless-broker-1",
     ]
 
 docker = {
