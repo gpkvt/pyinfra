@@ -480,6 +480,11 @@ docker = {
                             "icon": "/icons/miniflux.png",
                             "href": "https://rss.21x9.org",
                             "description": "RSS reader",
+                            "widget": {
+                                "type": "miniflux",
+                                "url": "https://rss.21x9.org",
+                                "key": "{{HOMEPAGE_VAR_MINIFLUX_API_KEY}}",
+                            },
                         },
                     },
                     {
@@ -501,6 +506,11 @@ docker = {
                             "icon": "/icons/forgejo.png",
                             "href": "https://forgejo.21x9.org",
                             "description": "Git service",
+                            "widget": {
+                                "type": "gitea",
+                                "url": "https://forgejo.21x9.org",
+                                "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
+                            },
                         },
                     },
                     {
@@ -508,6 +518,12 @@ docker = {
                             "icon": "/icons/portainer.png",
                             "href": "https://portainer.21x9.org",
                             "description": "Docker management",
+                            "widget": {
+                                "type": "portainer",
+                                "url": "https://portainer.21x9.org",
+                                "env": 1,
+                                "key": "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}",
+                            },
                         },
                     },
                     {
