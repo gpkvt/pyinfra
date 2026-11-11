@@ -567,7 +567,7 @@ docker = {
                     {
                         "Proton Mail": [
                             {
-                                "icon": "mdi-email-lock",
+                                "icon": "https://mail.proton.me/favicon.ico",
                                 "href": "https://mail.proton.me",
                             },
                         ],
@@ -575,7 +575,7 @@ docker = {
                     {
                         "Proton Calendar": [
                             {
-                                "icon": "mdi-calendar-lock",
+                                "icon": "https://calendar.proton.me/favicon.ico",
                                 "href": "https://calendar.proton.me",
                             },
                         ],
@@ -583,7 +583,7 @@ docker = {
                     {
                         "Proton Drive": [
                             {
-                                "icon": "mdi-cloud-lock",
+                                "icon": "https://drive.proton.me/favicon.ico",
                                 "href": "https://drive.proton.me",
                             },
                         ],
@@ -591,7 +591,7 @@ docker = {
                     {
                         "Proton Docs": [
                             {
-                                "icon": "mdi-file-document",
+                                "icon": "https://docs.proton.me/favicon.ico",
                                 "href": "https://account.proton.me/docs",
                             },
                         ],
@@ -599,7 +599,7 @@ docker = {
                     {
                         "Proton Sheets": [
                             {
-                                "icon": "mdi-file-table",
+                                "icon": "https://sheets.proton.me/favicon.ico",
                                 "href": "https://account.proton.me/sheets",
                             },
                         ],
@@ -607,7 +607,7 @@ docker = {
                     {
                         "Proton VPN": [
                             {
-                                "icon": "si-protonvpn",
+                                "icon": "https://account.protonvpn.com/favicon.ico",
                                 "href": "https://account.protonvpn.com",
                             },
                         ],
@@ -615,7 +615,7 @@ docker = {
                     {
                         "Proton Pass": [
                             {
-                                "icon": "si-protonpass",
+                                "icon": "https://pass.proton.me/favicon.ico",
                                 "href": "https://pass.proton.me",
                             },
                         ],
@@ -623,7 +623,7 @@ docker = {
                     {
                         "Proton Authenticator": [
                             {
-                                "icon": "mdi-shield-key",
+                                "icon": "https://proton.me/favicon.ico",
                                 "href": "https://proton.me/authenticator",
                             },
                         ],
@@ -631,7 +631,7 @@ docker = {
                     {
                         "Proton Wallet": [
                             {
-                                "icon": "mdi-wallet",
+                                "icon": "https://wallet.proton.me/favicon.ico",
                                 "href": "https://wallet.proton.me",
                             },
                         ],
@@ -639,7 +639,7 @@ docker = {
                     {
                         "Proton Meet": [
                             {
-                                "icon": "mdi-video-lock",
+                                "icon": "https://meet.proton.me/favicon.ico",
                                 "href": "https://account.proton.me/meet",
                             },
                         ],
@@ -647,7 +647,7 @@ docker = {
                     {
                         "Lumo": [
                             {
-                                "icon": "mdi-robot",
+                                "icon": "https://lumo.proton.me/favicon.ico",
                                 "href": "https://lumo.proton.me",
                             },
                         ],
