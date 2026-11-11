@@ -142,6 +142,8 @@ Notes:
     - UFW is enabled non-interactively using `--force`.
 """
 
+import shlex
+
 from pyinfra.operations import apt, server, files
 from pyinfra import host
 from pyinfra.api import FactBase
@@ -174,6 +176,31 @@ def ufw_rule_exists(rule, action="ALLOW", scope="Anywhere"):
         and scope in line.split()
         for line in host.get_fact(UfwRules)
     )
+
+class UfwAddedRules(FactBase):
+    """Return rules from ufw show added for exact idempotence checks."""
+
+    command = "sudo ufw show added"
+
+    def process(self, output):
+        return {
+            " ".join(line.strip().split())
+            for line in output
+            if line.strip().startswith("ufw ")
+        }
+
+def ufw_custom_rule_exists(action, rule):
+    """Match a custom rule, tolerating UFW's optional explicit in token."""
+    expected = ["ufw", action.lower(), *shlex.split(rule)]
+    if len(expected) > 2 and expected[2] == "in":
+        expected.pop(2)
+    for line in host.get_fact(UfwAddedRules):
+        tokens = line.split()
+        if len(tokens) > 2 and tokens[2] == "in":
+            tokens.pop(2)
+        if tokens == expected:
+            return True
+    return False
 
 class UfwDefaults(FactBase):
     command = "sudo ufw status verbose"
@@ -224,6 +251,20 @@ ufw_ports = {
 }
 
 for app, action in ufw.items():
+    if isinstance(action, dict):
+        custom_action = action.get("action")
+        custom_rule = action.get("rule")
+        if custom_action not in ("Allow", "Deny") or not isinstance(custom_rule, str) or not custom_rule.strip():
+            continue
+        rule_arguments = " ".join(shlex.quote(token) for token in shlex.split(custom_rule))
+        server.shell(
+            name=f"{custom_action} {app}",
+            commands=[f"ufw {custom_action.lower()} {rule_arguments}"],
+            _sudo=True,
+            _if=lambda action=custom_action, rule=custom_rule: not ufw_custom_rule_exists(action, rule),
+        )
+        continue
+
     if action not in ("Allow", "Deny"):
         continue
 
