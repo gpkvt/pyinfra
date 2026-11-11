@@ -779,6 +779,31 @@ docker = {
                 ],
             },
             {
+                "Calendar": [
+                    {
+                        "Calendar": {
+                            "icon": "mdi-calendar-month",
+                            "widget": {
+                                "type": "calendar",
+                                "firstDayInWeek": "monday",
+                                "view": "monthly",
+                                "maxEvents": 10,
+                                "showTime": True,
+                                "timezone": "Europe/Amsterdam",
+                                "integrations": [
+                                    {
+                                        "type": "ical",
+                                        "url": "{{HOMEPAGE_VAR_ICAL_URL}}",
+                                        "name": "Personal",
+                                        "color": "blue",
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                ],
+            },
+            {
                 "Network": [
                     {
                         "FRITZ!Box": {
