@@ -705,15 +705,15 @@ docker = {
                         },
                     },
                     {
-                        "Forgejo": {
-                            "icon": "/icons/forgejo.png",
-                            "href": "https://forgejo.21x9.org",
-                            "description": "Git service",
+                        "Linkwarden": {
+                            "icon": "mdi-bookmark-multiple",
+                            "href": "https://linkwarden.21x9.org",
+                            "description": "Bookmark manager",
                             "widget": {
-                                "type": "gitea",
-                                "url": "https://forgejo.21x9.org",
-                                "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
-                            },
+                                "type": "linkwarden",
+                                "url": "https://linkwarden.21x9.org",
+                                "key": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..fyZtpfPKead9U3LT.eXKFmpD1_Vm1u6tdFZAJktYyZmk4VGe7g7XRuXuiDWwJqesBoxZUYHJ0YPzjMzCk8Dqu8mskRTun3ldCsfmr2Oe270BNvnXxxz5fiYeEpuo9e8BuP5Z3.X2ARro7fDp9P_GrikBGGDg",
+                            }
                         },
                     },
                     {
@@ -726,6 +726,18 @@ docker = {
                                 "url": "https://portainer.21x9.org",
                                 "env": 3,
                                 "key": "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}",
+                            },
+                        },
+                    },
+                    {
+                        "Forgejo": {
+                            "icon": "/icons/forgejo.png",
+                            "href": "https://forgejo.21x9.org",
+                            "description": "Git service",
+                            "widget": {
+                                "type": "gitea",
+                                "url": "https://forgejo.21x9.org",
+                                "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
                             },
                         },
                     },
@@ -762,13 +774,6 @@ docker = {
                             "icon": "/icons/nocodb.png",
                             "href": "https://nocodb.21x9.org",
                             "description": "Database platform",
-                        },
-                    },
-                    {
-                        "Linkwarden": {
-                            "icon": "mdi-bookmark-multiple",
-                            "href": "https://linkwarden.21x9.org",
-                            "description": "Bookmark manager",
                         },
                     },
                 ],
@@ -1202,7 +1207,7 @@ ufw = {
     # Allow Docker containers to access Caddy on the host.
     "docker-host-https": {
         "action": "Allow",
-        "rule": "in from 172.16.0.0/12 to 172.17.0.1 port 443 proto tcp",
+        "rule": "in from 172.0.0.0/8 to 172.17.0.1 port 443 proto tcp",
     },
 
     # Allow WireGuard clients to reach the public VPN listener.
@@ -1214,7 +1219,7 @@ ufw = {
     # Allow Homepage containers to access Glances on the host.
     "docker-host-glances": {
         "action": "Allow",
-        "rule": "from 172.27.0.0/16 to 172.17.0.1 port 61208 proto tcp",
+        "rule": "from 172.0.0.0/8 to 172.17.0.1 port 61208 proto tcp",
     },
 }
 
