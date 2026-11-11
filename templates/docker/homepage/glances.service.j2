@@ -11,5 +11,9 @@ RestartSec=5
 NoNewPrivileges=true
 PrivateTmp=true
 
+User={{ username }}
+Group={{ usergroup }}
+Environment=HOME={{ homedir }}
+
 [Install]
-WantedBy=default.target
+WantedBy=multi-user.target
