@@ -184,7 +184,58 @@ Service-specific behavior:
 - **Wallabag** uses SQLite, stores its database/application data and article images in the two host directories above, and disables public registration. Change the initial `wallabag` / `wallabag` account password immediately. The supplied local configuration publishes it through Caddy at `wallabag.21x9.org`.
 - **Vaultwarden** disables public signups and invitations. Its optional `admin_token` secret must contain an Argon2 PHC hash, generated with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. The supplied local configuration publishes it through Caddy at `vaultwarden.21x9.org`.
 - **NocoDB** persists its application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. It supports `image`, `port` and `domain`; the supplied local configuration publishes it through Caddy at `nocodb.21x9.org`.
-- **Homepage** persists its dashboard configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It supports `image`, `port` and `domain`; `domain` is passed to `HOMEPAGE_ALLOWED_HOSTS` and must contain the hostname (and port, if applicable), not a URL scheme. The supplied local configuration publishes it through Caddy at `homepage.21x9.org`. Docker socket integration is not enabled by default; configure a restricted socket proxy separately if container discovery is required. Since widgets can display sensitive data, protect the dashboard with reverse-proxy authentication, Homepage authentication, or a VPN.
+- **Homepage** persists its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It supports `image`, `port` and `domain`; `domain` is passed to `HOMEPAGE_ALLOWED_HOSTS` and must contain the hostname (and port, if applicable), not a URL scheme. The supplied local configuration publishes it through Caddy at `homepage.21x9.org`. Docker socket integration is not enabled by default. Since widgets can display sensitive data, protect the dashboard with reverse-proxy authentication, Homepage authentication, or a VPN.
+
+Homepage configuration is managed through the `docker.homepage` dictionary in the host's `group_data/<host>.py` (for example, `group_data/@local.py`). Each configuration area is optional and is rendered into its own YAML file:
+
+| Host-data key | Generated file | Purpose |
+| --- | --- | --- |
+| `settings` | `settings.yaml` | Dashboard title, theme, layout and global settings |
+| `services` | `services.yaml` | Service cards and nested service groups |
+| `bookmarks` | `bookmarks.yaml` | Bookmark groups and links |
+| `widgets` | `widgets.yaml` | Global and service widget definitions |
+| `docker` | `docker.yaml` | Docker integration configuration |
+| `kubernetes` | `kubernetes.yaml` | Kubernetes integration configuration |
+| `proxmox` | `proxmox.yaml` | Proxmox integration configuration |
+
+The templates serialize supplied Python dictionaries and lists as JSON, which is valid YAML. Use the structure and option names from the [Homepage configuration documentation](https://gethomepage.dev/configs/). Nested service groups and their layout can be expressed directly in host data:
+
+```python
+docker = {
+    "homepage": {
+        "image": "ghcr.io/gethomepage/homepage:latest",
+        "port": 8020,
+        "domain": "homepage.21x9.org",
+        "settings": {
+            "title": "Local Dashboard",
+            "layout": {
+                "Infrastructure": {
+                    "style": "row",
+                    "columns": 3,
+                    "Server": {"style": "row", "columns": 2},
+                    "Network": {"style": "row", "columns": 2},
+                },
+            },
+        },
+        "services": [
+            {
+                "Infrastructure": [
+                    {
+                        "Server": [
+                            {"Portainer": {
+                                "href": "https://portainer.21x9.org",
+                                "description": "Docker management",
+                            }},
+                        ],
+                    },
+                ],
+            },
+        ],
+    },
+}
+```
+
+Only keys present in `docker.homepage` are rendered. Omitted sections are not generated or removed; to clear a previously managed section, provide an empty list or dictionary as appropriate. The files are managed declaratively: manual edits to generated files are replaced on the next deployment.
 
 **Migration note:** The current templates use host bind mounts. If a host was deployed while an earlier Wallabag or Vaultwarden template used Docker-managed named volumes, Compose does not migrate that data automatically. Back up and copy the named-volume contents into the corresponding host directory before switching. Data already present in the host directories is retained.
 
