@@ -49,7 +49,7 @@ server.shell(
 for directory in ("data", "meili"):
     files.directory(
         name=f"Create Linkwarden {directory} storage directory",
-        path=f"{homedir}/.docker/linkwarden/{directory}/",
+        path=f"{homedir}/.docker/linkwarden/{directory}/", # pylint: disable=E0602
         user=username,
         group=usergroup,
         mode="750",
