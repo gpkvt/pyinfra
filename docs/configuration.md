@@ -171,7 +171,7 @@ All current services persist application data through host bind mounts below the
 | NocoDB | `~/.docker/nocodb/data/` | `8019` |
 | Homepage | `~/.docker/homepage/config/` | `8020` |
 
-The interfaces bind to `127.0.0.1` by default. The shared Docker helper renders Compose files under `~/<service>/` and user-level systemd units under `~/.config/systemd/user/`. A changed Compose file triggers an image pull; a changed Compose file or systemd unit triggers a service restart. No pull is performed when the Compose file is unchanged.
+The interfaces bind to `127.0.0.1` by default, except explicitly published protocol ports such as WG-Easy WireGuard UDP. The shared Docker helper renders Compose files under `~/<service>/` and user-level systemd units under `~/.config/systemd/user/`. A changed Compose file triggers an image pull; a changed Compose file or systemd unit triggers a service restart. No pull is performed when the Compose file is unchanged.
 
 Service-specific behavior:
 
@@ -185,6 +185,7 @@ Service-specific behavior:
 - **Vaultwarden** disables public signups and invitations. Its optional `admin_token` secret must contain an Argon2 PHC hash, generated with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. The supplied local configuration publishes it through Caddy at `vaultwarden.21x9.org`.
 - **NocoDB** persists its application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. It supports `image`, `port` and `domain`; the supplied local configuration publishes it through Caddy at `nocodb.21x9.org`.
 - **Homepage** persists its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It supports `image`, `port` and `domain`; `domain` is passed to `HOMEPAGE_ALLOWED_HOSTS` and must contain the hostname (and port, if applicable), not a URL scheme. The supplied local configuration publishes it through Caddy at `homepage.21x9.org`. Docker socket integration is not enabled by default. Since widgets can display sensitive data, protect the dashboard with reverse-proxy authentication, Homepage authentication, or a VPN.
+- **WG-Easy** stores WireGuard configuration in a Docker-managed local named volume backed by `~/.docker/wg-easy/`. Its web UI binds to `127.0.0.1:51821` by default and is published through Caddy at `vpn.21x9.org`; WireGuard listens on public UDP port `51820`. The first visit opens the WG-Easy setup wizard: configure the public endpoint as `vpn.21x9.org` and create the administrator account there. The Compose configuration sets `INSECURE=true` because Caddy terminates HTTPS and proxies to the local HTTP UI. Keep the UI behind Caddy and do not expose port `51821` publicly.
 
 Homepage configuration is managed through the `docker.homepage` dictionary in the host's `group_data/<host>.py` (for example, `group_data/@local.py`). Each configuration area is optional and is rendered into its own YAML file:
 
