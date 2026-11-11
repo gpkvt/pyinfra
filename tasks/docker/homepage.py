@@ -89,24 +89,28 @@ for config_name, filename in config_files.items():
             config=config,
         )
 
-# Run Glances as a user service so Homepage can query host metrics.
+# Run Glances as a system service so deployment does not depend on an
+# interactive user's systemd session or D-Bus being available.
 # The API is bound to the Docker bridge gateway, not exposed on all interfaces.
 glances = homepage.get("glances", {})
 if glances:
     glances_unit = files.template(
         name="Configure Glances web service",
         src="templates/docker/homepage/glances.service.j2",
-        dest=f"{homedir}/.config/systemd/user/glances-web.service",  # pylint: disable=undefined-variable
-        user=username,
-        group=usergroup,
+        dest="/etc/systemd/system/glances-web.service",
+        user="root",
+        group="root",
         mode="644",
+        username=username,
+        usergroup=usergroup,
+        homedir=homedir,  # pylint: disable=undefined-variable
         bind_address=glances.get("bind_address", "172.17.0.1"),
         port=glances.get("port", 61208),
+        _sudo=True,
     )
 
     systemd.daemon_reload(
-        name="Reload user systemd configuration",
-        user_mode=True,
+        name="Reload system systemd configuration",
         _if=glances_unit.did_change,
     )
 
@@ -115,7 +119,6 @@ if glances:
         service="glances-web.service",
         running=True,
         enabled=True,
-        user_mode=True,
     )
 
 homepage_environment = homepage.get("environment", {}).copy()
