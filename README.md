@@ -20,7 +20,7 @@ The repository is primarily designed around Debian/Ubuntu systems and includes b
 | Base system | APT repositories and packages, hostname, timezone, locale, keyboard, editors, sysctl and udev |
 | Access and security | SSH keys and client configuration, sudoers rules, AppArmor profiles, USBGuard, UFW |
 | Networking | WireGuard configuration and conditional VPN activation based on local-network detection |
-| Services | Docker Compose services, Caddy reverse proxy, Syncthing file synchronization, dehydrated ACME certificates |
+| Services | Docker Compose applications including Homepage, Linkwarden and WG-Easy; Caddy reverse proxy, Syncthing file synchronization, dehydrated ACME certificates |
 | Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications, optional workstation desktop utilities |
 | Workstation maintenance | Backup tools and Borgmatic config, power management, firmware/microcode tools, storage health utilities, optional printer/scanner support and maintenance tools |
 | User environment | Zsh, tmux, Powerline, Git, Midnight Commander, scripts and dotfiles |
@@ -41,12 +41,16 @@ Optional features are included by `deploy.py` only when their configuration and 
 
 See [Architecture](docs/architecture.md) for the execution flow and [Configuration](docs/configuration.md) for the settings model.
 
+### Homepage dashboard
+
+The optional Homepage Docker service provides a configurable dashboard for deployed applications, external links and status widgets. Its configuration is rendered from `docker.homepage` host data, while static icons are maintained in `files/homepage/icons/` and synchronized to `~/.docker/homepage/public/icons/`. The supplied local configuration groups bookmarks into Misc, Social, Entertainment and Proton, and includes service widgets for selected applications plus FRITZ!Box, Miniflux, Forgejo, Portainer, OpenWeatherMap and Glances integrations. API credentials belong in the encrypted secrets file, not tracked host data. See the [Docker task reference](docs/tasks.md#docker-services) for storage, networking, icon synchronization and widget details.
+
 ## Requirements
 
 - Python 3.12 or newer, as required by `pyproject.toml`.
 - [pyinfra](https://pyinfra.com/) installed in an isolated Python environment.
 - Debian- or Ubuntu-based target systems for the supplied task implementations.
-- SSH access to remote hosts and sufficient privilege escalation for system-level operations. The local target also needs the required privileges.igen
+- SSH access to remote hosts and sufficient privilege escalation for system-level operations. The local target also needs the required privileges.
 - GPG on the machine executing the deployment when encrypted secrets are used.
 - systemd on targets for tasks that manage system services.
 
