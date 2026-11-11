@@ -1,0 +1,13 @@
+[Unit]
+Description=Monitor AC power events for Docker containers
+After=docker.service upower.service
+Wants=docker.service upower.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/docker-power-monitor
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

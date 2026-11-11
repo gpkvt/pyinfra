@@ -402,6 +402,17 @@ apparmor_profiles = [
 ]
 
 # Install and configure docker container
+docker_power_save = [
+        "forgejo",
+        "portainer",
+        "tasmoadmin",
+        "grav",
+        "nocodb",
+        "vaultwarden-vaultwarden-1",
+        "wallabag-wallabag-1",
+        "timetagger-timetagger-1",
+    ]
+
 docker = {
     "miniflux": {
         "postgres_version": 12,

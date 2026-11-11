@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+source /etc/docker/battery-containers.conf
+
+STATE_DIR="/var/lib/docker-power-manager"
+STATE_FILE="$STATE_DIR/running-containers"
+
+mkdir -p "$STATE_DIR"
+
+case "${1:-}" in
+    battery)
+        # Preserve the original state across repeated battery checks.
+        [[ -e "$STATE_FILE" ]] && exit 0
+        touch "$STATE_FILE"
+
+        for container in "${BATTERY_CONTAINERS[@]}"; do
+            if docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null | grep -q true; then
+                echo "$container" >> "$STATE_FILE"
+                docker stop "$container"
+            fi
+        done
+        ;;
+
+    ac)
+        if [[ -f "$STATE_FILE" ]]; then
+            while IFS= read -r container; do
+                [[ -n "$container" ]] || continue
+                docker start "$container"
+            done < "$STATE_FILE"
+
+            rm -f "$STATE_FILE"
+        fi
+        ;;
+
+    *)
+        echo "Usage: $0 {battery|ac}" >&2
+        exit 1
+        ;;
+esac
