@@ -184,7 +184,7 @@ Example optional service entries (add them to a group in docker.homepage.service
 },
 ```
 
-The matching environment variables can be added to secrets.docker.homepage.environment (preferred) or docker.homepage.environment for non-secret values. Do not put real credentials in tracked host-data files. For WGEasy v15 and newer, use widget type wgeasy and version 2; older releases use API version 1. See the [WGEasy widget documentation](https://gethomepage.dev/widgets/services/wgeasy/), [Grafana](https://gethomepage.dev/widgets/services/grafana/), [Home Assistant](https://gethomepage.dev/widgets/services/homeassistant/) and [Paperless-ngx](https://gethomepage.dev/widgets/services/paperlessngx/) documentation.
+The local Homepage configuration declares the Miniflux, Forgejo and Portainer API-key environment variables with empty defaults. Store their actual values in `secrets.docker.homepage.environment` in `secrets.json.gpg`; `tasks/docker/homepage.py` merges that mapping over `docker.homepage.environment`, so secret values always take precedence. Do not put real credentials in tracked host-data files. For WGEasy v15 and newer, use widget type wgeasy and version 2; older releases use API version 1. See the [WGEasy widget documentation](https://gethomepage.dev/widgets/services/wgeasy/), [Grafana](https://gethomepage.dev/widgets/services/grafana/), [Home Assistant](https://gethomepage.dev/widgets/services/homeassistant/) and [Paperless-ngx](https://gethomepage.dev/widgets/services/paperlessngx/) documentation.
 
 Header widgets and service widgets can expose network and application data. Keep Homepage behind trusted authentication, a VPN, or an authenticated reverse proxy. API keys must have only the permissions needed for read-only dashboard access.
 
