@@ -722,7 +722,7 @@ docker = {
                     },
                     {
                         "Linkwarden": {
-                            "icon": "mdi-bookmark-multiple",
+                            "icon": "/icons/linkwarden.ico",
                             "href": "https://linkwarden.21x9.org",
                             "description": "Bookmark manager",
                             "widget": {
@@ -734,7 +734,7 @@ docker = {
                     },
                     {
                         "Paperless-ngx": {
-                            "icon": "mdi-file-document-multiple",
+                            "icon": "/icons/paperless.ico",
                             "href": "https://paperless.21x9.org",
                             "description": "Document management",
                             "widget": {
@@ -777,6 +777,22 @@ docker = {
                             "icon": "/icons/forgejo.png",
                             "href": "https://forgejo.21x9.org",
                             "description": "Git service",
+                            "widget": {
+                                "type": "gitea",
+                                "url": "https://forgejo.21x9.org",
+                                "env": 3,
+                                "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
+                            },                        },
+                    },
+                    {
+                        "23.social": {
+                            "icon": "/icons/mastodon.png",
+                            "href": "https://23.social",
+                            "description": "Mastodon",
+                            "widget": {
+                                "type": "mastodon",
+                                "url": "https://23.social"
+                            }
                         },
                     },
                     {
