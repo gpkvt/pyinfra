@@ -502,6 +502,8 @@ docker = {
                                 "href": "https://github.com/gpkvt?tab=repositories",
                             },
                         ],
+                    },
+                    {
                         "Kachelmannwetter": [
                             {
                                 "icon": "mdi-weather-cloudy",
@@ -565,6 +567,14 @@ docker = {
                             },
                         ],
                     },
+                    {
+                        "Letterboxd": [
+                            {
+                                "icon": "/icons/letterboxd.ico",
+                                "href": "https://letterboxd.com/rbbot/",
+                            }
+                        ]
+                    }
                 ],
             },
             {
