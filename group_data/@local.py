@@ -466,6 +466,13 @@ docker = {
         "port": 8022,
         "domain": "paperless.21x9.org",
     },
+    "firefly-iii": {
+        "image": "fireflyiii/core:latest",
+        "port": 8023,
+        "domain": "firefly.21x9.org",
+        "fints_port": 8024,
+        "fints_domain": "fints.21x9.org",
+    },
     "homepage": {
         "image": "ghcr.io/gethomepage/homepage:latest",
         # API keys are supplied by secrets.json.gpg. The Homepage task merges
@@ -739,6 +746,20 @@ docker = {
                         },
                     },
                     {
+                        "Firefly III": {
+                            "icon": "mdi-cash-multiple",
+                            "href": "https://firefly.21x9.org",
+                            "description": "Personal finance",
+                        },
+                    },
+                    {
+                        "FinTS importer": {
+                            "icon": "mdi-bank-transfer",
+                            "href": "https://fints.21x9.org",
+                            "description": "Bank transaction importer",
+                        },
+                    },
+                    {
                         "Portainer": {
                             "icon": "/icons/portainer.png",
                             "href": "https://portainer.21x9.org",
@@ -985,6 +1006,20 @@ caddy_config = {
   "paperless.21x9.org:443": {
     "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
     "reverse_proxy": "127.0.0.1:8022",
+    "header": [
+      "-Server"
+    ],
+  },
+  "firefly.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8023",
+    "header": [
+      "-Server"
+    ],
+  },
+  "fints.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8024",
     "header": [
       "-Server"
     ],
