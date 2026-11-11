@@ -92,6 +92,11 @@ for config_name, filename in config_files.items():
             config=config,
         )
 
+homepage_environment = homepage.get("environment", {}).copy()
+homepage_environment.update(
+    secrets.get("docker", {}).get("homepage", {}).get("environment", {})  # pylint: disable=undefined-variable
+)
+
 deploy_docker_service(
     service="homepage",
     description="Homepage Dashboard",
@@ -101,4 +106,5 @@ deploy_docker_service(
     image=homepage.get("image", "ghcr.io/gethomepage/homepage:latest"),
     port=homepage.get("port", 8020),
     domain=homepage.get("domain", "homepage.21x9.org"),
+    environment=homepage_environment,
 )

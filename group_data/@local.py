@@ -456,7 +456,7 @@ docker = {
         "settings": {
             # Use a local image placed in ~/.docker/homepage/public/images/.
             "background": {
-                "image": "/images/background.jpg",
+                "image": "https://images.unsplash.com/photo-1502790671504-542ad42d5189?auto=format&fit=crop&w=2560&q=80",
                 "blur": "sm",
                 "saturate": 50,
                 "brightness": 50,
@@ -478,6 +478,12 @@ docker = {
                             "icon": "/icons/miniflux.png",
                             "href": "https://rss.21x9.org",
                             "description": "RSS reader",
+                            "widget": {
+                                "type": "miniflux",
+                                "url": "https://rss.21x9.org",
+                                "key": "{{HOMEPAGE_VAR_MINIFLUX_API_KEY}}",
+                                "fields": ["unread", "read"],
+                            },
                         },
                     },
                     {
@@ -499,6 +505,12 @@ docker = {
                             "icon": "/icons/forgejo.png",
                             "href": "https://forgejo.21x9.org",
                             "description": "Git service",
+                            "widget": {
+                                "type": "gitea",
+                                "url": "https://forgejo.21x9.org",
+                                "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
+                                "fields": ["repositories", "notifications", "issues", "pulls"],
+                            },
                         },
                     },
                     {
@@ -506,6 +518,13 @@ docker = {
                             "icon": "/icons/portainer.png",
                             "href": "https://portainer.21x9.org",
                             "description": "Docker management",
+                            "widget": {
+                                "type": "portainer",
+                                "url": "https://portainer.21x9.org",
+                                "env": 1,
+                                "key": "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}",
+                                "fields": ["running", "stopped", "total"],
+                            },
                         },
                     },
                     {
@@ -537,6 +556,40 @@ docker = {
                         },
                     },
                 ],
+            },
+            {
+                "Network": [
+                    {
+                        "FRITZ!Box": {
+                            "icon": "mdi-router-wireless",
+                            "href": "http://192.168.42.1",
+                            "description": "Router and internet connection",
+                            "widget": {
+                                "type": "fritzbox",
+                                "url": "http://192.168.42.1",
+                                "fields": ["connectionStatus", "uptime", "down", "up"],
+                            },
+                        },
+                    },
+                ],
+            },
+        ],
+        # Header widgets are separate from service widgets in services.yaml.
+        "widgets": [
+            {
+                "datetime": {
+                    "text_size": "xl",
+                    "format": {
+                        "timeStyle": "short",
+                        "dateStyle": "short",
+                    },
+                },
+            },
+            {
+                "search": {
+                    "provider": "duckduckgo",
+                    "target": "_blank",
+                },
             },
         ],
     },
