@@ -40,5 +40,8 @@ if "homepage" in container:
 if "paperless" in container:
     local.include("tasks/docker/paperless.py")
 
+if "firefly-iii" in container:
+    local.include("tasks/docker/firefly-iii.py")
+
 if "wg-easy" in container:
     local.include("tasks/docker/wg-easy.py")
