@@ -127,7 +127,7 @@ Homepage supports two distinct widget types: service widgets are configured insi
 - **Miniflux** unread/read article counts. Create an API key under Miniflux Settings → API keys.
 - **Forgejo** repository, notification, issue and pull-request counts using Homepage's Gitea-compatible widget. Create an API token with notifications, repository and issue permissions.
 - **Portainer** running/stopped/total container counts. Create an API access token and verify the environment ID (1 in the supplied example) in Portainer.
-- Header date/time and DuckDuckGo search widgets.
+- System resource usage (CPU, memory and the `/` filesystem), a large date/time widget with a long date format, and DuckDuckGo search.
 
 The API credentials are injected through Homepage's supported HOMEPAGE_VAR_* environment substitution. The Compose template accepts an optional docker.homepage.environment mapping and writes its entries into the container environment. The task also merges secrets.docker.homepage.environment, with secret values taking precedence. Store API keys in the encrypted secrets file rather than in tracked host data. For example, define HOMEPAGE_VAR_MINIFLUX_API_KEY, HOMEPAGE_VAR_FORGEJO_API_KEY and HOMEPAGE_VAR_PORTAINER_API_KEY under secrets.docker.homepage.environment. The supplied service widget URLs use the configured HTTPS hostnames so the Homepage container can reach services that are published only on the host loopback interface.
 

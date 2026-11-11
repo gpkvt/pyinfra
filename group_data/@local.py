@@ -577,11 +577,18 @@ docker = {
         # Header widgets are separate from service widgets in services.yaml.
         "widgets": [
             {
+                "resources": {
+                    "cpu": True,
+                    "memory": True,
+                    "disk": "/",
+                },
+            },
+            {
                 "datetime": {
                     "text_size": "xl",
                     "format": {
                         "timeStyle": "short",
-                        "dateStyle": "short",
+                        "dateStyle": "long",
                     },
                 },
             },
