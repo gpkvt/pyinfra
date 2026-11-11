@@ -13,6 +13,9 @@ services:
       {{ key }}: {{ value | tojson }}
 {% endfor %}
 
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
     volumes:
       - {{ homedir }}/.docker/homepage/config:/app/config
       - {{ homedir }}/.docker/homepage/public/icons:/app/public/icons
