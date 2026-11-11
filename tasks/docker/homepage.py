@@ -17,44 +17,9 @@ Security:
     Docker socket access is intentionally not enabled by this task.
 """
 
-import shlex
-
-from pyinfra import host
-from pyinfra.api import FactBase
-from pyinfra.operations import files, server, systemd
+from pyinfra.operations import files, systemd
 
 from tasks.docker import deploy_docker_service
-
-class HomepageDockerSubnet(FactBase):
-    """Return the IPv4 subnet of Homepage's Compose-managed default network."""
-
-    command = (
-        "docker network inspect homepage_default "
-        "--format '{{range .IPAM.Config}}{{.Subnet}}{{end}}' 2>/dev/null || true"
-    )
-
-    def process(self, output):
-        return next((line.strip() for line in output if line.strip()), None)
-
-
-class HomepageUfwRules(FactBase):
-    """Return UFW status lines, or an empty result when UFW is unavailable."""
-
-    command = (
-        "sudo sh -c 'command -v ufw >/dev/null 2>&1 && ufw status || true'"
-    )
-
-    def process(self, output):
-        return output
-
-
-def homepage_glances_ufw_rule_exists(subnet, bind_address, port): # pylint: disable=W0621
-    """Check for the exact source, destination and port allow rule."""
-    expected = (subnet, bind_address, f"{port}/tcp", "ALLOW")
-    return any(
-        all(token in line.split() for token in expected)
-        for line in host.get_fact(HomepageUfwRules)
-    )
 
 homepage = host.data.get("docker", {}).get("homepage", {})
 username = host.data.get("username", "root")
@@ -159,25 +124,7 @@ if glances:
         enabled=True,
     )
 
-    # The container reaches Glances through host.docker.internal. Permit only
-    # the Homepage Compose subnet to access the host-gateway listener; do not
-    # expose the metrics API on every interface or publish it through Compose.
-    homepage_subnet = host.get_fact(HomepageDockerSubnet)
-    homepage_ufw_status = host.get_fact(HomepageUfwRules)
-    if homepage_subnet and homepage_ufw_status:
-        server.shell(
-            name="Allow Homepage network to access Glances",
-            commands=[
-                "ufw allow from "
-                f"{shlex.quote(homepage_subnet)} to "
-                f"{shlex.quote(str(bind_address))} port "
-                f"{shlex.quote(str(port))} proto tcp"
-            ],
-            _sudo=True,
-            _if=lambda: not homepage_glances_ufw_rule_exists(
-                homepage_subnet, str(bind_address), port
-            ),
-        )
+    # Firewall access for this listener is managed centrally by tasks/ufw.py.
 
     # Restart once when the unit changes so ExecStartPre can clean up a
     # manually started instance that would otherwise keep the port occupied.
