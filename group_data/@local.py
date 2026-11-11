@@ -591,7 +591,7 @@ docker = {
                     {
                         "Proton Docs": [
                             {
-                                "icon": "/icons/proton.svg",
+                                "icon": "/icons/proton-docs.svg",
                                 "href": "https://account.proton.me/docs",
                             },
                         ],
@@ -599,7 +599,7 @@ docker = {
                     {
                         "Proton Sheets": [
                             {
-                                "icon": "/icons/proton.svg",
+                                "icon": "/icons/proton-sheets.svg",
                                 "href": "https://account.proton.me/sheets",
                             },
                         ],
@@ -615,7 +615,7 @@ docker = {
                     {
                         "Proton Pass": [
                             {
-                                "icon": "/icons/proton.svg",
+                                "icon": "/icons/proton-pass.svg",
                                 "href": "https://pass.proton.me",
                             },
                         ],
@@ -623,7 +623,7 @@ docker = {
                     {
                         "Proton Authenticator": [
                             {
-                                "icon": "/icons/proton.svg",
+                                "icon": "/icons/proton-authenticator.svg",
                                 "href": "https://proton.me/authenticator",
                             },
                         ],
@@ -631,7 +631,7 @@ docker = {
                     {
                         "Proton Wallet": [
                             {
-                                "icon": "/icons/proton.svg",
+                                "icon": "/icons/proton-wallet.svg",
                                 "href": "https://wallet.proton.me",
                             },
                         ],
@@ -639,7 +639,7 @@ docker = {
                     {
                         "Proton Meet": [
                             {
-                                "icon": "/icons/proton.svg",
+                                "icon": "/icons/proton-meet.svg",
                                 "href": "https://account.proton.me/meet",
                             },
                         ],
@@ -647,7 +647,7 @@ docker = {
                     {
                         "Lumo": [
                             {
-                                "icon": "/icons/proton.svg",
+                                "icon": "/icons/proton-lumo.svg",
                                 "href": "https://lumo.proton.me",
                             },
                         ],
