@@ -28,6 +28,7 @@ Deployments:
         homedir,
         username="root",
         usergroup="root",
+        restart_if=None,
         **template_vars,
     )
 
@@ -66,8 +67,8 @@ Deployments:
         4. Reload the user systemd daemon and enable the service when
            the systemd unit file changes.
 
-        5. Restart the service when either the Docker Compose
-           configuration or systemd unit file changes.
+        5. Restart the service when the Docker Compose configuration,
+           systemd unit file, or an additional restart trigger changes.
 
     File permissions:
         - Docker configuration directory: 0750.
@@ -192,14 +193,18 @@ def deploy_docker_service(
         _if=systemd_unit.did_change,
     )
 
-    # Restart service when Compose or systemd configuration changes
+    # Restart service when its configuration or an additional input changes.
+    restart_triggers = [compose_file, systemd_unit]
+    if restart_if is not None:
+        restart_triggers.append(restart_if)
+
     server.shell(
         name=f"Restart {service}",
         commands=[
             f"systemctl --user restart {service}",
         ],
         _sudo=False,
-        _if=any_changed(compose_file, systemd_unit),
+        _if=any_changed(*restart_triggers),
     )
 
 container = host.data.get("docker", {})
