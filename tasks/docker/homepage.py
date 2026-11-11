@@ -17,6 +17,7 @@ Security:
     Docker socket access is intentionally not enabled by this task.
 """
 
+from pyinfra import host
 from pyinfra.operations import files, systemd
 
 from tasks.docker import deploy_docker_service
