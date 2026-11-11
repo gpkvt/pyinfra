@@ -488,7 +488,7 @@ docker = {
                         "GitHub": [
                             {
                                 "icon": "/icons/github.png",
-                                "href": "https://github.com/",
+                                "href": "https://github.com/gpkvt?tab=repositories",
                             },
                         ],
                     },
@@ -504,6 +504,30 @@ docker = {
                             },
                         ],
                     },
+                    {
+                        "Mastodon": [
+                            {
+                                "icon": "/icons/mastodon.svg",
+                                "href": "https://23.social/",
+                            },
+                        ],
+                    },
+                    {
+                        "Discord": [
+                            {
+                                "icon": "/icons/discord.svg",
+                                "href": "https://discord.com/",
+                            },
+                        ],
+                    },
+                    {
+                        "LinkedIn": [
+                            {
+                                "icon": "si-linkedin",
+                                "href": "https://www.linkedin.com/in/denis-w-96b83a282/",
+                            },
+                        ],
+                    },
                 ],
             },
             {
@@ -513,6 +537,26 @@ docker = {
                             {
                                 "icon": "/icons/youtube.png",
                                 "href": "https://www.youtube.com/",
+                            },
+                        ],
+                    },
+                    {
+                        "Last.fm": [
+                            {
+                                "icon": "/icons/lastfm.svg",
+                                "href": "https://www.last.fm/user/rbbot",
+                            },
+                        ],
+                    },
+                ],
+            },
+            {
+                "Weather": [
+                    {
+                        "Kachelmannwetter": [
+                            {
+                                "icon": "mdi-weather-cloudy",
+                                "href": "https://kachelmannwetter.com/de/vorhersage/2886242-koeln/14-tage-trend",
                             },
                         ],
                     },
