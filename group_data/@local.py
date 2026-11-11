@@ -586,9 +586,11 @@ docker = {
             {
                 "datetime": {
                     "text_size": "xl",
+                    "locale": "de-DE",
                     "format": {
+                        "dateStyle": "medium",
                         "timeStyle": "short",
-                        "dateStyle": "long",
+                        "hourCycle": "h23",
                     },
                 },
             },
