@@ -25,7 +25,6 @@ from pyinfra.operations import files, server, systemd
 
 from tasks.docker import deploy_docker_service
 
-
 class HomepageDockerSubnet(FactBase):
     """Return the IPv4 subnet of Homepage's Compose-managed default network."""
 
@@ -49,14 +48,13 @@ class HomepageUfwRules(FactBase):
         return output
 
 
-def homepage_glances_ufw_rule_exists(subnet, bind_address, port):
+def homepage_glances_ufw_rule_exists(subnet, bind_address, port): # pylint: disable=W0621
     """Check for the exact source, destination and port allow rule."""
     expected = (subnet, bind_address, f"{port}/tcp", "ALLOW")
     return any(
         all(token in line.split() for token in expected)
         for line in host.get_fact(HomepageUfwRules)
     )
-
 
 homepage = host.data.get("docker", {}).get("homepage", {})
 username = host.data.get("username", "root")
