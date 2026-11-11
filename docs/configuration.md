@@ -259,17 +259,22 @@ The package creates the device identity and initial configuration on first start
 
 ### Firewall
 
-`ufw` maps supported application/service names to `Allow` or `Deny` actions. The current keys are `chromecast-dlna`, `kdeconnect`, `localsend` and `ssh` (TCP port 22); unsupported keys and values are ignored. The task sets default incoming traffic to deny and outgoing traffic to allow, applies the configured rules, and enables UFW. For example:
+UFW supports the application/service keys `chromecast-dlna`, `kdeconnect`, `localsend` and `ssh` (TCP port 22), with `Allow` or `Deny` string values. It also accepts custom rules as dictionaries containing an `action` and a `rule` argument string. Custom rules are checked against `ufw show added` before they are applied, including normalization of UFW's optional `in` token, so repeated deployments do not add duplicate rules. Unsupported keys and invalid values are ignored.
+
+For example:
 
 ```python
 ufw = {
     "ssh": "Allow",
     "kdeconnect": "Allow",
-    "localsend": "Allow",
+    "docker-host-https": {
+        "action": "Allow",
+        "rule": "in from 172.16.0.0/12 to 172.17.0.1 port 443 proto tcp",
+    },
 }
 ```
 
-Review the effective rules before enabling changes on a remote host. The checked-in `group_data/@local.py` currently sets `ssh` to `Deny`; that example must not be copied to a remotely managed host unless another management path is available.
+The task sets default incoming policy to deny and outgoing policy to allow, applies configured rules, and enables UFW. Review the effective policy and ensure an independent recovery path before applying firewall changes remotely. The checked-in `group_data/@local.py` sets `ssh` to `Deny`.
 
 ## Secrets-dependent configuration
 
