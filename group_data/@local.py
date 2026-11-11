@@ -504,6 +504,30 @@ docker = {
                             },
                         ],
                     },
+                    {
+                        "dict.leo": [
+                            {
+                                "icon": "/icons/leo_ende.svg",
+                                "href": "https://dict.leo.org/englisch-deutsch/",
+                            },
+                        ],
+                    },
+                    {
+                        "docsbot": [
+                            {
+                                "icon": "/icons/docsbot.ico",
+                                "href": "https://docsbot.ai/tools/image/description-generator",
+                            },
+                        ],
+                    },
+                    {
+                        "lookscanned": [
+                            {
+                                "icon": "/icons/lookscanned.ico",
+                                "href": "https://lookscanned.io/",
+                            },
+                        ],
+                    },
                 ],
             },
             {
