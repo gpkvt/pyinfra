@@ -445,7 +445,8 @@ docker = {
         "image": "nocodb/nocodb:latest",
         "port": 8019,
         "domain": "https://nocodb.21x9.org",
-    },    "linkwarden": {
+    },
+    "linkwarden": {
         "image": "ghcr.io/linkwarden/linkwarden:latest",
         "port": 8021,
         "domain": "linkwarden.21x9.org",
@@ -599,7 +600,8 @@ docker = {
                     "expanded": True,
                     "label": "chao",
                 },
-            },            {
+            },
+            {
                 "datetime": {
                     "text_size": "xl",
                     "locale": "de-DE",
