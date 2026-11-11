@@ -52,7 +52,7 @@ files.sync(
     user=username,
     group=usergroup,
     mode="644",
-    _sudo=False,
+    _sudo=True,
 )
 
 # Homepage reads each configuration area from its own YAML file. Only render
