@@ -8,7 +8,7 @@ owned by the postgres:alpine container user (70:70).
 """
 
 from pyinfra import host
-from pyinfra.operations import server
+from pyinfra.operations import files
 
 from tasks.docker import deploy_docker_service
 
@@ -20,30 +20,27 @@ username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 uid = int(paperless.get("uid", 1000))
 gid = int(paperless.get("gid", 1000))
-postgres_directory = f"{homedir}/.docker/paperless/postgres"  # pylint: disable=undefined-variable
 
-# PostgreSQL 17 Alpine runs as UID/GID 70:70. Only correct the directory
-# metadata when needed; never recursively chown an existing database.
-server.shell(
-    name="Create Paperless PostgreSQL storage directory",
-    commands=[f"install -d -o 70 -g 70 -m 700 {postgres_directory}"],
+# PostgreSQL 17 Alpine runs as UID/GID 70:70. files.directory checks the
+# directory metadata and only applies changes when ownership or mode differs.
+files.directory(
+    name="Ensure Paperless PostgreSQL storage directory",
+    path=f"{homedir}/.docker/paperless/postgres",  # pylint: disable=undefined-variable
+    user="70",
+    group="70",
+    mode="700",
     _sudo=True,
-    _if=(
-        f"test ! -d {postgres_directory} || "
-        f"test \"$(stat -c '%u:%g:%a' {postgres_directory})\" != '70:70:700'"
-    ),
 )
 
+# Paperless application storage.
 for directory in ("data", "media", "consume", "export"):
-    path = f"{homedir}/.docker/paperless/{directory}"  # pylint: disable=undefined-variable
-    server.shell(
-        name=f"Create Paperless {directory} storage directory",
-        commands=[f"install -d -o {uid} -g {gid} -m 750 {path}"],
+    files.directory(
+        name=f"Ensure Paperless {directory} storage directory",
+        path=f"{homedir}/.docker/paperless/{directory}",  # pylint: disable=undefined-variable
+        user=str(uid),
+        group=str(gid),
+        mode="750",
         _sudo=True,
-        _if=(
-            f"test ! -d {path} || "
-            f"test \"$(stat -c '%u:%g:%a' {path})\" != '{uid}:{gid}:750'"
-        ),
     )
 
 deploy_docker_service(
