@@ -452,6 +452,15 @@ docker = {
         "image": "ghcr.io/gethomepage/homepage:latest",
         "port": 8020,
         "domain": "homepage.21x9.org",
+        # Display service cards in a compact three-column row.
+        "settings": {
+            "layout": {
+                "Services": {
+                    "style": "row",
+                    "columns": 3,
+                },
+            },
+        },
         # Homepage services are configured as groups containing service entries.
         # Override or extend these entries here; the task renders services.yaml.
         "services": [
