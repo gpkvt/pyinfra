@@ -574,13 +574,6 @@ docker = {
                 ],
             },
         ],
-        # Homepage substitutes these values in widget configuration. Replace
-        # the placeholders with API keys kept outside version control.
-        "environment": {
-            "HOMEPAGE_VAR_MINIFLUX_API_KEY": "CHANGE_ME",
-            "HOMEPAGE_VAR_FORGEJO_API_KEY": "CHANGE_ME",
-            "HOMEPAGE_VAR_PORTAINER_API_KEY": "CHANGE_ME",
-        },
         # Header widgets are separate from service widgets in services.yaml.
         "widgets": [
             {
