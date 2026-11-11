@@ -37,8 +37,5 @@ if "linkwarden" in container:
 if "homepage" in container:
     local.include("tasks/docker/homepage.py")
 
-if "paperless" in container:
-    local.include("tasks/docker/paperless.py")
-
 if "wg-easy" in container:
     local.include("tasks/docker/wg-easy.py")

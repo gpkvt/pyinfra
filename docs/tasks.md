@@ -110,11 +110,8 @@ Most existing services use host-directory mounts. Linkwarden uses Docker-managed
 | Homepage | `~/.docker/homepage/config/` | `127.0.0.1:8020` |
 | Linkwarden | `~/.docker/linkwarden/postgres/`, `~/.docker/linkwarden/data/`, `~/.docker/linkwarden/meili/` | `127.0.0.1:8021` |
 | WG-Easy | `~/.docker/wg-easy/` (Docker local named volume) | UI: `127.0.0.1:51821`; WireGuard: UDP `51820` |
-| Paperless-ngx | `~/.docker/paperless/postgres/`, `data/`, `media/`, `consume/`, `export/` | `127.0.0.1:8022` |
 
 **Service-specific notes**
-
-- **Paperless-ngx** runs with PostgreSQL 17, Valkey, Gotenberg and Tika. PostgreSQL data and Paperless data, media, consume and export directories are host bind mounts under `~/.docker/paperless/`; no Docker named volumes are used. The directories are created idempotently with PostgreSQL ownership `70:70` and Paperless ownership controlled by `docker.paperless.uid` / `gid` (defaults to `1000:1000`). Its web interface binds to `127.0.0.1:8022` and the supplied local Caddy configuration publishes `paperless.21x9.org`. Store `postgres_password` (URL-safe) and `secret_key` under `secrets.docker.paperless` in the encrypted secrets file. Generate a strong secret key and do not leave the example placeholders in place.
 
 - **Miniflux** uses a PostgreSQL companion container. Its database is persisted in `~/.docker/miniflux/db/`; administrator and database credentials are read from `secrets.docker.miniflux`.
 - **TimeTagger** stores its data in `~/.docker/timetagger/`, mounted at the container's `/root/_timetagger` directory.
