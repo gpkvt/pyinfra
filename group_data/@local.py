@@ -567,7 +567,7 @@ docker = {
                     {
                         "Proton Mail": [
                             {
-                                "icon": "/icons/proton-mail.svg",
+                                "icon": "/icons/proton-mail.png",
                                 "href": "https://mail.proton.me",
                             },
                         ],
@@ -575,7 +575,7 @@ docker = {
                     {
                         "Proton Calendar": [
                             {
-                                "icon": "/icons/proton-calendar.svg",
+                                "icon": "/icons/proton-calendar.png",
                                 "href": "https://calendar.proton.me",
                             },
                         ],
@@ -583,7 +583,7 @@ docker = {
                     {
                         "Proton Drive": [
                             {
-                                "icon": "/icons/proton-drive.svg",
+                                "icon": "/icons/proton-drive.png",
                                 "href": "https://drive.proton.me",
                             },
                         ],
@@ -591,7 +591,7 @@ docker = {
                     {
                         "Proton Docs": [
                             {
-                                "icon": "/icons/proton-docs.svg",
+                                "icon": "/icons/proton-docs.png",
                                 "href": "https://account.proton.me/docs",
                             },
                         ],
@@ -599,7 +599,7 @@ docker = {
                     {
                         "Proton Sheets": [
                             {
-                                "icon": "/icons/proton-sheets.svg",
+                                "icon": "/icons/proton-sheets.png",
                                 "href": "https://account.proton.me/sheets",
                             },
                         ],
@@ -607,7 +607,7 @@ docker = {
                     {
                         "Proton VPN": [
                             {
-                                "icon": "/icons/proton-vpn.svg",
+                                "icon": "/icons/proton-vpn.png",
                                 "href": "https://account.protonvpn.com",
                             },
                         ],
@@ -615,7 +615,7 @@ docker = {
                     {
                         "Proton Pass": [
                             {
-                                "icon": "/icons/proton-pass.svg",
+                                "icon": "/icons/proton-pass.png",
                                 "href": "https://pass.proton.me",
                             },
                         ],
@@ -631,7 +631,7 @@ docker = {
                     {
                         "Proton Wallet": [
                             {
-                                "icon": "/icons/proton-wallet.svg",
+                                "icon": "/icons/proton-wallet.png",
                                 "href": "https://wallet.proton.me",
                             },
                         ],
@@ -639,7 +639,7 @@ docker = {
                     {
                         "Proton Meet": [
                             {
-                                "icon": "/icons/proton-meet.svg",
+                                "icon": "/icons/proton-meet.png",
                                 "href": "https://account.proton.me/meet",
                             },
                         ],
@@ -647,7 +647,7 @@ docker = {
                     {
                         "Lumo": [
                             {
-                                "icon": "/icons/proton-lumo.svg",
+                                "icon": "/icons/proton-lumo.png",
                                 "href": "https://lumo.proton.me",
                             },
                         ],
