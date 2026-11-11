@@ -23,62 +23,36 @@ These task modules are included on every full deployment.
 | Module | Inclusion condition | Responsibility |
 | --- | --- | --- |
 | `tasks/flatpak.py` | Flatpak executable detected during initialization | Installs configured Flatpak application IDs. |
-| `tasks/ssh_config.py` | `ssh_config` | Renders the user's SSH client configuration with a hardened global baseline followed by configured host entries. |
-| `tasks/wireguard.py` | `wireguard_config` and `secrets.wireguard` | Installs WireGuard and writes `/etc/wireguard/<interface>.conf`; does not start the service. |
-| `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
-| `tasks/dehydrated.py` | `secrets.dehydrated` | Configures dehydrated for ACME certificate management and deploys its hook. |
-| `tasks/caddy.py` | `caddy_config` | Deploys Caddy configuration from host data. |
-| `tasks/syncthing.py` | `syncthing` | Installs Syncthing, enables `syncthing@<username>`, and configures its GUI listen address (loopback by default). Device and folder sharing is configured separately in Syncthing. |
-| `tasks/zsh.py` | `zsh` | Installs/configures Zsh and related user configuration. |
-| `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
-| `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
-| `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
-| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag, Vaultwarden, NocoDB and Homepage services. |
-| `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
-| `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
-| `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
-| `tasks/vscodium.py` | `vscodium` | Installs configured VSCodium extensions that are not already installed. |
-| `tasks/proton.py` | `proton` | Installs/configures selected Proton applications using the configured distribution sources. |
-
-## Workstation role tasks
-
-The modules below are included by `deploy.py` only when the matching nested setting under `host.data.workstation` has `enabled: True`. Their shared defaults are defined in `group_data/workstation.py`; inventory membership determines which hosts receive that group data.
-
-| Module | Responsibility | Configuration |
-| --- | --- | --- |
-| `tasks/workstation/backup.py` | Installs Restic, Borg, rsync and Borgmatic; renders `/etc/borgmatic/config.yaml`. It does not create, schedule or run backups. | `workstation.backup.enabled` |
-| `tasks/workstation/power.py` | Installs/enables TLP or Power Profiles Daemon and removes the conflicting manager. | `workstation.power.enabled`, `workstation.power.manager` |
-| `tasks/workstation/hardware.py` | Installs fwupd and optional CPU microcode. Firmware updates are not applied automatically. | `workstation.hardware.enabled`, `workstation.hardware.cpu_vendor` (`intel`, `amd` or unset) |
-| `tasks/workstation/storage.py` | Installs `smartmontools` and `nvme-cli`; does not configure polling or alerting. | `workstation.storage.enabled` |
-| `tasks/workstation/peripherals.py` | Installs optional printer/scanner packages; enables CUPS when printing is selected. | `workstation.peripherals.enabled`, `printing`, `scanning` |
-| `tasks/workstation/desktop.py` | Installs common desktop integration utilities. A custom package list replaces the defaults. | `workstation.desktop.enabled`, optional `packages` list |
-| `tasks/workstation/maintenance.py` | Installs `needrestart`, `debian-goodies` and `apt-file`; does not enable unattended upgrades or schedule reboots. | `workstation.maintenance.enabled` |
-
-The supplied `group_data/workstation.py` enables backup, power, hardware and storage by default. Peripheral support, desktop utilities and maintenance utilities are disabled. Review the group data before assigning additional hosts to the workstation group.
+| `tasks/ssh_config.py` | `ssh_config` | Renders the user's SSH client configuration with a hardened global baseline followed by configured host entries. | `ssh_config` |
+| `tasks/wireguard.py` | `wireguard_config` and `secrets.wireguard` | Installs WireGuard and writes `/etc/wireguard/<interface>.conf`; does not start the service. | `wireguard_config` |
+| `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. | `local_network_cidr`, `wireguard_interface` |
+| `tasks/dehydrated.py` | `secrets.dehydrated` | Configures dehydrated for ACME certificate management and deploys its hook. | `secrets.dehydrated` |
+| `tasks/caddy.py` | `caddy_config` | Deploys Caddy configuration from host data. | `caddy_config` |
+| `tasks/syncthing.py` | `syncthing` | Installs Syncthing, enables `syncthing@<username>`, and configures its GUI listen address (loopback by default). Device and folder sharing is configured separately in Syncthing. | `syncthing` |
+| `tasks/zsh.py` | `zsh` | Installs/configures Zsh and related user configuration. | `zsh` |
+| `tasks/tmux.py` | `tmux` | Deploys tmux configuration. | `tmux` |
+| `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. | `powerline` |
+| `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. | `ufw` |
+| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag, Vaultwarden, NocoDB and Homepage services. | `docker` |
+| `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. | `apparmor_profiles` |
+| `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. | `cosmic` |
+| `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. | `mullvad_extensions` |
+| `tasks/vscodium.py` | `vscodium` | Installs/configures VSCodium extensions. | `vscodium` |
+| `tasks/proton.py` | `proton` | Installs/configures selected Proton applications using the configured distribution sources. | `proton` |
 
 ## Feature notes
 
-### GPG secret utility
+### Homepage Glances widget
 
-`tasks/scripts.py` deploys `files/scripts/gpg-vault` with the other user scripts and creates its command link. The helper provides `create`, `edit`, `view`, `encrypt`, `decrypt`, `rekey` and `status`; see [Secrets management](secrets.md). It is not invoked by `deploy.py`: `common.initialize()` remains responsible for decrypting `secrets.json.gpg` during deployment.
+When `docker.homepage.glances` is configured, the Homepage task manages a system-level `glances-web.service` running as the configured deployment user. This avoids depending on an interactive user session or user D-Bus. The service listens on the Docker host-gateway address (default `172.17.0.1`) and Homepage reaches it through the Compose `host.docker.internal:host-gateway` mapping. The Homepage network's own gateway (for example `172.27.0.1`) is not the address used by `host.docker.internal`.
+
+When UFW is installed, the task discovers the subnet of the `homepage_default` Compose network and adds an allow rule for that source subnet, the configured Glances bind address and port. The rule is checked before it is added, so unchanged deployments do not add duplicate rules. The API port is not published by Compose and is not opened to arbitrary source networks. If the Homepage network does not exist yet (for example during its first deployment), the firewall rule is skipped and will be configured on the next deployment after Compose has created the network.
+
+The listener address and port are configurable through `docker.homepage.glances.bind_address` and `docker.homepage.glances.port`. Keep the bind address aligned with Docker's configured `host-gateway` address if that daemon setting is customized.
 
 ### UFW firewall
 
 `tasks/ufw.py` supports the `chromecast-dlna`, `kdeconnect` and `localsend` application profiles plus `ssh` (TCP port 22). Each configured value must be `Allow` or `Deny`; unsupported keys and values are ignored. The task sets default incoming policy to deny and outgoing policy to allow, applies configured rules, and then enables UFW. Review the resulting policy before applying it remotely. The supplied `group_data/@local.py` currently sets `ssh` to `Deny`, so do not copy that policy to a remotely managed host without a separate recovery path.
-
-### APT
-
-Repository definitions include a signing-key URL and destination plus repository URL, distribution, components and optional architectures/types. Review third-party repository configuration carefully: adding a repository delegates package trust to that repository's signing key and publishing process.
-
-### SSH keys and client hardening
-
-The key task supports Ed25519 and RSA key generation; RSA keys must be at least 3072 bits. Private keys are not overwritten when they already exist. Passphrases can be supplied through `secrets.ssh`. Keep backups of keys and verify authorized-key changes before removing access paths.
-
-The SSH client task writes a global `Host *` baseline before the configured `ssh_config` host entries. It enables `HashKnownHosts`, `StrictHostKeyChecking accept-new`, `UpdateHostKeys`, and public-key authentication; disables agent forwarding, X11 forwarding, local commands and configured forwarding; and sets connection timeout/keepalive values. With OpenSSH's first-obtained-value behavior, these baseline options take precedence over later host-specific entries. `accept-new` automatically records previously unseen host keys but still rejects changed keys; verify host fingerprints through a trusted channel when onboarding sensitive systems.
-
-### WireGuard and VPN activation
-
-The WireGuard task installs the package and renders one file per configured interface. The VPN task is separate: it inspects globally scoped IPv4 addresses using `ip -j -4 addr show scope global`, compares them with `local_network_cidr`, and enables/runs the configured `wg-quick@...` service when outside that network. IPv6 is not considered by the network-detection check.
 
 ### Docker services
 
@@ -109,106 +83,7 @@ All persistent application data currently uses host bind mounts. The paths below
 | NocoDB | `~/.docker/nocodb/data/` | `127.0.0.1:8019` |
 | Homepage | `~/.docker/homepage/config/` | `127.0.0.1:8020` |
 
-**Service-specific notes**
+### Homepage configuration and widgets
 
-- **Miniflux** uses a PostgreSQL companion container. Its database is persisted in `~/.docker/miniflux/db/`; administrator and database credentials are read from `secrets.docker.miniflux`.
-- **TimeTagger** stores its data in `~/.docker/timetagger/`, mounted at the container's `/root/_timetagger` directory.
-- **Grav** persists the complete web application data directory in `~/.docker/grav/data/`. Its `setup`, `scheduler` and `fix_permissions` options are configurable.
-- **Forgejo** persists application data in `~/.docker/forgejo/data/`. Its web and SSH ports bind to loopback by default; the public domain is configurable.
-- **Portainer** persists data in `~/.docker/portainer/data/` and mounts `/var/run/docker.sock`. Access to Portainer effectively grants administrative control over the Docker host; expose it only through a trusted, authenticated reverse proxy.
-- **TasmoAdmin** mounts `~/.docker/tasmoadmin/data/` at `/data/tasmoadmin`, matching its `TASMO_DATADIR` setting.
-- **Wallabag** uses SQLite and persists its database/application data and article images in the two host directories shown above. The directories are mounted into the container paths used by Wallabag's `www-data` process. The supplied local Caddy configuration publishes it as `wallabag.21x9.org`; the initial credentials are `wallabag` / `wallabag`, which must be changed after first login.
-- **Vaultwarden** persists its data in `~/.docker/vaultwarden/`. Public signups and invitations are disabled. An optional Argon2 PHC admin-token hash is read from `secrets.docker.vaultwarden.admin_token`; generate it with `docker run --rm -it vaultwarden/server:latest /vaultwarden hash`. Its supplied local Caddy hostname is `vaultwarden.21x9.org`.
-- **NocoDB** persists application data in `~/.docker/nocodb/data/`, mounted at `/usr/app/data`. Its HTTP interface binds to loopback on port `8019` by default; the supplied local Caddy hostname is `nocodb.21x9.org`.
-- **Homepage** stores its configuration in `~/.docker/homepage/config/`, mounted at `/app/config`. It binds to loopback on port `8020` and sets `HOMEPAGE_ALLOWED_HOSTS` to the configured hostname; the supplied local Caddy hostname is `homepage.21x9.org`. Optional host-data keys `settings`, `services`, `bookmarks`, `widgets`, `docker`, `kubernetes` and `proxmox` are rendered to their matching `*.yaml` files. Each file is rendered only when its key is present; omitted sections are left untouched. The supplied `group_data/@local.py` includes service links to the locally deployed applications, each with a local PNG icon. The icons are stored in `files/homepage/icons/` and synchronized idempotently to `~/.docker/homepage/public/icons/`; synchronization does not delete destination files, so local-only icons are preserved. The public asset directories use mode `0755`; icon synchronization does not enforce per-file ownership or permissions, avoiding repeated metadata changes if the Homepage container adjusts mounted asset metadata. The Compose service mounts the icon and image directories separately at `/app/public/icons` and `/app/public/images`. Set each service's `icon` to a path such as `/icons/miniflux.png`. Configure the dashboard background under `docker.homepage.settings.background`; the local example uses the official Homepage sample image hosted by Unsplash. Replace the URL or use a local image such as `/images/background.jpg` stored in `~/.docker/homepage/public/images/`. Homepage also supports `blur`, `saturate` and `brightness` background options. The local example configures `settings.layout.Services` with `style: row` and `columns: 3`, arranging service cards in three columns. Adjust the column count in host data to suit the display. Docker socket access is not enabled by default. Homepage dashboards may expose sensitive widget data, so protect access with a trusted reverse proxy authentication policy, Homepage authentication, or a VPN.
+Homepage configuration is stored in `~/.docker/homepage/config/`; optional host-data keys `settings`, `services`, `bookmarks`, `widgets`, `docker`, `kubernetes` and `proxmox` are rendered to their matching YAML files. Each file is rendered only when its key is present. Homepage's header widgets and service widgets are configured separately. The local example includes FRITZ!Box, Miniflux, Forgejo, Portainer and Glances widgets. Keep API credentials in the encrypted secrets file rather than tracked host data. Homepage dashboards may expose sensitive widget data, so protect access with trusted authentication, a VPN, or an authenticated reverse proxy.
 
-Homepage supports two distinct widget types: service widgets are configured inside each service entry in services.yaml, while header/info widgets are configured in widgets.yaml. Both are supplied through the docker.homepage.services and docker.homepage.widgets host-data keys. The local example enables:
-- **FRITZ!Box** status, uptime and transfer rates at 192.168.42.1. Enable *Allow access for applications* and *Transmit status information over UPnP* in the FRITZ!Box network settings. The widget does not require credentials and supports at most four fields.
-- **Miniflux** unread/read article counts. Create an API key under Miniflux Settings → API keys.
-- **Forgejo** repository, notification, issue and pull-request counts using Homepage's Gitea-compatible widget. Create an API token with notifications, repository and issue permissions.
-- **Portainer** running/stopped/total container counts. Create an API access token and verify the environment ID (1 in the supplied example) in Portainer.
-- **Glances** host metrics (CPU, memory, CPU temperature, uptime and the `/` filesystem). The Homepage task manages a system-level `glances-web.service` running as the configured deployment user; this avoids depending on an interactive user session or user D-Bus. When the unit changes, it restarts the service and removes only a stale Glances web-server process matching the configured user, bind address and port before starting the managed instance; the separate Glances server mode (`-s`) is not affected. Glances listens on the configured Docker bridge gateway (default `172.17.0.1:61208`) and is reached using Docker's `host.docker.internal` host-gateway mapping. The API port is not published by Compose. The listener address and port are configurable through `docker.homepage.glances.bind_address` and `docker.homepage.glances.port`; adjust the bind address if the Docker bridge uses a different gateway.
-- A date/time widget using the German locale and 24-hour time format, and DuckDuckGo search. CPU, memory and filesystem metrics are provided by Glances to avoid duplicate resource displays.
-
-The API credentials are injected through Homepage's supported HOMEPAGE_VAR_* environment substitution. The Compose template accepts an optional docker.homepage.environment mapping and writes its entries into the container environment. The task also merges secrets.docker.homepage.environment, with secret values taking precedence. Store API keys in the encrypted secrets file rather than in tracked host data. For example, define HOMEPAGE_VAR_MINIFLUX_API_KEY, HOMEPAGE_VAR_FORGEJO_API_KEY and HOMEPAGE_VAR_PORTAINER_API_KEY under secrets.docker.homepage.environment. The supplied service widget URLs use the configured HTTPS hostnames so the Homepage container can reach services that are published only on the host loopback interface.
-
-**Optional integrations:** Homepage also supports widgets for WGEasy, Grafana, Home Assistant and Paperless-ngx. These applications are not deployed by this repository's Docker service tasks (Grafana, Home Assistant and Paperless-ngx are referenced only as external LAN services; WGEasy is not currently configured as a service). Add them as service entries only when the corresponding application is reachable from the Homepage container. For WGEasy v15 and newer, use widget type wgeasy, version 2, and the configured username/password; older releases use API version 1. See the [WGEasy widget documentation](https://gethomepage.dev/widgets/services/wgeasy/). The FRITZ!Box, Miniflux, Forgejo/Gitea and Portainer widget schemas are documented in the [Homepage service widget reference](https://gethomepage.dev/widgets/services/).
-
-Example optional service entries (add them to a group in docker.homepage.services and replace the URLs and credentials with values reachable from the Homepage container):
-
-```python
-{
-    "WG-Easy": {
-        "href": "https://wg-easy.example.org",
-        "widget": {
-            "type": "wgeasy",
-            "url": "http://wg-easy:51821",
-            "version": 2,  # WGEasy v15+
-            "username": "{{HOMEPAGE_VAR_WGEASY_USERNAME}}",
-            "password": "{{HOMEPAGE_VAR_WGEASY_PASSWORD}}",
-        },
-    },
-},
-{
-    "Grafana": {
-        "href": "https://grafana.example.org",
-        "widget": {
-            "type": "grafana",
-            "version": 2,  # Grafana > 10.4
-            "url": "http://grafana:3000",
-            "username": "{{HOMEPAGE_VAR_GRAFANA_USERNAME}}",
-            "password": "{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}",
-        },
-    },
-},
-{
-    "Home Assistant": {
-        "href": "https://ha.example.org",
-        "widget": {
-            "type": "homeassistant",
-            "url": "http://homeassistant:8123",
-            "key": "{{HOMEPAGE_VAR_HOME_ASSISTANT_TOKEN}}",
-        },
-    },
-},
-{
-    "Paperless-ngx": {
-        "href": "https://paperless.example.org",
-        "widget": {
-            "type": "paperlessngx",
-            "url": "http://paperless:8000",
-            "key": "{{HOMEPAGE_VAR_PAPERLESS_TOKEN}}",
-            "fields": ["total", "inbox"],
-        },
-    },
-},
-```
-
-The matching environment variables can be added to secrets.docker.homepage.environment (preferred) or docker.homepage.environment for non-secret values. Do not put real credentials in tracked host-data files. For WGEasy v15 and newer, use widget type wgeasy and version 2; older releases use API version 1. See the [WGEasy widget documentation](https://gethomepage.dev/widgets/services/wgeasy/), [Grafana](https://gethomepage.dev/widgets/services/grafana/), [Home Assistant](https://gethomepage.dev/widgets/services/homeassistant/) and [Paperless-ngx](https://gethomepage.dev/widgets/services/paperlessngx/) documentation.
-
-Header widgets and service widgets can expose network and application data. Keep Homepage behind trusted authentication, a VPN, or an authenticated reverse proxy. API keys must have only the permissions needed for read-only dashboard access.
-
-
-**Storage migration**
-
-The current Compose templates use host bind mounts, not Docker-managed named volumes. If a service was previously deployed using an earlier named-volume template (notably Wallabag or Vaultwarden), Docker Compose will not copy that volume's contents into the new host directory. Back up the old volume and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.
-
-`tasks/docker/` contains the service-specific configuration and `templates/docker/` contains the corresponding Compose files. Consult both before changing a service's supported host-data keys or storage layout.
-
-### Browser and editor extensions
-
-Mullvad extension downloads are defined by extension IDs and URLs. The supplied local configuration includes Wallabagger for connecting the browser to the self-hosted Wallabag instance. VSCodium extension installation is additive: already-installed extensions are detected and left in place. Review external download sources before enabling either task.
-
-### Proton
-
-The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options.
-
-## Run an individual task
-
-For diagnosis or focused testing, pyinfra can run a task file directly. Example:
-
-```bash
-pyinfra inventory.py tasks/system.py --dry --diff
-```
-
-A task run directly may not have all initialization or feature-gate behavior of `deploy.py`; inspect whether the task initializes shared state itself. Prefer the full entry point for normal provisioning.
