@@ -454,6 +454,13 @@ docker = {
         "domain": "homepage.21x9.org",
         # Display service cards in a compact three-column row.
         "settings": {
+            # Use a local image placed in ~/.docker/homepage/public/images/.
+            "background": {
+                "image": "/images/background.jpg",
+                "blur": "sm",
+                "saturate": 50,
+                "brightness": 50,
+            },
             "layout": {
                 "Services": {
                     "style": "row",
@@ -468,54 +475,63 @@ docker = {
                 "Services": [
                     {
                         "Miniflux": {
+                            "icon": "/icons/miniflux.png",
                             "href": "https://rss.21x9.org",
                             "description": "RSS reader",
                         },
                     },
                     {
                         "TimeTagger": {
+                            "icon": "/icons/timetagger.png",
                             "href": "https://timetagger.21x9.org",
                             "description": "Time tracking",
                         },
                     },
                     {
                         "Grav": {
+                            "icon": "/icons/grav.png",
                             "href": "https://grav.21x9.org",
                             "description": "CMS",
                         },
                     },
                     {
                         "Forgejo": {
+                            "icon": "/icons/forgejo.png",
                             "href": "https://forgejo.21x9.org",
                             "description": "Git service",
                         },
                     },
                     {
                         "Portainer": {
+                            "icon": "/icons/portainer.png",
                             "href": "https://portainer.21x9.org",
                             "description": "Docker management",
                         },
                     },
                     {
                         "TasmoAdmin": {
+                            "icon": "/icons/tasmoadmin.png",
                             "href": "https://tasmoadmin.21x9.org",
                             "description": "Tasmota device management",
                         },
                     },
                     {
                         "Wallabag": {
+                            "icon": "/icons/wallabag.png",
                             "href": "https://wallabag.21x9.org",
                             "description": "Read-it-later",
                         },
                     },
                     {
                         "Vaultwarden": {
+                            "icon": "/icons/vaultwarden.png",
                             "href": "https://vaultwarden.21x9.org",
                             "description": "Password manager",
                         },
                     },
                     {
                         "NocoDB": {
+                            "icon": "/icons/nocodb.png",
                             "href": "https://nocodb.21x9.org",
                             "description": "Database platform",
                         },
