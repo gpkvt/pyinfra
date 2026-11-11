@@ -609,6 +609,7 @@ docker = {
                         "dateStyle": "medium",
                         "timeStyle": "short",
                         "hourCycle": "h23",
+                        "timeZone": "Europe/Amsterdam",
                     },
                 },
             },
