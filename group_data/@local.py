@@ -597,6 +597,13 @@ docker = {
                             "description": "Database platform",
                         },
                     },
+                    {
+                        "Linkwarden": {
+                            "icon": "mdi-bookmark-multiple",
+                            "href": "https://linkwarden.21x9.org",
+                            "description": "Bookmark manager",
+                        },
+                    },
                 ],
             },
             {
