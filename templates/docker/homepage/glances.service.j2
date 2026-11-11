@@ -5,6 +5,21 @@ Wants=network-online.target
 
 [Service]
 Type=simple
+# Remove only a stale web-server process for this exact user, address and port.
+# The systemd-managed instance is stopped before ExecStartPre runs on restart.
+ExecStartPre=-/usr/bin/pkill -u {{ username }} -f '^/usr/bin/python3 /usr/bin/glances -w -B {{ bind_address }} -p {{ port }}
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+User={{ username }}
+Group={{ usergroup }}
+Environment=HOME={{ homedir }}
+
+[Install]
+WantedBy=multi-user.target
+
 ExecStart=/usr/bin/glances -w -B {{ bind_address }} -p {{ port }}
 Restart=on-failure
 RestartSec=5

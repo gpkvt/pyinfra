@@ -121,6 +121,15 @@ if glances:
         enabled=True,
     )
 
+    # Restart once when the unit changes so ExecStartPre can clean up a
+    # manually started instance that would otherwise keep the port occupied.
+    systemd.service(
+        name="Restart Glances web service after unit changes",
+        service="glances-web.service",
+        restarted=True,
+        _if=glances_unit.did_change,
+    )
+
 homepage_environment = homepage.get("environment", {}).copy()
 homepage_environment.update(
     secrets.get("docker", {}).get("homepage", {}).get("environment", {})  # pylint: disable=undefined-variable
