@@ -452,11 +452,6 @@ docker = {
         "image": "ghcr.io/gethomepage/homepage:latest",
         # API keys are supplied by secrets.json.gpg. The Homepage task merges
         # secrets.docker.homepage.environment over this optional base mapping.
-        "environment": {
-            "HOMEPAGE_VAR_MINIFLUX_API_KEY": "",
-            "HOMEPAGE_VAR_FORGEJO_API_KEY": "",
-            "HOMEPAGE_VAR_PORTAINER_API_KEY": "",
-        },
         "port": 8020,
         "domain": "homepage.21x9.org",
         # Display service cards in a compact three-column row.
