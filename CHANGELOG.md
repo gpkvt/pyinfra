@@ -5,6 +5,24 @@ All notable changes to this project are documented in this file.
 This project follows a continuous development model.
 Changes are tracked as a date timestamp until formal releases are introduced.
 
+## [11.11.2026]
+
+### Added
+
+- Added Homepage widgets for Miniflux, Forgejo and Portainer, with API credentials sourced from encrypted secrets ([#67](https://github.com/gpkvt/pyinfra/pull/67), [#68](https://github.com/gpkvt/pyinfra/pull/68), [#73](https://github.com/gpkvt/pyinfra/pull/73)).
+- Added the OpenWeatherMap widget with configurable API key and location ([#77](https://github.com/gpkvt/pyinfra/pull/77)).
+
+### Changed
+
+- Centralized Docker-to-host UFW rules in the local host configuration ([#75](https://github.com/gpkvt/pyinfra/pull/75)).
+- Updated Homepage Docker networking to support HTTPS access to host-based services ([#74](https://github.com/gpkvt/pyinfra/pull/74)).
+- Changed the Homepage weather location to Cologne, Germany ([#80](https://github.com/gpkvt/pyinfra/pull/80)).
+
+### Fixed
+
+- Corrected the Mullvad configuration structure ([#78](https://github.com/gpkvt/pyinfra/pull/78)).
+- Fixed a missing host import in the Homepage task ([#79](https://github.com/gpkvt/pyinfra/pull/79)).
+
 ## [10.11.2026]
 
 ### Added
