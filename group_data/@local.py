@@ -510,7 +510,7 @@ docker = {
                     {
                         "Kachelmannwetter": [
                             {
-                                "icon": "mdi-weather-cloudy",
+                                "icon": "/icons/kachelmann-logo.svg",
                                 "href": "https://kachelmannwetter.com/de/vorhersage/2886242-koeln/14-tage-trend",
                             },
                         ],
@@ -546,7 +546,7 @@ docker = {
                     {
                         "LinkedIn": [
                             {
-                                "icon": "si-linkedin",
+                                "icon": "/icons/linkedin.ico",
                                 "href": "https://www.linkedin.com/in/denis-w-96b83a282/",
                             },
                         ],
