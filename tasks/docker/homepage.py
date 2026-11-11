@@ -4,9 +4,9 @@ Deploy and manage Homepage using Docker Compose.
 
 Configuration:
     docker.homepage (dict):
-        image (str): Container image. Defaults to ghcr.io/gethomepage/homepage:latest.
-        port (int): Local HTTP port. Defaults to 8020.
-        domain (str): Hostname allowed by Homepage. Defaults to homepage.21x9.org.
+        image, port and domain configure the container and allowed hostname.
+        settings, services, bookmarks, widgets, docker, kubernetes and proxmox
+        are optional dictionaries/lists rendered as separate YAML files.
 
 Persistent configuration:
     ~/.docker/homepage/config/
@@ -26,8 +26,21 @@ homepage = host.data.get("docker", {}).get("homepage", {})
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
+# Homepage reads each configuration area from its own YAML file. Only render
+# files explicitly present in host data, preserving Homepage defaults for the
+# other areas and avoiding empty files that could override built-in behavior.
+config_files = {
+    "settings": "settings.yaml",
+    "services": "services.yaml",
+    "bookmarks": "bookmarks.yaml",
+    "widgets": "widgets.yaml",
+    "docker": "docker.yaml",
+    "kubernetes": "kubernetes.yaml",
+    "proxmox": "proxmox.yaml",
+}
+
 # Homepage requires a writable configuration directory. Creating it before
-# starting the container is idempotent and keeps ownership predictable.
+# rendering files is idempotent and keeps ownership predictable.
 files.directory(
     name="Create Homepage configuration directory",
     path=f"{homedir}/.docker/homepage/config/",  # pylint: disable=undefined-variable
@@ -35,6 +48,18 @@ files.directory(
     group=usergroup,
     mode="750",
 )
+
+for config_name, filename in config_files.items():
+    if config_name in homepage:
+        files.template(
+            name=f"Configure Homepage {config_name}",
+            src=f"templates/docker/homepage/{filename}.j2",
+            dest=f"{homedir}/.docker/homepage/config/{filename}",  # pylint: disable=undefined-variable
+            user=username,
+            group=usergroup,
+            mode="640",
+            config=homepage[config_name],
+        )
 
 deploy_docker_service(
     service="homepage",
