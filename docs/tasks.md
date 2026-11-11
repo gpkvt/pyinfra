@@ -89,7 +89,7 @@ When `host.data.docker` is truthy, `deploy.py` includes `tasks/docker.py` and `t
 - Compose files are rendered to `~/<service>/docker-compose.yml`.
 - User-level systemd units are rendered to `~/.config/systemd/user/<service>.service`.
 - Persistent data and per-service Docker directories live under the configured user's `~/.docker/` directory.
-- A changed Compose file triggers `docker compose pull`; a changed Compose file or systemd unit triggers a service restart. Service tasks can also register additional restart triggers for generated assets; Homepage restarts when its synchronized public icons change.
+- A changed Compose file triggers `docker compose pull`; a changed Compose file or systemd unit triggers a service restart. The systemd unit stops the Compose project with `docker compose down` and starts it with `docker compose up -d`, recreating its containers. Service tasks can also register additional restart triggers for generated assets; Homepage's container is recreated when its synchronized public icons change.
 - An unchanged Compose file does not trigger an image pull. Image updates therefore require a configuration change or a separate manual pull.
 
 **Available services**
