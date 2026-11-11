@@ -165,7 +165,8 @@ if glances:
     # the Homepage Compose subnet to access the host-gateway listener; do not
     # expose the metrics API on every interface or publish it through Compose.
     homepage_subnet = host.get_fact(HomepageDockerSubnet)
-    if homepage_subnet:
+    homepage_ufw_status = host.get_fact(HomepageUfwRules)
+    if homepage_subnet and homepage_ufw_status:
         server.shell(
             name="Allow Homepage network to access Glances",
             commands=[
