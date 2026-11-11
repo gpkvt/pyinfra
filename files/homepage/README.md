@@ -6,8 +6,6 @@ Upstream icon files: `png/<name>.png`. See [LICENSE](LICENSE) for the upstream l
 
 ## Proton service icons
 
-The Proton service SVGs are copied from the official [Proton WebClients repository](https://github.com/ProtonMail/WebClients), under the repository's license. They are stored locally so Homepage does not depend on external favicon redirects.
+The Proton bookmarks use service-specific artwork from the official [Proton WebClients repository](https://github.com/ProtonMail/WebClients). Mail, VPN, Drive, Calendar, Meet, and Wallet use each app's `icon-maskable.svg` artwork, with its white mask background removed for Homepage's dark theme. Docs and Sheets use their dedicated document and spreadsheet favicons. Pass and Lumo use their dedicated service artwork. Authenticator uses the dedicated Authenticator logo from `packages/components/containers/account/authenticatorPromotion/assets/authenticator-logo.svg`.
 
-Source paths: `applications/mail/src/favicon.svg`, `applications/calendar/src/favicon.svg`, `applications/drive/src/favicon.svg`, `applications/docs/src/favicon.svg`, `applications/docs/src/app/hooks/sheets-favicon.svg`, `applications/vpn-settings/src/favicon.svg`, `applications/pass/src/favicon.svg`, `applications/wallet/src/favicon.svg`, `applications/meet/src/favicon.svg`, and `applications/lumo/src/favicon.svg`.
-
-The Proton Authenticator bookmark retains the generic Proton logo because the upstream WebClients repository does not currently provide a dedicated Authenticator favicon.
+All SVGs are stored locally to avoid external favicon redirects.

@@ -1,32 +1,54 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    
     <path
-        fill="url(#a)"
-        d="M0 12V3.513l5.057 4.178a1.5 1.5 0 0 0 1.896.013L8.375 6.56l.594-.47v-.005L13 2.86V14H2a2 2 0 0 1-2-2Z"
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M13.62 10.7036L13.6207 10.7041L10.2857 14.3238L6 9.71129V7.72166C6 7.49319 6.27234 7.36819 6.4521 7.51416L11.2069 11.3751C11.6667 11.7484 12.3333 11.7484 12.7931 11.3751L13.62 10.7036Z"
+        fill="url(#paint0_linear_13875_14082)"
     />
     <path
-        fill="url(#b)"
-        d="M0 3.513 5.057 7.69a1.5 1.5 0 0 0 1.896.013L8.375 6.56l.594-.47v-.006l-.344.276a1 1 0 0 1-1.25 0L1.22 1.434A.75.75 0 0 0 0 2.02v1.493Z"
+        d="M15.4286 9.23511L13.62 10.7036L11.2261 12.7724C10.8182 13.1247 10.2085 13.1336 9.79003 12.7933L6 9.71133L6.00002 15.8243C6.00002 16.4947 6.5558 17 7.2414 17L15.4286 17L16.2857 13.0366L15.4286 9.23511Z"
+        fill="url(#paint1_radial_13875_14082)"
     />
-    <path fill="url(#c)" d="M16 12V2.02a.75.75 0 0 0-1.219-.586L13 2.86V14h1a2 2 0 0 0 2-2Z" />
+    <path
+        fill-rule="evenodd"
+        clip-rule="evenodd"
+        d="M15.4286 9.23656V17L16.7586 17C17.4442 17 18 16.4565 18 15.7862V7.72167C18 7.4932 17.7277 7.36817 17.5479 7.51417L15.4286 9.23656Z"
+        fill="url(#paint2_linear_13875_14082)"
+    />
     <defs>
-        <linearGradient id="b" x1="5.3" x2="2.048" y1="8.097" y2="-5.711" gradientUnits="userSpaceOnUse">
+        <linearGradient
+            id="paint0_linear_13875_14082"
+            x1="10.503"
+            y1="14.3876"
+            x2="6.64231"
+            y2="0.671403"
+            gradientUnits="userSpaceOnUse"
+        >
             <stop stop-color="#E3D9FF" />
             <stop offset="1" stop-color="#7341FF" />
         </linearGradient>
-        <linearGradient id="c" x1="20.528" x2="7.258" y1="22.254" y2="-2.929" gradientUnits="userSpaceOnUse">
-            <stop offset=".271" stop-color="#E3D9FF" />
-            <stop offset="1" stop-color="#7341FF" />
-        </linearGradient>
         <radialGradient
-            id="a"
+            id="paint1_radial_13875_14082"
             cx="0"
             cy="0"
             r="1"
-            gradientTransform="matrix(15.1603 0 0 16.1982 12.943 4.224)"
+            gradientUnits="userSpaceOnUse"
+            gradientTransform="translate(16.2409 10.1611) scale(11.9949 10.9995)"
+        >
+            <stop offset="0.5561" stop-color="#6D4AFF" />
+            <stop offset="0.9944" stop-color="#AA8EFF" />
+        </radialGradient>
+        <linearGradient
+            id="paint2_linear_13875_14082"
+            x1="21.8808"
+            y1="22.8607"
+            x2="13.021"
+            y2="3.23424"
             gradientUnits="userSpaceOnUse"
         >
-            <stop offset=".556" stop-color="#6D4AFF" />
-            <stop offset=".994" stop-color="#AA8EFF" />
-        </radialGradient>
+            <stop offset="0.271" stop-color="#E3D9FF" />
+            <stop offset="1" stop-color="#7341FF" />
+        </linearGradient>
     </defs>
 </svg>
