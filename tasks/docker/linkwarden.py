@@ -22,7 +22,7 @@ Persistent data:
 """
 
 from pyinfra import host
-from pyinfra.operations import files
+from pyinfra.operations import files, server
 
 from tasks.docker import deploy_docker_service
 
@@ -33,17 +33,26 @@ usergroup = host.data.get("usergroup", "root")
 
 # Create volume backing directories before Compose creates the local volumes.
 # PostgreSQL 16 Alpine runs as UID/GID 70:70 and needs exclusive access.
-directories = {
-    "postgres": {"user": "70", "group": "70", "mode": "700"},
-    "data": {"user": username, "group": usergroup, "mode": "750"},
-    "meili": {"user": username, "group": usergroup, "mode": "750"},
-}
+postgres_directory = f"{homedir}/.docker/linkwarden/postgres"  # pylint: disable=undefined-variable
+server.shell(
+    name="Create Linkwarden postgres storage directory",
+    commands=[
+        f"install -d -o 70 -g 70 -m 700 {postgres_directory}",
+    ],
+    _sudo=True,
+    _if=(
+        f"test ! -d {postgres_directory} || "
+        f"test \"$(stat -c '%u:%g:%a' {postgres_directory})\" != '70:70:700'"
+    ),
+)
 
-for directory, permissions in directories.items():
+for directory in ("data", "meili"):
     files.directory(
         name=f"Create Linkwarden {directory} storage directory",
-        path=f"{homedir}/.docker/linkwarden/{directory}/",  # pylint: disable=undefined-variable
-        **permissions,
+        path=f"{homedir}/.docker/linkwarden/{directory}/",
+        user=username,
+        group=usergroup,
+        mode="750",
     )
 
 deploy_docker_service(
