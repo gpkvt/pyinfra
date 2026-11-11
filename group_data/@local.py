@@ -296,7 +296,9 @@ cosmic_config_files = {
 }
 
 # Mullvad Browser extensions
-mullvad_browser_dir = "/home/gpkvt/.mullvad-browser/.mullvad/mullvadbrowser/i2xe179z.default-release"mullvad_extensions = {
+mullvad_browser_dir = "/home/gpkvt/.mullvad-browser/.mullvad/mullvadbrowser/i2xe179z.default-release"
+
+mullvad_extensions = {
     "ublock-origin": {
         "id": "uBlock0@raymondhill.net",
         "url": "https://addons.mozilla.org/firefox/downloads/latest/ublock-origin/latest.xpi",
