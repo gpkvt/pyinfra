@@ -455,7 +455,12 @@ docker = {
     "linkwarden": {
         "image": "ghcr.io/linkwarden/linkwarden:latest",
         "port": 8021,
-        "domain": "linkwarden.21x9.org",
+        "domain": "linkwarden.21x9.org paperless.21x9.org",
+    },
+    "paperless": {
+        "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
+        "port": 8022,
+        "domain": "paperless.21x9.org",
     },
     "homepage": {
         "image": "ghcr.io/gethomepage/homepage:latest",
@@ -956,6 +961,13 @@ caddy_config = {
   "linkwarden.21x9.org:443": {
     "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
     "reverse_proxy": "127.0.0.1:8021",
+    "header": [
+      "-Server"
+    ],
+  },
+  "paperless.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8022",
     "header": [
       "-Server"
     ],

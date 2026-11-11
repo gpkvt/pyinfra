@@ -1,0 +1,57 @@
+services:
+  broker:
+    image: docker.io/valkey/valkey:8-alpine
+    restart: unless-stopped
+    command: ["valkey-server", "--save", "", "--appendonly", "no"]
+
+  db:
+    image: docker.io/library/postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: paperless
+      POSTGRES_USER: paperless
+      POSTGRES_PASSWORD: "{{ postgres_password | replace('$', '$$') }}"
+    volumes:
+      - "{{ homedir }}/.docker/paperless/postgres:/var/lib/postgresql/data"
+
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:8
+    restart: unless-stopped
+    command:
+      - gotenberg
+      - --chromium-disable-javascript=true
+
+  tika:
+    image: docker.io/apache/tika:latest
+    restart: unless-stopped
+
+  webserver:
+    image: {{ image }}
+    restart: unless-stopped
+    depends_on:
+      - db
+      - broker
+      - gotenberg
+      - tika
+    ports:
+      - "127.0.0.1:{{ port }}:8000"
+    environment:
+      PAPERLESS_REDIS: redis://broker:6379
+      PAPERLESS_DBENGINE: postgresql
+      PAPERLESS_DBHOST: db
+      PAPERLESS_DBNAME: paperless
+      PAPERLESS_DBUSER: paperless
+      PAPERLESS_DBPASS: "{{ postgres_password | replace('$', '$$') }}"
+      PAPERLESS_SECRET_KEY: "{{ secret_key | replace('$', '$$') }}"
+      PAPERLESS_URL: https://{{ domain }}
+      PAPERLESS_TIME_ZONE: "{{ timezone }}"
+      PAPERLESS_UID: "{{ uid }}"
+      PAPERLESS_GID: "{{ gid }}"
+      PAPERLESS_TIKA_ENABLED: "1"
+      PAPERLESS_TIKA_ENDPOINT: http://tika:9998
+      PAPERLESS_TIKA_GOTENBERG_ENDPOINT: http://gotenberg:3000
+    volumes:
+      - "{{ homedir }}/.docker/paperless/data:/usr/src/paperless/data"
+      - "{{ homedir }}/.docker/paperless/media:/usr/src/paperless/media"
+      - "{{ homedir }}/.docker/paperless/consume:/usr/src/paperless/consume"
+      - "{{ homedir }}/.docker/paperless/export:/usr/src/paperless/export"
