@@ -639,7 +639,7 @@ docker = {
                     {
                         "Proton Meet": [
                             {
-                                "icon": "/icons/proton-meet.png",
+                                "icon": "/icons/proton-meet.svg",
                                 "href": "https://account.proton.me/meet",
                             },
                         ],
