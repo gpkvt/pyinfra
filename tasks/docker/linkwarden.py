@@ -32,13 +32,18 @@ username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
 # Create volume backing directories before Compose creates the local volumes.
-for directory in ("postgres", "data", "meili"):
+# PostgreSQL 16 Alpine runs as UID/GID 70:70 and needs exclusive access.
+directories = {
+    "postgres": {"user": "70", "group": "70", "mode": "700"},
+    "data": {"user": username, "group": usergroup, "mode": "750"},
+    "meili": {"user": username, "group": usergroup, "mode": "750"},
+}
+
+for directory, permissions in directories.items():
     files.directory(
         name=f"Create Linkwarden {directory} storage directory",
         path=f"{homedir}/.docker/linkwarden/{directory}/",  # pylint: disable=undefined-variable
-        user=username,
-        group=usergroup,
-        mode="750",
+        **permissions,
     )
 
 deploy_docker_service(
