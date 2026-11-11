@@ -1,5 +1,19 @@
 # Changelog
 
+## [11.11.2026]
+
+### Added
+
+- Added the WG-Easy Docker service with persistent WireGuard configuration under `~/.docker/wg-easy/`, loopback-only administration UI publishing and Caddy reverse proxy integration.
+- Expanded Homepage bookmarks with personal links grouped into Misc, Social, Entertainment and Proton categories, including locally stored service icons.
+- Added local Homepage icon assets and idempotent synchronization to the dashboard's public icon directory.
+
+### Changed
+
+- Updated Homepage's OpenWeatherMap location to Cologne, Germany.
+- Expanded Homepage documentation for service bookmarks, Proton links, widgets, local icon assets and change-triggered container restarts.
+- Documented the WG-Easy v15 deployment, storage and reverse-proxy setup.
+
 All notable changes to this project are documented in this file.
 
 This project follows a continuous development model.
