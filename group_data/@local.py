@@ -483,12 +483,18 @@ docker = {
         # Homepage bookmarks are grouped by category.
         "bookmarks": [
             {
-                "Development": [
+                "Misc": [
                     {
                         "GitHub": [
                             {
                                 "icon": "/icons/github.png",
                                 "href": "https://github.com/gpkvt?tab=repositories",
+                            },
+                        ],
+                        "Kachelmannwetter": [
+                            {
+                                "icon": "mdi-weather-cloudy",
+                                "href": "https://kachelmannwetter.com/de/vorhersage/2886242-koeln/14-tage-trend",
                             },
                         ],
                     },
@@ -545,18 +551,6 @@ docker = {
                             {
                                 "icon": "/icons/lastfm.svg",
                                 "href": "https://www.last.fm/user/rbbot",
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                "Weather": [
-                    {
-                        "Kachelmannwetter": [
-                            {
-                                "icon": "mdi-weather-cloudy",
-                                "href": "https://kachelmannwetter.com/de/vorhersage/2886242-koeln/14-tage-trend",
                             },
                         ],
                     },
