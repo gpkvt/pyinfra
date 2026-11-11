@@ -36,3 +36,6 @@ if "linkwarden" in container:
 
 if "homepage" in container:
     local.include("tasks/docker/homepage.py")
+
+if "wg-easy" in container:
+    local.include("tasks/docker/wg-easy.py")
