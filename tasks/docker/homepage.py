@@ -18,7 +18,8 @@ Security:
 """
 
 from pyinfra import host
-from pyinfra.operations import files
+from pyinfra.operations import files, server
+from pyinfra.operations.util import any_changed
 
 from tasks.docker import deploy_docker_service
 
@@ -91,6 +92,31 @@ for config_name, filename in config_files.items():
             mode="640",
             config=config,
         )
+
+# Run Glances as a user service so Homepage can query host metrics.
+# The API is bound to the Docker bridge gateway, not exposed on all interfaces.
+glances = homepage.get("glances", {})
+if glances:
+    glances_unit = files.template(
+        name="Configure Glances web service",
+        src="templates/docker/homepage/glances.service.j2",
+        dest=f"{homedir}/.config/systemd/user/glances-web.service",  # pylint: disable=undefined-variable
+        user=username,
+        group=usergroup,
+        mode="644",
+        bind_address=glances.get("bind_address", "172.17.0.1"),
+        port=glances.get("port", 61208),
+    )
+
+    server.shell(
+        name="Enable Glances web service",
+        commands=[
+            "systemctl --user daemon-reload",
+            "systemctl --user enable --now glances-web",
+        ],
+        _sudo=False,
+        _if=glances_unit.did_change,
+    )
 
 homepage_environment = homepage.get("environment", {}).copy()
 homepage_environment.update(
