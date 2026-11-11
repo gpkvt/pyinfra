@@ -595,13 +595,6 @@ docker = {
                 },
             },
             {
-                "resources": {
-                    "cpu": True,
-                    "memory": True,
-                    "disk": "/",
-                },
-            },
-            {
                 "datetime": {
                     "text_size": "xl",
                     "locale": "de-DE",
