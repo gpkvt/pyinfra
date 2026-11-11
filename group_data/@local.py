@@ -562,6 +562,98 @@ docker = {
                     },
                 ],
             },
+            {
+                "Proton": [
+                    {
+                        "Proton Mail": [
+                            {
+                                "icon": "mdi-email-lock",
+                                "href": "https://mail.proton.me",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Calendar": [
+                            {
+                                "icon": "mdi-calendar-lock",
+                                "href": "https://calendar.proton.me",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Drive": [
+                            {
+                                "icon": "mdi-cloud-lock",
+                                "href": "https://drive.proton.me",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Docs": [
+                            {
+                                "icon": "mdi-file-document",
+                                "href": "https://account.proton.me/docs",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Sheets": [
+                            {
+                                "icon": "mdi-file-table",
+                                "href": "https://account.proton.me/sheets",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton VPN": [
+                            {
+                                "icon": "si-protonvpn",
+                                "href": "https://account.protonvpn.com",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Pass": [
+                            {
+                                "icon": "si-protonpass",
+                                "href": "https://pass.proton.me",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Authenticator": [
+                            {
+                                "icon": "mdi-shield-key",
+                                "href": "https://proton.me/authenticator",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Wallet": [
+                            {
+                                "icon": "mdi-wallet",
+                                "href": "https://wallet.proton.me",
+                            },
+                        ],
+                    },
+                    {
+                        "Proton Meet": [
+                            {
+                                "icon": "mdi-video-lock",
+                                "href": "https://account.proton.me/meet",
+                            },
+                        ],
+                    },
+                    {
+                        "Lumo": [
+                            {
+                                "icon": "mdi-robot",
+                                "href": "https://lumo.proton.me",
+                            },
+                        ],
+                    },
+                ],
+            },
         ],
         # Homepage services are configured as groups containing service entries.
         # Override or extend these entries here; the task renders services.yaml.
