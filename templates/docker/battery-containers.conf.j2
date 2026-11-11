@@ -1,0 +1,7 @@
+# Docker containers to stop while running on battery.
+# Use Docker container names (not Compose service names unless they match).
+BATTERY_CONTAINERS=(
+{% for container in containers %}
+    {{ container }}
+{%- endfor %}
+)

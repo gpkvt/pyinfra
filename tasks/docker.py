@@ -130,7 +130,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
     initialize(host)
 
 @deploy("Deploy Docker service")
-def deploy_docker_service(
+def deploy_docker_service( # pylint: disable=R0913,R0917
     service,
     description,
     homedir,

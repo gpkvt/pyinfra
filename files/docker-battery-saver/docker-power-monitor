@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DEVICE="/org/freedesktop/UPower/devices/DisplayDevice"
+
+apply_power_state() {
+    local state
+    state=$(upower -i "$DEVICE" |
+        awk '/^[[:space:]]*state:/ {print $2}')
+
+    case "$state" in
+        discharging)
+            /usr/local/sbin/docker-power-manager battery
+            ;;
+        charging|fully-charged|pending-charge)
+            /usr/local/sbin/docker-power-manager ac
+            ;;
+        *)
+            logger -t docker-power-monitor "Ignoring unknown power state: ${state:-unavailable}"
+            ;;
+    esac
+}
+
+# Apply the current state immediately when the service starts.
+apply_power_state
+
+# Then react to UPower device/property change events.
+upower --monitor-detail | while IFS= read -r event; do
+    apply_power_state
+done
