@@ -115,6 +115,8 @@ Notes:
       and restart.
     - Changes to the Docker Compose configuration trigger a
       service restart.
+    - Service-specific operations can be supplied as additional
+      restart triggers through restart_if.
     - Docker image updates are not automatically pulled.
 """
 
