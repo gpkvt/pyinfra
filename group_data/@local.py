@@ -1,4 +1,4 @@
-# pylint: disable=C0103, C0301
+# pylint: disable=C0103, C0301, C0302
 """
 Define host-specific configuration for pyinfra system provisioning.
 
@@ -452,11 +452,6 @@ docker = {
         "image": "ghcr.io/gethomepage/homepage:latest",
         # API keys are supplied by secrets.json.gpg. The Homepage task merges
         # secrets.docker.homepage.environment over this optional base mapping.
-        "environment": {
-            "HOMEPAGE_VAR_MINIFLUX_API_KEY": "",
-            "HOMEPAGE_VAR_FORGEJO_API_KEY": "",
-            "HOMEPAGE_VAR_PORTAINER_API_KEY": "",
-        },
         "port": 8020,
         "domain": "homepage.21x9.org",
         # Display service cards in a compact three-column row.
@@ -485,12 +480,6 @@ docker = {
                             "icon": "/icons/miniflux.png",
                             "href": "https://rss.21x9.org",
                             "description": "RSS reader",
-                            "widget": {
-                                "type": "miniflux",
-                                "url": "https://rss.21x9.org",
-                                "key": "{{HOMEPAGE_VAR_MINIFLUX_API_KEY}}",
-                                "fields": ["unread", "read"],
-                            },
                         },
                     },
                     {
@@ -512,12 +501,6 @@ docker = {
                             "icon": "/icons/forgejo.png",
                             "href": "https://forgejo.21x9.org",
                             "description": "Git service",
-                            "widget": {
-                                "type": "gitea",
-                                "url": "https://forgejo.21x9.org",
-                                "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
-                                "fields": ["repositories", "notifications", "issues", "pulls"],
-                            },
                         },
                     },
                     {
@@ -525,13 +508,6 @@ docker = {
                             "icon": "/icons/portainer.png",
                             "href": "https://portainer.21x9.org",
                             "description": "Docker management",
-                            "widget": {
-                                "type": "portainer",
-                                "url": "https://portainer.21x9.org",
-                                "env": 1,
-                                "key": "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}",
-                                "fields": ["running", "stopped", "total"],
-                            },
                         },
                     },
                     {
