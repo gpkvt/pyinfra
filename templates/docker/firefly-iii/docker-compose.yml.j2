@@ -1,0 +1,62 @@
+services:
+  db:
+    image: docker.io/library/mariadb:lts
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: firefly
+      MYSQL_USER: firefly
+      MYSQL_PASSWORD: "{{ database_password | replace('$', '$$') }}"
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password | replace('$', '$$') }}"
+    volumes:
+      - "{{ homedir }}/.docker/firefly-iii/database:/var/lib/mysql"
+
+  app:
+    image: {{ image }}
+    restart: unless-stopped
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:{{ port }}:8080"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: "{{ app_key | replace('$', '$$') }}"
+      APP_URL: "https://{{ domain }}"
+      TRUSTED_PROXIES: "**"
+      DB_CONNECTION: mysql
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_DATABASE: firefly
+      DB_USERNAME: firefly
+      DB_PASSWORD: "{{ database_password | replace('$', '$$') }}"
+      STATIC_CRON_TOKEN: "{{ cron_token }}"
+      TZ: "{{ timezone }}"
+    volumes:
+      - "{{ homedir }}/.docker/firefly-iii/upload:/var/www/html/storage/upload"
+
+  cron:
+    image: docker.io/library/alpine:3.21
+    restart: unless-stopped
+    depends_on:
+      - app
+    environment:
+      TZ: "{{ timezone }}"
+      STATIC_CRON_TOKEN: "{{ cron_token }}"
+    command:
+      - /bin/sh
+      - -c
+      - >-
+        apk add --no-cache tzdata wget &&
+        ln -snf /usr/share/zoneinfo/$$TZ /etc/localtime &&
+        echo "0 3 * * * wget -qO- http://app:8080/api/v1/cron/$$STATIC_CRON_TOKEN >/dev/null 2>&1" | crontab - &&
+        crond -f -L /dev/stdout
+
+  fints:
+    image: docker.io/benkl/firefly-iii-fints-importer:latest
+    restart: unless-stopped
+    depends_on:
+      - app
+    ports:
+      - "127.0.0.1:{{ fints_port }}:8080"
+    volumes:
+      - "{{ homedir }}/.docker/firefly-iii/fints:/app/configurations"
