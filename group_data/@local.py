@@ -480,6 +480,39 @@ docker = {
                 "openweathermap": "{{HOMEPAGE_VAR_OPENWEATHERMAP_API_KEY}}",
             },
         },
+        # Homepage bookmarks are grouped by category.
+        "bookmarks": [
+            {
+                "Development": [
+                    {
+                        "GitHub": {
+                            "icon": "/icons/github.png",
+                            "href": "https://github.com",
+                        },
+                    },
+                ],
+            },
+            {
+                "Social": [
+                    {
+                        "Reddit": {
+                            "icon": "/icons/reddit.png",
+                            "href": "https://www.reddit.com",
+                        },
+                    },
+                ],
+            },
+            {
+                "Entertainment": [
+                    {
+                        "YouTube": {
+                            "icon": "/icons/youtube.png",
+                            "href": "https://www.youtube.com",
+                        },
+                    },
+                ],
+            },
+        ],
         # Homepage services are configured as groups containing service entries.
         # Override or extend these entries here; the task renders services.yaml.
         "services": [
