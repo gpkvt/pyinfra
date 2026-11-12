@@ -307,7 +307,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
         ],
         _sudo=False,
         _if=lambda: (
-            any_changed(*restart_triggers)
+            any_changed(*restart_triggers)()
             or not service_active
         ),
     )
