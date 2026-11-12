@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-DEHYDRATED_CONFIG=/etc/dehydrated/config
+DEHYDRATED_CONFIG=/etc/pyinfra-caddy/dehydrated.conf
 CADDYFILE=/etc/pyinfra-caddy/Caddyfile
 
 mkdir -p /var/lib/dehydrated/certs /var/lib/dehydrated/accounts \
