@@ -507,3 +507,45 @@ def test_caddy_image_creates_dehydrated_config_include_directory():
     dockerfile = (ROOT / "files/caddy/Dockerfile").read_text()
     assert "mkdir -p /etc/dehydrated/conf.d" in dockerfile
 
+def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current(
+    pyinfra_task_harness, monkeypatch,
+):
+    """An unchanged Caddy image and healthy container cause no Docker actions."""
+    monkeypatch.setattr(builtins, "secrets", {
+        "dehydrated": {"hetzner_api_token": "test-token"},
+    })
+
+    def get_fact(fact, command="", **_kwargs):
+        if "id -u" in command or "id -g" in command:
+            return "1000"
+        if "docker image inspect" in command:
+            return "present"
+        if "docker inspect -f '{{.State.Running}}'" in command:
+            return "true"
+        if "docker inspect -f '{{.State.Health.Status}}'" in command:
+            return "healthy"
+        if "systemctl --user is-active caddy-renew.timer" in command:
+            return "active"
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("caddy.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "docker": {"custom": {"port": 8080}},
+        "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
+        "dehydrated_domains": [["example.org"]],
+    })
+
+    docker_actions = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") in {
+            "Build Caddy image with Sablier plugin and Dehydrated",
+            "Start Caddy and Dehydrated containers",
+        }
+    ]
+    assert len(docker_actions) == 2
+    assert all(call["_if"]() is False for call in docker_actions)
+
