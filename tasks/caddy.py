@@ -191,7 +191,7 @@ def configure_caddy():  # pylint: disable=R0914
         dest=f"{homedir}/.config/systemd/user/caddy-renew.timer",
         user=username, group=usergroup, mode="644", _sudo=False,
     )
-    current_uid = (host.get_fact(Command, "id -u") or "").strip()
+    current_uid = (host.get_fact(Command, "id -u", _sudo=False) or "").strip()
     if not uid.isdigit():
         raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
     if current_uid == uid:
