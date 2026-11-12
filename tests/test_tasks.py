@@ -798,6 +798,5 @@ def test_snipe_it_uses_direct_bind_mounts():
         '      - "{{ homedir }}/.docker/snipe-it/storage:/var/lib/snipeit"'
         in compose
     )
-    assert "\\nvolumes:" not in compose
     assert "database_data:" not in compose
     assert "storage_data:" not in compose
