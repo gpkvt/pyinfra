@@ -39,9 +39,9 @@ Each service has a Compose template under `templates/docker/<service>/docker-com
 | Wallabag images | `~/.docker/wallabag/images/` | `/var/www/wallabag/web/assets/images` |
 | Vaultwarden | `~/.docker/vaultwarden/` | `/data` |
 
-These are host bind mounts, not Docker-managed named volumes. The task creates service configuration directories, but the service modules may also create or assign ownership to application data directories where required. Review the individual Compose template and task before changing mount paths: application UID/GID requirements differ between images.
+All configured service data mounts use direct host bind mounts; Compose does not create Docker-managed named volumes. The task creates service configuration directories, but the service modules may also create or assign ownership to application data directories where required. Review the individual Compose template and task before changing mount paths: application UID/GID requirements differ between images.
 
-Wallabag and Vaultwarden previously used named-volume templates. Switching from one of those templates to the current host bind mounts does not copy existing volume contents; migrate the data explicitly before applying the change on a host that still has data in the old volume.
+Some older service templates used Docker-managed named volumes. Switching an existing deployment from a named-volume layout to the current host bind mounts does not copy existing volume contents; migrate the data explicitly before applying the change.
 
 ## Important generated destinations
 
@@ -57,7 +57,7 @@ Wallabag and Vaultwarden previously used named-volume templates. Switching from 
 | Git credentials | `~/.git-credentials`, mode `0600`, only when matching secrets exist. |
 | User scripts | `~/scripts/`; symlinks are created in `/usr/local/bin/`. |
 
-**Security issue to resolve in implementation:** `templates/workstation/borgmatic.yml.j2` currently renders `storage.encryption_passphrase` from `borg_passphrase` or the literal fallback `B0rgm4t1C!`. The backup task writes the resulting configuration root-owned with mode `0644`. Do not rely on the fallback for real repositories; supply a unique secret through a verified secret-safe rendering path and ensure the resulting configuration is not readable by untrusted users. The current backup task does not explicitly pass a `borg_passphrase` argument, so verify the template context before assuming a host-data value overrides the fallback.
+**Borgmatic passphrase warning:** `templates/workstation/borgmatic.yml.j2` renders `encryption_passphrase` from `borg_passphrase` or the literal fallback `B0rgm4t1C!`. `tasks/workstation/backup.py` currently does not pass `borg_passphrase` explicitly, so the fallback is used by the current task. The generated config is root-owned with mode `0600`, which protects it from unprivileged local users, but the fallback is public in source and is not suitable for a real repository. Do not initialize or rely on a production Borg repository with this fallback; replace it with a unique secret and verify the rendering path before use.
 
 Exact paths can be service- or task-specific and should be confirmed in the implementation before changing them.
 
