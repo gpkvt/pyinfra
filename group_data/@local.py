@@ -436,6 +436,7 @@ docker = {
     "miniflux": {
         "postgres_version": 12,
         "port": "8005",
+        "sablier_services": ["miniflux", "db"],
     },
     "timetagger": {
         "port": "8010",
@@ -478,12 +479,14 @@ docker = {
         "port": 8021,
         "domain": "linkwarden.21x9.org",
         "app_services": ["linkwarden"],
+        "sablier_services": ["linkwarden", "postgres", "meilisearch"],
     },
     "paperless": {
         "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
         "port": 8022,
         "domain": "paperless.21x9.org",
         "app_services": ["webserver"],
+        "sablier_services": ["webserver", "db", "broker", "gotenberg", "tika"],
     },
     "firefly-iii": {
         "image": "fireflyiii/core:latest",
@@ -492,12 +495,14 @@ docker = {
         "fints_port": 8024,
         "fints_domain": "fints.21x9.org",
         "app_services": ["app", "cron", "fints"],
+        "sablier_services": ["app", "cron", "fints", "db"],
     },
     "snipe-it": {
         "image": "snipe/snipe-it:latest",
         "port": 8025,
         "domain": "snipeit.21x9.org",
         "app_services": ["app"],
+        "sablier_services": ["app", "db"],
     },
     "homepage": {
         "image": "ghcr.io/gethomepage/homepage:latest",
