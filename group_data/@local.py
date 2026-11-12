@@ -413,6 +413,8 @@ docker_power_save = [
         "paperless-gotenberg-1",
         "paperless-tika-1",
         "paperless-broker-1",
+        "snipe-it-app-1",
+        "snipe-it-db-1",
     ]
 
 docker = {
@@ -825,14 +827,14 @@ docker = {
                     },
                     {
                         "Snipe-IT": {
-                            "icon": "mdi-clipboard-list",
+                            "icon": "/icons/snipeit.ico",
                             "href": "https://snipeit.21x9.org",
                             "description": "IT asset management",
                         },
                     },
                     {
                         "FinTS importer": {
-                            "icon": "mdi-bank-transfer",
+                            "icon": "/icons/firefly.ico",
                             "href": "https://fints.21x9.org",
                             "description": "Bank transaction importer",
                         },
