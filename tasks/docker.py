@@ -189,11 +189,19 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         "stop_dependencies", sablier_options.get("stop_dependencies", True)
     )
     app_services = app_services or service_options.get("app_services", [service])
+    sablier_services = service_options.get("sablier_services", app_services)
 
     if sablier_enabled and (not isinstance(sablier_group, str) or not sablier_group.strip()):
         raise ValueError(f"Invalid Sablier group for Docker service {service!r}")
     if not app_services or not all(isinstance(item, str) and item for item in app_services):
         raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
+    if (
+        not isinstance(sablier_services, list)
+        or not sablier_services
+        or not all(isinstance(item, str) and item for item in sablier_services)
+        or len(set(sablier_services)) != len(sablier_services)
+    ):
+        raise ValueError(f"Invalid sablier_services configuration for Docker service {service!r}")
 
     if sablier_enabled:
         override_file = files.template(
@@ -201,7 +209,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
             src="templates/docker/sablier-override.yml.j2",
             dest=f"{homedir}/{service}/docker-compose.sablier.yml",
             user=username, group=usergroup, mode="640",
-            app_services=app_services, sablier_group=sablier_group, _sudo=False,
+            sablier_services=sablier_services, sablier_group=sablier_group, _sudo=False,
         )
     else:
         override_file = files.file(
