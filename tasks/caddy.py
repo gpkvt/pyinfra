@@ -200,13 +200,17 @@ def configure_caddy():
         _sudo=False, _if=lambda: recreate,
     )
     server.shell(
-        name="Renew certificates after domain or Dehydrated configuration changes",
+        name="Wait for Caddy container health",
         commands=[
-            "docker exec caddy dehydrated --cron --accept-terms --keep-going --config /etc/dehydrated/config",
-            "docker exec caddy caddy reload --config /etc/caddy/Caddyfile",
+            "for attempt in $(seq 1 60); do "
+            "status=$(docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true); "
+            "if [ \"$status\" = healthy ]; then exit 0; fi; "
+            "sleep 5; "
+            "done; "
+            "docker logs caddy; "
+            "echo 'Caddy did not become healthy within 5 minutes' >&2; exit 1"
         ],
-        _sudo=False,
-        _if=lambda: (domains_file.did_change or dehydrated_config.did_change) and container_running,
+        _sudo=False, _if=lambda: recreate,
     )
     server.shell(
         name="Reload Caddy after Caddyfile changes",
