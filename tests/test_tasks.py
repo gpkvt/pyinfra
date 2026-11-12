@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 from conftest import ROOT
+from tasks.homepage_config import homepage_api_exclusions
 
 
 class OperationResult:
@@ -722,8 +723,6 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
             {"TimeTagger": {"widget": {"type": "customapi", "url": "https://time.example/timetagger/api/v2/records?running=true"}}},
         ]},
     ]
-    from tasks.homepage_config import homepage_api_exclusions
-
     original = __import__("copy").deepcopy(homepage_services)
     exclusions = homepage_api_exclusions(homepage_services)
     assert exclusions["rss.example"] == ["/api/*", "/v1/*"]
@@ -756,5 +755,3 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
     assert linkwarden_route["handle @homepage_api"]["header"] == ["-Server"]
     assert "sablier http://127.0.0.1:10000" in linkwarden_route["handle"]
     assert result["other.example:443"]["route"]["handle"]["sablier http://127.0.0.1:10000"]
-
-
