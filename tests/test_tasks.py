@@ -703,3 +703,50 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
     assert False in sudo_flags
     assert status_sudo_flags == [False]
+
+
+
+def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_task_harness):
+    """Homepage widget API paths bypass Sablier while regular requests remain protected."""
+    module = pyinfra_task_harness.load("caddy.py")
+    homepage_services = [
+        {"Services": [
+            {"Miniflux": {"widget": {"type": "miniflux", "url": "https://rss.example"}}},
+            {"Linkwarden": {"widget": {"type": "linkwarden", "url": "https://links.example"}}},
+            {"Paperless": {"widget": {"type": "paperlessngx", "url": "https://paper.example"}}},
+            {"Firefly": {"widget": {"type": "firefly", "url": "https://firefly.example"}}},
+            {"Portainer": {"widget": {"type": "portainer", "url": "https://portainer.example", "env": 3}}},
+            {"Forgejo": {"widget": {"type": "gitea", "url": "https://forgejo.example"}}},
+            {"NocoDB": {"widget": {"type": "customapi", "url": "https://nocodb.example/api/v2/meta/bases/"}}},
+            {"Snipe": {"widget": {"type": "customapi", "url": "https://snipe.example/api/v1/dashboard/companies"}}},
+            {"TimeTagger": {"widget": {"type": "customapi", "url": "https://time.example/timetagger/api/v2/records?running=true"}}},
+        ]},
+    ]
+    exclusions = module.homepage_api_exclusions(homepage_services)
+    assert exclusions["rss.example"] == ["/v1/feeds/counters"]
+    assert exclusions["links.example"] == ["/api/v1/collections", "/api/v1/tags"]
+    assert exclusions["paper.example"] == ["/api/statistics/"]
+    assert exclusions["firefly.example"] == ["/api/v1/available-budgets", "/api/v1/summary/basic"]
+    assert exclusions["portainer.example"] == ["/api/endpoints/3/docker/containers/json"]
+    assert exclusions["forgejo.example"] == [
+        "/api/v1/notifications", "/api/v1/repos/issues/search", "/api/v1/repos/search",
+    ]
+    assert exclusions["nocodb.example"] == ["/api/v2/meta/bases/"]
+    assert exclusions["snipe.example"] == ["/api/v1/dashboard/companies"]
+    assert exclusions["time.example"] == ["/timetagger/api/v2/records"]
+
+    config = {
+        "links.example:443": {"reverse_proxy": "127.0.0.1:8021"},
+        "other.example:443": {"reverse_proxy": "127.0.0.1:8022"},
+    }
+    result = module.build_sablier_caddy_config(
+        config,
+        {"linkwarden": {"port": 8021}, "paperless": {"port": 8022}},
+        {"enabled": True, "homepage_services": homepage_services},
+    )
+    linkwarden_route = result["links.example:443"]["route"]
+    assert linkwarden_route["@homepage_api"]["path"] == [
+        "/api/v1/collections", "/api/v1/tags",
+    ]
+    assert "sablier http://127.0.0.1:10000" in linkwarden_route["handle"]
+    assert result["other.example:443"]["route"]["handle"]["sablier http://127.0.0.1:10000"]
