@@ -191,13 +191,29 @@ def configure_caddy():  # pylint: disable=R0914
         dest=f"{homedir}/.config/systemd/user/caddy-renew.timer",
         user=username, group=usergroup, mode="644", _sudo=False,
     )
-    systemctl_user = (
-        f"XDG_RUNTIME_DIR=/run/user/{uid} "
-        f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{uid}/bus "
-        "systemctl --user"
-    )
+    current_uid = (host.get_fact(Command, "id -u") or "").strip()
+    if not uid.isdigit():
+        raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
+    if current_uid == uid:
+        systemctl_user = (
+            f"env XDG_RUNTIME_DIR=/run/user/{uid} "
+            f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{uid}/bus "
+            "systemctl --user"
+        )
+    elif current_uid == "0":
+        systemctl_user = (
+            f"runuser -u {shlex.quote(username)} -- env "
+            f"XDG_RUNTIME_DIR=/run/user/{uid} "
+            f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{uid}/bus "
+            "systemctl --user"
+        )
+    else:
+        raise RuntimeError(
+            f"Cannot manage systemd user {username!r} (UID {uid}) "
+            f"from unprivileged UID {current_uid}"
+        )
     renewal_timer_status = host.get_fact(
-        Command, f"{systemctl_user} is-active caddy-renew.timer 2>/dev/null || true"
+        Command, f"{systemctl_user} is-active caddy-renew.timer"
     ) or ""
     renewal_timer_active = renewal_timer_status.strip() == "active"
     server.shell(
