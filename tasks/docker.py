@@ -210,12 +210,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         "stop_dependencies",
         sablier_options.get("stop_dependencies", True),
     )
-    app_services = app_services or {
-        "paperless": ["webserver"],
-        "firefly-iii": ["app", "cron", "fints"],
-        "snipe-it": ["app"],
-        "linkwarden": ["linkwarden"],
-    }.get(service, [service])
+    app_services = app_services or service_options.get("app_services", [service])
 
     # Deploy systemd unit
     systemd_unit = files.template(
