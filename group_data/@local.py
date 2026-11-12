@@ -397,6 +397,15 @@ apparmor_profiles = [
     },
 ]
 
+# Optional on-demand Docker startup through Sablier and the Caddy plugin.
+# Sablier and the battery saver are mutually exclusive.
+docker_sablier = {
+    "enabled": True,
+    "default_duration": "60m",
+    "blocking_timeout": "5m",
+    "stop_dependencies": True,
+}
+
 # Install and configure docker container
 docker_power_save = [
         "forgejo",
