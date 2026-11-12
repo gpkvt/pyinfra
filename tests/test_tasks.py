@@ -393,6 +393,22 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
     assert "reverse_proxy" in config["linkwarden.example:443"]
 
 
+def test_homepage_is_managed_by_sablier_by_default(pyinfra_task_harness):
+    """Homepage inherits the global Sablier setting and uses its own group."""
+    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
+    homepage = local_config["docker"]["homepage"]
+    assert homepage.get("sablier", {}).get("enabled", True) is True
+
+    module = pyinfra_task_harness.load("caddy.py")
+    result = module.build_sablier_caddy_config(
+        {"homepage.example:443": {"reverse_proxy": "127.0.0.1:8020"}},
+        {"homepage": {"port": homepage["port"]}},
+        {"enabled": True},
+    )
+    route = result["homepage.example:443"]["route"]
+    assert route["sablier http://127.0.0.1:10000"]["group"] == "homepage"
+
+
 def test_docker_service_app_services_come_from_service_configuration(pyinfra_task_harness):
     """Systemd unit receives app services from Docker config, with a generic fallback."""
     module = pyinfra_task_harness.load("docker.py", {
