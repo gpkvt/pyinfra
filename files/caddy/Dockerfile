@@ -8,6 +8,7 @@ RUN apk add --no-cache bash curl jq bind-tools openssl coreutils ca-certificates
        -o /usr/local/bin/dehydrated \
     && chmod 0755 /usr/local/bin/dehydrated \
     && printf '0 3 * * * /usr/local/bin/renew.sh\n' > /etc/crontabs/caddy \
+    && chown caddy:caddy /etc/crontabs/caddy \
     && chmod 0600 /etc/crontabs/caddy
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 COPY hook.sh /etc/dehydrated/hook.sh
