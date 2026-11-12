@@ -15,7 +15,7 @@ Secrets:
         meili_master_key (str): Meilisearch master key.
 
 Persistent data:
-    Docker local named volumes backed by:
+    Host bind mounts at:
         ~/.docker/linkwarden/postgres/
         ~/.docker/linkwarden/data/
         ~/.docker/linkwarden/meili/
