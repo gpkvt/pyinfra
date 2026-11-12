@@ -85,12 +85,15 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
             hostname = address.split(":", 1)[0].strip("[]").lower()
             api_paths = homepage_exclusions.get(hostname, [])
             route = {}
+            header = directives.pop("header", None)
             if api_paths:
                 route["@homepage_api"] = {"path": " ".join(api_paths)}
-                route["handle @homepage_api"] = {
-                    "reverse_proxy": upstream,
-                }
-            route["handle"] = {
+                api_handle = {}
+                if header is not None:
+                    api_handle["header"] = header
+                api_handle["reverse_proxy"] = upstream
+                route["handle @homepage_api"] = api_handle
+            fallback_handle = {
                 "sablier http://127.0.0.1:10000": {
                     "group": group,
                     "session_duration": sablier_options.get("session_duration", duration),
@@ -98,13 +101,11 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
                         "timeout": sablier_options.get("blocking_timeout", timeout),
                     },
                 },
-                "reverse_proxy": upstream,
             }
-            if "header" in directives:
-                header = directives.pop("header")
-                if api_paths:
-                    route["handle @homepage_api"]["header"] = header
-                route["handle"]["header"] = header
+            if header is not None:
+                fallback_handle["header"] = header
+            fallback_handle["reverse_proxy"] = upstream
+            route["handle"] = fallback_handle
             directives.pop("reverse_proxy")
             directives["route"] = route
 
