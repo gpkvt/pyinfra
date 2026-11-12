@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Caddy TLS certificate renewal
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+Persistent=true
+Unit=caddy-renew.service
+
+[Install]
+WantedBy=timers.target
