@@ -9,6 +9,4 @@ mkdir -p /var/lib/dehydrated/certs /var/lib/dehydrated/accounts \
 # Register the ACME account and issue any missing certificates before Caddy starts.
 dehydrated --cron --accept-terms --keep-going --config "$DEHYDRATED_CONFIG"
 
-# BusyBox cron runs the renewal script daily; no long-lived sleep loop is needed.
-crond
 exec caddy run --config /etc/pyinfra-caddy/Caddyfile
