@@ -229,27 +229,20 @@ A task run directly may not have all initialization or feature-gate behavior of 
 
 ### On-demand Docker services
 
-On-demand startup is controlled by `docker_sablier`. The supplied local configuration enables Sablier with a 60-minute default session and a five-minute Caddy blocking timeout. Only reverse-proxy routes whose loopback port matches a configured Docker service are wrapped; unmatched Caddy routes remain unchanged.
+On-demand startup is controlled by `docker_sablier`. The supplied local configuration enables Sablier with a 60-minute default session and a five-minute Caddy blocking timeout. Only Caddy reverse-proxy routes whose loopback port matches a configured Docker service are wrapped; unmatched routes remain unchanged.
 
-Each managed Docker systemd unit opts in through an `[X-Sablier]` section. The default group is the Docker service name. Firefly III's web, cron and FinTS routes share the `firefly-iii` group.
+Sablier runs as a Docker container using its Docker provider and the Docker socket. Caddy runs in a custom Docker image containing the Sablier Caddy plugin. Caddy uses host networking so existing loopback reverse-proxy upstreams continue to work. Dehydrated runs inside the Caddy container and uses the Hetzner DNS-01 hook; set `secrets.dehydrated.hetzner_api_token` in the encrypted secrets file.
 
-Per-service overrides are configured under the matching `docker.<service>` entry:
+Each Compose workload is prepared with `docker compose create`. Sablier starts a labelled application container when a matching request arrives. Sablier follows Compose `depends_on` metadata to start required dependencies in order. Dependencies that should stop with the application session must also carry `sablier.enable=true` and the same group.
 
-```python
-docker = {
-    "linkwarden": {
-        # Other Linkwarden settings...
-        "sablier": {"enabled": False},  # Keep this service always running.
-    },
-    "paperless": {
-        # Other Paperless settings...
-        "sablier": {"stop_dependencies": False},
-    },
-}
-```
+The `sablier_services` list under a service's `docker.<service>` configuration declares every container to stop together when its session expires. It defaults to `app_services`, so dependencies remain running unless explicitly included. One-shot containers must not be included. The supplied local configuration includes the database and supporting services for Miniflux, Linkwarden, Paperless-ngx, Firefly III and Snipe-IT.
 
-By default, Sablier stops the complete Compose project after the session expires. Set `stop_dependencies=False` globally or per service to stop only the application containers and leave databases and other dependencies running. Application service names are declared by the service tasks.
+The separate `app_services` list identifies application containers for systemd stop behavior. `stop_dependencies` controls whether manually stopping the user systemd unit stops the complete Compose project or only those application containers; it does not control Sablier's idle-session behavior.
 
-Sablier uses the configured user's systemd manager. The task enables lingering so that manager remains available after logout. Caddy is built separately with the Sablier handler and selected through a systemd override; the APT-managed `/usr/bin/caddy` is not replaced. Disabling `docker_sablier.enabled` removes the override and restores the packaged Caddy binary.
+Per-service overrides remain available under `docker.<service>.sablier`, including `enabled`, `group`, `session_duration` and `blocking_timeout`. Set `enabled: False` to keep a service outside Sablier management.
+
+Caddy performs the initial Dehydrated run before starting its server. Certificate renewal is handled by its entrypoint loop; deployment does not launch a second concurrent renewal process. The Caddy Compose service has a health check against its local admin API, and pyinfra waits for it to become healthy after a recreation.
+
+All Caddy persistent state is stored below `~/.docker/caddy/`. Sablier and Caddy are deployed only when Docker and their corresponding configuration gates are enabled. Existing host Caddy installations are not migrated, stopped, or uninstalled automatically; prepare ports 80 and 443 manually before enabling the Docker-based Caddy service.
 
 Sablier and the Docker battery saver are mutually exclusive. When Sablier is enabled, the battery monitor is stopped and disabled, and containers previously stopped by the battery saver are restored first. Disabling Sablier re-enables the battery monitor.
