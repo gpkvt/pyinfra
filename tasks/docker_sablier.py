@@ -35,7 +35,7 @@ if options.get("enabled", False):
             'arch="$(dpkg --print-architecture)"',
             'case "$arch" in amd64) sablier_arch=amd64 ;; arm64) sablier_arch=arm64 ;; *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; esac',
             'tmp="$(mktemp -d)"',
-            'trap 'rm -rf "$tmp"' EXIT',
+            "trap 'rm -rf \"$tmp\"' EXIT",
             f'curl -fsSL "https://github.com/sablierapp/sablier/releases/download/v{SABLIER_VERSION}/sablier-{SABLIER_VERSION}-linux-$sablier_arch.tar.gz" | tar -xz -C "$tmp" sablier',
             f'install -m 0755 "$tmp/sablier" "{binary}"',
             f'chown {username}:{usergroup} "{binary}"',
