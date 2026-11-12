@@ -507,6 +507,21 @@ def test_caddy_image_creates_dehydrated_config_include_directory():
     """The configured CONFIG_D path exists in the built Caddy image."""
     dockerfile = (ROOT / "files/caddy/Dockerfile").read_text()
     assert "mkdir -p /etc/dehydrated/conf.d" in dockerfile
+    assert "ca-certificates setpriv" in dockerfile
+
+    compose = (ROOT / "templates/docker/caddy/docker-compose.yml.j2").read_text()
+    assert "    user:" not in compose
+    assert "      - ALL" in compose
+    assert "      - NET_BIND_SERVICE" in compose
+    assert "      - SETUID" in compose
+    assert "      - SETGID" in compose
+    assert 'CADDY_UID: "{{ uid }}"' in compose
+    assert 'CADDY_GID: "{{ gid }}"' in compose
+
+    entrypoint = (ROOT / "files/caddy/entrypoint.sh").read_text()
+    assert "--inh-caps=+net_bind_service" in entrypoint
+    assert "--ambient-caps=+net_bind_service" in entrypoint
+    assert 'exec setpriv' in entrypoint
 
 def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current(
     pyinfra_task_harness, monkeypatch,
