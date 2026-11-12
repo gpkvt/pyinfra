@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+PATH=/usr/local/bin:/usr/bin:/bin
 
 DEHYDRATED_CONFIG=/etc/pyinfra-caddy/dehydrated.conf
 CADDYFILE=/etc/pyinfra-caddy/Caddyfile
