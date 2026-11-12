@@ -7,6 +7,11 @@
 - Added Docker-based Caddy and Sablier deployment. Sablier uses the Docker provider and Compose labels to start application containers on demand; Caddy uses host networking to retain loopback upstreams.
 - Added Dehydrated certificate renewal inside the Caddy container with the Hetzner DNS-01 hook. `dehydrated_domains` in `group_data/@local.py` supports multiple certificates, each defined by one list of primary name and SANs.
 
+### Fixed
+
+- Added Sablier labels for configured Compose dependencies so they start with applications and can stop with the same session group.
+- Removed overlapping certificate renewal during deployment, added Caddy container health checks, and moved Caddy state to Docker-managed local named volumes backed by `~/.docker/caddy/`.
+
 - Added Snipe-IT asset management with MariaDB, persistent Docker local volumes backed by `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
 
 ## [11.11.2026]
