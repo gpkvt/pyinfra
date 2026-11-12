@@ -110,7 +110,7 @@ def configure_caddy():
 
     root = f"{homedir}/.docker/caddy"
     build_dir = f"{root}/build"
-    for path in (root, build_dir, f"{root}/dehydrated", f"{root}/data", f"{root}/config"):
+    for path in (root, build_dir, f"{root}/config-files", f"{root}/dehydrated", f"{root}/data", f"{root}/config"):
         files.directory(
             name=f"Create Caddy directory {path}",
             path=path, user=username, group=usergroup, mode="750",
@@ -122,21 +122,21 @@ def configure_caddy():
     caddyfile = files.template(
         name="Deploy Caddyfile",
         src="templates/Caddyfile.j2",
-        dest=f"{root}/Caddyfile",
+        dest=f"{root}/config-files/Caddyfile",
         user=username, group=usergroup, mode="640",
         caddy_conf=caddy_conf, _sudo=False,
     )
     domains_file = files.template(
         name="Deploy Dehydrated certificate definitions",
         src="templates/caddy/domains.txt.j2",
-        dest=f"{root}/domains.txt",
+        dest=f"{root}/config-files/domains.txt",
         user=username, group=usergroup, mode="640",
         domain_lines=domain_lines, _sudo=False,
     )
     dehydrated_config = files.template(
         name="Deploy Dehydrated configuration",
         src="templates/dehydrated_config.j2",
-        dest=f"{root}/dehydrated.conf",
+        dest=f"{root}/config-files/dehydrated.conf",
         user=username, group=usergroup, mode="640", _sudo=False,
     )
     env_file = files.template(
@@ -214,7 +214,7 @@ def configure_caddy():
     )
     server.shell(
         name="Reload Caddy after Caddyfile changes",
-        commands=["docker exec caddy caddy reload --config /etc/caddy/Caddyfile"],
+        commands=["docker exec caddy caddy reload --config /etc/pyinfra-caddy/Caddyfile"],
         _sudo=False,
         _if=lambda: caddyfile.did_change and container_running and not recreate,
     )
