@@ -231,6 +231,19 @@ def configure_caddy():
         name="Remove obsolete host Caddy and Dehydrated packages",
         packages=["caddy", "dehydrated"], present=False, _sudo=True,
     )
+    legacy_build_artifacts = host.get_fact(
+        Command,
+        "if [ -e /usr/local/bin/caddy-sablier ] || [ -e /usr/local/bin/xcaddy ] || [ -d /opt/go1.25.4 ]; then echo present; else echo absent; fi",
+    ).strip() == "present"
+    server.shell(
+        name="Remove obsolete host-built Caddy artifacts",
+        commands=[
+            "rm -f /usr/local/bin/caddy-sablier /usr/local/bin/xcaddy",
+            "rm -rf /opt/go1.25.4",
+        ],
+        _sudo=True,
+        _if=lambda: legacy_build_artifacts,
+    )
     override_present = host.get_fact(
         Command, "test -f /etc/systemd/system/caddy.service.d/override.conf && echo yes || echo no"
     ).strip() == "yes"
