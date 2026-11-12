@@ -150,7 +150,7 @@ def ensure_numeric_directory(path, uid, gid, mode, sudo=True):
             f"install -d -o {uid} -g {gid} -m {mode} {quoted_path}",
         ],
         _sudo=sudo,
-        _if=lambda: host.get_fact(Command, check_command) != [expected],
+        _if=lambda: host.get_fact(Command, check_command) != expected,
     )
 
 
