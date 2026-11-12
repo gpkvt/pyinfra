@@ -1,5 +1,5 @@
 services:
-{% for service_name in app_services %}
+{% for service_name in sablier_services %}
   {{ service_name }}:
     labels:
       sablier.enable: "true"
