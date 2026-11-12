@@ -22,7 +22,7 @@ if options.get("enabled", False):
         src="templates/sablier/sablier.yaml.j2",
         dest=f"{homedir}/.docker/sablier/sablier.yaml",
         user=username, group=usergroup, mode="640",
-        default_duration=options.get("default_duration", "60m"),
+        default_duration=options.get("default_duration", "15m"),
         _sudo=False,
     )
     compose = files.template(
