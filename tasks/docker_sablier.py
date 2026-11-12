@@ -17,13 +17,21 @@ if options.get("enabled", False):
         path=f"{homedir}/.docker/sablier",
         user=username, group=usergroup, mode="750",
     )
+    config = files.template(
+        name="Configure Sablier Docker provider and session defaults",
+        src="templates/sablier/sablier.yaml.j2",
+        dest=f"{homedir}/.docker/sablier/sablier.yaml",
+        user=username, group=usergroup, mode="640",
+        default_duration=options.get("default_duration", "60m"),
+        _sudo=False,
+    )
     compose = files.template(
         name="Configure Sablier Docker provider",
         src="templates/docker/sablier/docker-compose.yml.j2",
         dest=f"{homedir}/.docker/sablier/docker-compose.yml",
         user=username, group=usergroup, mode="640",
         sablier_version=SABLIER_VERSION,
-        default_duration=options.get("default_duration", "60m"),
+        homedir=homedir,
         _sudo=False,
     )
     server.shell(
@@ -37,7 +45,7 @@ if options.get("enabled", False):
     server.shell(
         name="Pull Sablier image",
         commands=[f"docker compose -f {homedir}/.docker/sablier/docker-compose.yml pull"],
-        _sudo=False, _if=compose.did_change,
+        _sudo=False, _if=compose.did_change or config.did_change,
     )
     server.shell(
         name="Ensure Sablier container is running",
@@ -45,6 +53,7 @@ if options.get("enabled", False):
         _sudo=False,
         _if=lambda: (
             compose.did_change
+            or config.did_change
             or host.get_fact(
                 Command,
                 "docker inspect -f '{{.State.Running}}' sablier 2>/dev/null || true",
