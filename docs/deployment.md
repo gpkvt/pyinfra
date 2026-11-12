@@ -56,7 +56,6 @@ The core set can still have conditional behavior internally, but its modules are
 | `host.data.wireguard_config` and `secrets.wireguard` are truthy | `tasks/wireguard.py` |
 | `host.data.syncthing` is truthy | `tasks/syncthing.py` |
 | `local_network_cidr` and `wireguard_interface` are truthy | `tasks/vpn.py` |
-| `secrets.dehydrated` is truthy | `tasks/dehydrated.py` |
 | `host.data.docker` and `host.data.caddy_config` are truthy | `tasks/caddy.py` |
 | `host.data.zsh` is truthy | `tasks/zsh.py` |
 | `host.data.tmux` is truthy | `tasks/tmux.py` |
