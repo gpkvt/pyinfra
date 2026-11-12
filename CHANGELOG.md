@@ -4,6 +4,8 @@
 
 ### Added
 
+- Added Sablier-based on-demand startup for Docker services through a custom Caddy handler and the systemd user provider, with configurable session duration and dependency-stop behavior.
+
 - Added Snipe-IT asset management with MariaDB, persistent Docker local volumes backed by `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
 
 ## [11.11.2026]
