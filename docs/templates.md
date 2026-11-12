@@ -37,7 +37,7 @@ Each service has a Compose template under `templates/docker/<service>/docker-com
 | TasmoAdmin | `~/.docker/tasmoadmin/data/` | `/data/tasmoadmin` |
 | Wallabag data | `~/.docker/wallabag/data/` | `/var/www/wallabag/data` |
 | Wallabag images | `~/.docker/wallabag/images/` | `/var/www/wallabag/web/assets/images` |
-| Vaultwarden | `~/.docker/vaultwarden/` | `/data` |
+| Vaultwarden | `~/.docker/vaultwarden/` | `/data` |\n| NocoDB | `~/.docker/nocodb/data/` | `/usr/app/data` |\n| Homepage | `~/.docker/homepage/config/` plus `public/icons/` and `public/images/` | `/app/config`, `/app/public/icons`, `/app/public/images` |\n| Linkwarden | `~/.docker/linkwarden/postgres/`, `data/`, `meili/` | PostgreSQL, application data, Meilisearch data |\n| Paperless-ngx | `~/.docker/paperless/postgres/`, `data/`, `media/`, `consume/`, `export/` | PostgreSQL and Paperless data directories |\n| Firefly III | `~/.docker/firefly-iii/database/`, `upload/`, `fints/` | MariaDB, uploads and importer config |\n| Snipe-IT | `~/.docker/snipe-it/database/`, `storage/` | MariaDB and `/var/lib/snipeit` |\n| WG-Easy | `~/.docker/wg-easy/` | `/etc/wireguard` and application data |
 
 All configured service data mounts use direct host bind mounts; Compose does not create Docker-managed named volumes. The task creates service configuration directories, but the service modules may also create or assign ownership to application data directories where required. Review the individual Compose template and task before changing mount paths: application UID/GID requirements differ between images.
 
