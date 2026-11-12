@@ -11,55 +11,12 @@ from pyinfra.api import deploy
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
+from tasks.homepage_config import homepage_api_exclusions
+
 CADDY_VERSION = "2.11.2"
 PLUGIN_VERSION = "v1.0.2"
 IMAGE = f"pyinfra/caddy-sablier:{CADDY_VERSION}"
 
-HOMEPAGE_WIDGET_API_PATHS = {
-    "miniflux": ["/v1/feeds/counters"],
-    "linkwarden": ["/api/v1/collections", "/api/v1/tags"],
-    "paperlessngx": ["/api/statistics/"],
-    "firefly": ["/api/v1/summary/basic", "/api/v1/available-budgets"],
-    "portainer": ["/api/endpoints/{env}/docker/containers/json"],
-    "gitea": [
-        "/api/v1/notifications",
-        "/api/v1/repos/issues/search",
-        "/api/v1/repos/search",
-    ],
-}
-
-
-def homepage_api_exclusions(homepage_services):
-    """Return API paths keyed by the hostname configured in Homepage widgets."""
-    from urllib.parse import urlsplit
-
-    exclusions = {}
-
-    def visit(value):
-        if isinstance(value, dict):
-            widget = value.get("widget")
-            if isinstance(widget, dict):
-                url = widget.get("url")
-                widget_type = widget.get("type")
-                if isinstance(url, str) and widget_type:
-                    parsed = urlsplit(url)
-                    if parsed.hostname:
-                        paths = list(HOMEPAGE_WIDGET_API_PATHS.get(widget_type, []))
-                        if widget_type == "portainer":
-                            env = widget.get("env")
-                            paths = [path.format(env=env) for path in paths if env is not None]
-                        if widget_type == "customapi" and parsed.path:
-                            paths.append(parsed.path)
-                        if paths:
-                            exclusions.setdefault(parsed.hostname.lower(), set()).update(paths)
-            for child in value.values():
-                visit(child)
-        elif isinstance(value, (list, tuple)):
-            for child in value:
-                visit(child)
-
-    visit(homepage_services)
-    return {hostname: sorted(paths) for hostname, paths in exclusions.items()}
 
 
 def build_sablier_caddy_config(caddy_config, docker_config, options):
