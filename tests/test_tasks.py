@@ -752,6 +752,20 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
     linkwarden_route = result["links.example:443"]["route"]
     assert linkwarden_route["@homepage_api"]["path"] == "/api/* /v1/*"
     assert linkwarden_route["handle @homepage_api"]["reverse_proxy"] == "127.0.0.1:8021"
-    assert linkwarden_route["handle @homepage_api"]["header"] == ["-Server"]
-    assert "sablier http://127.0.0.1:10000" in linkwarden_route["handle"]
-    assert result["other.example:443"]["route"]["handle"]["sablier http://127.0.0.1:10000"]
+    assert list(linkwarden_route) == [
+        "@homepage_api",
+        "handle @homepage_api",
+        "sablier http://127.0.0.1:10000",
+        "reverse_proxy",
+    ]
+    assert linkwarden_route["sablier http://127.0.0.1:10000"] == {
+        "group": "linkwarden",
+        "session_duration": "60m",
+        "blocking": {"timeout": "15m"},
+    }
+    assert result["links.example:443"]["header"] == ["-Server"]
+    assert result["other.example:443"]["route"]["sablier http://127.0.0.1:10000"]
+    assert list(result["other.example:443"]["route"]) == [
+        "sablier http://127.0.0.1:10000",
+        "reverse_proxy",
+    ]
