@@ -512,10 +512,6 @@ docker = {
         # secrets.docker.homepage.environment over this optional base mapping.
         "port": 8020,
         "domain": "homepage.21x9.org",
-        # Homepage is always available and must bypass Sablier entirely.
-        "sablier": {
-            "enabled": False,
-        },
         # Display service cards in a compact three-column row.
         "settings": {
             # Use a local image placed in ~/.docker/homepage/public/images/.
