@@ -202,15 +202,16 @@ def configure_caddy():
         ],
         _sudo=False,
         _if=lambda: (
-            renewal_service.did_change or renewal_timer.did_change
+            renewal_service.did_change() or renewal_timer.did_change()
             or not renewal_timer_active
         ),
     )
 
-    build_changed = (
-        dockerfile.did_change or entrypoint.did_change or hook.did_change
-        or renew_script.did_change
-    )
+    def build_changed():
+        return (
+            dockerfile.did_change() or entrypoint.did_change()
+            or hook.did_change() or renew_script.did_change()
+        )
     image_present = host.get_fact(
         Command,
         f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
@@ -218,7 +219,7 @@ def configure_caddy():
     server.shell(
         name="Build Caddy image with Sablier plugin and Dehydrated",
         commands=[f"docker build --tag {shlex.quote(IMAGE)} {shlex.quote(build_dir)}"],
-        _sudo=False, _if=lambda: build_changed or not image_present,
+        _sudo=False, _if=lambda: build_changed() or not image_present,
     )
 
     container_running = host.get_fact(
@@ -227,18 +228,20 @@ def configure_caddy():
     container_healthy = host.get_fact(
         Command, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
     ).strip() == "healthy"
-    recreate = (
-        compose.did_change or build_changed or domains_file.did_change
-        or dehydrated_config.did_change or env_file.did_change
-        or not container_running or not container_healthy
-    )
+    def recreate():
+        return (
+            compose.did_change() or build_changed()
+            or domains_file.did_change() or dehydrated_config.did_change()
+            or env_file.did_change()
+            or not container_running or not container_healthy
+        )
     server.shell(
         name="Start Caddy and Dehydrated containers",
         commands=[
             f"docker compose -f {shlex.quote(root + '/docker-compose.yml')} up -d"
             + (" --force-recreate" if container_running and not container_healthy else "")
         ],
-        _sudo=False, _if=lambda: recreate,
+        _sudo=False, _if=recreate,
     )
     server.shell(
         name="Wait for Caddy container health",
@@ -257,7 +260,7 @@ def configure_caddy():
         name="Reload Caddy after Caddyfile changes",
         commands=["docker exec caddy caddy reload --config /etc/pyinfra-caddy/Caddyfile"],
         _sudo=False,
-        _if=lambda: caddyfile.did_change and container_running and not recreate,
+        _if=lambda: caddyfile.did_change() and container_running and not recreate(),
     )
 
 
