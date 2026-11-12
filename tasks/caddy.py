@@ -143,6 +143,14 @@ install -m 0755 caddy /usr/local/bin/caddy-sablier
 
     override_changed = False
     if sablier_enabled:
+        files.directory(
+            name="Create Caddy systemd override directory",
+            path="/etc/systemd/system/caddy.service.d",
+            user="root",
+            group="root",
+            mode="755",
+            _sudo=True,
+        )
         override = files.template(
             name="Configure Caddy to use the Sablier-enabled binary",
             src="templates/caddy/override.conf.j2",
