@@ -7,10 +7,22 @@
 - Added Docker-based Caddy and Sablier deployment. Sablier uses the Docker provider and Compose labels to start application containers on demand; Caddy uses host networking to retain loopback upstreams.
 - Added Dehydrated certificate renewal inside the Caddy container with the Hetzner DNS-01 hook. `dehydrated_domains` in `group_data/@local.py` supports multiple certificates, each defined by one list of primary name and SANs.
 
-- Added Snipe-IT asset management with MariaDB, persistent Docker local volumes backed by `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
+- Added Snipe-IT asset management with MariaDB, persistent host bind mounts under `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
+- Added custom Homepage API widgets for supported services and an RSS feed widget.
+- Added on-demand Docker service startup with Sablier, including Homepage integration and dynamic loading pages.
+
+### Changed
+
+- Configured Homepage API requests to bypass Sablier so dashboard widgets remain available without starting application containers.
+- Set Caddy's HTTP response deadline to two minutes.
+- Switched Snipe-IT persistence to direct host bind mounts under `~/.docker/snipe-it/`.
 
 ### Fixed
 
+- Made Sablier Compose service ordering deterministic.
+- Corrected Caddy/Sablier route handler ordering and preserved response headers.
+- Improved Docker and Caddy systemd execution under the configured user, including no-op detection to avoid unnecessary operations.
+- Fixed Docker deployment and repository-check regressions.
 - Added Sablier labels for configured Compose dependencies so they start with applications and can stop with the same session group.
 - Removed overlapping certificate renewal during deployment, added Caddy container health checks, and kept Caddy state in explicit host bind mounts below `~/.docker/caddy/`.
 - Replaced the broken in-container cron setup with an idempotently deployed user systemd timer that runs Dehydrated daily at 03:00.
