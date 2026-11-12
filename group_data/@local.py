@@ -791,10 +791,94 @@ docker = {
                             },                        },
                     },
                     {
+                        "Snipe-IT": {
+                            "icon": "/icons/snipeit.ico",
+                            "href": "https://snipeit.21x9.org",
+                            "description": "IT asset management",
+                            "widget": {
+                                "type": "customapi",
+                                "url": "https://snipeit.21x9.org/api/v1/dashboard/companies",
+                                "method": "GET",
+                                "headers": {
+                                    "Authorization": "Bearer {{HOMEPAGE_VAR_SNIPEIT_API_KEY}}",
+                                    "Accept": "application/json",
+                                },
+                                "mappings": [
+                                    {
+                                        "label": "Assets",
+                                        "field": "rows.0.assets_count",
+                                        "format": "number",
+                                    },
+                                    {
+                                        "label": "Licenses",
+                                        "field": "rows.0.licenses_count",
+                                        "format": "number",
+                                    },
+                                    {
+                                        "label": "Accessories",
+                                        "field": "rows.0.accessories_count",
+                                        "format": "number",
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                    {
                         "TimeTagger": {
                             "icon": "/icons/timetagger.png",
                             "href": "https://timetagger.21x9.org",
                             "description": "Time tracking",
+                            "widget": {
+                                "type": "customapi",
+                                "url": (
+                                    "https://timetagger.21x9.org/timetagger/api/v2/records"
+                                    "?timerange=0-4102444800&running=true&hidden=false"
+                                ),
+                                "headers": {
+                                    "authtoken": "{{HOMEPAGE_VAR_TIMETAGGER_API_KEY}}",
+                                },
+                                "refreshInterval": 30000,
+                                "mappings": [
+                                    {
+                                        "field": "records",
+                                        "label": "Running timers",
+                                        "format": "size",
+                                    },
+                                    {
+                                        "field": "records.0.ds",
+                                        "label": "Current timer",
+                                    },
+                                    {
+                                        "field": "records.0.t1",
+                                        "label": "Started",
+                                        "format": "date",
+                                        "dateStyle": "short",
+                                        "timeStyle": "short",
+                                    },
+                                ],
+                            },
+                        },
+                    },
+                    {
+                        "NocoDB": {
+                            "icon": "/icons/nocodb.png",
+                            "href": "https://nocodb.21x9.org",
+                            "description": "Database platform",
+                            "widget": {
+                                "type": "customapi",
+                                "url": "https://nocodb.21x9.org/api/v2/meta/bases/",
+                                "headers": {
+                                    "xc-token": "{{HOMEPAGE_VAR_NOCODB_API_KEY}}",
+                                },
+                                "refreshInterval": 60000,
+                                "mappings": [
+                                    {
+                                        "field": "pageInfo.totalRows",
+                                        "label": "Bases",
+                                        "format": "number",
+                                    },
+                                ],
+                            },
                         },
                     },
                     {
@@ -816,20 +900,6 @@ docker = {
                             "icon": "/icons/vaultwarden.png",
                             "href": "https://vaultwarden.21x9.org",
                             "description": "Password manager",
-                        },
-                    },
-                    {
-                        "NocoDB": {
-                            "icon": "/icons/nocodb.png",
-                            "href": "https://nocodb.21x9.org",
-                            "description": "Database platform",
-                        },
-                    },
-                    {
-                        "Snipe-IT": {
-                            "icon": "/icons/snipeit.ico",
-                            "href": "https://snipeit.21x9.org",
-                            "description": "IT asset management",
                         },
                     },
                     {

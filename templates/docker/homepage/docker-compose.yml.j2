@@ -23,6 +23,9 @@ services:
       - "linkwarden.21x9.org:host-gateway"
       - "paperless.21x9.org:host-gateway"
       - "firefly.21x9.org:host-gateway"
+      - "snipeit.21x9.org:host-gateway"
+      - "timetagger.21x9.org:host-gateway"
+      - "nocodb.21x9.org:host-gateway"
     volumes:
       - {{ homedir }}/.docker/homepage/config:/app/config
       - {{ homedir }}/.docker/homepage/public/icons:/app/public/icons
