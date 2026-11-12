@@ -428,7 +428,7 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
         and kwargs.get("src") == "templates/docker/sablier-override.yml.j2"
     ]
     assert [call["sablier_services"] for call in override_calls] == [
-        ["worker", "scheduler", "database"],
+        ["database", "scheduler", "worker"],
         ["generic"],
     ]
 
