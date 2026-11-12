@@ -3,7 +3,7 @@ RUN xcaddy build v2.11.2 --with github.com/sablierapp/sablier-caddy-plugin@v1.0.
 
 FROM caddy:2.11.2
 USER root
-RUN apk add --no-cache bash curl jq bind-tools openssl coreutils ca-certificates \
+RUN apk add --no-cache bash curl jq bind-tools openssl coreutils ca-certificates setpriv \
     && mkdir -p /etc/dehydrated/conf.d \
     && curl -fsSL https://raw.githubusercontent.com/dehydrated-io/dehydrated/v0.7.2/dehydrated \
        -o /usr/local/bin/dehydrated \
