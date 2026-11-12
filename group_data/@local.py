@@ -401,8 +401,8 @@ apparmor_profiles = [
 # Sablier and the battery saver are mutually exclusive.
 docker_sablier = {
     "enabled": True,
-    "default_duration": "15m",
-    "blocking_timeout": "15m",
+    "default_duration": "10m",
+    "blocking_timeout": "10m",
     "stop_dependencies": True,
 }
 
