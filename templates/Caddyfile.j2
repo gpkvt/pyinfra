@@ -1,3 +1,11 @@
+{
+    servers {
+        timeouts {
+            write 2m
+        }
+    }
+}
+
 {% macro render_directives(directives, indent="    ") -%}
 {% for key, value in directives.items() %}
 {% if value is mapping %}
