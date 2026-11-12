@@ -951,8 +951,15 @@ docker = {
                                 },
                                 {
                                     "type": "feed",
+                                    "url": "https://steamcommunity.com/groups/freegamesfinders/rss/",
+                                    "maxItems": 5,
+                                    "layout": "list",
+                                    "images": False,
+                                },
+                                {
+                                    "type": "feed",
                                     "url": "https://www.tagesschau.de/infoservices/alle-meldungen-100~rss2.xml",
-                                    "maxItems": 12,
+                                    "maxItems": 6,
                                     "layout": "grid",
                                     "images": True,
                                 },
