@@ -21,7 +21,7 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
         return result
 
     duration = options.get("default_duration", "60m")
-    timeout = options.get("blocking_timeout", "5m")
+    timeout = options.get("blocking_timeout", "15m")
 
     def wrap_routes(service, port, service_options):
         sablier_options = service_options.get("sablier", {})
