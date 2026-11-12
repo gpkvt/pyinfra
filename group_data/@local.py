@@ -436,7 +436,9 @@ docker = {
     "miniflux": {
         "postgres_version": 12,
         "port": "8005",
-        "sablier_services": ["miniflux", "db"],
+        "sablier": {
+            "enabled": False,
+        },
     },
     "timetagger": {
         "port": "8010",
