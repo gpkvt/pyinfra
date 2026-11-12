@@ -258,7 +258,10 @@ def configure_caddy():
     )
     server.shell(
         name="Reload Caddy after Caddyfile changes",
-        commands=["docker exec caddy caddy reload --config /etc/pyinfra-caddy/Caddyfile"],
+        commands=[
+            f"docker exec --user {uid}:{gid} caddy "
+            "caddy reload --config /etc/pyinfra-caddy/Caddyfile"
+        ],
         _sudo=False,
         _if=lambda: caddyfile.did_change() and container_running and not recreate(),
     )
