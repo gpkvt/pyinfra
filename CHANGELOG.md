@@ -15,6 +15,7 @@
 - Removed overlapping certificate renewal during deployment, added Caddy container health checks, and kept Caddy state in explicit host bind mounts below `~/.docker/caddy/`.
 - Replaced the broken in-container cron setup with an idempotently deployed user systemd timer that runs Dehydrated daily at 03:00.
 - Created Dehydrated's configured `conf.d` directory in the Caddy image and fixed the Hetzner hook's handling of textual exit-hook arguments.
+- Fixed Caddy deployment change detection so unchanged renewal, image-build, container-start and health-check operations are skipped.
 
 
 ## [11.11.2026]
