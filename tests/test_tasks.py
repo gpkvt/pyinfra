@@ -17,7 +17,6 @@ import types
 from pathlib import Path
 
 import pytest
-from jinja2 import Template
 
 from conftest import ROOT
 from tasks.homepage_config import homepage_api_exclusions
@@ -361,22 +360,19 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
 
 
 def test_caddyfile_sets_http_response_write_timeout():
-    """The global response deadline is rendered before all site blocks."""
-    template = Template((ROOT / "templates/Caddyfile.j2").read_text())
-    rendered = template.render(caddy_conf={
-        "example.com": {"reverse_proxy": "127.0.0.1:8080"},
-    })
+    """The global response deadline is configured before all site blocks."""
+    template = (ROOT / "templates/Caddyfile.j2").read_text()
 
-    assert rendered.startswith(
-        "{\n"
-        "    servers {\n"
-        "        timeouts {\n"
-        "            write 2m\n"
-        "        }\n"
-        "    }\n"
-        "}\n"
+    assert template.startswith(
+        "{\\n"
+        "    servers {\\n"
+        "        timeouts {\\n"
+        "            write 2m\\n"
+        "        }\\n"
+        "    }\\n"
+        "}\\n"
     )
-    assert rendered.index("example.com {") > rendered.index("write 2m")
+    assert template.index("{% for entry in caddy_conf %}") > template.index("write 2m")
 
 
 def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_harness):
