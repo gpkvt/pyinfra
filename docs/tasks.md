@@ -95,7 +95,7 @@ When `host.data.docker` is truthy, `deploy.py` includes `tasks/docker.py` and `t
 
 **Available services**
 
-All persistent service data uses explicit host-directory bind mounts below `~/.docker/`. The paths below are relative to the configured user's home directory.
+Persistent service data is stored below `~/.docker/`. Most services use direct host-directory bind mounts; Snipe-IT uses Docker-managed local named volumes backed by host directories. The paths below are relative to the configured user's home directory.
 
 | Service | Persistent data | Default loopback interface |
 | --- | --- | --- |
@@ -121,7 +121,7 @@ All persistent service data uses explicit host-directory bind mounts below `~/.d
 - **Firefly III** runs with MariaDB, an Alpine cron container and the FinTS importer. The application binds to `127.0.0.1:8023` (`firefly.21x9.org`) and the importer UI to `127.0.0.1:8024` (`fints.21x9.org`). Database files, Firefly uploads and importer configurations are host bind mounts under `~/.docker/firefly-iii/`; no named volumes are used. Store `database_password`, `mysql_root_password`, `app_key` and the exactly 32-character `cron_token` under `secrets.docker.firefly-iii` in the encrypted secrets file. Use a Laravel-compatible application key (for example, a `base64:`-prefixed 32-byte key). The importer is the community `benkl/firefly-iii-fints-importer` image; after first start, open its UI, set the Firefly III URL to `http://app:8080` from within the Compose network, and provide a Firefly III personal access token. The importer stores its bank connection configurations under `~/.docker/firefly-iii/fints/`. FinTS authentication data is sensitive; protect access to the importer hostname and host directory accordingly.
 
 
-- **Snipe-IT** runs with MariaDB 11.4 and the official `snipe/snipe-it` image. Its database and application storage use direct host bind mounts at `~/.docker/snipe-it/database/` and `~/.docker/snipe-it/storage/`. The directories are prepared idempotently with MariaDB ownership `999:999` and Snipe-IT ownership `10000:50`. The application binds to `127.0.0.1:8025` and the supplied local Caddy hostname is `snipeit.21x9.org`. Store `database_password`, `mysql_root_password` and a generated Laravel `app_key` under `secrets.docker.snipe-it` in the encrypted secrets file. Generate the key with `docker compose run --rm app php artisan key:generate --show`; keep the same key for the lifetime of the installation.
+- **Snipe-IT** runs with MariaDB 11.4 and the official `snipe/snipe-it` image. Its database and application storage use Docker-managed local named volumes (`database_data` and `storage_data`) backed by `~/.docker/snipe-it/database/` and `~/.docker/snipe-it/storage/`, respectively. The backing directories are prepared idempotently with MariaDB ownership `999:999` and Snipe-IT ownership `10000:50`. The application binds to `127.0.0.1:8025` and the supplied local Caddy hostname is `snipeit.21x9.org`. Store `database_password`, `mysql_root_password` and a generated Laravel `app_key` under `secrets.docker.snipe-it` in the encrypted secrets file. Generate the key with `docker compose run --rm app php artisan key:generate --show`; keep the same key for the lifetime of the installation.
 - **Miniflux** uses a PostgreSQL companion container. Its database is persisted in `~/.docker/miniflux/db/`; administrator and database credentials are read from `secrets.docker.miniflux`.
 - **TimeTagger** stores its data in `~/.docker/timetagger/`, mounted at the container's `/root/_timetagger` directory.
 - **Grav** persists the complete web application data directory in `~/.docker/grav/data/`. Its `setup`, `scheduler` and `fix_permissions` options are configurable.
@@ -204,7 +204,7 @@ Header widgets and service widgets can expose network and application data. Keep
 
 **Storage migration**
 
-The current Compose templates use host bind mounts, not Docker-managed named volumes. If a service was previously deployed using an earlier named-volume template (notably Wallabag or Vaultwarden), Docker Compose will not copy that volume's contents into the new host directory. Back up the old volume and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.
+Compose storage definitions vary by service. Snipe-IT uses Docker-managed local named volumes backed by explicit host directories; most other services use direct host bind mounts. When changing a service's storage definition, Docker Compose does not automatically migrate existing data. Back up the source and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.
 
 `tasks/docker/` contains the service-specific configuration and `templates/docker/` contains the corresponding Compose files. Consult both before changing a service's supported host-data keys or storage layout.
 
