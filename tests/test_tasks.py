@@ -9,7 +9,9 @@ important behavior without contacting or modifying a real machine.
 import builtins
 import importlib.util
 import json
+import os
 import runpy
+import subprocess
 import sys
 import types
 from pathlib import Path
@@ -485,3 +487,23 @@ def test_caddy_deploys_and_enables_daily_renewal_timer(pyinfra_task_harness, mon
         in timer_calls[0]["commands"]
     )
     assert timer_calls[0]["_if"]() is True
+
+def test_dehydrated_hook_handles_text_exit_argument():
+    """A textual Dehydrated exit_hook argument must not trigger nounset errors."""
+    hook = ROOT / "files/dehydrated_hook.sh"
+    result = subprocess.run(
+        ["bash", str(hook), "exit_hook", "The challenge failed"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "API_TOKEN": "test-token"},
+    )
+    assert result.returncode == 0
+    assert "dehydrated reported an error: The challenge failed" in result.stderr
+
+
+def test_caddy_image_creates_dehydrated_config_include_directory():
+    """The configured CONFIG_D path exists in the built Caddy image."""
+    dockerfile = (ROOT / "files/caddy/Dockerfile").read_text()
+    assert "mkdir -p /etc/dehydrated/conf.d" in dockerfile
+
