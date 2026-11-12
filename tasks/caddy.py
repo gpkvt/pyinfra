@@ -27,6 +27,9 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
 
     duration = options.get("default_duration", "60m")
     timeout = options.get("blocking_timeout", "15m")
+    default_strategy = options.get("strategy", "dynamic")
+    default_theme = options.get("default_theme", "ghost")
+    refresh_frequency = options.get("refresh_frequency", "5s")
 
     homepage_exclusions = homepage_api_exclusions(options.get("homepage_services", []))
 
@@ -35,6 +38,29 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
         if not sablier_options.get("enabled", True):
             return
         group = sablier_options.get("group", service)
+        strategy = sablier_options.get("strategy", default_strategy)
+        sablier_route = {
+            "group": group,
+            "session_duration": sablier_options.get("session_duration", duration),
+        }
+        if strategy == "dynamic":
+            sablier_route["dynamic"] = {
+                "display_name": sablier_options.get(
+                    "display_name", service.replace("-", " ").title()
+                ),
+                "theme": sablier_options.get("theme", default_theme),
+                "show_details": str(sablier_options.get("show_details", True)).lower(),
+                "refresh_frequency": sablier_options.get(
+                    "refresh_frequency", refresh_frequency
+                ),
+            }
+        elif strategy == "blocking":
+            sablier_route["blocking"] = {
+                "timeout": sablier_options.get("blocking_timeout", timeout),
+            }
+        else:
+            raise ValueError(f"Unsupported Sablier strategy for {service}: {strategy}")
+
         for address, directives in result.items():
             upstream = directives.get("reverse_proxy")
             if upstream != f"127.0.0.1:{int(port)}":
@@ -47,13 +73,7 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
                 route["handle @homepage_api"] = {
                     "reverse_proxy": upstream,
                 }
-            route["sablier http://127.0.0.1:10000"] = {
-                "group": group,
-                "session_duration": sablier_options.get("session_duration", duration),
-                "blocking": {
-                    "timeout": sablier_options.get("blocking_timeout", timeout),
-                },
-            }
+            route["sablier http://127.0.0.1:10000"] = deepcopy(sablier_route)
             route["reverse_proxy"] = upstream
             directives.pop("reverse_proxy")
             directives["route"] = route
