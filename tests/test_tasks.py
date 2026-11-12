@@ -368,13 +368,13 @@ def test_caddyfile_sets_http_response_write_timeout():
     })
 
     assert rendered.startswith(
-        "{\\n"
-        "    servers {\\n"
-        "        timeouts {\\n"
-        "            write 2m\\n"
-        "        }\\n"
-        "    }\\n"
-        "}\\n"
+        "{\n"
+        "    servers {\n"
+        "        timeouts {\n"
+        "            write 2m\n"
+        "        }\n"
+        "    }\n"
+        "}\n"
     )
     assert rendered.index("example.com {") > rendered.index("write 2m")
 
