@@ -229,7 +229,7 @@ A task run directly may not have all initialization or feature-gate behavior of 
 
 ### On-demand Docker services
 
-On-demand startup is controlled by `docker_sablier`. The supplied local configuration enables Sablier with a 60-minute default session and a five-minute Caddy blocking timeout. Only Caddy reverse-proxy routes whose loopback port matches a configured Docker service are wrapped; unmatched routes remain unchanged.
+On-demand startup is controlled by `docker_sablier`. The supplied local configuration enables Sablier with a 10-minute default session and a 10-minute blocking timeout. Caddy's HTTP server response write deadline is set to 2 minutes. This is a hard limit for the complete response, not only the time spent waiting for Sablier; responses that take longer than 2 minutes to finish can be terminated. Only Caddy reverse-proxy routes whose loopback port matches a configured Docker service are wrapped; unmatched routes remain unchanged.
 
 Sablier runs as a Docker container using its Docker provider and the Docker socket. Caddy runs in a custom Docker image containing the Sablier Caddy plugin. Caddy uses host networking so existing loopback reverse-proxy upstreams continue to work. Dehydrated runs inside the Caddy container and uses the Hetzner DNS-01 hook; set `secrets.dehydrated.hetzner_api_token` in the encrypted secrets file.
 
