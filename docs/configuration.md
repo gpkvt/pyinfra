@@ -292,7 +292,7 @@ The task sets default incoming policy to deny and outgoing policy to allow, appl
 The following features combine host data with encrypted secrets:
 
 - WireGuard requires `wireguard_config` plus matching `secrets.wireguard` entries.
-- dehydrated requires a `secrets.dehydrated` entry.
+- Caddy's Dehydrated DNS-01 certificate workflow requires `secrets.dehydrated.hetzner_api_token` when Docker and `caddy_config` enable the Caddy task.
 - Git credentials are deployed only when `secrets.git_credentials` is present.
 - SSH key generation can use `secrets.ssh` passphrases.
 - Miniflux uses `secrets.docker.miniflux` for administrator and PostgreSQL credentials.
