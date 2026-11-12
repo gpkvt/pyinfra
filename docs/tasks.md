@@ -90,7 +90,7 @@ When `host.data.docker` is truthy, `deploy.py` includes `tasks/docker.py` and `t
 - Compose files are rendered to `~/<service>/docker-compose.yml`.
 - User-level systemd units are rendered to `~/.config/systemd/user/<service>.service`.
 - Persistent data and per-service Docker directories live under the configured user's `~/.docker/` directory.
-- A changed Compose file triggers `docker compose pull`; a changed Compose file or systemd unit triggers a service restart. The systemd unit stops the Compose project with `docker compose down` and starts it with `docker compose up -d`, recreating its containers. Service tasks can also register additional restart triggers for generated assets; Homepage's container is recreated when its synchronized public icons change.
+- A changed Compose file triggers `docker compose pull`; a changed Compose file, Sablier override, systemd unit or registered asset trigger causes the user-level systemd service to start or restart. With Sablier enabled, the unit prepares the project using `docker compose up --no-start`; without Sablier it starts the project with `docker compose up -d`. The unit stops either the complete Compose project (`down`) or only configured `app_services`, depending on `stop_dependencies`. Service tasks can also register additional restart triggers for generated assets; Homepage's container is recreated when its synchronized public icons change.
 - An unchanged Compose file does not trigger an image pull. Image updates therefore require a configuration change or a separate manual pull.
 
 **Available services**
@@ -204,7 +204,7 @@ Header widgets and service widgets can expose network and application data. Keep
 
 **Storage migration**
 
-Compose storage definitions vary by service. Snipe-IT uses Docker-managed local named volumes backed by explicit host directories; most other services use direct host bind mounts. When changing a service's storage definition, Docker Compose does not automatically migrate existing data. Back up the source and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.
+All configured services use direct host bind mounts below `~/.docker/`; no Docker-managed named volumes are used. When changing a service's storage definition, Docker Compose does not automatically migrate existing data. Back up the source and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.
 
 `tasks/docker/` contains the service-specific configuration and `templates/docker/` contains the corresponding Compose files. Consult both before changing a service's supported host-data keys or storage layout.
 
