@@ -186,16 +186,19 @@ def configure_caddy():
     container_running = host.get_fact(
         Command, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
     ).strip() == "true"
+    container_healthy = host.get_fact(
+        Command, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
+    ).strip() == "healthy"
     recreate = (
         compose.did_change or build_changed or domains_file.did_change
         or dehydrated_config.did_change or env_file.did_change
-        or not container_running
+        or not container_running or not container_healthy
     )
     server.shell(
         name="Start Caddy and Dehydrated containers",
         commands=[
-            f"docker compose -f {shlex.quote(root + '/docker-compose.yml')} up -d --build"
-            + (" --force-recreate" if env_file.did_change else "")
+            f"docker compose -f {shlex.quote(root + '/docker-compose.yml')} up -d"
+            + (" --force-recreate" if container_running and not container_healthy else "")
         ],
         _sudo=False, _if=lambda: recreate,
     )
