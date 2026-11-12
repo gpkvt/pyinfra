@@ -669,7 +669,9 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
         "docker": {"custom": {}},
     })
 
-    def get_fact(_fact, command=""):
+    sudo_flags = []
+    def get_fact(_fact, command="", **kwargs):
+        sudo_flags.append(kwargs.get("_sudo"))
         if command == "id -u" or command == "id -u tester":
             return "1000"
         if "config --services" in command:
