@@ -546,7 +546,10 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
         "dehydrated": {"hetzner_api_token": "test-token"},
     })
 
-    def get_fact(fact, command="", **_kwargs):
+    status_sudo_flags = []
+    def get_fact(fact, command="", **kwargs):
+        if "systemctl --user is-active caddy-renew.timer" in command:
+            status_sudo_flags.append(kwargs.get("_sudo"))
         if "id -u" in command or "id -g" in command:
             return "1000"
         if "docker image inspect" in command:
@@ -582,6 +585,7 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
     ]
     assert len(docker_actions) == 5
     assert all(call["_if"]() is False for call in docker_actions)
+    assert status_sudo_flags == [False]
 
 
 
@@ -637,8 +641,11 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
     })
 
     sudo_flags = []
+    status_sudo_flags = []
     def get_fact(_fact, command="", **kwargs):
         sudo_flags.append(kwargs.get("_sudo"))
+        if "is-active custom" in command:
+            status_sudo_flags.append(kwargs.get("_sudo"))
         if command == "id -u":
             return "0"
         if command == "id -u tester":
@@ -660,6 +667,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
     assert service_call["_if"]() is False
     assert service_call["commands"][0].startswith("runuser -u tester -- env ")
     assert False in sudo_flags
+    assert status_sudo_flags == [False]
 
 
 def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harness):
@@ -670,8 +678,11 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     })
 
     sudo_flags = []
+    status_sudo_flags = []
     def get_fact(_fact, command="", **kwargs):
         sudo_flags.append(kwargs.get("_sudo"))
+        if "is-active custom" in command:
+            status_sudo_flags.append(kwargs.get("_sudo"))
         if command == "id -u" or command == "id -u tester":
             return "1000"
         if "config --services" in command:
@@ -691,3 +702,4 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     assert service_call["_if"]() is False
     assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
     assert False in sudo_flags
+    assert status_sudo_flags == [False]
