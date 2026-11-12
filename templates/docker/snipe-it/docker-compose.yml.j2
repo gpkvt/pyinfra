@@ -1,0 +1,66 @@
+services:
+  db:
+    image: docker.io/library/mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: snipeit
+      MYSQL_USER: snipeit
+      MYSQL_PASSWORD: "{{ database_password | replace('$', '$$') }}"
+      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password | replace('$', '$$') }}"
+    volumes:
+      - database_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 1s
+      retries: 5
+
+  app:
+    image: {{ image }}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    ports:
+      - "127.0.0.1:{{ port }}:80"
+    environment:
+      APP_ENV: production
+      APP_DEBUG: "false"
+      APP_KEY: "{{ app_key | replace('$', '$$') }}"
+      APP_URL: "https://{{ domain }}"
+      APP_TIMEZONE: "{{ timezone }}"
+      APP_LOCALE: en-US
+      APP_TRUSTED_PROXIES: "172.0.0.0/8"
+      SECURE_COOKIES: "true"
+      DB_CONNECTION: mariadb
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_DATABASE: snipeit
+      DB_USERNAME: snipeit
+      DB_PASSWORD: "{{ database_password | replace('$', '$$') }}"
+      DB_DUMP_PATH: /usr/bin
+      DB_DUMP_SKIP_SSL: "false"
+      DB_DUMP_SINGLE_TRANSACTION: "false"
+      DB_CHARSET: utf8mb4
+      DB_COLLATION: utf8mb4_unicode_ci
+      MAIL_MAILER: log
+      IMAGE_LIB: gd
+      ALLOW_BACKUP_DELETE: "false"
+      ALLOW_DATA_PURGE: "false"
+    volumes:
+      - storage_data:/var/lib/snipeit
+
+volumes:
+  database_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "{{ homedir }}/.docker/snipe-it/database"
+  storage_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "{{ homedir }}/.docker/snipe-it/storage"
