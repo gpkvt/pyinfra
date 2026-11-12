@@ -8,7 +8,7 @@ mkdir -p /var/lib/dehydrated/certs /var/lib/dehydrated/accounts \
     /var/lib/dehydrated/chains /var/lib/dehydrated/private
 
 # The first cron run also registers the ACME account and issues missing certs.
-dehydrated --cron --accept-terms --config "$DEHYDRATED_CONFIG"
+dehydrated --cron --accept-terms --keep-going --config "$DEHYDRATED_CONFIG"
 
 caddy run --config "$CADDYFILE" &
 CADDY_PID=$!
@@ -32,7 +32,7 @@ while kill -0 "$CADDY_PID" 2>/dev/null; do
         break
     fi
     before="$(certificate_fingerprint)"
-    dehydrated --cron --accept-terms --config "$DEHYDRATED_CONFIG"
+    dehydrated --cron --accept-terms --keep-going --config "$DEHYDRATED_CONFIG"
     after="$(certificate_fingerprint)"
     if [ "$before" != "$after" ]; then
         caddy reload --config "$CADDYFILE"

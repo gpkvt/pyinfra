@@ -214,7 +214,7 @@ def configure_caddy():
     server.shell(
         name="Renew certificates after domain or Dehydrated configuration changes",
         commands=[
-            "docker exec caddy dehydrated --cron --accept-terms --config /etc/dehydrated/config",
+            "docker exec caddy dehydrated --cron --accept-terms --keep-going --config /etc/dehydrated/config",
             "docker exec caddy caddy reload --config /etc/caddy/Caddyfile",
         ],
         _sudo=False,
