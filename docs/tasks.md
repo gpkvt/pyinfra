@@ -233,7 +233,7 @@ On-demand startup is controlled by `docker_sablier`. The supplied local configur
 
 Sablier runs as a Docker container using its Docker provider and the Docker socket. Caddy runs in a custom Docker image containing the Sablier Caddy plugin. Caddy uses host networking so existing loopback reverse-proxy upstreams continue to work. Dehydrated runs inside the Caddy container and uses the Hetzner DNS-01 hook; set `secrets.dehydrated.hetzner_api_token` in the encrypted secrets file.
 
-Each Compose workload is prepared with `docker compose create`. Sablier starts a labelled application container when a matching request arrives. Sablier follows Compose `depends_on` metadata to start required dependencies in order. Dependencies that should stop with the application session must also carry `sablier.enable=true` and the same group.
+Each Compose workload is prepared with `docker compose up --no-start`. This creates missing containers and reconciles changed Compose configuration (including Sablier labels) without starting on-demand services. Sablier starts a labelled application container when a matching request arrives. Sablier follows Compose `depends_on` metadata to start required dependencies in order. Dependencies that should stop with the application session must also carry `sablier.enable=true` and the same group.
 
 The `sablier_services` list under a service's `docker.<service>` configuration declares every container to stop together when its session expires. It defaults to `app_services`, so dependencies remain running unless explicitly included. One-shot containers must not be included. The supplied local configuration includes the database and supporting services for Miniflux, Linkwarden, Paperless-ngx, Firefly III and Snipe-IT.
 
