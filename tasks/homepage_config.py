@@ -16,8 +16,12 @@ def homepage_api_exclusions(homepage_services):
                 if isinstance(url, str):
                     parsed = urlsplit(url)
                     if parsed.hostname:
-                        paths = widget.get("sablier", {}).get("api_paths", [])
-                        paths = [path for path in paths if isinstance(path, str) and path.startswith("/")]
+                        sablier = widget.get("sablier", {})
+                        paths = sablier.get("api_paths", []) if isinstance(sablier, dict) else []
+                        paths = [
+                            path for path in paths
+                            if isinstance(path, str) and path.startswith("/")
+                        ]
                         if widget.get("type") == "customapi" and parsed.path:
                             paths.append(parsed.path)
                         if paths:
