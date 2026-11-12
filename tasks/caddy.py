@@ -15,6 +15,53 @@ CADDY_VERSION = "2.11.2"
 PLUGIN_VERSION = "v1.0.2"
 IMAGE = f"pyinfra/caddy-sablier:{CADDY_VERSION}"
 
+HOMEPAGE_WIDGET_API_PATHS = {
+    "miniflux": ["/v1/feeds/counters"],
+    "linkwarden": ["/api/v1/collections", "/api/v1/tags"],
+    "paperlessngx": ["/api/statistics/"],
+    "firefly": ["/api/v1/summary/basic", "/api/v1/available-budgets"],
+    "portainer": ["/api/endpoints/{env}/docker/containers/json"],
+    "gitea": [
+        "/api/v1/notifications",
+        "/api/v1/repos/issues/search",
+        "/api/v1/repos/search",
+    ],
+}
+
+
+def homepage_api_exclusions(homepage_services):
+    """Return API paths keyed by the hostname configured in Homepage widgets."""
+    from urllib.parse import urlsplit
+
+    exclusions = {}
+
+    def visit(value):
+        if isinstance(value, dict):
+            widget = value.get("widget")
+            if isinstance(widget, dict):
+                url = widget.get("url")
+                widget_type = widget.get("type")
+                if isinstance(url, str) and widget_type:
+                    parsed = urlsplit(url)
+                    if parsed.hostname:
+                        paths = list(HOMEPAGE_WIDGET_API_PATHS.get(widget_type, []))
+                        if widget_type == "portainer":
+                            env = widget.get("env")
+                            paths = [path.format(env=env) for path in paths if env is not None]
+                        if widget_type == "customapi" and parsed.path:
+                            paths.append(parsed.path)
+                        if paths:
+                            exclusions.setdefault(parsed.hostname.lower(), set()).update(paths)
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, (list, tuple)):
+            for child in value:
+                visit(child)
+
+    visit(homepage_services)
+    return {hostname: sorted(paths) for hostname, paths in exclusions.items()}
+
+
 def build_sablier_caddy_config(caddy_config, docker_config, options):
     """Wrap only configured Docker reverse proxies in Sablier routes."""
     result = deepcopy(caddy_config)
@@ -24,15 +71,26 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
     duration = options.get("default_duration", "60m")
     timeout = options.get("blocking_timeout", "15m")
 
+    homepage_exclusions = homepage_api_exclusions(options.get("homepage_services", []))
+
     def wrap_routes(service, port, service_options):
         sablier_options = service_options.get("sablier", {})
         if not sablier_options.get("enabled", True):
             return
         group = sablier_options.get("group", service)
-        for directives in result.values():
-            if directives.get("reverse_proxy") != f"127.0.0.1:{int(port)}":
+        for address, directives in result.items():
+            upstream = directives.get("reverse_proxy")
+            if upstream != f"127.0.0.1:{int(port)}":
                 continue
-            route = {
+            hostname = address.split(":", 1)[0].strip("[]").lower()
+            api_paths = homepage_exclusions.get(hostname, [])
+            route = {}
+            if api_paths:
+                route["@homepage_api"] = {"path": api_paths}
+                route["handle @homepage_api"] = {
+                    "reverse_proxy": upstream,
+                }
+            route["handle"] = {
                 "sablier http://127.0.0.1:10000": {
                     "group": group,
                     "session_duration": sablier_options.get("session_duration", duration),
@@ -40,10 +98,14 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
                         "timeout": sablier_options.get("blocking_timeout", timeout),
                     },
                 },
-                "reverse_proxy": directives.pop("reverse_proxy"),
+                "reverse_proxy": upstream,
             }
             if "header" in directives:
-                route["header"] = directives.pop("header")
+                header = directives.pop("header")
+                if api_paths:
+                    route["handle @homepage_api"]["header"] = header
+                route["handle"]["header"] = header
+            directives.pop("reverse_proxy")
             directives["route"] = route
 
     for service, service_options in docker_config.items():
@@ -118,7 +180,10 @@ def configure_caddy():  # pylint: disable=R0914
         )
 
     caddy_conf = build_sablier_caddy_config(
-        host.data.get("caddy_config", {}), docker_config, sablier_options,
+        host.data.get("caddy_config", {}), docker_config, {
+            **sablier_options,
+            "homepage_services": host.data.get("docker", {}).get("homepage", {}).get("services", []),
+        },
     )
     caddyfile = files.template(
         name="Deploy Caddyfile",
