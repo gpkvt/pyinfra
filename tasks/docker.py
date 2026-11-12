@@ -242,9 +242,10 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
     if restart_if is not None:
         restart_triggers.append(restart_if)
 
-    service_active = host.get_fact(
+    service_status = host.get_fact(
         Command, f"systemctl --user is-active {service} 2>/dev/null || true"
-    ).strip() == "active"
+    ) or ""
+    service_active = service_status.strip() == "active"
     server.shell(
         name=f"Reload systemd and ensure {service} is prepared",
         commands=[
