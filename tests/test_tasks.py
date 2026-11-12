@@ -636,7 +636,9 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
         "docker": {"custom": {}},
     })
 
+    sudo_flags = []
     def get_fact(_fact, command="", **kwargs):
+        sudo_flags.append(kwargs.get("_sudo"))
         if command == "id -u":
             return "0"
         if command == "id -u tester":
@@ -657,7 +659,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
     )
     assert service_call["_if"]() is False
     assert service_call["commands"][0].startswith("runuser -u tester -- env ")
-    assert kwargs.get("_sudo") is False
+    assert False in sudo_flags
 
 
 def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harness):
@@ -686,4 +688,4 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     )
     assert service_call["_if"]() is False
     assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
-    assert kwargs.get("_sudo") is False
+    assert False in sudo_flags
