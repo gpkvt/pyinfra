@@ -178,7 +178,10 @@ def configure_caddy():
         homedir=homedir, uid=uid, gid=gid, image=IMAGE, _sudo=False,
     )
 
-    build_changed = (\n        dockerfile.did_change or entrypoint.did_change or hook.did_change\n        or renew_script.did_change\n    )
+    build_changed = (
+        dockerfile.did_change or entrypoint.did_change or hook.did_change
+        or renew_script.did_change
+    )
     image_present = host.get_fact(
         Command,
         f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
