@@ -385,7 +385,7 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
     assert "route" in result["custom-extra.example:443"]
     assert result["external.example:443"]["reverse_proxy"] == "127.0.0.1:9000"
     assert (
-        result["fints.example:443"]["route"]
+        result["fints.example:443"]["route"]["handle"]
         ["sablier http://127.0.0.1:10000"]["group"]
         == "firefly-iii"
     )
@@ -745,8 +745,6 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
         {"enabled": True, "homepage_services": homepage_services},
     )
     linkwarden_route = result["links.example:443"]["route"]
-    assert linkwarden_route["@homepage_api"]["path"] == [
-        "/api/v1/collections", "/api/v1/tags",
-    ]
+    assert linkwarden_route["@homepage_api"]["path"] == "/api/v1/collections /api/v1/tags"
     assert "sablier http://127.0.0.1:10000" in linkwarden_route["handle"]
     assert result["other.example:443"]["route"]["handle"]["sablier http://127.0.0.1:10000"]
