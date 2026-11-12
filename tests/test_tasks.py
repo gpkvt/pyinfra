@@ -401,6 +401,10 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
         },
     })
 
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
+        "worker scheduler database" if "/custom/" in command else "generic"
+    ) if "config --services" in command else ""
+
     module.deploy_docker_service("custom", "Custom", "/home/tester")
     module.deploy_docker_service("generic", "Generic", "/home/tester")
 
@@ -453,7 +457,9 @@ def test_docker_service_treats_missing_systemd_status_as_inactive(pyinfra_task_h
     module = pyinfra_task_harness.load("docker.py", {
         "docker": {"custom": {}},
     })
-    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: None
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
+        "custom" if "config --services" in command else None
+    )
 
     module.deploy_docker_service("custom", "Custom", "/home/tester")
 
@@ -568,7 +574,7 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
             "Reload Caddy after Caddyfile changes",
         }
     ]
-    assert len(docker_actions) == 2
+    assert len(docker_actions) == 5
     assert all(call["_if"]() is False for call in docker_actions)
 
 
