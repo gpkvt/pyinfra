@@ -1,6 +1,7 @@
 # pylint: disable=C0301, E0401, C0116, E1101
 """Deploy Caddy, its Sablier module and Dehydrated in Docker."""
 
+import builtins
 import re
 import shlex
 from copy import deepcopy
@@ -92,11 +93,11 @@ if not hasattr(__import__("builtins"), "homedir"):
 
 
 @deploy("Configure Caddy Docker container")
-def configure_caddy():
+def configure_caddy():  # pylint: disable=R0914
     docker_config = host.data.get("docker", {})
     if not docker_config:
         raise ValueError("Caddy Docker deployment requires Docker to be configured")
-    api_token = secrets.get("dehydrated", {}).get("hetzner_api_token")
+    api_token = builtins.secrets.get("dehydrated", {}).get("hetzner_api_token")
     if not api_token:
         raise ValueError("secrets.dehydrated.hetzner_api_token is required for DNS-01 certificates")
 
