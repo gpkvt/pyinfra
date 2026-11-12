@@ -22,7 +22,7 @@ Persistent data:
 """
 
 from pyinfra import host
-from pyinfra.operations import files, server
+from pyinfra.operations import files
 
 from tasks.docker import deploy_docker_service
 
@@ -31,19 +31,15 @@ linkwarden_secrets = secrets.get("docker", {}).get("linkwarden", {})  # pylint: 
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
-# Create volume backing directories before Compose creates the local volumes.
 # PostgreSQL 16 Alpine runs as UID/GID 70:70 and needs exclusive access.
-postgres_directory = f"{homedir}/.docker/linkwarden/postgres"  # pylint: disable=undefined-variable
-server.shell(
-    name="Create Linkwarden postgres storage directory",
-    commands=[
-        f"install -d -o 70 -g 70 -m 700 {postgres_directory}",
-    ],
+# files.directory checks metadata and only changes it when necessary.
+files.directory(
+    name="Ensure Linkwarden PostgreSQL storage directory",
+    path=f"{homedir}/.docker/linkwarden/postgres",  # pylint: disable=undefined-variable
+    user="70",
+    group="70",
+    mode="700",
     _sudo=True,
-    _if=(
-        f"test ! -d {postgres_directory} || "
-        f"test \"$(stat -c '%u:%g:%a' {postgres_directory})\" != '70:70:700'"
-    ),
 )
 
 for directory in ("data", "meili"):
