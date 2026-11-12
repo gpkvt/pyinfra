@@ -277,7 +277,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
             f"from unprivileged UID {current_uid}"
         )
     service_status = host.get_fact(
-        Command, f"{systemctl_user} is-active {shlex.quote(service)}"
+        Command, f"{systemctl_user} is-active {shlex.quote(service)}", _sudo=False
     ) or ""
     service_active = service_status.strip() == "active"
 
