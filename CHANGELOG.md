@@ -14,6 +14,7 @@
 - Added Sablier labels for configured Compose dependencies so they start with applications and can stop with the same session group.
 - Removed overlapping certificate renewal during deployment, added Caddy container health checks, and kept Caddy state in explicit host bind mounts below `~/.docker/caddy/`.
 - Replaced the broken in-container cron setup with an idempotently deployed user systemd timer that runs Dehydrated daily at 03:00.
+- Created Dehydrated's configured `conf.d` directory in the Caddy image and fixed the Hetzner hook's handling of textual exit-hook arguments.
 
 
 ## [11.11.2026]
