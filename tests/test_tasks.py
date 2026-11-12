@@ -1,4 +1,4 @@
-# pylint: disable=R0914, W0613, E1101, R0915, W0621, R0911
+# pylint: disable=R0912, R0914, W0613, E1101, R0915, W0621, R0911
 """Smoke and focused regression tests for top-level deployment tasks.
 
 These tests deliberately mock pyinfra's host and operation APIs. They verify
@@ -462,7 +462,7 @@ def test_docker_service_treats_missing_systemd_status_as_inactive(pyinfra_task_h
     module = pyinfra_task_harness.load("docker.py", {
         "docker": {"custom": {}},
     })
-    pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
         "1000" if command.startswith("id -u")
         else ("custom" if "config --services" in command else None)
     )
@@ -683,7 +683,7 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
         sudo_flags.append(kwargs.get("_sudo"))
         if "is-active custom" in command:
             status_sudo_flags.append(kwargs.get("_sudo"))
-        if command == "id -u" or command == "id -u tester":
+        if command in {"id -u", "id -u tester"}:
             return "1000"
         if "config --services" in command:
             return "custom"
