@@ -254,7 +254,7 @@ def configure_caddy():
             "docker logs caddy; "
             "echo 'Caddy did not become healthy within 5 minutes' >&2; exit 1"
         ],
-        _sudo=False, _if=lambda: recreate,
+        _sudo=False, _if=recreate,
     )
     server.shell(
         name="Reload Caddy after Caddyfile changes",
