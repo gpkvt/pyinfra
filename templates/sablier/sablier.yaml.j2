@@ -1,7 +1,8 @@
+# Sablier discovers groups dynamically from Docker container labels.
+# Every managed container must have sablier.enable=true and sablier.group.
 provider:
-  name: systemd
-  systemd:
-    user-instance: true
+  name: docker
+  reject-unlabeled-requests: true
 sessions:
   default-duration: {{ default_duration }}
   expiration-interval: 10s
