@@ -81,6 +81,8 @@ if host.data.get("ufw"):
 if host.data.get("docker"):
     local.include("tasks/docker.py")
     local.include("tasks/docker_container.py")
+    if host.data.get("docker_sablier", {}).get("enabled", False):
+        local.include("tasks/docker_sablier.py")
     local.include("tasks/docker_power.py")
 
 if host.data.get("apparmor_profiles"):
