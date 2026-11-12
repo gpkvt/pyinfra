@@ -8,7 +8,7 @@ from copy import deepcopy
 from pyinfra import host
 from pyinfra.api import deploy
 from pyinfra.facts.server import Command
-from pyinfra.operations import apt, files, server
+from pyinfra.operations import files, server
 
 CADDY_VERSION = "2.11.2"
 PLUGIN_VERSION = "v1.0.2"
@@ -183,18 +183,6 @@ def configure_caddy():
         _sudo=False, _if=lambda: build_changed or not image_present,
     )
 
-    host_active = host.get_fact(
-        Command, "systemctl is-active caddy.service 2>/dev/null || true"
-    ).strip() == "active"
-    host_enabled = host.get_fact(
-        Command, "systemctl is-enabled caddy.service 2>/dev/null || true"
-    ).strip() == "enabled"
-    server.shell(
-        name="Stop host Caddy before binding container ports",
-        commands=["systemctl disable --now caddy.service"],
-        _sudo=True, _if=lambda: host_active or host_enabled,
-    )
-
     container_running = host.get_fact(
         Command, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
     ).strip() == "true"
@@ -227,35 +215,6 @@ def configure_caddy():
         _if=lambda: caddyfile.did_change and container_running and not recreate,
     )
 
-    apt.packages(
-        name="Remove obsolete host Caddy and Dehydrated packages",
-        packages=["caddy", "dehydrated"], present=False, _sudo=True,
-    )
-    legacy_build_artifacts = host.get_fact(
-        Command,
-        "if [ -e /usr/local/bin/caddy-sablier ] || [ -e /usr/local/bin/xcaddy ] || [ -d /opt/go1.25.4 ]; then echo present; else echo absent; fi",
-    ).strip() == "present"
-    server.shell(
-        name="Remove obsolete host-built Caddy artifacts",
-        commands=[
-            "rm -f /usr/local/bin/caddy-sablier /usr/local/bin/xcaddy",
-            "rm -rf /opt/go1.25.4",
-        ],
-        _sudo=True,
-        _if=lambda: legacy_build_artifacts,
-    )
-    override_present = host.get_fact(
-        Command, "test -f /etc/systemd/system/caddy.service.d/override.conf && echo yes || echo no"
-    ).strip() == "yes"
-    server.shell(
-        name="Remove obsolete host Caddy systemd override",
-        commands=[
-            "rm -f /etc/systemd/system/caddy.service.d/override.conf",
-            "rmdir --ignore-fail-on-non-empty /etc/systemd/system/caddy.service.d",
-            "systemctl daemon-reload",
-        ],
-        _sudo=True, _if=lambda: override_present,
-    )
 
 
 if host.data.get("caddy_config"):

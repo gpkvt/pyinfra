@@ -12,48 +12,6 @@ if options.get("enabled", False):
     usergroup = host.data.get("usergroup", "root")
     homedir = host.data.get("homedir", f"/home/{username}")
 
-    # Retire the previous host-installed Sablier systemd provider before
-    # binding the Docker provider to its former API port.
-    legacy_unit = f"{homedir}/.config/systemd/user/sablier.service"
-    legacy_active = host.get_fact(
-        Command, "systemctl --user is-active sablier.service 2>/dev/null || true"
-    ).strip() == "active"
-    legacy_enabled = host.get_fact(
-        Command, "systemctl --user is-enabled sablier.service 2>/dev/null || true"
-    ).strip() == "enabled"
-    legacy_unit_present = host.get_fact(
-        Command, f"test -f {legacy_unit} && echo yes || echo no"
-    ).strip() == "yes"
-    server.shell(
-        name="Stop obsolete host Sablier service",
-        commands=["systemctl --user disable --now sablier.service || true"],
-        _sudo=False,
-        _if=lambda: legacy_active or legacy_enabled,
-    )
-    files.file(
-        name="Remove obsolete Sablier user service unit",
-        path=legacy_unit,
-        present=False,
-        _sudo=False,
-    )
-    files.file(
-        name="Remove obsolete Sablier binary",
-        path=f"{homedir}/.local/bin/sablier",
-        present=False,
-        _sudo=False,
-    )
-    files.file(
-        name="Remove obsolete Sablier systemd-provider configuration",
-        path=f"{homedir}/.config/sablier/sablier.yaml",
-        present=False,
-        _sudo=False,
-    )
-    server.shell(
-        name="Reload user systemd after retiring host Sablier",
-        commands=["systemctl --user daemon-reload"],
-        _sudo=False,
-        _if=lambda: legacy_unit_present,
-    )
     files.directory(
         name="Create Sablier Docker directory",
         path=f"{homedir}/.docker/sablier",
