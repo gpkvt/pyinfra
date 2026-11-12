@@ -191,20 +191,15 @@ def configure_caddy():  # pylint: disable=R0914
         dest=f"{homedir}/.config/systemd/user/caddy-renew.timer",
         user=username, group=usergroup, mode="644", _sudo=False,
     )
-    systemctl_user = (
-        f"XDG_RUNTIME_DIR=/run/user/{uid} "
-        f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{uid}/bus "
-        "systemctl --user"
-    )
     renewal_timer_status = host.get_fact(
-        Command, f"{systemctl_user} is-active caddy-renew.timer 2>/dev/null || true"
+        Command, "systemctl --user is-active caddy-renew.timer 2>/dev/null || true"
     ) or ""
     renewal_timer_active = renewal_timer_status.strip() == "active"
     server.shell(
         name="Enable daily Caddy certificate renewal",
         commands=[
-            f"{systemctl_user} daemon-reload",
-            f"{systemctl_user} enable --now caddy-renew.timer",
+            "systemctl --user daemon-reload",
+            "systemctl --user enable --now caddy-renew.timer",
         ],
         _sudo=False,
         _if=lambda: (

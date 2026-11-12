@@ -45,15 +45,15 @@ if options.get("enabled", False):
     server.shell(
         name="Pull Sablier image",
         commands=[f"docker compose -f {homedir}/.docker/sablier/docker-compose.yml pull"],
-        _sudo=False, _if=lambda: compose.did_change() or config.did_change(),
+        _sudo=False, _if=compose.did_change or config.did_change,
     )
     server.shell(
         name="Ensure Sablier container is running",
         commands=[f"docker compose -f {homedir}/.docker/sablier/docker-compose.yml up -d"],
         _sudo=False,
         _if=lambda: (
-            compose.did_change()
-            or config.did_change()
+            compose.did_change
+            or config.did_change
             or host.get_fact(
                 Command,
                 "docker inspect -f '{{.State.Running}}' sablier 2>/dev/null || true",

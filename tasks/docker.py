@@ -234,7 +234,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
     server.shell(
         name=f"Pull {service} Docker images",
         commands=[f"docker compose -f {homedir}/{service}/docker-compose.yml pull"],
-        _sudo=False, _if=lambda: compose_file.did_change(),
+        _sudo=False, _if=compose_file.did_change,
     )
 
     systemd_unit = files.template(
@@ -254,7 +254,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
     # pyinfra does not necessarily inherit the interactive user's systemd
     # environment. Set it explicitly so an active unit is not misdetected as
     # inactive (which would restart every service on every deployment).
-    user_uid = host.get_fact(Command, f"id -u {shlex.quote(username)}").strip()
+    user_uid = (host.get_fact(Command, f"id -u {shlex.quote(username)}") or "").strip()
     systemctl_user = (
         f"XDG_RUNTIME_DIR=/run/user/{user_uid} "
         f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{user_uid}/bus "

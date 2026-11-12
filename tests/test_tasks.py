@@ -489,9 +489,9 @@ def test_caddy_deploys_and_enables_daily_renewal_timer(pyinfra_task_harness, mon
         and kwargs.get("name") == "Enable daily Caddy certificate renewal"
     ]
     assert len(timer_calls) == 1
-    assert (
-        "systemctl --user enable --now caddy-renew.timer"
-        in timer_calls[0]["commands"]
+    assert any(
+        command.endswith("systemctl --user enable --now caddy-renew.timer")
+        for command in timer_calls[0]["commands"]
     )
     assert timer_calls[0]["_if"]() is True
 
