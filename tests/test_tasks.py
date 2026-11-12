@@ -405,7 +405,7 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
         },
     })
 
-    pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
         "1000" if command.startswith("id -u")
         else ("worker scheduler database" if "/custom/" in command else "generic")
     ) if "config --services" in command or command.startswith("id -u") else ""
@@ -636,7 +636,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
         "docker": {"custom": {}},
     })
 
-    def get_fact(_fact, command=""):
+    def get_fact(_fact, command="", **kwargs):
         if command == "id -u":
             return "0"
         if command == "id -u tester":
@@ -657,6 +657,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
     )
     assert service_call["_if"]() is False
     assert service_call["commands"][0].startswith("runuser -u tester -- env ")
+    assert kwargs.get("_sudo") is False
 
 
 def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harness):
@@ -685,3 +686,4 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     )
     assert service_call["_if"]() is False
     assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
+    assert kwargs.get("_sudo") is False
