@@ -25,3 +25,9 @@ services:
       - {{ homedir }}/.docker/caddy/config:/config
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:2019/config/ >/dev/null"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 30s
