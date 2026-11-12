@@ -86,7 +86,7 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
             api_paths = homepage_exclusions.get(hostname, [])
             route = {}
             if api_paths:
-                route["@homepage_api"] = {"path": api_paths}
+                route["@homepage_api"] = {"path": " ".join(api_paths)}
                 route["handle @homepage_api"] = {
                     "reverse_proxy": upstream,
                 }
