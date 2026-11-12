@@ -291,10 +291,14 @@ main() {
 exit_hook() {
     local exit_code="${1:-0}"
 
-    if [[ "$exit_code" -eq 0 ]]; then
-        log "dehydrated finished successfully"
+    if [[ "$exit_code" =~ ^[0-9]+$ ]]; then
+        if [[ "$exit_code" -eq 0 ]]; then
+            log "dehydrated finished successfully"
+        else
+            log "dehydrated finished with exit code ${exit_code}"
+        fi
     else
-        log "dehydrated finished with exit code ${exit_code}"
+        log "dehydrated reported an error: ${exit_code}"
     fi
 
     return 0
