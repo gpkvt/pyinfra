@@ -1,15 +1,22 @@
-{%- for entry in caddy_conf %}
+{% macro render_directives(directives, indent="    ") -%}
+{% for key, value in directives.items() %}
+{% if value is mapping %}
+{{ indent }}{{ key }} {
+{{ render_directives(value, indent ~ "    ") }}
+{{ indent }}}
+{% elif value is iterable and value is not string %}
+{{ indent }}{{ key }} {
+{% for item in value %}
+{{ indent }}    {{ item }}
+{% endfor %}
+{{ indent }}}
+{% else %}
+{{ indent }}{{ key }} {{ value }}
+{% endif %}
+{% endfor %}
+{%- endmacro %}
+{% for entry in caddy_conf %}
 {{ entry }} {
-{%- for key, value in caddy_conf[entry].items() %}
-{%- if value is iterable and value is not string and value is not mapping %}
-    {{ key }} {
-{%- for item in value %}
-        {{ item }}
-{%- endfor %}
-    }
-{%- else %}
-    {{ key }} {{ value }}
-{%- endif %}
-{%- endfor %}
+{{ render_directives(caddy_conf[entry]) }}
 }
-{%- endfor %}
+{% endfor %}
