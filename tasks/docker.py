@@ -195,14 +195,21 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
     if not app_services or not all(isinstance(item, str) and item for item in app_services):
         raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
 
-    sablier_services = service_options.get("sablier_services", app_services)
-    if (
-        not isinstance(sablier_services, list)
-        or not sablier_services
-        or not all(isinstance(item, str) and item for item in sablier_services)
-        or len(set(sablier_services)) != len(sablier_services)
-    ):
-        raise ValueError(f"Invalid sablier_services configuration for Docker service {service!r}")
+    if sablier_enabled:
+        compose_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
+        sablier_services_output = host.get_fact(
+            Command,
+            f"docker compose -f {compose_path} config --services",
+        ) or ""
+        sablier_services = sablier_services_output.split()
+        if not sablier_services:
+            raise ValueError(
+                f"Docker Compose returned no services for {service!r}; "
+                "cannot assign Sablier groups"
+            )
+    else:
+        sablier_services = []
+
 
     if sablier_enabled:
         override_file = files.template(
