@@ -461,3 +461,23 @@ def test_docker_service_treats_missing_systemd_status_as_inactive(pyinfra_task_h
     ]
     assert len(service_calls) == 1
     assert service_calls[0]["_if"]() is True
+
+def test_caddy_deploys_and_enables_daily_renewal_timer(pyinfra_task_harness, monkeypatch):
+    """Caddy certificate renewal is scheduled by the user systemd timer."""
+    monkeypatch.setattr(builtins, "secrets", {
+        "dehydrated": {"hetzner_api_token": "test-token"},
+    })
+    pyinfra_task_harness.load("caddy.py", {
+        "docker": {"custom": {"port": 8080}},
+        "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
+        "dehydrated_domains": [["example.org"]],
+    })
+
+    timer_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Enable daily Caddy certificate renewal"
+    ]
+    assert len(timer_calls) == 1
+    assert "systemctl --user enable --now caddy-renew.timer" in timer_calls[0]["commands"]
+    assert timer_calls[0]["_if"]() is True
