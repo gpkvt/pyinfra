@@ -8,9 +8,7 @@ owned by the postgres:alpine container user (70:70).
 """
 
 from pyinfra import host
-from pyinfra.operations import files
-
-from tasks.docker import deploy_docker_service
+from tasks.docker import deploy_docker_service, ensure_numeric_directory
 
 paperless = host.data.get("docker", {}).get("paperless", {})
 paperless_secrets = secrets.get("docker", {}).get("paperless", {})  # pylint: disable=undefined-variable
@@ -21,26 +19,15 @@ usergroup = host.data.get("usergroup", "root")
 uid = int(paperless.get("uid", 1000))
 gid = int(paperless.get("gid", 1000))
 
-# PostgreSQL 17 Alpine runs as UID/GID 70:70. files.directory checks the
-# directory metadata and only applies changes when ownership or mode differs.
-files.directory(
-    name="Ensure Paperless PostgreSQL storage directory",
-    path=f"{homedir}/.docker/paperless/postgres",  # pylint: disable=undefined-variable
-    user="70",
-    group="70",
-    mode="700",
-    _sudo=True,
+# PostgreSQL 17 Alpine runs as UID/GID 70:70.
+ensure_numeric_directory(
+    f"{homedir}/.docker/paperless/postgres", 70, 70, "700"
 )
 
 # Paperless application storage.
 for directory in ("data", "media", "consume", "export"):
-    files.directory(
-        name=f"Ensure Paperless {directory} storage directory",
-        path=f"{homedir}/.docker/paperless/{directory}",  # pylint: disable=undefined-variable
-        user=str(uid),
-        group=str(gid),
-        mode="750",
-        _sudo=True,
+    ensure_numeric_directory(
+        f"{homedir}/.docker/paperless/{directory}", uid, gid, "750"
     )
 
 deploy_docker_service(

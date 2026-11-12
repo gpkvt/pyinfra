@@ -120,10 +120,39 @@ Notes:
     - Docker image updates are not automatically pulled.
 """
 
+import shlex
+
 from pyinfra import host
 from pyinfra.api import deploy
+from pyinfra.facts.server import Command
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
+
+
+def ensure_numeric_directory(path, uid, gid, mode, sudo=True):
+    """Ensure a directory has the requested numeric ownership and mode.
+
+    Unlike files.directory, this check compares numeric UID/GID values,
+    which is important for container data directories owned by numeric
+    container users that may not exist in the host's user database.
+    """
+    quoted_path = shlex.quote(path)
+    expected = f"{uid}:{gid}:{mode}"
+    check_command = (
+        f"if [ -d {quoted_path} ]; then "
+        f"stat -c '%u:%g:%a' -- {quoted_path}; "
+        "else printf 'missing\\n'; fi"
+    )
+
+    server.shell(
+        name=f"Ensure directory metadata: {path}",
+        commands=[
+            f"install -d -o {uid} -g {gid} -m {mode} {quoted_path}",
+        ],
+        _sudo=sudo,
+        _if=lambda: host.get_fact(Command, check_command) != [expected],
+    )
+
 
 if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
