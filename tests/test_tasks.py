@@ -386,7 +386,7 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
     assert "route" in result["custom-extra.example:443"]
     assert result["external.example:443"]["reverse_proxy"] == "127.0.0.1:9000"
     assert (
-        result["fints.example:443"]["route"]["handle"]
+        result["fints.example:443"]["route"]
         ["sablier http://127.0.0.1:10000"]["group"]
         == "firefly-iii"
     )
