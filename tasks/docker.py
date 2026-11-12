@@ -201,7 +201,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
             Command,
             f"docker compose -f {compose_path} config --services",
         ) or ""
-        sablier_services = sablier_services_output.split()
+        sablier_services = sorted(sablier_services_output.split())
         if not sablier_services:
             raise ValueError(
                 f"Docker Compose returned no services for {service!r}; "
