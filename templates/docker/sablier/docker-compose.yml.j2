@@ -1,0 +1,13 @@
+services:
+  sablier:
+    image: sablierapp/sablier:{{ sablier_version }}
+    container_name: sablier
+    restart: unless-stopped
+    command:
+      - start
+      - --provider.name=docker
+      - --sessions.default-duration={{ default_duration }}
+    ports:
+      - "127.0.0.1:10000:10000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock

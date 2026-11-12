@@ -1,0 +1,7 @@
+services:
+{% for service_name in app_services %}
+  {{ service_name }}:
+    labels:
+      sablier.enable: "true"
+      sablier.group: "{{ sablier_group }}"
+{% endfor %}

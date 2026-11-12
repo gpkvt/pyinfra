@@ -5,17 +5,14 @@ Description={{ description }}
 Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory={{ homedir }}/{{ service }}
-ExecStart=/usr/bin/docker compose up -d
-{% if stop_dependencies %}ExecStop=/usr/bin/docker compose down{% else %}ExecStop=/usr/bin/docker compose stop {{ app_services | join(" ") }}{% endif %}
-
+{% if sablier_enabled %}
+ExecStart=/usr/bin/docker compose {{ compose_files }} create
+{% else %}
+ExecStart=/usr/bin/docker compose {{ compose_files }} up -d
+{% endif %}
+{% if stop_dependencies %}ExecStop=/usr/bin/docker compose {{ compose_files }} down{% else %}ExecStop=/usr/bin/docker compose {{ compose_files }} stop {{ app_services | join(" ") }}{% endif %}
 TimeoutStartSec=120
 TimeoutStopSec=120
-
-{% if sablier_enabled %}
-[X-Sablier]
-Enable=true
-Group={{ sablier_group }}
-{% endif %}
 
 [Install]
 WantedBy=default.target
