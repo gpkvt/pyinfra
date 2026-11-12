@@ -21,7 +21,6 @@ from pyinfra import host
 from pyinfra.operations import files, systemd
 
 from tasks.docker import deploy_docker_service
-from tasks.homepage_config import homepage_services_for_render
 
 homepage = host.data.get("docker", {}).get("homepage", {})
 username = host.data.get("username", "root")
@@ -82,9 +81,6 @@ files.directory(
 
 for config_name, filename in config_files.items():
     config = homepage.get(config_name)
-    if config_name == "services" and config is not None:
-        config = homepage_services_for_render(config)
-
     if config is not None:
         files.template(
             name=f"Configure Homepage {config_name}",
