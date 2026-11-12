@@ -2,7 +2,7 @@
 set -eu
 
 DEHYDRATED_CONFIG=/etc/dehydrated/config
-CADDYFILE=/etc/caddy/Caddyfile
+CADDYFILE=/etc/pyinfra-caddy/Caddyfile
 
 mkdir -p /var/lib/dehydrated/certs /var/lib/dehydrated/accounts \
     /var/lib/dehydrated/chains /var/lib/dehydrated/private
