@@ -251,15 +251,17 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
     # were added. Verify the actual Compose containers so a later deployment
     # reconciles label drift without restarting an already-correct project.
     if sablier_enabled:
+        compose_file_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
+        override_file_path = shlex.quote(
+            f"{homedir}/{service}/docker-compose.sablier.yml"
+        )
         label_checks = []
         for service_name in sablier_services:
             expected_labels = shlex.quote(f"true|{sablier_group}")
             compose_service = shlex.quote(service_name)
             label_checks.append(
-                f'container_id=$(/usr/bin/docker compose -f '
-                f'{shlex.quote(f"{homedir}/{service}/docker-compose.yml")} '
-                f'-f {shlex.quote(f"{homedir}/{service}/docker-compose.sablier.yml")} '
-                f'ps -a -q {compose_service}); '
+                f'container_id=$(/usr/bin/docker compose -f {compose_file_path} '
+                f'-f {override_file_path} ps -a -q {compose_service}); '
                 'if [ -z "$container_id" ]; then printf drift; exit 0; fi; '
                 'labels=$(/usr/bin/docker inspect --format '
                 '\'{{ index .Config.Labels "sablier.enable" }}|'
