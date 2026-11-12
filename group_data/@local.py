@@ -753,6 +753,7 @@ docker = {
                             "widget": {
                                 "type": "miniflux",
                                 "url": "https://rss.21x9.org",
+                                "sablier": {"api_paths": ["/v1/feeds/counters"]},
                                 "key": "{{HOMEPAGE_VAR_MINIFLUX_API_KEY}}",
                             },
                         },
@@ -765,6 +766,7 @@ docker = {
                             "widget": {
                                 "type": "linkwarden",
                                 "url": "https://linkwarden.21x9.org",
+                                "sablier": {"api_paths": ["/api/v1/collections", "/api/v1/tags"]},
                                 "key": "{{HOMEPAGE_VAR_LINKWARDEN_API_KEY}}",
                             }
                         },
@@ -777,6 +779,7 @@ docker = {
                             "widget": {
                                 "type": "paperlessngx",
                                 "url": "https://paperless.21x9.org",
+                                "sablier": {"api_paths": ["/api/statistics/"]},
                                 "key": "{{HOMEPAGE_VAR_PAPERLESS_API_KEY}}",
                                 "fields": ["total", "inbox"],
                             },
@@ -790,6 +793,7 @@ docker = {
                             "widget": {
                                 "type": "firefly",
                                 "url": "https://firefly.21x9.org",
+                                "sablier": {"api_paths": ["/api/v1/summary/basic", "/api/v1/available-budgets"]},
                                 "key": "{{HOMEPAGE_VAR_FIREFLY_API_KEY}}",
                                 "fields": ["networth", "budget"],
                             },
@@ -804,6 +808,7 @@ docker = {
                                 "type": "portainer",
                                 "url": "https://portainer.21x9.org",
                                 "env": 3,
+                                "sablier": {"api_paths": ["/api/endpoints/3/docker/containers/json"]},
                                 "key": "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}",
                             },
                         },
@@ -817,6 +822,7 @@ docker = {
                                 "type": "gitea",
                                 "url": "https://forgejo.21x9.org",
                                 "env": 3,
+                                "sablier": {"api_paths": ["/api/v1/notifications", "/api/v1/repos/issues/search", "/api/v1/repos/search"]},
                                 "key": "{{HOMEPAGE_VAR_FORGEJO_API_KEY}}",
                             },                        },
                     },
