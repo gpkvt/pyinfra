@@ -28,12 +28,12 @@ usergroup = host.data.get("usergroup", "root")
 
 # MariaDB's official image runs its database process as mysql (UID/GID 999).
 ensure_numeric_directory(
-    f"{homedir}/.docker/firefly-iii/database", 999, 999, "750"
+    f"{homedir}/.docker/firefly-iii/database", 999, 999, "750" # pylint: disable=E0602
 )
 
 # Firefly III's upload storage is writable by its www-data user (UID/GID 33).
 ensure_numeric_directory(
-    f"{homedir}/.docker/firefly-iii/upload", 33, 33, "750"
+    f"{homedir}/.docker/firefly-iii/upload", 33, 33, "750" # pylint: disable=E0602
 )
 
 # The FinTS importer persists bank connection configurations here.
