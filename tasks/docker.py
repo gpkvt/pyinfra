@@ -189,23 +189,27 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         "stop_dependencies", sablier_options.get("stop_dependencies", True)
     )
     app_services = app_services or service_options.get("app_services", [service])
-    sablier_services = service_options.get("sablier_services", app_services)
 
     if sablier_enabled and (not isinstance(sablier_group, str) or not sablier_group.strip()):
         raise ValueError(f"Invalid Sablier group for Docker service {service!r}")
     if not app_services or not all(isinstance(item, str) and item for item in app_services):
         raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
-    if (
-        not isinstance(sablier_services, list)
-        or not sablier_services
-        or not all(isinstance(item, str) and item for item in sablier_services)
-        or len(set(sablier_services)) != len(sablier_services)
-    ):
-        raise ValueError(f"Invalid sablier_services configuration for Docker service {service!r}")
+
+    compose_path = f"{homedir}/{service}/docker-compose.yml"
+    compose_file_arg = shlex.quote(compose_path)
+    compose_services_output = host.get_fact(
+        Command, f"docker compose -f {compose_file_arg} config --services"
+    ) or ""
+    sablier_services = compose_services_output.split()
+    if sablier_enabled and not sablier_services:
+        raise ValueError(
+            f"Docker Compose did not return any services for {service!r}; "
+            "cannot configure Sablier labels"
+        )
 
     if sablier_enabled:
         override_file = files.template(
-            name=f"Configure Sablier labels for {service}",
+            name=f"Configure Sablier labels for all {service} containers",
             src="templates/docker/sablier-override.yml.j2",
             dest=f"{homedir}/{service}/docker-compose.sablier.yml",
             user=username, group=usergroup, mode="640",
@@ -222,6 +226,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         "-f docker-compose.yml -f docker-compose.sablier.yml"
         if sablier_enabled else "-f docker-compose.yml"
     )
+
     server.shell(
         name=f"Pull {service} Docker images",
         commands=[f"docker compose -f {homedir}/{service}/docker-compose.yml pull"],
@@ -247,32 +252,44 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
     ) or ""
     service_active = service_status.strip() == "active"
 
-    # File checks alone cannot detect containers created before Sablier labels
-    # were added. Verify the actual Compose containers so a later deployment
-    # reconciles label drift without restarting an already-correct project.
+    # Check every container, including replicas, for the expected labels.
+    # Compose config alone is insufficient: Docker labels are immutable after
+    # container creation.
     if sablier_enabled:
-        compose_file_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
-        override_file_path = shlex.quote(
+        compose_dir = shlex.quote(f"{homedir}/{service}")
+        compose_base = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
+        compose_override = shlex.quote(
             f"{homedir}/{service}/docker-compose.sablier.yml"
         )
+        expected_labels = shlex.quote(f"true|{sablier_group}")
         label_checks = []
         for service_name in sablier_services:
-            expected_labels = shlex.quote(f"true|{sablier_group}")
             compose_service = shlex.quote(service_name)
             label_checks.append(
-                f'container_id=$(/usr/bin/docker compose -f {compose_file_path} '
-                f'-f {override_file_path} ps -a -q {compose_service}); '
-                'if [ -z "$container_id" ]; then printf drift; exit 0; fi; '
-                'labels=$(/usr/bin/docker inspect --format '
+                f'container_ids=$(/usr/bin/docker compose -f {compose_base} '
+                f'-f {compose_override} ps -a -q {compose_service}); '
+                'if [ -z "$container_ids" ]; then printf drift; exit 0; fi; '
+                'actual_labels=$(/usr/bin/docker inspect --format '
                 '\'{{ index .Config.Labels "sablier.enable" }}|'
-                '{{ index .Config.Labels "sablier.group" }}\' "$container_id"); '
-                f'if [ "$labels" != {expected_labels} ]; then '
-                'printf drift; exit 0; fi;'
+                '{{ index .Config.Labels "sablier.group" }}\' $container_ids); '
+                f'if [ "$(printf "%s\\n" "$actual_labels" | sort -u)" '
+                f'!= {expected_labels} ]; then printf drift; exit 0; fi;'
             )
         label_check_command = " ".join(label_checks) + " printf match"
         sablier_labels_match = (
             host.get_fact(Command, label_check_command) or ""
         ).strip() == "match"
+
+        server.shell(
+            name=f"Recreate {service} containers with Sablier labels",
+            commands=[
+                f"cd {compose_dir} && /usr/bin/docker compose "
+                f"-f docker-compose.yml -f docker-compose.sablier.yml "
+                "up --no-start --force-recreate"
+            ],
+            _sudo=False,
+            _if=lambda: not sablier_labels_match,
+        )
     else:
         sablier_labels_match = True
 
@@ -287,7 +304,6 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         _if=lambda: (
             any_changed(*restart_triggers)
             or not service_active
-            or not sablier_labels_match
         ),
     )
 
