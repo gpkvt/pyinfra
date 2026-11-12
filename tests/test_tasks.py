@@ -383,3 +383,27 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
         == "firefly-iii"
     )
     assert "reverse_proxy" in config["linkwarden.example:443"]
+
+
+def test_docker_service_app_services_come_from_service_configuration(pyinfra_task_harness):
+    """Systemd unit receives app services from Docker config, with a generic fallback."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker_sablier": {"enabled": True},
+        "docker": {
+            "custom": {"app_services": ["worker", "scheduler"]},
+            "generic": {},
+        },
+    })
+
+    module.deploy_docker_service("custom", "Custom", "/home/tester")
+    module.deploy_docker_service("generic", "Generic", "/home/tester")
+
+    unit_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("src") == "templates/docker/systemd.service.j2"
+    ]
+    assert [call["app_services"] for call in unit_calls] == [
+        ["worker", "scheduler"],
+        ["generic"],
+    ]
