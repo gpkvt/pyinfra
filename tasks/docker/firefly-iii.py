@@ -8,7 +8,7 @@ Secrets are read from secrets.docker.firefly-iii in the encrypted secrets file.
 from pyinfra import host
 from pyinfra.operations import files
 
-from tasks.docker import deploy_docker_service
+from tasks.docker import deploy_docker_service, ensure_numeric_directory
 
 firefly = host.data.get("docker", {}).get("firefly-iii", {})
 firefly_secrets = secrets.get("docker", {}).get("firefly-iii", {})  # pylint: disable=undefined-variable
@@ -27,23 +27,13 @@ username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
 # MariaDB's official image runs its database process as mysql (UID/GID 999).
-files.directory(
-    name="Ensure Firefly III MariaDB storage directory",
-    path=f"{homedir}/.docker/firefly-iii/database",  # pylint: disable=undefined-variable
-    user="999",
-    group="999",
-    mode="750",
-    _sudo=True,
+ensure_numeric_directory(
+    f"{homedir}/.docker/firefly-iii/database", 999, 999, "750"
 )
 
 # Firefly III's upload storage is writable by its www-data user (UID/GID 33).
-files.directory(
-    name="Ensure Firefly III upload storage directory",
-    path=f"{homedir}/.docker/firefly-iii/upload",  # pylint: disable=undefined-variable
-    user="33",
-    group="33",
-    mode="750",
-    _sudo=True,
+ensure_numeric_directory(
+    f"{homedir}/.docker/firefly-iii/upload", 33, 33, "750"
 )
 
 # The FinTS importer persists bank connection configurations here.
