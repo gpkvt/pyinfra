@@ -847,7 +847,12 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
     assert linkwarden_route["sablier http://127.0.0.1:10000"] == {
         "group": "linkwarden",
         "session_duration": "60m",
-        "blocking": {"timeout": "15m"},
+        "dynamic": {
+            "display_name": "Linkwarden",
+            "theme": "ghost",
+            "show_details": "true",
+            "refresh_frequency": "5s",
+        },
     }
     assert result["links.example:443"]["header"] == ["-Server"]
     assert result["other.example:443"]["route"]["sablier http://127.0.0.1:10000"]
