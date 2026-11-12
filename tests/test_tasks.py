@@ -711,12 +711,12 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
     module = pyinfra_task_harness.load("caddy.py")
     homepage_services = [
         {"Services": [
-            {"Miniflux": {"widget": {"type": "miniflux", "url": "https://rss.example"}}},
-            {"Linkwarden": {"widget": {"type": "linkwarden", "url": "https://links.example"}}},
-            {"Paperless": {"widget": {"type": "paperlessngx", "url": "https://paper.example"}}},
-            {"Firefly": {"widget": {"type": "firefly", "url": "https://firefly.example"}}},
-            {"Portainer": {"widget": {"type": "portainer", "url": "https://portainer.example", "env": 3}}},
-            {"Forgejo": {"widget": {"type": "gitea", "url": "https://forgejo.example"}}},
+            {"Miniflux": {"widget": {"type": "miniflux", "url": "https://rss.example", "sablier": {"api_paths": ["/v1/feeds/counters"]}}}},
+            {"Linkwarden": {"widget": {"type": "linkwarden", "url": "https://links.example", "sablier": {"api_paths": ["/api/v1/collections", "/api/v1/tags"]}}}},
+            {"Paperless": {"widget": {"type": "paperlessngx", "url": "https://paper.example", "sablier": {"api_paths": ["/api/statistics/"]}}}},
+            {"Firefly": {"widget": {"type": "firefly", "url": "https://firefly.example", "sablier": {"api_paths": ["/api/v1/summary/basic", "/api/v1/available-budgets"]}}}},
+            {"Portainer": {"widget": {"type": "portainer", "url": "https://portainer.example", "env": 3, "sablier": {"api_paths": ["/api/endpoints/3/docker/containers/json"]}}}},
+            {"Forgejo": {"widget": {"type": "gitea", "url": "https://forgejo.example", "sablier": {"api_paths": ["/api/v1/notifications", "/api/v1/repos/issues/search", "/api/v1/repos/search"]}}}},
             {"NocoDB": {"widget": {"type": "customapi", "url": "https://nocodb.example/api/v2/meta/bases/"}}},
             {"Snipe": {"widget": {"type": "customapi", "url": "https://snipe.example/api/v1/dashboard/companies"}}},
             {"TimeTagger": {"widget": {"type": "customapi", "url": "https://time.example/timetagger/api/v2/records?running=true"}}},
@@ -748,3 +748,20 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
     assert linkwarden_route["@homepage_api"]["path"] == "/api/v1/collections /api/v1/tags"
     assert "sablier http://127.0.0.1:10000" in linkwarden_route["handle"]
     assert result["other.example:443"]["route"]["handle"]["sablier http://127.0.0.1:10000"]
+
+
+def test_homepage_sablier_metadata_is_removed_before_rendering(pyinfra_task_harness):
+    """Internal Sablier widget metadata must never reach Homepage services.yaml."""
+    from tasks.homepage_config import homepage_services_for_render
+
+    original = [
+        {"Service": {"widget": {
+            "type": "linkwarden",
+            "url": "https://links.example",
+            "sablier": {"api_paths": ["/api/v1/collections"]},
+        }}},
+    ]
+    rendered = homepage_services_for_render(original)
+
+    assert "sablier" not in rendered[0]["Service"]["widget"]
+    assert original[0]["Service"]["widget"]["sablier"]["api_paths"] == ["/api/v1/collections"]
