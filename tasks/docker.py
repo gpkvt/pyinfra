@@ -255,7 +255,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
     # environment. Set it explicitly so an active unit is not misdetected as
     # inactive (which would restart every service on every deployment).
     user_uid = (host.get_fact(Command, f"id -u {shlex.quote(username)}") or "").strip()
-    current_uid = (host.get_fact(Command, "id -u") or "").strip()
+    current_uid = (host.get_fact(Command, "id -u", _sudo=False) or "").strip()
     if not user_uid.isdigit():
         raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
     if current_uid == user_uid:
