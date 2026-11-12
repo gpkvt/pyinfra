@@ -362,16 +362,18 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
 def test_caddyfile_sets_http_response_write_timeout():
     """The global response deadline is configured before all site blocks."""
     template = (ROOT / "templates/Caddyfile.j2").read_text()
+    expected = chr(10).join((
+        "{",
+        "    servers {",
+        "        timeouts {",
+        "            write 2m",
+        "        }",
+        "    }",
+        "}",
+        "",
+    ))
 
-    assert template.startswith(
-        "{\\n"
-        "    servers {\\n"
-        "        timeouts {\\n"
-        "            write 2m\\n"
-        "        }\\n"
-        "    }\\n"
-        "}\\n"
-    )
+    assert template.startswith(expected)
     assert template.index("{% for entry in caddy_conf %}") > template.index("write 2m")
 
 
