@@ -67,7 +67,7 @@ workstation = {
 }
 ```
 
-Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0644`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
+Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0600`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
 
 ## Network and name resolution
 
@@ -295,7 +295,12 @@ The following features combine host data with encrypted secrets:
 - dehydrated requires a `secrets.dehydrated` entry.
 - Git credentials are deployed only when `secrets.git_credentials` is present.
 - SSH key generation can use `secrets.ssh` passphrases.
-- Miniflux uses `secrets.docker.miniflux` for credentials.
+- Miniflux uses `secrets.docker.miniflux` for administrator and PostgreSQL credentials.
+- Paperless-ngx requires `secrets.docker.paperless.postgres_password` and `secret_key`.
+- Firefly III requires database credentials, `app_key` and a 32-character `cron_token` under `secrets.docker.firefly-iii`.
+- Snipe-IT requires database credentials and a persistent Laravel `app_key` under `secrets.docker.snipe-it`.
+- Linkwarden requires PostgreSQL, NextAuth and Meilisearch secrets under `secrets.docker.linkwarden`.
+- Homepage can receive widget API keys through `secrets.docker.homepage.environment`; these values override matching host-data environment defaults.
 - Vaultwarden optionally uses `secrets.docker.vaultwarden.admin_token` for its Argon2 PHC admin-token hash.
 
 The absence of `secrets.json.gpg` does not stop the whole deployment; `common.initialize()` sets an empty secrets dictionary. See [Secrets management](secrets.md) for the supported structure.
