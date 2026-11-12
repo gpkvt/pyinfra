@@ -8,7 +8,7 @@ Configuration:
         ui_port (int): Loopback-only web UI port. Defaults to 51821.
 
 Persistent data:
-    A Docker local named volume backed by ~/.docker/wg-easy/ stores
+    A host bind mount at ~/.docker/wg-easy/ stores
     WireGuard keys, peer configuration and WG-Easy application data.
 
 The public WireGuard listener uses UDP port 51820. The web UI is bound
@@ -26,7 +26,7 @@ wg_easy = host.data.get("docker", {}).get("wg-easy", {})
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
-# Create the local-volume backing directory before Docker creates the volume.
+# Create the bind-mount directory before Docker starts the container.
 files.directory(
     name="Create WG-Easy storage directory",
     path=f"{homedir}/.docker/wg-easy/",  # pylint: disable=undefined-variable
