@@ -12,13 +12,10 @@
 CONFIG_D=/etc/dehydrated/conf.d
 BASEDIR=/var/lib/dehydrated
 WELLKNOWN="${BASEDIR}/acme-challenges"
-DOMAINS_TXT="/etc/dehydrated/domains.txt"
+DOMAINS_TXT="/etc/pyinfra-caddy/domains.txt"
 
 # Challenge Typ
 CHALLENGETYPE="dns-01"
 
-# Pfad zur Cloud-API Hook
+# Hetzner DNS-01 hook; API_TOKEN is injected through the container environment.
 HOOK="/etc/dehydrated/hook.sh"
-
-# Hetzner Cloud-API Token
-API_TOKEN="{{ hetzner_api_token }}"

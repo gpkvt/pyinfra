@@ -5,12 +5,11 @@
 # Supports DNS-01 challenges, including wildcard certificates.
 #
 # Dependencies: bash, curl, jq, dig
-# Token file: /etc/hetzner-dns-token
+# API_TOKEN is provided through the container environment.
 
 set -Eeuo pipefail
 
 API_BASE="https://api.hetzner.cloud/v1"
-TOKEN_FILE="${HETZNER_DNS_TOKEN_FILE:-/etc/hetzner-dns-token}"
 DNS_TTL="${HETZNER_DNS_TTL:-300}"
 DNS_RESOLVER="${HETZNER_DNS_RESOLVER:-7.7.7.7}"
 DNS_WAIT_TIMEOUT="${HETZNER_DNS_WAIT_TIMEOUT:-180}"
@@ -257,21 +256,13 @@ clean_challenge() {
         --data "$payload" >/dev/null ||
         die "Failed to remove TXT value at ${fqdn}"
 
-    chown root:caddy /var/lib/dehydrated/certs -R
-    chmod 770 /var/lib/dehydrated/certs
-    chmod 770 /var/lib/dehydrated/certs/21x9.org
-    chmod 660 /var/lib/dehydrated/certs/21x9.org/*
 }
 
 main() {
     local handler="${1:-}"
     shift || true
 
-    [[ -r "$TOKEN_FILE" ]] ||
-        die "Cannot read API token file: ${TOKEN_FILE}"
-
-    API_TOKEN="$(<"$TOKEN_FILE")"
-    [[ -n "$API_TOKEN" ]] || die "API token file is empty"
+    : "${API_TOKEN:?API_TOKEN must be set in the container environment}"
 
     case "$handler" in
         deploy_challenge)
@@ -300,10 +291,14 @@ main() {
 exit_hook() {
     local exit_code="${1:-0}"
 
-    if [[ "$exit_code" -eq 0 ]]; then
-        log "dehydrated finished successfully"
+    if [[ "$exit_code" =~ ^[0-9]+$ ]]; then
+        if [[ "$exit_code" -eq 0 ]]; then
+            log "dehydrated finished successfully"
+        else
+            log "dehydrated finished with exit code ${exit_code}"
+        fi
     else
-        log "dehydrated finished with exit code ${exit_code}"
+        log "dehydrated reported an error: ${exit_code}"
     fi
 
     return 0

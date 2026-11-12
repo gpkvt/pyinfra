@@ -1,6 +1,6 @@
 services:
   miniflux:
-    restart: always
+    restart: unless-stopped
     image: miniflux/miniflux:latest
     ports:
       - "127.0.0.1:{{ port }}:8080"

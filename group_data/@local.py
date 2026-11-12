@@ -397,6 +397,21 @@ apparmor_profiles = [
     },
 ]
 
+# Optional on-demand Docker startup through Sablier and the Caddy plugin.
+# Sablier and the battery saver are mutually exclusive.
+docker_sablier = {
+    "enabled": True,
+    "default_duration": "15m",
+    "blocking_timeout": "15m",
+    "stop_dependencies": True,
+}
+
+# Each inner list defines one certificate: first name is the certificate name,
+# remaining names are Subject Alternative Names (SANs).
+dehydrated_domains = [
+    ["21x9.org", "*.21x9.org"],
+]
+
 # Install and configure docker container
 docker_power_save = [
         "forgejo",
@@ -421,6 +436,9 @@ docker = {
     "miniflux": {
         "postgres_version": 12,
         "port": "8005",
+        "sablier": {
+            "enabled": False,
+        },
     },
     "timetagger": {
         "port": "8010",
@@ -462,11 +480,15 @@ docker = {
         "image": "ghcr.io/linkwarden/linkwarden:latest",
         "port": 8021,
         "domain": "linkwarden.21x9.org",
+        "app_services": ["linkwarden"],
+        "sablier_services": ["linkwarden", "postgres", "meilisearch"],
     },
     "paperless": {
         "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
         "port": 8022,
         "domain": "paperless.21x9.org",
+        "app_services": ["webserver"],
+        "sablier_services": ["webserver", "db", "broker", "gotenberg", "tika"],
     },
     "firefly-iii": {
         "image": "fireflyiii/core:latest",
@@ -474,11 +496,15 @@ docker = {
         "domain": "firefly.21x9.org",
         "fints_port": 8024,
         "fints_domain": "fints.21x9.org",
+        "app_services": ["app", "cron", "fints"],
+        "sablier_services": ["app", "cron", "fints", "db"],
     },
     "snipe-it": {
         "image": "snipe/snipe-it:latest",
         "port": 8025,
         "domain": "snipeit.21x9.org",
+        "app_services": ["app"],
+        "sablier_services": ["app", "db"],
     },
     "homepage": {
         "image": "ghcr.io/gethomepage/homepage:latest",
@@ -486,6 +512,10 @@ docker = {
         # secrets.docker.homepage.environment over this optional base mapping.
         "port": 8020,
         "domain": "homepage.21x9.org",
+        # Homepage is always available and must bypass Sablier entirely.
+        "sablier": {
+            "enabled": False,
+        },
         # Display service cards in a compact three-column row.
         "settings": {
             # Use a local image placed in ~/.docker/homepage/public/images/.

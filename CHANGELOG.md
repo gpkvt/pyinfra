@@ -4,7 +4,19 @@
 
 ### Added
 
+- Added Docker-based Caddy and Sablier deployment. Sablier uses the Docker provider and Compose labels to start application containers on demand; Caddy uses host networking to retain loopback upstreams.
+- Added Dehydrated certificate renewal inside the Caddy container with the Hetzner DNS-01 hook. `dehydrated_domains` in `group_data/@local.py` supports multiple certificates, each defined by one list of primary name and SANs.
+
 - Added Snipe-IT asset management with MariaDB, persistent Docker local volumes backed by `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
+
+### Fixed
+
+- Added Sablier labels for configured Compose dependencies so they start with applications and can stop with the same session group.
+- Removed overlapping certificate renewal during deployment, added Caddy container health checks, and kept Caddy state in explicit host bind mounts below `~/.docker/caddy/`.
+- Replaced the broken in-container cron setup with an idempotently deployed user systemd timer that runs Dehydrated daily at 03:00.
+- Created Dehydrated's configured `conf.d` directory in the Caddy image and fixed the Hetzner hook's handling of textual exit-hook arguments.
+- Fixed Caddy deployment change detection so unchanged renewal, image-build, container-start and health-check operations are skipped.
+
 
 ## [11.11.2026]
 

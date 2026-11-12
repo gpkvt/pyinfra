@@ -9,7 +9,9 @@ important behavior without contacting or modifying a real machine.
 import builtins
 import importlib.util
 import json
+import os
 import runpy
+import subprocess
 import sys
 import types
 from pathlib import Path
@@ -23,7 +25,8 @@ class OperationResult:
     """Small stand-in for pyinfra operation results."""
 
     changed = False
-    did_change = False
+    def did_change(self):
+        return False
 
 
 class HostData(dict):
@@ -348,3 +351,236 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
     pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (False, None)
     with pytest.raises(RuntimeError, match="Unable to retrieve network interfaces"):
         pyinfra_task_harness.load("vpn.py")
+
+
+
+def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_harness):
+    """Only configured Docker reverse proxies should be routed through Sablier."""
+    module = pyinfra_task_harness.load("caddy.py")
+    config = {
+        "linkwarden.example:443": {"reverse_proxy": "127.0.0.1:8021"},
+        "fints.example:443": {"reverse_proxy": "127.0.0.1:8024"},
+        "external.example:443": {"reverse_proxy": "127.0.0.1:9000"},
+        "custom.example:443": {"reverse_proxy": "127.0.0.1:8123"},
+        "custom-extra.example:443": {"reverse_proxy": "127.0.0.1:8124"},
+    }
+    docker = {
+        "linkwarden": {"port": 8021},
+        "firefly-iii": {"port": 8023, "fints_port": 8024},
+        "custom": {"port": 8123, "metrics_port": 8124},
+    }
+    result = module.build_sablier_caddy_config(
+        config,
+        docker,
+        {"enabled": True, "default_duration": "45m", "blocking_timeout": "3m"},
+    )
+
+    assert "route" in result["linkwarden.example:443"]
+    assert "route" in result["fints.example:443"]
+    assert "route" in result["custom.example:443"]
+    assert "route" in result["custom-extra.example:443"]
+    assert result["external.example:443"]["reverse_proxy"] == "127.0.0.1:9000"
+    assert (
+        result["fints.example:443"]["route"]
+        ["sablier http://127.0.0.1:10000"]["group"]
+        == "firefly-iii"
+    )
+    assert "reverse_proxy" in config["linkwarden.example:443"]
+
+
+def test_docker_service_app_services_come_from_service_configuration(pyinfra_task_harness):
+    """Systemd unit receives app services from Docker config, with a generic fallback."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker_sablier": {"enabled": True},
+        "docker": {
+            "custom": {
+                "app_services": ["worker", "scheduler"],
+                "sablier_services": ["worker", "scheduler", "database"],
+            },
+            "generic": {},
+        },
+    })
+
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
+        "worker scheduler database" if "/custom/" in command else "generic"
+    ) if "config --services" in command else ""
+
+    module.deploy_docker_service("custom", "Custom", "/home/tester")
+    module.deploy_docker_service("generic", "Generic", "/home/tester")
+
+    unit_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("src") == "templates/docker/systemd.service.j2"
+    ]
+    assert [call["app_services"] for call in unit_calls] == [
+        ["worker", "scheduler"],
+        ["generic"],
+    ]
+    override_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("src") == "templates/docker/sablier-override.yml.j2"
+    ]
+    assert [call["sablier_services"] for call in override_calls] == [
+        ["worker", "scheduler", "database"],
+        ["generic"],
+    ]
+
+
+
+def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    assert module.build_domains_file([
+        ["21x9.org", "*.21x9.org"],
+        ["example.com", "www.example.com", "api.example.com"],
+    ]) == [
+        "21x9.org *.21x9.org",
+        "example.com www.example.com api.example.com",
+    ]
+
+
+def test_dehydrated_domains_reject_empty_or_duplicate_definitions(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    with pytest.raises(ValueError, match="at least one certificate"):
+        module.build_domains_file([])
+    with pytest.raises(ValueError, match="more than one certificate"):
+        module.build_domains_file([
+            ["example.com", "www.example.com"],
+            ["example.net", "www.example.com"],
+        ])
+    with pytest.raises(ValueError, match="Invalid domain"):
+        module.build_domains_file([["not a domain"]])
+
+def test_docker_service_treats_missing_systemd_status_as_inactive(pyinfra_task_harness):
+    """A missing Command fact must not abort Docker service deployment."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+    })
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
+        "custom" if "config --services" in command else None
+    )
+
+    module.deploy_docker_service("custom", "Custom", "/home/tester")
+
+    service_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    ]
+    assert len(service_calls) == 1
+    assert service_calls[0]["_if"]() is True
+
+
+def test_caddy_deploys_and_enables_daily_renewal_timer(pyinfra_task_harness, monkeypatch):
+    """Caddy certificate renewal is scheduled by the user systemd timer."""
+    monkeypatch.setattr(builtins, "secrets", {
+        "dehydrated": {"hetzner_api_token": "test-token"},
+    })
+    pyinfra_task_harness.load("caddy.py", {
+        "docker": {"custom": {"port": 8080}},
+        "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
+        "dehydrated_domains": [["example.org"]],
+    })
+
+    timer_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Enable daily Caddy certificate renewal"
+    ]
+    assert len(timer_calls) == 1
+    assert (
+        "systemctl --user enable --now caddy-renew.timer"
+        in timer_calls[0]["commands"]
+    )
+    assert timer_calls[0]["_if"]() is True
+
+def test_dehydrated_hook_handles_text_exit_argument():
+    """A textual Dehydrated exit_hook argument must not trigger nounset errors."""
+    hook = ROOT / "files/dehydrated_hook.sh"
+    result = subprocess.run(
+        ["bash", str(hook), "exit_hook", "The challenge failed"],
+        check=False,
+        capture_output=True,
+        text=True,
+        env={**os.environ, "API_TOKEN": "test-token"},
+    )
+    assert result.returncode == 0
+    assert "dehydrated reported an error: The challenge failed" in result.stderr
+
+
+def test_caddy_image_creates_dehydrated_config_include_directory():
+    """The configured CONFIG_D path exists in the built Caddy image."""
+    dockerfile = (ROOT / "files/caddy/Dockerfile").read_text()
+    assert "mkdir -p /etc/dehydrated/conf.d" in dockerfile
+    assert "ca-certificates setpriv" in dockerfile
+
+    renewal_service = (ROOT / "templates/caddy/dehydrated-renew.service.j2").read_text()
+    assert "docker exec --user {{ uid }}:{{ gid }} caddy /usr/local/bin/renew.sh" in renewal_service
+
+    compose = (ROOT / "templates/docker/caddy/docker-compose.yml.j2").read_text()
+    assert "    user:" not in compose
+    assert "      - ALL" in compose
+    assert "      - NET_BIND_SERVICE" in compose
+    assert "      - SETUID" in compose
+    assert "      - SETGID" in compose
+    assert 'CADDY_UID: "{{ uid }}"' in compose
+    assert 'CADDY_GID: "{{ gid }}"' in compose
+
+    entrypoint = (ROOT / "files/caddy/entrypoint.sh").read_text()
+    assert "--inh-caps=+net_bind_service" in entrypoint
+    assert "--ambient-caps=+net_bind_service" in entrypoint
+    assert 'exec setpriv' in entrypoint
+
+def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current(
+    pyinfra_task_harness, monkeypatch,
+):
+    """An unchanged Caddy image and healthy container cause no Docker actions."""
+    monkeypatch.setattr(builtins, "secrets", {
+        "dehydrated": {"hetzner_api_token": "test-token"},
+    })
+
+    def get_fact(fact, command="", **_kwargs):
+        if "id -u" in command or "id -g" in command:
+            return "1000"
+        if "docker image inspect" in command:
+            return "present"
+        if "docker inspect -f '{{.State.Running}}'" in command:
+            return "true"
+        if "docker inspect -f '{{.State.Health.Status}}'" in command:
+            return "healthy"
+        if "systemctl --user is-active caddy-renew.timer" in command:
+            return "active"
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("caddy.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "docker": {"custom": {"port": 8080}},
+        "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
+        "dehydrated_domains": [["example.org"]],
+    })
+
+    docker_actions = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") in {
+            "Enable daily Caddy certificate renewal",
+            "Build Caddy image with Sablier plugin and Dehydrated",
+            "Start Caddy and Dehydrated containers",
+            "Wait for Caddy container health",
+            "Reload Caddy after Caddyfile changes",
+        }
+    ]
+    assert len(docker_actions) == 5
+    assert all(call["_if"]() is False for call in docker_actions)
+
+
+
+def test_sablier_systemd_preparation_reconciles_existing_containers():
+    """Sablier preparation updates labels without starting on-demand services."""
+    unit = (ROOT / "templates/docker/systemd.service.j2").read_text()
+    assert "docker compose {{ compose_files }} up --no-start" in unit
+    assert "docker compose {{ compose_files }} create" not in unit

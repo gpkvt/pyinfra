@@ -159,84 +159,157 @@ if not hasattr(__import__('builtins'), 'homedir'):
     initialize(host)
 
 @deploy("Deploy Docker service")
-def deploy_docker_service( # pylint: disable=R0913,R0917
-    service,
-    description,
-    homedir,
-    username="root",
-    usergroup="root",
-    restart_if=None,
-    **template_vars,
+def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
+    service, description, homedir, username="root", usergroup="root",
+    restart_if=None, app_services=None, **template_vars,
 ):
-    # Create Docker service directory
+    """Deploy one Compose project and prepare its containers for Sablier."""
     files.directory(
         name=f"Create {service} directory",
         path=f"{homedir}/.docker/{service}/",
-        user=username,
-        group=usergroup,
-        mode="750",
+        user=username, group=usergroup, mode="750",
     )
-
-    # Deploy Docker Compose configuration
     compose_file = files.template(
         name=f"Configure {service}",
         src=f"templates/docker/{service}/docker-compose.yml.j2",
         dest=f"{homedir}/{service}/docker-compose.yml",
-        user=username,
-        group=usergroup,
-        mode="640",
-        homedir=homedir,
-        **template_vars,
-        _sudo=False,
+        user=username, group=usergroup, mode="640",
+        homedir=homedir, **template_vars, _sudo=False,
     )
 
-    # Pull Docker images before restarting the service
+    sablier_options = host.data.get("docker_sablier", {})
+    service_options = host.data.get("docker", {}).get(service, {})
+    service_sablier = service_options.get("sablier", {})
+    sablier_enabled = (
+        bool(sablier_options.get("enabled", False))
+        and service_sablier.get("enabled", True)
+    )
+    sablier_group = service_sablier.get("group", service)
+    stop_dependencies = service_sablier.get(
+        "stop_dependencies", sablier_options.get("stop_dependencies", True)
+    )
+    app_services = app_services or service_options.get("app_services", [service])
+
+    if sablier_enabled and (not isinstance(sablier_group, str) or not sablier_group.strip()):
+        raise ValueError(f"Invalid Sablier group for Docker service {service!r}")
+    if not app_services or not all(isinstance(item, str) and item for item in app_services):
+        raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
+
+    if sablier_enabled:
+        compose_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
+        sablier_services_output = host.get_fact(
+            Command,
+            f"docker compose -f {compose_path} config --services",
+        ) or ""
+        sablier_services = sablier_services_output.split()
+        if not sablier_services:
+            raise ValueError(
+                f"Docker Compose returned no services for {service!r}; "
+                "cannot assign Sablier groups"
+            )
+    else:
+        sablier_services = []
+
+
+    if sablier_enabled:
+        override_file = files.template(
+            name=f"Configure Sablier labels for all {service} containers",
+            src="templates/docker/sablier-override.yml.j2",
+            dest=f"{homedir}/{service}/docker-compose.sablier.yml",
+            user=username, group=usergroup, mode="640",
+            sablier_services=sablier_services, sablier_group=sablier_group, _sudo=False,
+        )
+    else:
+        override_file = files.file(
+            name=f"Remove obsolete Sablier override for {service}",
+            path=f"{homedir}/{service}/docker-compose.sablier.yml",
+            present=False, _sudo=False,
+        )
+
+    compose_files = (
+        "-f docker-compose.yml -f docker-compose.sablier.yml"
+        if sablier_enabled else "-f docker-compose.yml"
+    )
+
     server.shell(
         name=f"Pull {service} Docker images",
-        commands=[
-            f"docker compose -f {homedir}/{service}/docker-compose.yml pull",
-        ],
-        _sudo=False,
-        _if=compose_file.did_change,
+        commands=[f"docker compose -f {homedir}/{service}/docker-compose.yml pull"],
+        _sudo=False, _if=compose_file.did_change,
     )
 
-    # Deploy systemd unit
     systemd_unit = files.template(
         name=f"Deploy {service} systemd service",
         src="templates/docker/systemd.service.j2",
         dest=f"{homedir}/.config/systemd/user/{service}.service",
-        user=username,
-        group=usergroup,
-        homedir=homedir,
-        service=service,
-        description=description,
-        mode="644",
-        _sudo=False,
+        user=username, group=usergroup, homedir=homedir,
+        service=service, description=description,
+        sablier_enabled=sablier_enabled, stop_dependencies=stop_dependencies,
+        app_services=app_services, compose_files=compose_files,
+        mode="644", _sudo=False,
     )
-
-    # Reload systemd when the unit changes
-    server.shell(
-        name=f"Reload systemd for {service}",
-        commands=[
-            "systemctl --user daemon-reload",
-            f"systemctl --user enable {service}",
-        ],
-        _sudo=False,
-        _if=systemd_unit.did_change,
-    )
-
-    # Restart service when its configuration or an additional input changes.
-    restart_triggers = [compose_file, systemd_unit]
+    restart_triggers = [compose_file, override_file, systemd_unit]
     if restart_if is not None:
         restart_triggers.append(restart_if)
 
+    service_status = host.get_fact(
+        Command, f"systemctl --user is-active {service} 2>/dev/null || true"
+    ) or ""
+    service_active = service_status.strip() == "active"
+
+    # Check every container, including replicas, for the expected labels.
+    # Compose config alone is insufficient: Docker labels are immutable after
+    # container creation.
+    if sablier_enabled:
+        compose_dir = shlex.quote(f"{homedir}/{service}")
+        compose_base = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
+        compose_override = shlex.quote(
+            f"{homedir}/{service}/docker-compose.sablier.yml"
+        )
+        expected_labels = shlex.quote(f"true|{sablier_group}")
+        label_checks = []
+        for service_name in sablier_services:
+            compose_service = shlex.quote(service_name)
+            label_checks.append(
+                f'container_ids=$(/usr/bin/docker compose -f {compose_base} '
+                f'-f {compose_override} ps -a -q {compose_service}); '
+                'if [ -z "$container_ids" ]; then printf drift; exit 0; fi; '
+                'actual_labels=$(/usr/bin/docker inspect --format '
+                '\'{{ index .Config.Labels "sablier.enable" }}|'
+                '{{ index .Config.Labels "sablier.group" }}\' $container_ids) || '
+                '{ printf drift; exit 0; }; '
+                f'if [ "$(printf "%s\\n" "$actual_labels" | sort -u)" '
+                f'!= {expected_labels} ]; then printf drift; exit 0; fi;'
+            )
+        label_check_command = " ".join(label_checks) + " printf match"
+        sablier_labels_match = (
+            host.get_fact(Command, label_check_command) or ""
+        ).strip() == "match"
+
+        server.shell(
+            name=f"Recreate {service} containers with Sablier labels",
+            commands=[
+                f"cd {compose_dir} && /usr/bin/docker compose "
+                f"-f docker-compose.yml -f docker-compose.sablier.yml "
+                "up --no-start --force-recreate"
+            ],
+            _sudo=False,
+            _if=lambda: not sablier_labels_match,
+        )
+    else:
+        sablier_labels_match = True
+
     server.shell(
-        name=f"Restart {service}",
+        name=f"Reload systemd and ensure {service} is prepared",
         commands=[
-            f"systemctl --user restart {service}",
+            "systemctl --user daemon-reload",
+            f"systemctl --user enable {service}",
+            f"systemctl --user {'restart' if service_active else 'start'} {service}",
         ],
         _sudo=False,
-        _if=any_changed(*restart_triggers),
+        _if=lambda: (
+            any_changed(*restart_triggers)()
+            or not service_active
+        ),
     )
 
 container = host.data.get("docker", {})

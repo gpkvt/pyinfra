@@ -1,0 +1,5 @@
+[Service]
+ExecStart=
+ExecStart=/usr/local/bin/caddy-sablier run --environ --config /etc/caddy/Caddyfile
+ExecReload=
+ExecReload=/usr/local/bin/caddy-sablier reload --config /etc/caddy/Caddyfile --force

@@ -1,19 +1,19 @@
 """
-Deploy and configure docker-power-monitor and docker-power-manager
+Deploy and configure the Docker battery monitor.
+
+The battery saver and Sablier are mutually exclusive.
 """
 
 from pyinfra import host
-from pyinfra.operations import files, server
+from pyinfra.facts.server import Command
+from pyinfra.operations import files, server, systemd
 
 battery_container = host.data.get("docker_power_save", {})
-scripts = [
-    "docker-power-manager",
-    "docker-power-monitor"
-]
+sablier_enabled = host.data.get("docker_sablier", {}).get("enabled", False)
 
-for script in scripts:
+for script in ("docker-power-manager", "docker-power-monitor"):
     files.put(
-        name="Deploy {file}",
+        name=f"Deploy {script}",
         src=f"files/docker-battery-saver/{script}",
         dest=f"/usr/local/sbin/{script}",
         mode="750",
@@ -39,10 +39,11 @@ files.template(
     group="root",
     mode="640",
     containers=battery_container,
+    _sudo=True,
 )
 
-systemd_result = files.put(
-    name="Create systemd service",
+monitor_unit = files.put(
+    name="Deploy docker-power-monitor systemd unit",
     src="files/docker-battery-saver/docker-power-monitor.service",
     dest="/etc/systemd/system/docker-power-monitor.service",
     mode="644",
@@ -51,13 +52,35 @@ systemd_result = files.put(
     _sudo=True,
 )
 
-if systemd_result.changed:
+server.shell(
+    name="Reload systemd after Docker power monitor unit changes",
+    commands=["systemctl daemon-reload"],
+    _sudo=True,
+    _if=monitor_unit.did_change,
+)
+
+if sablier_enabled:
     server.shell(
-        name="Enable and restart power manager",
-        commands=[
-            "systemctl daemon-reload",
-            "systemctl enable docker-power-manager",
-            "systemctl restart docker-power-manager",
-        ],
+        name="Restore containers previously stopped by the battery saver",
+        commands=["/usr/local/sbin/docker-power-manager ac"],
+        _sudo=True,
+        _if=lambda: host.get_fact(
+            Command,
+            "test -f /var/lib/docker-power-manager/running-containers && echo present || echo absent",
+        ).strip() == "present",
+    )
+    systemd.service(
+        name="Disable Docker battery monitor while Sablier is enabled",
+        service="docker-power-monitor.service",
+        running=False,
+        enabled=False,
+        _sudo=True,
+    )
+else:
+    systemd.service(
+        name="Enable Docker battery monitor when Sablier is disabled",
+        service="docker-power-monitor.service",
+        running=True,
+        enabled=True,
         _sudo=True,
     )

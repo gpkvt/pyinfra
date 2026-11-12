@@ -1,0 +1,13 @@
+services:
+  sablier:
+    image: sablierapp/sablier:{{ sablier_version }}
+    container_name: sablier
+    restart: unless-stopped
+    command:
+      - start
+      - --configFile=/etc/sablier/sablier.yaml
+    ports:
+      - "127.0.0.1:10000:10000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - {{ homedir }}/.docker/sablier/sablier.yaml:/etc/sablier/sablier.yaml:ro

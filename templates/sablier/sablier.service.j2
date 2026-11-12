@@ -1,0 +1,11 @@
+[Unit]
+Description=Sablier on-demand Docker service manager
+After=network.target
+
+[Service]
+ExecStart={{ homedir }}/.local/bin/sablier start --configFile {{ homedir }}/.config/sablier/sablier.yaml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target
