@@ -241,7 +241,7 @@ The separate `app_services` list identifies application containers for systemd s
 
 Per-service overrides remain available under `docker.<service>.sablier`, including `enabled`, `group`, `session_duration` and `blocking_timeout`. Set `enabled: False` to keep a service outside Sablier management.
 
-Caddy performs the initial Dehydrated run before starting its server. Certificate renewal is handled by its entrypoint loop; deployment does not launch a second concurrent renewal process. The Caddy Compose service has a health check against its local admin API, and pyinfra waits for it to become healthy after a recreation.
+Caddy performs the initial Dehydrated run before starting its server. A user-level systemd timer runs daily at 03:00 and invokes the renewal script inside the container with `docker exec`; `Persistent=true` catches a missed run after downtime. The script reloads Caddy only when certificate fingerprints change. The Caddy Compose service has a health check against its local admin API, and pyinfra waits for it to become healthy after a recreation.
 
 Caddy's persistent configuration, Dehydrated state, certificates, data and runtime state use explicit host bind mounts from directories below `~/.docker/caddy/`. Sablier and Caddy are deployed only when Docker and their corresponding configuration gates are enabled. Existing host Caddy installations are not migrated, stopped, or uninstalled automatically; prepare ports 80 and 443 manually before enabling the Docker-based Caddy service.
 
