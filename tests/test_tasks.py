@@ -358,10 +358,13 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
         "linkwarden.example:443": {"reverse_proxy": "127.0.0.1:8021"},
         "fints.example:443": {"reverse_proxy": "127.0.0.1:8024"},
         "external.example:443": {"reverse_proxy": "127.0.0.1:9000"},
+        "custom.example:443": {"reverse_proxy": "127.0.0.1:8123"},
+        "custom-extra.example:443": {"reverse_proxy": "127.0.0.1:8124"},
     }
     docker = {
         "linkwarden": {"port": 8021},
         "firefly-iii": {"port": 8023, "fints_port": 8024},
+        "custom": {"port": 8123, "metrics_port": 8124},
     }
     result = module.build_sablier_caddy_config(
         config,
@@ -371,6 +374,8 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
 
     assert "route" in result["linkwarden.example:443"]
     assert "route" in result["fints.example:443"]
+    assert "route" in result["custom.example:443"]
+    assert "route" in result["custom-extra.example:443"]
     assert result["external.example:443"]["reverse_proxy"] == "127.0.0.1:9000"
     assert (
         result["fints.example:443"]["route"]
