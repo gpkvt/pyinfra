@@ -348,3 +348,33 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
     pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (False, None)
     with pytest.raises(RuntimeError, match="Unable to retrieve network interfaces"):
         pyinfra_task_harness.load("vpn.py")
+
+
+
+def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_harness):
+    """Only configured Docker reverse proxies should be routed through Sablier."""
+    module = pyinfra_task_harness.load("caddy.py")
+    config = {
+        "linkwarden.example:443": {"reverse_proxy": "127.0.0.1:8021"},
+        "fints.example:443": {"reverse_proxy": "127.0.0.1:8024"},
+        "external.example:443": {"reverse_proxy": "127.0.0.1:9000"},
+    }
+    docker = {
+        "linkwarden": {"port": 8021},
+        "firefly-iii": {"port": 8023, "fints_port": 8024},
+    }
+    result = module.build_sablier_caddy_config(
+        config,
+        docker,
+        {"enabled": True, "default_duration": "45m", "blocking_timeout": "3m"},
+    )
+
+    assert "route" in result["linkwarden.example:443"]
+    assert "route" in result["fints.example:443"]
+    assert result["external.example:443"]["reverse_proxy"] == "127.0.0.1:9000"
+    assert (
+        result["fints.example:443"]["route"]
+        ["sablier http://127.0.0.1:10000"]["group"]
+        == "firefly-iii"
+    )
+    assert "reverse_proxy" in config["linkwarden.example:443"]
