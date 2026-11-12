@@ -17,10 +17,10 @@ services:
       XDG_DATA_HOME: /data
       XDG_CONFIG_HOME: /config
     volumes:
-      - caddy_config_files:/etc/pyinfra-caddy:ro
-      - dehydrated_data:/var/lib/dehydrated
-      - caddy_data:/data
-      - caddy_state:/config
+      - {{ homedir }}/.docker/caddy/config-files:/etc/pyinfra-caddy:ro
+      - {{ homedir }}/.docker/caddy/dehydrated:/var/lib/dehydrated
+      - {{ homedir }}/.docker/caddy/data:/data
+      - {{ homedir }}/.docker/caddy/config:/config
     tmpfs:
       - /tmp
     healthcheck:
@@ -29,29 +29,3 @@ services:
       timeout: 3s
       retries: 6
       start_period: 30s
-
-volumes:
-  caddy_config_files:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: "{{ homedir }}/.docker/caddy/config-files"
-  dehydrated_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: "{{ homedir }}/.docker/caddy/dehydrated"
-  caddy_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: "{{ homedir }}/.docker/caddy/data"
-  caddy_state:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: "{{ homedir }}/.docker/caddy/config"
