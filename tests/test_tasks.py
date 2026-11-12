@@ -584,3 +584,39 @@ def test_sablier_systemd_preparation_reconciles_existing_containers():
     unit = (ROOT / "templates/docker/systemd.service.j2").read_text()
     assert "docker compose {{ compose_files }} up --no-start" in unit
     assert "docker compose {{ compose_files }} create" not in unit
+
+
+def test_sudo_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
+    """An already-correct sudoers directory is not scheduled for reconciliation."""
+    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
+        "root:root:755" if "stat -c" in command else ""
+    )
+    pyinfra_task_harness.load("sudo.py", {"sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"]})
+
+    directory_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "directory"
+        and kwargs.get("path") == "/etc/sudoers.d"
+    ]
+    assert len(directory_calls) == 1
+    assert directory_calls[0]["_if"]() is False
+
+
+def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
+    """An already-correct SSH directory is not scheduled for reconciliation."""
+    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
+        "tester:tester:700" if "stat -c" in command else ""
+    )
+    pyinfra_task_harness.load("ssh_keys.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "ssh_authorized_keys": {"tester": []},
+    })
+
+    directory_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "directory"
+        and kwargs.get("path") == "/home/tester/.ssh/"
+    ]
+    assert len(directory_calls) == 1
+    assert directory_calls[0]["_if"]() is False
