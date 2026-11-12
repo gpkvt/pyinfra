@@ -402,7 +402,7 @@ apparmor_profiles = [
 docker_sablier = {
     "enabled": True,
     "default_duration": "15m",
-    "blocking_timeout": "5m",
+    "blocking_timeout": "15m",
     "stop_dependencies": True,
 }
 
