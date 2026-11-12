@@ -81,7 +81,6 @@ files.directory(
 
 for config_name, filename in config_files.items():
     config = homepage.get(config_name)
-
     if config is not None:
         files.template(
             name=f"Configure Homepage {config_name}",

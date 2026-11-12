@@ -19,6 +19,7 @@ from pathlib import Path
 import pytest
 
 from conftest import ROOT
+from tasks.homepage_config import homepage_api_exclusions
 
 
 class OperationResult:
@@ -385,7 +386,7 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
     assert "route" in result["custom-extra.example:443"]
     assert result["external.example:443"]["reverse_proxy"] == "127.0.0.1:9000"
     assert (
-        result["fints.example:443"]["route"]
+        result["fints.example:443"]["route"]["handle"]
         ["sablier http://127.0.0.1:10000"]["group"]
         == "firefly-iii"
     )
@@ -703,3 +704,54 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
     assert False in sudo_flags
     assert status_sudo_flags == [False]
+
+
+
+def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_task_harness):
+    """Homepage widget API prefixes bypass Sablier; other requests remain protected."""
+    module = pyinfra_task_harness.load("caddy.py")
+    homepage_services = [
+        {"Services": [
+            {"Miniflux": {"widget": {"type": "miniflux", "url": "https://rss.example"}}},
+            {"Linkwarden": {"widget": {"type": "linkwarden", "url": "https://links.example"}}},
+            {"Paperless": {"widget": {"type": "paperlessngx", "url": "https://paper.example"}}},
+            {"Firefly": {"widget": {"type": "firefly", "url": "https://firefly.example"}}},
+            {"Portainer": {"widget": {"type": "portainer", "url": "https://portainer.example", "env": 3}}},
+            {"Forgejo": {"widget": {"type": "gitea", "url": "https://forgejo.example"}}},
+            {"NocoDB": {"widget": {"type": "customapi", "url": "https://nocodb.example/api/v2/meta/bases/"}}},
+            {"Snipe": {"widget": {"type": "customapi", "url": "https://snipe.example/api/v1/dashboard/companies"}}},
+            {"TimeTagger": {"widget": {"type": "customapi", "url": "https://time.example/timetagger/api/v2/records?running=true"}}},
+        ]},
+    ]
+    original = __import__("copy").deepcopy(homepage_services)
+    exclusions = homepage_api_exclusions(homepage_services)
+    assert exclusions["rss.example"] == ["/api/*", "/v1/*"]
+    assert exclusions["links.example"] == ["/api/*", "/v1/*"]
+    assert exclusions["portainer.example"] == ["/api/*", "/v1/*"]
+    assert exclusions["nocodb.example"] == ["/api/*", "/api/v2/meta/bases/", "/v1/*"]
+    assert exclusions["snipe.example"] == ["/api/*", "/api/v1/dashboard/companies", "/v1/*"]
+    assert exclusions["time.example"] == ["/api/*", "/timetagger/api/v2/records", "/v1/*"]
+    assert homepage_services == original
+
+    # Widgets sharing a hostname are combined without changing Homepage config.
+    homepage_services[0]["Services"].append(
+        {"Second": {"widget": {"type": "customapi", "url": "https://rss.example/custom/status?x=1"}}}
+    )
+    combined = homepage_api_exclusions(homepage_services)
+    assert combined["rss.example"] == ["/api/*", "/custom/status", "/v1/*"]
+
+    config = {
+        "links.example:443": {"reverse_proxy": "127.0.0.1:8021", "header": ["-Server"]},
+        "other.example:443": {"reverse_proxy": "127.0.0.1:8022"},
+    }
+    result = module.build_sablier_caddy_config(
+        config,
+        {"linkwarden": {"port": 8021}, "paperless": {"port": 8022}},
+        {"enabled": True, "homepage_services": homepage_services},
+    )
+    linkwarden_route = result["links.example:443"]["route"]
+    assert linkwarden_route["@homepage_api"]["path"] == "/api/* /v1/*"
+    assert linkwarden_route["handle @homepage_api"]["reverse_proxy"] == "127.0.0.1:8021"
+    assert linkwarden_route["handle @homepage_api"]["header"] == ["-Server"]
+    assert "sablier http://127.0.0.1:10000" in linkwarden_route["handle"]
+    assert result["other.example:443"]["route"]["handle"]["sablier http://127.0.0.1:10000"]
