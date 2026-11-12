@@ -359,22 +359,10 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
 
 
 
-def test_caddyfile_sets_http_response_write_timeout():
-    """The global response deadline is configured before all site blocks."""
+def test_caddyfile_does_not_set_a_global_response_write_timeout():
+    """Dynamic Sablier pages do not need the previous global response deadline."""
     template = (ROOT / "templates/Caddyfile.j2").read_text()
-    expected = chr(10).join((
-        "{",
-        "    servers {",
-        "        timeouts {",
-        "            write 2m",
-        "        }",
-        "    }",
-        "}",
-        "",
-    ))
-
-    assert template.startswith(expected)
-    assert template.index("{% for entry in caddy_conf %}") > template.index("write 2m")
+    assert "write 2m" not in template
 
 
 def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_harness):
@@ -395,7 +383,7 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
     result = module.build_sablier_caddy_config(
         config,
         docker,
-        {"enabled": True, "default_duration": "45m", "blocking_timeout": "3m"},
+        {"enabled": True, "default_duration": "45m"},
     )
 
     assert "route" in result["linkwarden.example:443"]
@@ -403,12 +391,76 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
     assert "route" in result["custom.example:443"]
     assert "route" in result["custom-extra.example:443"]
     assert result["external.example:443"]["reverse_proxy"] == "127.0.0.1:9000"
+    linkwarden_sablier = result["linkwarden.example:443"]["route"][
+        "sablier http://127.0.0.1:10000"
+    ]
+    assert linkwarden_sablier["group"] == "linkwarden"
+    assert linkwarden_sablier["session_duration"] == "45m"
+    assert linkwarden_sablier["dynamic"] == {
+        "display_name": "Linkwarden",
+        "theme": "ghost",
+        "show_details": "true",
+        "refresh_frequency": "5s",
+    }
     assert (
         result["fints.example:443"]["route"]
         ["sablier http://127.0.0.1:10000"]["group"]
         == "firefly-iii"
     )
     assert "reverse_proxy" in config["linkwarden.example:443"]
+
+
+def test_sablier_dynamic_options_can_be_overridden_per_service(pyinfra_task_harness):
+    """Per-service dynamic presentation options override the global defaults."""
+    module = pyinfra_task_harness.load("caddy.py")
+    result = module.build_sablier_caddy_config(
+        {"custom.example:443": {"reverse_proxy": "127.0.0.1:8123"}},
+        {"custom": {"port": 8123, "sablier": {
+            "display_name": "Custom Service",
+            "theme": "matrix",
+            "show_details": False,
+            "refresh_frequency": "3s",
+        }}},
+        {"enabled": True, "default_theme": "retro", "refresh_frequency": "10s"},
+    )
+    dynamic = result["custom.example:443"]["route"][
+        "sablier http://127.0.0.1:10000"
+    ]["dynamic"]
+    assert dynamic == {
+        "display_name": "Custom Service",
+        "theme": "matrix",
+        "show_details": "false",
+        "refresh_frequency": "3s",
+    }
+
+
+def test_sablier_blocking_strategy_remains_available(pyinfra_task_harness):
+    """Services can opt into blocking mode and retain its timeout override."""
+    module = pyinfra_task_harness.load("caddy.py")
+    result = module.build_sablier_caddy_config(
+        {"custom.example:443": {"reverse_proxy": "127.0.0.1:8123"}},
+        {"custom": {"port": 8123, "sablier": {
+            "strategy": "blocking",
+            "blocking_timeout": "7m",
+        }}},
+        {"enabled": True, "blocking_timeout": "3m"},
+    )
+    sablier = result["custom.example:443"]["route"][
+        "sablier http://127.0.0.1:10000"
+    ]
+    assert sablier["blocking"] == {"timeout": "7m"}
+    assert "dynamic" not in sablier
+
+
+def test_sablier_rejects_unknown_strategy(pyinfra_task_harness):
+    """Invalid strategy names fail instead of silently generating bad Caddy config."""
+    module = pyinfra_task_harness.load("caddy.py")
+    with pytest.raises(ValueError, match="Unsupported Sablier strategy"):
+        module.build_sablier_caddy_config(
+            {"custom.example:443": {"reverse_proxy": "127.0.0.1:8123"}},
+            {"custom": {"port": 8123, "sablier": {"strategy": "unknown"}}},
+            {"enabled": True},
+        )
 
 
 def test_homepage_is_managed_by_sablier_by_default(pyinfra_task_harness):
