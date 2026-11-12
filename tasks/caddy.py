@@ -182,7 +182,7 @@ def configure_caddy():
         name="Deploy Caddy certificate renewal service",
         src="templates/caddy/dehydrated-renew.service.j2",
         dest=f"{homedir}/.config/systemd/user/caddy-renew.service",
-        user=username, group=usergroup, mode="644", _sudo=False,
+        user=username, group=usergroup, mode="644", uid=uid, gid=gid, _sudo=False,
     )
     renewal_timer = files.template(
         name="Deploy Caddy certificate renewal timer",
