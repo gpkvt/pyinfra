@@ -69,7 +69,11 @@ def pyinfra_task_harness(monkeypatch):
         if name in {"Directory", "File"}:
             return False
         if name == "Command":
-            command = kwargs.get("command", "")
+            command = kwargs.get("command", args[0] if args else "")
+            if command.strip() == "id -u" or command.startswith("id -u "):
+                return "1000"
+            if command.startswith("id -g "):
+                return "1000"
             if "remote-list" in command:
                 return ""
             return ""
@@ -402,8 +406,9 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
     })
 
     pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
-        "worker scheduler database" if "/custom/" in command else "generic"
-    ) if "config --services" in command else ""
+        "1000" if command.startswith("id -u")
+        else ("worker scheduler database" if "/custom/" in command else "generic")
+    ) if "config --services" in command or command.startswith("id -u") else ""
 
     module.deploy_docker_service("custom", "Custom", "/home/tester")
     module.deploy_docker_service("generic", "Generic", "/home/tester")
@@ -458,7 +463,8 @@ def test_docker_service_treats_missing_systemd_status_as_inactive(pyinfra_task_h
         "docker": {"custom": {}},
     })
     pyinfra_task_harness.host.get_fact = lambda _fact, command="": (
-        "custom" if "config --services" in command else None
+        "1000" if command.startswith("id -u")
+        else ("custom" if "config --services" in command else None)
     )
 
     module.deploy_docker_service("custom", "Custom", "/home/tester")
@@ -620,3 +626,62 @@ def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
     ]
     assert len(directory_calls) == 1
     assert directory_calls[0]["_if"]() is False
+
+
+
+def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_harness):
+    """Root-driven deployments must execute user-systemd commands as the owner."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "docker": {"custom": {}},
+    })
+
+    def get_fact(_fact, command=""):
+        if command == "id -u":
+            return "0"
+        if command == "id -u tester":
+            return "1000"
+        if "config --services" in command:
+            return "custom"
+        if "is-active custom" in command:
+            return "active"
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service("custom", "Custom", "/home/tester", username="tester")
+
+    service_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    assert service_call["_if"]() is False
+    assert service_call["commands"][0].startswith("runuser -u tester -- env ")
+
+
+def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harness):
+    """Deployments already running as the configured user avoid runuser."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "docker": {"custom": {}},
+    })
+
+    def get_fact(_fact, command=""):
+        if command == "id -u" or command == "id -u tester":
+            return "1000"
+        if "config --services" in command:
+            return "custom"
+        if "is-active custom" in command:
+            return "active"
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service("custom", "Custom", "/home/tester", username="tester")
+
+    service_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    assert service_call["_if"]() is False
+    assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
