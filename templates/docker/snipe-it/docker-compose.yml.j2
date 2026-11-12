@@ -8,7 +8,7 @@ services:
       MYSQL_PASSWORD: "{{ database_password | replace('$', '$$') }}"
       MYSQL_ROOT_PASSWORD: "{{ mysql_root_password | replace('$', '$$') }}"
     volumes:
-      - database_data:/var/lib/mysql
+      - {{ homedir }}/.docker/snipe-it/db:/var/lib/mysql
     healthcheck:
       test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
       interval: 5s
@@ -48,19 +48,6 @@ services:
       IMAGE_LIB: gd
       ALLOW_BACKUP_DELETE: "false"
       ALLOW_DATA_PURGE: "false"
-    volumes:
-      - storage_data:/var/lib/snipeit
 
-volumes:
-  database_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: "{{ homedir }}/.docker/snipe-it/database"
-  storage_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: "{{ homedir }}/.docker/snipe-it/storage"
+    volumes:
+      - {{ homedir }}/.docker/snipe-it/storage_data:/var/lib/snipeit
