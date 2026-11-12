@@ -390,7 +390,10 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
     module = pyinfra_task_harness.load("docker.py", {
         "docker_sablier": {"enabled": True},
         "docker": {
-            "custom": {"app_services": ["worker", "scheduler"]},
+            "custom": {
+                "app_services": ["worker", "scheduler"],
+                "sablier_services": ["worker", "scheduler", "database"],
+            },
             "generic": {},
         },
     })
@@ -405,6 +408,15 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
     ]
     assert [call["app_services"] for call in unit_calls] == [
         ["worker", "scheduler"],
+        ["generic"],
+    ]
+    override_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("src") == "templates/docker/sablier-override.yml.j2"
+    ]
+    assert [call["sablier_services"] for call in override_calls] == [
+        ["worker", "scheduler", "database"],
         ["generic"],
     ]
 
