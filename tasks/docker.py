@@ -166,6 +166,7 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
     username="root",
     usergroup="root",
     restart_if=None,
+    app_services=None,
     **template_vars,
 ):
     # Create Docker service directory
@@ -200,6 +201,22 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         _if=compose_file.did_change,
     )
 
+    sablier_options = host.data.get("docker_sablier", {})
+    service_options = host.data.get("docker", {}).get(service, {})
+    service_sablier = service_options.get("sablier", {})
+    sablier_enabled = bool(sablier_options.get("enabled", False)) and service_sablier.get("enabled", True)
+    sablier_group = service_sablier.get("group", service)
+    stop_dependencies = service_sablier.get(
+        "stop_dependencies",
+        sablier_options.get("stop_dependencies", True),
+    )
+    app_services = app_services or {
+        "paperless": ["webserver"],
+        "firefly-iii": ["app", "cron", "fints"],
+        "snipe-it": ["app"],
+        "linkwarden": ["linkwarden"],
+    }.get(service, [service])
+
     # Deploy systemd unit
     systemd_unit = files.template(
         name=f"Deploy {service} systemd service",
@@ -210,6 +227,10 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         homedir=homedir,
         service=service,
         description=description,
+        sablier_enabled=sablier_enabled,
+        sablier_group=sablier_group,
+        stop_dependencies=stop_dependencies,
+        app_services=app_services,
         mode="644",
         _sudo=False,
     )
@@ -230,14 +251,26 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
     if restart_if is not None:
         restart_triggers.append(restart_if)
 
-    server.shell(
-        name=f"Restart {service}",
-        commands=[
-            f"systemctl --user restart {service}",
-        ],
-        _sudo=False,
-        _if=any_changed(*restart_triggers),
-    )
+    if sablier_enabled:
+        # Keep the unit enabled for Sablier, but do not start it during deploy.
+        server.shell(
+            name=f"Prepare {service} for on-demand startup",
+            commands=[
+                f"systemctl --user stop {service} || true",
+                f"systemctl --user enable {service}",
+            ],
+            _sudo=False,
+            _if=any_changed(*restart_triggers),
+        )
+    else:
+        server.shell(
+            name=f"Restart {service}",
+            commands=[
+                f"systemctl --user restart {service}",
+            ],
+            _sudo=False,
+            _if=any_changed(*restart_triggers),
+        )
 
 container = host.data.get("docker", {})
 
