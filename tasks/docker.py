@@ -262,6 +262,15 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
             _sudo=False,
             _if=any_changed(*restart_triggers),
         )
+        server.shell(
+            name=f"Ensure {service} is enabled for Sablier",
+            commands=[f"systemctl --user enable {service}"],
+            _sudo=False,
+            _if=lambda: host.get_fact(
+                Command,
+                f"systemctl --user is-enabled {service} 2>/dev/null || true",
+            ).strip() != "enabled",
+        )
     else:
         server.shell(
             name=f"Restart {service}",
