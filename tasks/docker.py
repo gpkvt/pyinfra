@@ -255,13 +255,29 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
     # environment. Set it explicitly so an active unit is not misdetected as
     # inactive (which would restart every service on every deployment).
     user_uid = (host.get_fact(Command, f"id -u {shlex.quote(username)}") or "").strip()
-    systemctl_user = (
-        f"XDG_RUNTIME_DIR=/run/user/{user_uid} "
-        f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{user_uid}/bus "
-        "systemctl --user"
-    )
+    current_uid = (host.get_fact(Command, "id -u") or "").strip()
+    if not user_uid.isdigit():
+        raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
+    if current_uid == user_uid:
+        systemctl_user = (
+            f"env XDG_RUNTIME_DIR=/run/user/{user_uid} "
+            f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{user_uid}/bus "
+            "systemctl --user"
+        )
+    elif current_uid == "0":
+        systemctl_user = (
+            f"runuser -u {shlex.quote(username)} -- env "
+            f"XDG_RUNTIME_DIR=/run/user/{user_uid} "
+            f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{user_uid}/bus "
+            "systemctl --user"
+        )
+    else:
+        raise RuntimeError(
+            f"Cannot manage systemd user {username!r} (UID {user_uid}) "
+            f"from unprivileged UID {current_uid}"
+        )
     service_status = host.get_fact(
-        Command, f"{systemctl_user} is-active {shlex.quote(service)} 2>/dev/null || true"
+        Command, f"{systemctl_user} is-active {shlex.quote(service)}"
     ) or ""
     service_active = service_status.strip() == "active"
 
