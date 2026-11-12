@@ -195,17 +195,14 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
     if not app_services or not all(isinstance(item, str) and item for item in app_services):
         raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
 
-    compose_path = f"{homedir}/{service}/docker-compose.yml"
-    compose_file_arg = shlex.quote(compose_path)
-    compose_services_output = host.get_fact(
-        Command, f"docker compose -f {compose_file_arg} config --services"
-    ) or ""
-    sablier_services = compose_services_output.split()
-    if sablier_enabled and not sablier_services:
-        raise ValueError(
-            f"Docker Compose did not return any services for {service!r}; "
-            "cannot configure Sablier labels"
-        )
+    sablier_services = service_options.get("sablier_services", app_services)
+    if (
+        not isinstance(sablier_services, list)
+        or not sablier_services
+        or not all(isinstance(item, str) and item for item in sablier_services)
+        or len(set(sablier_services)) != len(sablier_services)
+    ):
+        raise ValueError(f"Invalid sablier_services configuration for Docker service {service!r}")
 
     if sablier_enabled:
         override_file = files.template(
@@ -271,7 +268,8 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
                 'if [ -z "$container_ids" ]; then printf drift; exit 0; fi; '
                 'actual_labels=$(/usr/bin/docker inspect --format '
                 '\'{{ index .Config.Labels "sablier.enable" }}|'
-                '{{ index .Config.Labels "sablier.group" }}\' $container_ids); '
+                '{{ index .Config.Labels "sablier.group" }}\' $container_ids) || '
+                '{ printf drift; exit 0; }; '
                 f'if [ "$(printf "%s\\n" "$actual_labels" | sort -u)" '
                 f'!= {expected_labels} ]; then printf drift; exit 0; fi;'
             )
