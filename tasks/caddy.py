@@ -178,6 +178,35 @@ def configure_caddy():
         homedir=homedir, uid=uid, gid=gid, image=IMAGE, _sudo=False,
     )
 
+    renewal_service = files.template(
+        name="Deploy Caddy certificate renewal service",
+        src="templates/caddy/dehydrated-renew.service.j2",
+        dest=f"{homedir}/.config/systemd/user/caddy-renew.service",
+        user=username, group=usergroup, mode="644", _sudo=False,
+    )
+    renewal_timer = files.template(
+        name="Deploy Caddy certificate renewal timer",
+        src="templates/caddy/dehydrated-renew.timer.j2",
+        dest=f"{homedir}/.config/systemd/user/caddy-renew.timer",
+        user=username, group=usergroup, mode="644", _sudo=False,
+    )
+    renewal_timer_status = host.get_fact(
+        Command, "systemctl --user is-active caddy-renew.timer 2>/dev/null || true"
+    ) or ""
+    renewal_timer_active = renewal_timer_status.strip() == "active"
+    server.shell(
+        name="Enable daily Caddy certificate renewal",
+        commands=[
+            "systemctl --user daemon-reload",
+            "systemctl --user enable --now caddy-renew.timer",
+        ],
+        _sudo=False,
+        _if=lambda: (
+            renewal_service.did_change or renewal_timer.did_change
+            or not renewal_timer_active
+        ),
+    )
+
     build_changed = (
         dockerfile.did_change or entrypoint.did_change or hook.did_change
         or renew_script.did_change
