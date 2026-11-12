@@ -25,7 +25,8 @@ class OperationResult:
     """Small stand-in for pyinfra operation results."""
 
     changed = False
-    did_change = False
+    def did_change(self):
+        return False
 
 
 class HostData(dict):
@@ -542,8 +543,11 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
         and kwargs.get("name") in {
+            "Enable daily Caddy certificate renewal",
             "Build Caddy image with Sablier plugin and Dehydrated",
             "Start Caddy and Dehydrated containers",
+            "Wait for Caddy container health",
+            "Reload Caddy after Caddyfile changes",
         }
     ]
     assert len(docker_actions) == 2
