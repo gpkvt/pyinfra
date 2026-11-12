@@ -213,7 +213,7 @@ def configure_caddy():  # pylint: disable=R0914
             f"from unprivileged UID {current_uid}"
         )
     renewal_timer_status = host.get_fact(
-        Command, f"{systemctl_user} is-active caddy-renew.timer"
+        Command, f"{systemctl_user} is-active caddy-renew.timer", _sudo=False
     ) or ""
     renewal_timer_active = renewal_timer_status.strip() == "active"
     server.shell(
