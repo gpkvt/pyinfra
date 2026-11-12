@@ -69,7 +69,11 @@ def pyinfra_task_harness(monkeypatch):
         if name in {"Directory", "File"}:
             return False
         if name == "Command":
-            command = kwargs.get("command", "")
+            command = kwargs.get("command", args[0] if args else "")
+            if command.strip() == "id -u" or command.startswith("id -u "):
+                return "1000"
+            if command.startswith("id -g "):
+                return "1000"
             if "remote-list" in command:
                 return ""
             return ""
