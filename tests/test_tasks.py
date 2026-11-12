@@ -509,6 +509,9 @@ def test_caddy_image_creates_dehydrated_config_include_directory():
     assert "mkdir -p /etc/dehydrated/conf.d" in dockerfile
     assert "ca-certificates setpriv" in dockerfile
 
+    renewal_service = (ROOT / "templates/caddy/dehydrated-renew.service.j2").read_text()
+    assert "docker exec --user {{ uid }}:{{ gid }} caddy /usr/local/bin/renew.sh" in renewal_service
+
     compose = (ROOT / "templates/docker/caddy/docker-compose.yml.j2").read_text()
     assert "    user:" not in compose
     assert "      - ALL" in compose
