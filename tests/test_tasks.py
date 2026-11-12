@@ -359,6 +359,24 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
 
 
 
+def test_caddyfile_sets_http_response_write_timeout():
+    """The global response deadline is configured before all site blocks."""
+    template = (ROOT / "templates/Caddyfile.j2").read_text()
+    expected = chr(10).join((
+        "{",
+        "    servers {",
+        "        timeouts {",
+        "            write 2m",
+        "        }",
+        "    }",
+        "}",
+        "",
+    ))
+
+    assert template.startswith(expected)
+    assert template.index("{% for entry in caddy_conf %}") > template.index("write 2m")
+
+
 def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_harness):
     """Only configured Docker reverse proxies should be routed through Sablier."""
     module = pyinfra_task_harness.load("caddy.py")
