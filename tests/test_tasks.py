@@ -571,3 +571,10 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
     assert len(docker_actions) == 2
     assert all(call["_if"]() is False for call in docker_actions)
 
+
+
+def test_sablier_systemd_preparation_reconciles_existing_containers():
+    """Sablier preparation updates labels without starting on-demand services."""
+    unit = (ROOT / "templates/docker/systemd.service.j2").read_text()
+    assert "docker compose {{ compose_files }} up --no-start" in unit
+    assert "docker compose {{ compose_files }} create" not in unit
