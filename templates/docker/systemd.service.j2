@@ -6,7 +6,7 @@ Type=oneshot
 RemainAfterExit=yes
 WorkingDirectory={{ homedir }}/{{ service }}
 {% if sablier_enabled %}
-ExecStart=/usr/bin/docker compose {{ compose_files }} create
+ExecStart=/usr/bin/docker compose {{ compose_files }} up --no-start
 {% else %}
 ExecStart=/usr/bin/docker compose {{ compose_files }} up -d
 {% endif %}
