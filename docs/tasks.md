@@ -110,7 +110,7 @@ Most existing services use host-directory mounts. Linkwarden uses Docker-managed
 | Homepage | `~/.docker/homepage/config/` | `127.0.0.1:8020` |
 | Linkwarden | `~/.docker/linkwarden/postgres/`, `~/.docker/linkwarden/data/`, `~/.docker/linkwarden/meili/` | `127.0.0.1:8021` |
 | WG-Easy | `~/.docker/wg-easy/` (Docker local named volume) | UI: `127.0.0.1:51821`; WireGuard: UDP `51820` |
-| Paperless-ngx | `~/.docker/paperless/postgres/`, `data/`, `media/`, `consume/`, `export/` | `127.0.0.1:8022` |
+| Paperless-ngx | `~/.docker/paperless/postgres/`, `data/`, `media/`, `consume/`, `export/` | `127.0.0.1:8022` |\n- **Snipe-IT** runs with MariaDB 11.4 and the official `snipe/snipe-it` image. Its database and application storage use Docker-managed local named volumes backed by `~/.docker/snipe-it/database/` and `~/.docker/snipe-it/storage/`; no direct host-path mounts are declared in Compose. The directories are prepared idempotently with MariaDB ownership `999:999` and Snipe-IT ownership `10000:50`. The application binds to `127.0.0.1:8025` and the supplied local Caddy hostname is `snipeit.21x9.org`. Store `database_password`, `mysql_root_password` and a generated Laravel `app_key` under `secrets.docker.snipe-it` in the encrypted secrets file. Generate the key with `docker compose run --rm app php artisan key:generate --show`; keep the same key for the lifetime of the installation.\n| Snipe-IT | `~/.docker/snipe-it/database/`, `storage/` (Docker local named volumes) | `127.0.0.1:8025` |
 
 **Service-specific notes**
 
