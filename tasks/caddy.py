@@ -164,6 +164,12 @@ def configure_caddy():
         dest=f"{build_dir}/hook.sh",
         user=username, group=usergroup, mode="750", _sudo=False,
     )
+    renew_script = files.put(
+        name="Deploy Dehydrated renewal script",
+        src="files/caddy/renew.sh",
+        dest=f"{build_dir}/renew.sh",
+        user=username, group=usergroup, mode="750", _sudo=False,
+    )
     compose = files.template(
         name="Deploy Caddy Docker Compose configuration",
         src="templates/docker/caddy/docker-compose.yml.j2",
@@ -172,7 +178,7 @@ def configure_caddy():
         homedir=homedir, uid=uid, gid=gid, image=IMAGE, _sudo=False,
     )
 
-    build_changed = dockerfile.did_change or entrypoint.did_change or hook.did_change
+    build_changed = (\n        dockerfile.did_change or entrypoint.did_change or hook.did_change\n        or renew_script.did_change\n    )
     image_present = host.get_fact(
         Command,
         f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
