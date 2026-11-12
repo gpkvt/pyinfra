@@ -243,6 +243,6 @@ Per-service overrides remain available under `docker.<service>.sablier`, includi
 
 Caddy performs the initial Dehydrated run before starting its server. Certificate renewal is handled by its entrypoint loop; deployment does not launch a second concurrent renewal process. The Caddy Compose service has a health check against its local admin API, and pyinfra waits for it to become healthy after a recreation.
 
-All Caddy persistent state is stored below `~/.docker/caddy/`. Sablier and Caddy are deployed only when Docker and their corresponding configuration gates are enabled. Existing host Caddy installations are not migrated, stopped, or uninstalled automatically; prepare ports 80 and 443 manually before enabling the Docker-based Caddy service.
+Caddy's persistent state uses Docker-managed local named volumes backed by directories below `~/.docker/caddy/`. Sablier and Caddy are deployed only when Docker and their corresponding configuration gates are enabled. Existing host Caddy installations are not migrated, stopped, or uninstalled automatically; prepare ports 80 and 443 manually before enabling the Docker-based Caddy service.
 
 Sablier and the Docker battery saver are mutually exclusive. When Sablier is enabled, the battery monitor is stopped and disabled, and containers previously stopped by the battery saver are restored first. Disabling Sablier re-enables the battery monitor.
