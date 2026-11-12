@@ -26,15 +26,15 @@ These task modules are included on every full deployment.
 | `tasks/ssh_config.py` | `ssh_config` | Renders the user's SSH client configuration with a hardened global baseline followed by configured host entries. |
 | `tasks/wireguard.py` | `wireguard_config` and `secrets.wireguard` | Installs WireGuard and writes `/etc/wireguard/<interface>.conf`; does not start the service. |
 | `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
-| `tasks/dehydrated.py` | `secrets.dehydrated` | Configures dehydrated for ACME certificate management and deploys its hook. |
-| `tasks/caddy.py` | `caddy_config` | Deploys Caddy configuration from host data. |
+| `tasks/caddy.py` | `docker` and `caddy_config` | Builds and deploys the Docker-based Caddy image with the Sablier plugin and Dehydrated/Hetzner DNS-01 certificate renewal. |
+
 | `tasks/syncthing.py` | `syncthing` | Installs Syncthing, enables `syncthing@<username>`, and configures its GUI listen address (loopback by default). Device and folder sharing is configured separately in Syncthing. |
 | `tasks/zsh.py` | `zsh` | Installs/configures Zsh and related user configuration. |
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
 | `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured container services. |
-| `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Installs Sablier as a user systemd service and enables on-demand startup for matching Caddy routes. It uses the custom Caddy handler deployed by `tasks/caddy.py` and is mutually exclusive with the Docker battery monitor. |
+| `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Deploys Sablier as a Docker container using the Docker provider and enables on-demand startup through Compose labels. It is mutually exclusive with the Docker battery monitor. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
 | `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
