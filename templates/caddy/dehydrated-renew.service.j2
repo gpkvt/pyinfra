@@ -1,0 +1,7 @@
+[Unit]
+Description=Renew Caddy TLS certificates with Dehydrated
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/docker exec caddy /usr/local/bin/renew.sh
+TimeoutStartSec=10min
