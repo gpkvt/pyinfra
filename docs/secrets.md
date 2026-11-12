@@ -28,8 +28,13 @@ The example file documents the current data shape:
 | --- | --- | --- |
 | `shared.git_credentials` | `tasks/git.py` | Git credentials inherited by every host unless overridden. |
 | `hosts.<hostname>.wireguard` | `tasks/wireguard.py` | Interface-indexed private keys and peer values, including optional preshared keys. |
-| `hosts.<hostname>.dehydrated` | `tasks/dehydrated.py` | Hetzner DNS API token. |
+| `hosts.<hostname>.dehydrated` | `tasks/caddy.py` | Hetzner DNS API token used by Caddy's Dehydrated DNS-01 certificate workflow. |
 | `hosts.<hostname>.docker.miniflux` | `tasks/docker/miniflux.py` | Miniflux admin and PostgreSQL credentials. |
+| `hosts.<hostname>.docker.paperless` | `tasks/docker/paperless.py` | PostgreSQL password and Paperless secret key. |
+| `hosts.<hostname>.docker.firefly-iii` | `tasks/docker/firefly-iii.py` | MariaDB credentials, Laravel application key and 32-character cron token. |
+| `hosts.<hostname>.docker.snipe-it` | `tasks/docker/snipe-it.py` | MariaDB credentials and Laravel application key. |
+| `hosts.<hostname>.docker.linkwarden` | `tasks/docker/linkwarden.py` | PostgreSQL password, NextAuth secret and Meilisearch master key. |
+| `hosts.<hostname>.docker.homepage.environment` | `tasks/docker/homepage.py` | Homepage widget API keys/environment values; encrypted values override host-data defaults. |
 | `hosts.<hostname>.docker.vaultwarden` | `tasks/docker/vaultwarden.py` | Optional Argon2 PHC hash for the Vaultwarden admin token (`admin_token`). |
 | `hosts.<hostname>.ssh` | `tasks/ssh_keys.py` | Default and per-key passphrases. |
 

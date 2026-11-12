@@ -54,21 +54,22 @@ The core set can still have conditional behavior internally, but its modules are
 | Flatpak executable detected by `Which` | `tasks/flatpak.py` |
 | `host.data.ssh_config` is truthy | `tasks/ssh_config.py` |
 | `host.data.wireguard_config` and `secrets.wireguard` are truthy | `tasks/wireguard.py` |
+| `host.data.syncthing` is truthy | `tasks/syncthing.py` |
 | `local_network_cidr` and `wireguard_interface` are truthy | `tasks/vpn.py` |
-| `secrets.dehydrated` is truthy | `tasks/dehydrated.py` |
-| `host.data.caddy_config` is truthy | `tasks/caddy.py` |
+| `host.data.docker` and `host.data.caddy_config` are truthy | `tasks/caddy.py` |
 | `host.data.zsh` is truthy | `tasks/zsh.py` |
 | `host.data.tmux` is truthy | `tasks/tmux.py` |
 | `host.data.powerline` is truthy | `tasks/powerline.py` |
 | `host.data.ufw` is truthy | `tasks/ufw.py` |
-| `host.data.docker` is truthy | `tasks/docker.py` and `tasks/docker_container.py` |
+| `host.data.docker` is truthy | `tasks/docker.py`, `tasks/docker_power.py` and `tasks/docker_container.py` |
+| `host.data.docker_sablier.enabled` is true (inside the Docker gate) | `tasks/docker_sablier.py` |
 | `host.data.apparmor_profiles` is truthy | `tasks/apparmor.py` |
 | `host.data.cosmic` is truthy | `tasks/cosmic/deploy.py` |
 | `host.data.mullvad_extensions` is truthy | `tasks/mullvad_extensions.py` |
 | `host.data.vscodium` is truthy | `tasks/vscodium.py` |
 | `host.data.proton` is truthy | `tasks/proton.py` |
 
-`tasks/docker.py` installs Docker and defines the shared service deployment helper. `tasks/docker_container.py` dispatches to Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag and Vaultwarden modules when their corresponding keys exist in `host.data.docker`.
+`tasks/docker.py` installs Docker and defines the shared service deployment helper. Caddy's Dehydrated DNS-01 flow is part of `tasks/caddy.py` and requires `secrets.dehydrated.hetzner_api_token`; there is no separate Dehydrated task gate in `deploy.py`. `tasks/docker_container.py` dispatches to service modules for the configured keys: `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it` and `wg-easy`. `tasks/docker_power.py` deploys the Docker battery monitor; when Sablier is enabled it restores containers previously stopped by the battery saver and disables that monitor. `tasks/docker_sablier.py` is included only when `docker_sablier.enabled` is true, before application service dispatch. Sablier and the battery monitor are mutually exclusive.
 
 A truthy dictionary or list is a common activation mechanism; these settings are not necessarily Boolean switches. The exact expected structure is described in [Configuration](configuration.md) and [Task reference](tasks.md).
 
@@ -98,7 +99,7 @@ The supplied group-data file enables backup, power, hardware and storage, while 
 - `tasks/ssh_keys.py` does not overwrite existing private keys, but can manage authorized keys.
 - `tasks/wireguard.py` installs WireGuard and writes interface configuration; it does not start or enable the service.
 - `tasks/vpn.py` enables and starts `wg-quick@<interface>` when no globally scoped IPv4 address belongs to `local_network_cidr`. It only examines IPv4 addresses.
-- Docker tasks can pull images and restart user-level services when Compose or service definitions change.
+- Docker tasks prepare Compose projects with `docker compose up --no-start` so Sablier can start services on demand. A changed Compose file triggers an image pull and service reconciliation; user-level systemd operations run as the configured account (or via `runuser` when deployment runs as root). Sablier's default dynamic strategy serves a themed loading page while a service starts; blocking mode is available for clients that cannot use the dynamic page. See [Task reference](tasks.md#docker-services).
 
 ## Recommended operating loop
 

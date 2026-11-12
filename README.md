@@ -158,7 +158,7 @@ Check the CLI options supported by your installed pyinfra version with `pyinfra 
 - `deploy.py` includes core tasks unconditionally. Review their effects even when optional features are disabled.
 - WireGuard configuration deployment and VPN service activation are separate tasks. The former writes configuration; the latter conditionally enables `wg-quick@<interface>` based on IPv4 local-network detection.
 - Review firewall and USBGuard rules carefully. A default-deny USB policy or restrictive firewall can lock you out of a system or peripheral.
-- **Borgmatic warning:** the checked-in Borgmatic template currently contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and is deployed as `/etc/borgmatic/config.yaml` with mode `0600`. Do not rely on that fallback for real backups; resolve the passphrase handling before using this configuration.
+- **Borgmatic warning:** the checked-in Borgmatic template currently contains a literal fallback encryption passphrase (`B0rgm4t1C!`) The generated `/etc/borgmatic/config.yaml` is mode `0600`, but the fallback is public in source and is not suitable for a real repository. Replace it with a unique secret before using Borgmatic for real backups.
 
 ## Development
 

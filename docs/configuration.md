@@ -67,7 +67,7 @@ workstation = {
 }
 ```
 
-Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0644`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
+Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0600`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
 
 ## Network and name resolution
 
@@ -154,7 +154,7 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The supported keys are `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `homepage` and `paperless`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
+`docker` is a mapping of service names to service-specific settings. The supported keys are `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it` and `wg-easy`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
 
 All current services persist application data through host bind mounts below the configured user's home directory:
 
@@ -171,8 +171,12 @@ All current services persist application data through host bind mounts below the
 | NocoDB | `~/.docker/nocodb/data/` | `8019` |
 | Homepage | `~/.docker/homepage/config/` | `8020` |
 | Paperless-ngx | `~/.docker/paperless/postgres/`, `data/`, `media/`, `consume/`, `export/` | `8022` |
+| Linkwarden | `~/.docker/linkwarden/postgres/`, `data/`, `meili/` | `8021` |
+| Firefly III | `~/.docker/firefly-iii/database/`, `upload/`, `fints/` | `8023` (FinTS importer: `8024`) |
+| Snipe-IT | `~/.docker/snipe-it/database/`, `storage/` | `8025` |
+| WG-Easy | `~/.docker/wg-easy/` | UI `51821`; WireGuard UDP `51820` |
 
-The interfaces bind to `127.0.0.1` by default, except explicitly published protocol ports such as WG-Easy WireGuard UDP. The shared Docker helper renders Compose files under `~/<service>/` and user-level systemd units under `~/.config/systemd/user/`. A changed Compose file triggers an image pull; a changed Compose file or systemd unit triggers a service restart. No pull is performed when the Compose file is unchanged.
+The interfaces bind to `127.0.0.1` by default, except explicitly published protocol ports such as WG-Easy WireGuard UDP. All persistent service data uses direct host bind mounts below `~/.docker/`, not Docker-managed named volumes. The shared Docker helper renders Compose files under `~/<service>/` and user-level systemd units under `~/.config/systemd/user/`. A changed Compose file triggers an image pull and container preparation; unchanged Compose files do not trigger a pull. User-level systemd units manage the Compose projects, while Sablier can start labelled services on demand when enabled.
 
 Service-specific behavior:
 
@@ -244,9 +248,13 @@ Only keys present in `docker.homepage` are rendered. Omitted sections are not ge
 
 `docker` service configuration is independent of encrypted credentials. Put Miniflux credentials and the optional Vaultwarden admin-token hash in the encrypted secrets file; see [Secrets management](secrets.md).
 
-### Caddy
+### Caddy and Sablier
 
-`caddy_config` maps site addresses to Caddy directives consumed by `tasks/caddy.py`. The example uses TLS certificate paths and reverse-proxy destinations. Ensure the referenced certificates exist and that upstream services are reachable.
+`caddy_config` maps site addresses to Caddy directives consumed by `tasks/caddy.py`. Caddy is deployed inside the Docker feature gate when both `docker` and `caddy_config` are truthy; it uses the Sablier Caddy plugin and Dehydrated with Hetzner DNS-01 credentials. Ensure upstream services are reachable and `secrets.dehydrated.hetzner_api_token` is present.
+
+`docker_sablier` is an optional mapping. Set `enabled: True` to deploy Sablier before service Compose projects are prepared. The supplied local configuration uses `default_duration: "10m"`, `blocking_timeout: "10m"`, and `stop_dependencies: True`. Caddy uses the dynamic strategy by default, with `default_theme: "ghost"`, `show_details: True`, and `refresh_frequency: "5s"`; per-service overrides live under `docker.<service>.sablier`. `strategy: "blocking"` is available for clients that cannot use the dynamic loading page. `blocking_timeout` applies only to blocking mode.
+
+`docker_power_save` lists containers managed by the battery monitor. `tasks/docker_power.py` deploys the monitor and its systemd unit; the monitor is disabled while Sablier is enabled and re-enabled when Sablier is disabled. The two mechanisms are mutually exclusive.
 
 ### Syncthing
 
@@ -284,10 +292,15 @@ The task sets default incoming policy to deny and outgoing policy to allow, appl
 The following features combine host data with encrypted secrets:
 
 - WireGuard requires `wireguard_config` plus matching `secrets.wireguard` entries.
-- dehydrated requires a `secrets.dehydrated` entry.
+- Caddy's Dehydrated DNS-01 certificate workflow requires `secrets.dehydrated.hetzner_api_token` when Docker and `caddy_config` enable the Caddy task.
 - Git credentials are deployed only when `secrets.git_credentials` is present.
 - SSH key generation can use `secrets.ssh` passphrases.
-- Miniflux uses `secrets.docker.miniflux` for credentials.
+- Miniflux uses `secrets.docker.miniflux` for administrator and PostgreSQL credentials.
+- Paperless-ngx requires `secrets.docker.paperless.postgres_password` and `secret_key`.
+- Firefly III requires database credentials, `app_key` and a 32-character `cron_token` under `secrets.docker.firefly-iii`.
+- Snipe-IT requires database credentials and a persistent Laravel `app_key` under `secrets.docker.snipe-it`.
+- Linkwarden requires PostgreSQL, NextAuth and Meilisearch secrets under `secrets.docker.linkwarden`.
+- Homepage can receive widget API keys through `secrets.docker.homepage.environment`; these values override matching host-data environment defaults.
 - Vaultwarden optionally uses `secrets.docker.vaultwarden.admin_token` for its Argon2 PHC admin-token hash.
 
 The absence of `secrets.json.gpg` does not stop the whole deployment; `common.initialize()` sets an empty secrets dictionary. See [Secrets management](secrets.md) for the supported structure.
