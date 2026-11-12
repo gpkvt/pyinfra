@@ -246,6 +246,34 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
         Command, f"systemctl --user is-active {service} 2>/dev/null || true"
     ) or ""
     service_active = service_status.strip() == "active"
+
+    # File checks alone cannot detect containers created before Sablier labels
+    # were added. Verify the actual Compose containers so a later deployment
+    # reconciles label drift without restarting an already-correct project.
+    if sablier_enabled:
+        label_checks = []
+        for service_name in sablier_services:
+            expected_labels = shlex.quote(f"true|{sablier_group}")
+            compose_service = shlex.quote(service_name)
+            label_checks.append(
+                f'container_id=$(/usr/bin/docker compose -f '
+                f'{shlex.quote(f"{homedir}/{service}/docker-compose.yml")} '
+                f'-f {shlex.quote(f"{homedir}/{service}/docker-compose.sablier.yml")} '
+                f'ps -a -q {compose_service}); '
+                'if [ -z "$container_id" ]; then printf drift; exit 0; fi; '
+                'labels=$(/usr/bin/docker inspect --format '
+                '\'{{ index .Config.Labels "sablier.enable" }}|'
+                '{{ index .Config.Labels "sablier.group" }}\' "$container_id"); '
+                f'if [ "$labels" != {expected_labels} ]; then '
+                'printf drift; exit 0; fi;'
+            )
+        label_check_command = " ".join(label_checks) + " printf match"
+        sablier_labels_match = (
+            host.get_fact(Command, label_check_command) or ""
+        ).strip() == "match"
+    else:
+        sablier_labels_match = True
+
     server.shell(
         name=f"Reload systemd and ensure {service} is prepared",
         commands=[
@@ -254,7 +282,11 @@ def deploy_docker_service( # pylint: disable=R0913,R0917
             f"systemctl --user {'restart' if service_active else 'start'} {service}",
         ],
         _sudo=False,
-        _if=lambda: any_changed(*restart_triggers) or not service_active,
+        _if=lambda: (
+            any_changed(*restart_triggers)
+            or not service_active
+            or not sablier_labels_match
+        ),
     )
 
 container = host.data.get("docker", {})
