@@ -33,7 +33,8 @@ These task modules are included on every full deployment.
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
-| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured Miniflux, TimeTagger, Grav, Forgejo, Portainer, TasmoAdmin, Wallabag, Vaultwarden, NocoDB, Linkwarden, Homepage and WG-Easy services. |
+| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured container services. |
+| `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Installs Sablier as a user systemd service and enables on-demand startup for matching Caddy routes. It uses the custom Caddy handler deployed by `tasks/caddy.py` and is mutually exclusive with the Docker battery monitor. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
 | `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
@@ -224,3 +225,31 @@ pyinfra inventory.py tasks/system.py --dry --diff
 ```
 
 A task run directly may not have all initialization or feature-gate behavior of `deploy.py`; inspect whether the task initializes shared state itself. Prefer the full entry point for normal provisioning.
+
+
+### On-demand Docker services
+
+On-demand startup is controlled by `docker_sablier`. The supplied local configuration enables Sablier with a 60-minute default session and a five-minute Caddy blocking timeout. Only reverse-proxy routes whose loopback port matches a configured Docker service are wrapped; unmatched Caddy routes remain unchanged.
+
+Each managed Docker systemd unit opts in through an `[X-Sablier]` section. The default group is the Docker service name. Firefly III's web, cron and FinTS routes share the `firefly-iii` group.
+
+Per-service overrides are configured under the matching `docker.<service>` entry:
+
+```python
+docker = {
+    "linkwarden": {
+        # Other Linkwarden settings...
+        "sablier": {"enabled": False},  # Keep this service always running.
+    },
+    "paperless": {
+        # Other Paperless settings...
+        "sablier": {"stop_dependencies": False},
+    },
+}
+```
+
+By default, Sablier stops the complete Compose project after the session expires. Set `stop_dependencies=False` globally or per service to stop only the application containers and leave databases and other dependencies running. Application service names are declared by the service tasks.
+
+Sablier uses the configured user's systemd manager. The task enables lingering so that manager remains available after logout. Caddy is built separately with the Sablier handler and selected through a systemd override; the APT-managed `/usr/bin/caddy` is not replaced. Disabling `docker_sablier.enabled` removes the override and restores the packaged Caddy binary.
+
+Sablier and the Docker battery saver are mutually exclusive. When Sablier is enabled, the battery monitor is stopped and disabled, and containers previously stopped by the battery saver are restored first. Disabling Sablier re-enables the battery monitor.
