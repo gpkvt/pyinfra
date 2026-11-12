@@ -14,15 +14,6 @@ PLUGIN_VERSION = "v1.0.2"
 GO_VERSION = "1.25.4"
 XCADDY_VERSION = "v0.4.5"
 
-SERVICE_PORTS = {
-    "miniflux": 8005, "timetagger": 8010, "grav": 8015,
-    "forgejo": 3000, "portainer": 9000, "tasmoadmin": 8016,
-    "vaultwarden": 8018, "homepage": 8020, "nocodb": 8019,
-    "linkwarden": 8021, "paperless": 8022, "firefly-iii": 8023,
-    "snipe-it": 8025,
-}
-
-
 def build_sablier_caddy_config(caddy_config, docker_config, options):
     """Wrap only configured Docker reverse proxies in Sablier routes."""
     result = deepcopy(caddy_config)
@@ -54,23 +45,16 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
                 route["header"] = directives.pop("header")
             directives["route"] = route
 
-    for service, default_port in SERVICE_PORTS.items():
-        if service in docker_config:
-            service_options = docker_config[service]
-            wrap_routes(
-                service,
-                service_options.get("port", default_port),
-                service_options,
-            )
-
-    # Firefly's FinTS endpoint belongs to the same Compose/systemd unit.
-    firefly = docker_config.get("firefly-iii", {})
-    if firefly:
-        wrap_routes(
-            "firefly-iii",
-            firefly.get("fints_port", 8024),
-            firefly,
-        )
+    for service, service_options in docker_config.items():
+        # The primary published port and any additional *_port entries are
+        # defined alongside each service in group_data/@local.py.
+        ports = [
+            value
+            for key, value in service_options.items()
+            if (key == "port" or key.endswith("_port")) and value is not None
+        ]
+        for port in ports:
+            wrap_routes(service, port, service_options)
     return result
 
 
