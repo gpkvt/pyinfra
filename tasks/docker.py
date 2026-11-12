@@ -251,8 +251,17 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
     if restart_if is not None:
         restart_triggers.append(restart_if)
 
+    # pyinfra does not necessarily inherit the interactive user's systemd
+    # environment. Set it explicitly so an active unit is not misdetected as
+    # inactive (which would restart every service on every deployment).
+    user_uid = (host.get_fact(Command, f"id -u {shlex.quote(username)}") or "").strip()
+    systemctl_user = (
+        f"XDG_RUNTIME_DIR=/run/user/{user_uid} "
+        f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{user_uid}/bus "
+        "systemctl --user"
+    )
     service_status = host.get_fact(
-        Command, f"systemctl --user is-active {service} 2>/dev/null || true"
+        Command, f"{systemctl_user} is-active {shlex.quote(service)} 2>/dev/null || true"
     ) or ""
     service_active = service_status.strip() == "active"
 
@@ -301,9 +310,9 @@ def deploy_docker_service( # pylint: disable=R0913,R0914,R0917
     server.shell(
         name=f"Reload systemd and ensure {service} is prepared",
         commands=[
-            "systemctl --user daemon-reload",
-            f"systemctl --user enable {service}",
-            f"systemctl --user {'restart' if service_active else 'start'} {service}",
+            f"{systemctl_user} daemon-reload",
+            f"{systemctl_user} enable {shlex.quote(service)}",
+            f"{systemctl_user} {'restart' if service_active else 'start'} {shlex.quote(service)}",
         ],
         _sudo=False,
         _if=lambda: (
