@@ -5,9 +5,9 @@ services:
     restart: unless-stopped
     command:
       - start
-      - --provider.name=docker
-      - --sessions.default-duration={{ default_duration }}
+      - --configFile=/etc/sablier/sablier.yaml
     ports:
       - "127.0.0.1:10000:10000"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      - {{ homedir }}/.docker/sablier/sablier.yaml:/etc/sablier/sablier.yaml:ro
