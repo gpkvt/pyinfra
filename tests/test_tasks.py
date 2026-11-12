@@ -707,16 +707,16 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
 
 
 def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_task_harness):
-    """Homepage widget API paths bypass Sablier while regular requests remain protected."""
+    """Homepage widget API prefixes bypass Sablier; other requests remain protected."""
     module = pyinfra_task_harness.load("caddy.py")
     homepage_services = [
         {"Services": [
-            {"Miniflux": {"widget": {"type": "miniflux", "url": "https://rss.example", "sablier": {"api_paths": ["/v1/feeds/counters"]}}}},
-            {"Linkwarden": {"widget": {"type": "linkwarden", "url": "https://links.example", "sablier": {"api_paths": ["/api/v1/collections", "/api/v1/tags"]}}}},
-            {"Paperless": {"widget": {"type": "paperlessngx", "url": "https://paper.example", "sablier": {"api_paths": ["/api/statistics/"]}}}},
-            {"Firefly": {"widget": {"type": "firefly", "url": "https://firefly.example", "sablier": {"api_paths": ["/api/v1/summary/basic", "/api/v1/available-budgets"]}}}},
-            {"Portainer": {"widget": {"type": "portainer", "url": "https://portainer.example", "env": 3, "sablier": {"api_paths": ["/api/endpoints/3/docker/containers/json"]}}}},
-            {"Forgejo": {"widget": {"type": "gitea", "url": "https://forgejo.example", "sablier": {"api_paths": ["/api/v1/notifications", "/api/v1/repos/issues/search", "/api/v1/repos/search"]}}}},
+            {"Miniflux": {"widget": {"type": "miniflux", "url": "https://rss.example"}}},
+            {"Linkwarden": {"widget": {"type": "linkwarden", "url": "https://links.example"}}},
+            {"Paperless": {"widget": {"type": "paperlessngx", "url": "https://paper.example"}}},
+            {"Firefly": {"widget": {"type": "firefly", "url": "https://firefly.example"}}},
+            {"Portainer": {"widget": {"type": "portainer", "url": "https://portainer.example", "env": 3}}},
+            {"Forgejo": {"widget": {"type": "gitea", "url": "https://forgejo.example"}}},
             {"NocoDB": {"widget": {"type": "customapi", "url": "https://nocodb.example/api/v2/meta/bases/"}}},
             {"Snipe": {"widget": {"type": "customapi", "url": "https://snipe.example/api/v1/dashboard/companies"}}},
             {"TimeTagger": {"widget": {"type": "customapi", "url": "https://time.example/timetagger/api/v2/records?running=true"}}},
@@ -724,21 +724,25 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
     ]
     from tasks.homepage_config import homepage_api_exclusions
 
+    original = __import__("copy").deepcopy(homepage_services)
     exclusions = homepage_api_exclusions(homepage_services)
-    assert exclusions["rss.example"] == ["/v1/feeds/counters"]
-    assert exclusions["links.example"] == ["/api/v1/collections", "/api/v1/tags"]
-    assert exclusions["paper.example"] == ["/api/statistics/"]
-    assert exclusions["firefly.example"] == ["/api/v1/available-budgets", "/api/v1/summary/basic"]
-    assert exclusions["portainer.example"] == ["/api/endpoints/3/docker/containers/json"]
-    assert exclusions["forgejo.example"] == [
-        "/api/v1/notifications", "/api/v1/repos/issues/search", "/api/v1/repos/search",
-    ]
-    assert exclusions["nocodb.example"] == ["/api/v2/meta/bases/"]
-    assert exclusions["snipe.example"] == ["/api/v1/dashboard/companies"]
-    assert exclusions["time.example"] == ["/timetagger/api/v2/records"]
+    assert exclusions["rss.example"] == ["/api/*", "/v1/*"]
+    assert exclusions["links.example"] == ["/api/*", "/v1/*"]
+    assert exclusions["portainer.example"] == ["/api/*", "/v1/*"]
+    assert exclusions["nocodb.example"] == ["/api/*", "/api/v2/meta/bases/", "/v1/*"]
+    assert exclusions["snipe.example"] == ["/api/*", "/api/v1/dashboard/companies", "/v1/*"]
+    assert exclusions["time.example"] == ["/api/*", "/timetagger/api/v2/records", "/v1/*"]
+    assert homepage_services == original
+
+    # Widgets sharing a hostname are combined without changing Homepage config.
+    homepage_services[0]["Services"].append(
+        {"Second": {"widget": {"type": "customapi", "url": "https://rss.example/custom/status?x=1"}}}
+    )
+    combined = homepage_api_exclusions(homepage_services)
+    assert combined["rss.example"] == ["/api/*", "/custom/status", "/v1/*"]
 
     config = {
-        "links.example:443": {"reverse_proxy": "127.0.0.1:8021"},
+        "links.example:443": {"reverse_proxy": "127.0.0.1:8021", "header": ["-Server"]},
         "other.example:443": {"reverse_proxy": "127.0.0.1:8022"},
     }
     result = module.build_sablier_caddy_config(
@@ -747,23 +751,10 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
         {"enabled": True, "homepage_services": homepage_services},
     )
     linkwarden_route = result["links.example:443"]["route"]
-    assert linkwarden_route["@homepage_api"]["path"] == "/api/v1/collections /api/v1/tags"
+    assert linkwarden_route["@homepage_api"]["path"] == "/api/* /v1/*"
+    assert linkwarden_route["handle @homepage_api"]["reverse_proxy"] == "127.0.0.1:8021"
+    assert linkwarden_route["handle @homepage_api"]["header"] == ["-Server"]
     assert "sablier http://127.0.0.1:10000" in linkwarden_route["handle"]
     assert result["other.example:443"]["route"]["handle"]["sablier http://127.0.0.1:10000"]
 
 
-def test_homepage_sablier_metadata_is_removed_before_rendering(pyinfra_task_harness):
-    """Internal Sablier widget metadata must never reach Homepage services.yaml."""
-    from tasks.homepage_config import homepage_services_for_render
-
-    original = [
-        {"Service": {"widget": {
-            "type": "linkwarden",
-            "url": "https://links.example",
-            "sablier": {"api_paths": ["/api/v1/collections"]},
-        }}},
-    ]
-    rendered = homepage_services_for_render(original)
-
-    assert "sablier" not in rendered[0]["Service"]["widget"]
-    assert original[0]["Service"]["widget"]["sablier"]["api_paths"] == ["/api/v1/collections"]
