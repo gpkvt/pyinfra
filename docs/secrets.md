@@ -28,7 +28,7 @@ The example file documents the current data shape:
 | --- | --- | --- |
 | `shared.git_credentials` | `tasks/git.py` | Git credentials inherited by every host unless overridden. |
 | `hosts.<hostname>.wireguard` | `tasks/wireguard.py` | Interface-indexed private keys and peer values, including optional preshared keys. |
-| `hosts.<hostname>.dehydrated` | `tasks/dehydrated.py` | Hetzner DNS API token. |
+| `hosts.<hostname>.dehydrated` | `tasks/caddy.py` | Hetzner DNS API token used by Caddy's Dehydrated DNS-01 certificate workflow. |
 | `hosts.<hostname>.docker.miniflux` | `tasks/docker/miniflux.py` | Miniflux admin and PostgreSQL credentials. |
 | `hosts.<hostname>.docker.paperless` | `tasks/docker/paperless.py` | PostgreSQL password and Paperless secret key. |
 | `hosts.<hostname>.docker.firefly-iii` | `tasks/docker/firefly-iii.py` | MariaDB credentials, Laravel application key and 32-character cron token. |
