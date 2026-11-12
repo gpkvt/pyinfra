@@ -33,7 +33,7 @@ usergroup = host.data.get("usergroup", "root")
 
 # PostgreSQL 16 Alpine runs as UID/GID 70:70 and needs exclusive access.
 ensure_numeric_directory(
-    f"{homedir}/.docker/linkwarden/postgres", 70, 70, "700"
+    f"{homedir}/.docker/linkwarden/postgres", 70, 70, "700"  # pylint: disable=E0602
 )
 
 for directory in ("data", "meili"):

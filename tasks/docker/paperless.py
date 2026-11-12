@@ -21,13 +21,13 @@ gid = int(paperless.get("gid", 1000))
 
 # PostgreSQL 17 Alpine runs as UID/GID 70:70.
 ensure_numeric_directory(
-    f"{homedir}/.docker/paperless/postgres", 70, 70, "700"
+    f"{homedir}/.docker/paperless/postgres", 70, 70, "700"  # pylint: disable=E0602
 )
 
 # Paperless application storage.
 for directory in ("data", "media", "consume", "export"):
     ensure_numeric_directory(
-        f"{homedir}/.docker/paperless/{directory}", uid, gid, "750"
+        f"{homedir}/.docker/paperless/{directory}", uid, gid, "750"  # pylint: disable=E0602
     )
 
 deploy_docker_service(

@@ -1,5 +1,11 @@
 # Changelog
 
+## [12.11.2026]
+
+### Added
+
+- Added Snipe-IT asset management with MariaDB, persistent Docker local volumes backed by `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
+
 ## [11.11.2026]
 
 ### Added
