@@ -471,11 +471,13 @@ docker = {
         "image": "ghcr.io/linkwarden/linkwarden:latest",
         "port": 8021,
         "domain": "linkwarden.21x9.org",
+        "app_services": ["linkwarden"],
     },
     "paperless": {
         "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",
         "port": 8022,
         "domain": "paperless.21x9.org",
+        "app_services": ["webserver"],
     },
     "firefly-iii": {
         "image": "fireflyiii/core:latest",
@@ -483,11 +485,13 @@ docker = {
         "domain": "firefly.21x9.org",
         "fints_port": 8024,
         "fints_domain": "fints.21x9.org",
+        "app_services": ["app", "cron", "fints"],
     },
     "snipe-it": {
         "image": "snipe/snipe-it:latest",
         "port": 8025,
         "domain": "snipeit.21x9.org",
+        "app_services": ["app"],
     },
     "homepage": {
         "image": "ghcr.io/gethomepage/homepage:latest",
