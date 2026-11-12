@@ -128,6 +128,7 @@ from pyinfra.facts.server import Command
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
 
+
 def ensure_numeric_directory(path, uid, gid, mode, sudo=True):
     """Ensure a directory has the requested numeric ownership and mode.
 
