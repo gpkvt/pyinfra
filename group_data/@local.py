@@ -406,6 +406,12 @@ docker_sablier = {
     "stop_dependencies": True,
 }
 
+# Each inner list defines one certificate: first name is the certificate name,
+# remaining names are Subject Alternative Names (SANs).
+dehydrated_domains = [
+    ["21x9.org", "*.21x9.org"],
+]
+
 # Install and configure docker container
 docker_power_save = [
         "forgejo",

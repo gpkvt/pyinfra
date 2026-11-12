@@ -16,8 +16,7 @@ host configuration, and configured secrets:
     - ssh_config
     - wireguard
     - vpn
-    - dehydrated
-    - caddy
+    - caddy (Docker)
     - zsh
     - tmux
     - powerline
@@ -57,12 +56,6 @@ if host.data.get("wireguard_config") and secrets.get("wireguard"):
 if local_network_cidr and wireguard_interface:
     local.include("tasks/vpn.py")
 
-if secrets.get("dehydrated"):
-    local.include("tasks/dehydrated.py")
-
-if host.data.get("caddy_config"):
-    local.include("tasks/caddy.py")
-
 if host.data.get("syncthing"):
     local.include("tasks/syncthing.py")
 
@@ -80,12 +73,14 @@ if host.data.get("ufw"):
 
 if host.data.get("docker"):
     local.include("tasks/docker.py")
-    # Restore battery-saver state before the service tasks and Sablier take
-    # control of the user systemd units.
+    # Sablier must be available before app containers are created for on-demand
+    # startup. The battery saver is mutually exclusive with Sablier.
     local.include("tasks/docker_power.py")
-    local.include("tasks/docker_container.py")
     if host.data.get("docker_sablier", {}).get("enabled", False):
         local.include("tasks/docker_sablier.py")
+    local.include("tasks/docker_container.py")
+    if host.data.get("caddy_config"):
+        local.include("tasks/caddy.py")
 
 if host.data.get("apparmor_profiles"):
     local.include("tasks/apparmor.py")

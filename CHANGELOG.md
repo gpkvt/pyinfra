@@ -4,7 +4,8 @@
 
 ### Added
 
-- Added Sablier-based on-demand startup for Docker services through a custom Caddy handler and the systemd user provider, with configurable session duration and dependency-stop behavior.
+- Added Docker-based Caddy and Sablier deployment. Sablier uses the Docker provider and Compose labels to start application containers on demand; Caddy uses host networking to retain loopback upstreams.
+- Added Dehydrated certificate renewal inside the Caddy container with the Hetzner DNS-01 hook. `dehydrated_domains` in `group_data/@local.py` supports multiple certificates, each defined by one list of primary name and SANs.
 
 - Added Snipe-IT asset management with MariaDB, persistent Docker local volumes backed by `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
 

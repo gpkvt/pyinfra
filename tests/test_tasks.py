@@ -407,3 +407,28 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
         ["worker", "scheduler"],
         ["generic"],
     ]
+
+
+
+def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    assert module.build_domains_file([
+        ["21x9.org", "*.21x9.org"],
+        ["example.com", "www.example.com", "api.example.com"],
+    ]) == [
+        "21x9.org *.21x9.org",
+        "example.com www.example.com api.example.com",
+    ]
+
+
+def test_dehydrated_domains_reject_empty_or_duplicate_definitions(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    with pytest.raises(ValueError, match="at least one certificate"):
+        module.build_domains_file([])
+    with pytest.raises(ValueError, match="more than one certificate"):
+        module.build_domains_file([
+            ["example.com", "www.example.com"],
+            ["example.net", "www.example.com"],
+        ])
+    with pytest.raises(ValueError, match="Invalid domain"):
+        module.build_domains_file([["not a domain"]])
