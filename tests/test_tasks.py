@@ -722,7 +722,9 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
             {"TimeTagger": {"widget": {"type": "customapi", "url": "https://time.example/timetagger/api/v2/records?running=true"}}},
         ]},
     ]
-    exclusions = module.homepage_api_exclusions(homepage_services)
+    from tasks.homepage_config import homepage_api_exclusions
+
+    exclusions = homepage_api_exclusions(homepage_services)
     assert exclusions["rss.example"] == ["/v1/feeds/counters"]
     assert exclusions["links.example"] == ["/api/v1/collections", "/api/v1/tags"]
     assert exclusions["paper.example"] == ["/api/statistics/"]
