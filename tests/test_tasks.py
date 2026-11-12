@@ -444,3 +444,20 @@ def test_dehydrated_domains_reject_empty_or_duplicate_definitions(pyinfra_task_h
         ])
     with pytest.raises(ValueError, match="Invalid domain"):
         module.build_domains_file([["not a domain"]])
+
+def test_docker_service_treats_missing_systemd_status_as_inactive(pyinfra_task_harness):
+    """A missing Command fact must not abort Docker service deployment."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+    })
+    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: None
+
+    module.deploy_docker_service("custom", "Custom", "/home/tester")
+
+    service_calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    ]
+    assert len(service_calls) == 1
+    assert service_calls[0]["_if"]() is True
