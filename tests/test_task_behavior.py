@@ -270,7 +270,7 @@ def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harnes
     assert observed == [
         "if [ -d /home/tester/.docker/data ]; then "
         "stat -c '%u:%g:%a' -- /home/tester/.docker/data; "
-        "else printf 'missing\n'; fi"
+        "else printf 'missing\\n'; fi"
     ]
 
 
