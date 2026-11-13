@@ -123,8 +123,36 @@ def test_timetagger_rejects_missing_credentials(pyinfra_task_harness, monkeypatc
             "docker": {"timetagger": {}},
         })
 
-def test_system_timezone_uses_builtin_idempotent_operation(pyinfra_task_harness):
-    """Timezone state is reconciled by pyinfra's built-in operation."""
+def test_system_timezone_skips_equivalent_zoneinfo_alias(pyinfra_task_harness):
+    def get_fact(fact, command=None, **_kwargs):
+        if fact.__name__ == "Timezone":
+            return "Etc/UTC"
+        if fact.__name__ == "Command":
+            return ["/usr/share/zoneinfo/Etc/UTC"]
+        return None
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
+
+    assert not any(
+        namespace == "server" and name == "timezone"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_system_timezone_schedules_change_when_zoneinfo_differs(pyinfra_task_harness):
+    def get_fact(fact, command=None, **_kwargs):
+        if fact.__name__ == "Timezone":
+            return "Europe/Berlin"
+        if fact.__name__ == "Command":
+            return (
+                ["/usr/share/zoneinfo/Europe/Berlin"]
+                if "/etc/localtime" in command
+                else ["/usr/share/zoneinfo/Etc/UTC"]
+            )
+        return None
+
+    pyinfra_task_harness.host.get_fact = get_fact
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
     timezone = next(
