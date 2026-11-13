@@ -107,3 +107,93 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
     assert len(commands) == 1
     assert "aa-enforce" in str(commands[0])
     assert "/etc/apparmor.d/example" in str(commands[0])
+
+
+def test_system_timezone_fact_normalizes_output(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("system.py")
+    assert module.SystemTimezone().process([" Europe/Berlin ", "\\n"]) == "Europe/Berlin"
+    assert module.SystemTimezone().process(["  ", "\\n"]) is None
+
+
+def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("dehydrated.py")
+    fact = module.CertNeedsRenewal()
+    assert fact.process(["false"]) is False
+    assert fact.process(["true"]) is True
+    assert fact.process([]) is False
+
+
+def test_ufw_added_rules_normalizes_only_added_rule_commands(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("ufw.py", {"ufw": {}})
+    assert module.UfwAddedRules().process([
+        "Added user rules (see 'ufw status' for running firewall):",
+        "ufw allow 22/tcp",
+        "  ufw deny 80/tcp  ",
+        "",
+    ]) == {"ufw allow 22/tcp", "ufw deny 80/tcp"}
+
+
+def test_ufw_custom_rule_matches_with_or_without_explicit_in_token(
+    pyinfra_task_harness
+):
+    module = pyinfra_task_harness.load("ufw.py", {"ufw": {}})
+    pyinfra_task_harness.host.get_fact = lambda _fact: {
+        "ufw allow from 192.0.2.0/24 to any port 443 proto tcp"
+    }
+
+    assert module.ufw_custom_rule_exists(
+        "Allow", "from 192.0.2.0/24 to any port 443 proto tcp"
+    ) is True
+    assert module.ufw_custom_rule_exists(
+        "Allow", "in from 192.0.2.0/24 to any port 443 proto tcp"
+    ) is True
+    assert module.ufw_custom_rule_exists(
+        "Deny", "from 192.0.2.0/24 to any port 443 proto tcp"
+    ) is False
+
+
+def test_vscodium_fact_quotes_user_and_normalizes_installed_ids(
+    pyinfra_task_harness
+):
+    module = pyinfra_task_harness.load("vscodium.py", {"vscodium": {}})
+    fact = module.VSCodiumExtensions()
+
+    assert fact.command("user name") == (
+        "sudo -H -u 'user name' -- sh -lc 'codium --list-extensions'"
+    )
+    assert fact.process([
+        "Vendor.Extension@1.2.3", "vendor.extension", "", "Other.Tool"
+    ]) == {"vendor.extension", "other.tool"}
+
+
+def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("cosmic/config.py", {
+        "cosmic": {"enabled": False}
+    })
+    module.deploy_cosmic_values("dock", {"config.ron": "value"})
+    assert not pyinfra_task_harness.calls
+
+    module = pyinfra_task_harness.load("cosmic/config.py", {
+        "cosmic": {"enabled": True},
+        "homedir": "/home/tester",
+        "username": "tester",
+    })
+    module.deploy_cosmic_values("dock", {
+        "com.system76.CosmicPanel/v1/plugins.ron": "[\"dock\"]"
+    })
+    directories = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "directory"
+    ]
+    uploads = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+    ]
+    assert directories[-1]["path"] == (
+        "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1"
+    )
+    assert uploads[-1]["dest"] == (
+        "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1/plugins.ron"
+    )
+    assert uploads[-1]["src"].getvalue() == '["dock"]\\n'
+    assert uploads[-1]["mode"] == "0644"
