@@ -220,6 +220,9 @@ def test_flatpak_facts_ignore_blank_output_lines(pyinfra_task_harness):
         "app.one", " app.two ",
     ]
     assert module.FlatpakSystemUpdates().process([""]) == []
+    assert module.FlatpakRemotes().process(["flathub", "", "other"]) == [
+        "flathub", "other",
+    ]
 
 
 def test_ufw_fact_parsers_and_rule_matching(pyinfra_task_harness):
