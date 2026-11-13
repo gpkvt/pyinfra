@@ -213,7 +213,9 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
         monkeypatch.setitem(sys.modules, f"pyinfra.operations.{namespace}", module)
 
     util = types.ModuleType("pyinfra.operations.util")
-    util.any_changed = lambda *_operations: (lambda: False)
+    util.any_changed = lambda *operations: (
+        lambda: any(operation.did_change() for operation in operations)
+    )
     facts = types.ModuleType("pyinfra.facts")
     facts_files = types.ModuleType("pyinfra.facts.files")
     facts_files.Directory = type("Directory", (), {})
