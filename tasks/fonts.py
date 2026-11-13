@@ -152,7 +152,7 @@ if host.data.get("powerline_fonts", False):
         commands=[
             f'find {EXTRACT_DIR}/fonts-master -type f '
             r'\( -iname "*.ttf" -o -iname "*.otf" \) '
-            rf'-exec cp -n {{}} {FONT_DIR}/ \;'
+            rf'-exec cp -f {{}} {FONT_DIR}/ \;'
         ],
         _if=extract.did_change,
     )
