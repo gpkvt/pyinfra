@@ -220,6 +220,12 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
         data = {}
         if relative_path == "tasks/caddy.py":
             monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
+            monkeypatch.setattr(
+                builtins,
+                "secrets",
+                {"dehydrated": {"hetzner_api_token": "ci-dummy-token"}},
+                raising=False,
+            )
             data = {
                 "caddy_config": {"ci.invalid": {"respond": "CI"}},
                 "docker": {"ci-smoke": {"app_services": ["smoke"]}},
