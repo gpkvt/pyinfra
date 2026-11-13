@@ -370,7 +370,8 @@ def test_bookmarks_on_same_site_download_one_favicon(
     loaded_module, monkeypatch, tmp_path,
 ):
     calls = []
-    def download(_base, url, _token, _destination, prefix="linkwarden", icon_cache=None):
+    def download(_base, url, _token, _destination, **kwargs):
+        icon_cache = kwargs["icon_cache"]
         origin = loaded_module.favicon_origin(url)
         if origin in icon_cache:
             return icon_cache[origin]
