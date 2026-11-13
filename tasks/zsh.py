@@ -2,9 +2,13 @@
 """
 Deploy and configure Zsh dotfiles, shell configuration, and plugins using pyinfra.
 
-This module synchronizes custom Zsh dotfiles, deploys application configuration files, generates the user's Zsh startup configuration, configures zplug plugins, and ensures that Zsh is the user's default shell.
+This module synchronizes custom Zsh dotfiles, deploys application configuration files,
+generates the user's Zsh startup configuration, configures zplug plugins, installs
+the MPRIS command-line client used by Hyfetch, and ensures that Zsh is the user's
+default shell.
 
-Configuration: homedir (str): User's home directory, used as the destination for Zsh configuration and dotfiles.
+Configuration: homedir (str): User's home directory, used as the destination for
+Zsh configuration and dotfiles.
 
 username (str): User account to configure.
     Retrieved from `host.data.username`. Defaults to "root".
@@ -12,54 +16,31 @@ username (str): User account to configure.
 usergroup (str): Group ownership of deployed files and directories.
     Retrieved from `host.data.usergroup`. Defaults to "root".
 
-zshrc_imports (list[str]): Additional Zsh configuration files
-    or imports to include in `.zshrc`.
-    Retrieved from `host.data.zshrc_imports`.
-    Defaults to an empty list.
+zshrc_imports (list[str]): Additional Zsh configuration files or imports to include
+    in `.zshrc`. Retrieved from `host.data.zshrc_imports`. Defaults to an empty list.
 
 zplug_plugins (list[str]): Zsh plugins to configure through zplug.
-    Retrieved from `host.data.zplug_plugins`.
-    Defaults to an empty list.
+    Retrieved from `host.data.zplug_plugins`. Defaults to an empty list.
 
 Operations:
-
-1. Synchronize Zsh dotfiles from `files/dotfiles/zsh/` to
-   `~/.dotfiles/zsh/`, preserving existing destination files
-   that are not present in the source.
-
-2. Deploy the Hyfetch configuration from `files/hyfetch.conf`
-   to `~/.config/neowofetch/config.conf`.
-
-3. Generate the user's `.zshrc` from
-   `templates/dotfiles/zshrc.j2`, including configured imports.
-
-4. Generate the zplug configuration from
-   `templates/dotfiles/zplug.zsh.j2`, using the configured
-   plugin list.
-
-5. Set `/bin/zsh` as the default login shell for the configured user.
+1. Synchronize Zsh dotfiles from `files/dotfiles/zsh/` to `~/.dotfiles/zsh/`.
+2. Install playerctl for Hyfetch's MPRIS-based now-playing information.
+3. Deploy the Hyfetch configuration to `~/.config/neowofetch/config.conf`.
+4. Generate `.zshrc` and the zplug configuration from Jinja2 templates.
+5. Set `/bin/zsh` as the user's default login shell.
 
 File permissions:
-
-- Zsh dotfiles: 0750.
-- Zsh dotfile directories: 0755.
-- Hyfetch configuration: 0640.
-- `.zshrc`: 0640.
-- zplug configuration: 0640.
+- Zsh dotfiles: 0750; directories: 0755.
+- Hyfetch configuration, `.zshrc`, and zplug configuration: 0640.
 
 Notes:
-
 - File deployment runs without sudo.
-- The default shell is managed through pyinfra's user operation.
 - Existing dotfiles not present in the source directory are preserved.
-- Zsh configuration and plugin definitions are generated dynamically
-  using Jinja2 templates.
-- The default shell is configured independently of the dotfile
-  deployment operations.
+- APT manages playerctl idempotently; Hyfetch reads MPRIS metadata directly.
 """
 
-from pyinfra.operations import files, server
 from pyinfra import host
+from pyinfra.operations import apt, files, server
 
 if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
@@ -75,6 +56,11 @@ files.sync(
     mode="750",
     dir_mode="755",
     _sudo=False,
+)
+
+apt.packages(
+    name="Ensure playerctl is installed for Hyfetch music metadata",
+    packages=["playerctl"],
 )
 
 files.put(
