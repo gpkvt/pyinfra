@@ -314,3 +314,78 @@ def test_update_service_icon_references_is_idempotent_and_adds_missing_icon(
     assert services[1]["NocoDB"]["icon"] == "/icons/homepage-nocodb.png"
     assert loaded_module.update_service_icon_references(config, references) is False
     assert config.read_text(encoding="utf-8") == result
+
+
+
+def test_favicon_filename_is_shared_by_urls_on_same_origin(loaded_module):
+    first = loaded_module.favicon_filename("https://example.com/one", ".png")
+    second = loaded_module.favicon_filename("https://example.com/two?q=1", ".png")
+    assert first == second
+
+
+def test_discover_favicon_urls_resolves_nonstandard_and_relative_paths(
+    loaded_module, monkeypatch,
+):
+    class Response:
+        headers = {"Content-Type": "text/html"}
+        def __enter__(self):
+            return self
+        def __exit__(self, *_args):
+            return False
+        def geturl(self):
+            return "https://example.com/path/page"
+        def read(self, _size):
+            return (
+                b'<link rel="shortcut icon" href="/assets/site-mark.png">'
+                b'<link rel="apple-touch-icon" href="../touch.png">'
+            )
+
+    monkeypatch.setattr(
+        loaded_module.urllib.request, "urlopen",
+        lambda *_args, **_kwargs: Response(),
+    )
+    assert loaded_module.discover_favicon_urls("https://example.com/path/page") == [
+        "https://example.com/assets/site-mark.png",
+        "https://example.com/touch.png",
+        "https://example.com/favicon.ico",
+    ]
+
+
+def test_download_favicon_reuses_origin_cache_without_network(
+    loaded_module, monkeypatch, tmp_path,
+):
+    cache = {"https://example.com": "/icons/shared.png"}
+    monkeypatch.setattr(
+        loaded_module, "discover_favicon_urls",
+        lambda *_args: pytest.fail("cached favicon must not trigger discovery"),
+    )
+    assert loaded_module.download_favicon(
+        "https://links.example", "https://example.com/page", "token",
+        tmp_path / "unused.ico", icon_cache=cache,
+    ) == "/icons/shared.png"
+
+
+def test_bookmarks_on_same_site_download_one_favicon(
+    loaded_module, monkeypatch, tmp_path,
+):
+    calls = []
+    def download(_base, url, _token, _destination, prefix="linkwarden", icon_cache=None):
+        calls.append(url)
+        icon_cache[loaded_module.favicon_origin(url)] = "/icons/shared.png"
+        return "/icons/shared.png"
+
+    monkeypatch.setattr(loaded_module, "download_favicon", download)
+    links = [
+        {"type": "url", "url": "https://example.com/one", "name": "One",
+         "collection": {"name": "Reading"}},
+        {"type": "url", "url": "https://example.com/two", "name": "Two",
+         "collection": {"name": "Reading"}},
+    ]
+    groups = loaded_module.build_bookmark_groups(
+        links, "https://links.example", "token", tmp_path
+    )
+    assert len(calls) == 1
+    assert all(
+        entry[next(iter(entry))][0]["icon"] == "/icons/shared.png"
+        for entry in groups[0]["Reading"]
+    )
