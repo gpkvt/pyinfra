@@ -9,6 +9,8 @@ Installation priority:
 APT repository configuration is managed by tasks/apt.py.
 """
 
+import re
+
 from pyinfra import host
 from common import command_output
 from pyinfra.operations import apt, files, server
@@ -91,7 +93,12 @@ if use_flatpak and flatpak_apps:
 install_drive_cli = proton.get("drive_cli", True)
 
 if install_drive_cli:
-    drive_cli_version = host.data.get("proton", {}).get("drive_cli_version", "0.9.0")
+    drive_cli_version = proton.get("drive_cli_version", "0.9.0")
+    if not isinstance(drive_cli_version, str) or not re.fullmatch(
+        r"[A-Za-z0-9][A-Za-z0-9._+-]*",
+        drive_cli_version,
+    ):
+        raise ValueError(f"Invalid Proton Drive CLI version: {drive_cli_version!r}")
     drive_cli_platform = "linux-x64"
 
     drive_cli_url = (
