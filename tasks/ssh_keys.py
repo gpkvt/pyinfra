@@ -106,11 +106,9 @@ for key in ssh_keys:
             fi
             """
         ],
-        _if=[
-            lambda private_key_exists=private_key_exists,
-                   public_key_exists=public_key_exists:
-                not private_key_exists and not public_key_exists
-        ],
+        # Run when the pair is incomplete so the command can either create
+        # both absent files or fail clearly if only one half exists.
+        _if=lambda: not (private_key_exists and public_key_exists),
         _sudo=False,
     )
 
