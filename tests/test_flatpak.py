@@ -50,7 +50,7 @@ def test_flatpak_task_installs_duplicate_refs_from_flathub(pyinfra_task_harness)
     pyinfra_task_harness.host.data["flatpak_packages"] = ["app.one"]
     fact_commands = []
 
-    def get_fact(fact, *args, **kwargs):
+    def get_fact(fact, **kwargs):
         command = kwargs.get("command", "")
         if command:
             fact_commands.append(command)
@@ -88,7 +88,7 @@ def test_flatpak_task_installs_duplicate_refs_from_flathub(pyinfra_task_harness)
 def test_flatpak_task_skips_already_installed_applications(pyinfra_task_harness):
     """Installed apps are not rescheduled even if their configured remote differs."""
     pyinfra_task_harness.host.data["flatpak_packages"] = ["app.one"]
-    def get_fact(fact, *args, **kwargs):
+    def get_fact(fact, **kwargs):
         if fact.__name__ == "FlatpakRemotes":
             return ["flathub"]
         if kwargs.get("command") == "flatpak list --user --app --columns=application":
