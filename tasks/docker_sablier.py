@@ -1,8 +1,9 @@
 """Deploy Sablier as a Docker service using the Docker provider."""
 
 from pyinfra import host
-from common import command_output
 from pyinfra.operations import files, server
+
+from common import command_output
 
 SABLIER_VERSION = "1.20.0"
 options = host.data.get("docker_sablier", {})
