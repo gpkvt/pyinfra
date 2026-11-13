@@ -39,19 +39,26 @@ Notes:
 
 import ipaddress
 import json
-from pyinfra.operations import server
+
+from common import command_output, initialize
 from pyinfra import host
+from pyinfra.operations import server
 
 if not hasattr(__import__('builtins'), 'homedir'):
-    from common import initialize
     initialize(host)
 
-success, output = host.run_shell_command("ip -j -4 addr show scope global")
-
-if not success:
+interfaces_output = command_output(host, "ip -j -4 addr show scope global")
+if not interfaces_output.strip():
     raise RuntimeError("Unable to retrieve network interfaces")
 
-interfaces = json.loads("\n".join(output.stdout_lines))
+try:
+    interfaces = json.loads(interfaces_output)
+except json.JSONDecodeError as error:
+    raise RuntimeError("Unable to parse network interface data") from error
+
+if not isinstance(interfaces, list):
+    raise RuntimeError("Network interface data must be a JSON list")
+
 local_network_cidr = host.data.get("local_network_cidr") or "10.0.0.0/24"
 wireguard_interface = host.data.get("wireguard_interface", False)
 network = ipaddress.ip_network(local_network_cidr) # pylint: disable=undefined-variable
