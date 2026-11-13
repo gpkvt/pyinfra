@@ -25,6 +25,7 @@ from pyinfra import host
 from pyinfra.operations import files, server
 from pyinfra.facts.files import File
 from pyinfra.facts.server import Command
+from common import command_output
 
 if not hasattr(builtins, "homedir"):
     from common import initialize
@@ -55,10 +56,10 @@ if ssh_keys or authorized_keys:
         group=usergroup,
         mode="700",
         _sudo=False,
-        _if=lambda: host.get_fact(
-            Command,
+        _if=lambda: command_output(
+            host,
             f"stat -c '%U:%G:%a' {shlex.quote(ssh_dir)} 2>/dev/null || true",
-        ) != f"{username}:{usergroup}:700",
+        ).strip() != f"{username}:{usergroup}:700",
     )
 
 for key in ssh_keys:
