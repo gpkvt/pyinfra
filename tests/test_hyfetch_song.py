@@ -42,7 +42,7 @@ esac
     )
 
     assert result.returncode == 0
-    assert result.stdout == "Artist — Track\\n"
+    assert result.stdout == "Artist — Track\n"
     assert result.stderr == ""
 
 
@@ -60,7 +60,7 @@ esac
     )
 
     assert result.returncode == 0
-    assert result.stdout == "Zella Day — Hypnotic\\n"
+    assert result.stdout == "Zella Day — Hypnotic\n"
     assert result.stderr == ""
 
 
