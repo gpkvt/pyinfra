@@ -1,5 +1,9 @@
 # Changelog
 
+All notable changes to this project are documented in this file.
+
+This project follows a continuous development model. Changes are tracked using date-based entries until formal releases are introduced.
+
 ## [12.11.2026]
 
 ### Added
@@ -29,7 +33,6 @@
 - Created Dehydrated's configured `conf.d` directory in the Caddy image and fixed the Hetzner hook's handling of textual exit-hook arguments.
 - Fixed Caddy deployment change detection so unchanged renewal, image-build, container-start and health-check operations are skipped.
 
-
 ## [11.11.2026]
 
 ### Added
@@ -39,22 +42,6 @@
 - Added the WG-Easy Docker service with persistent WireGuard configuration under `~/.docker/wg-easy/`, loopback-only administration UI publishing and Caddy reverse proxy integration.
 - Expanded Homepage bookmarks with personal links grouped into Misc, Social, Entertainment and Proton categories, including locally stored service icons.
 - Added local Homepage icon assets and idempotent synchronization to the dashboard's public icon directory.
-
-### Changed
-
-- Updated Homepage's OpenWeatherMap location to Cologne, Germany.
-- Expanded Homepage documentation for service bookmarks, Proton links, widgets, local icon assets and change-triggered container restarts.
-- Documented the WG-Easy v15 deployment, storage and reverse-proxy setup.
-
-All notable changes to this project are documented in this file.
-
-This project follows a continuous development model.
-Changes are tracked as a date timestamp until formal releases are introduced.
-
-## [11.11.2026]
-
-### Added
-
 - Added Homepage widgets for Miniflux, Forgejo and Portainer, with API credentials sourced from encrypted secrets ([#67](https://github.com/gpkvt/pyinfra/pull/67), [#68](https://github.com/gpkvt/pyinfra/pull/68), [#73](https://github.com/gpkvt/pyinfra/pull/73)).
 - Added the OpenWeatherMap widget with configurable API key and location ([#77](https://github.com/gpkvt/pyinfra/pull/77)).
 
@@ -63,12 +50,18 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 - Centralized Docker-to-host UFW rules in the local host configuration ([#75](https://github.com/gpkvt/pyinfra/pull/75)).
 - Updated Homepage Docker networking to support HTTPS access to host-based services ([#74](https://github.com/gpkvt/pyinfra/pull/74)).
 - Changed the Homepage weather location to Cologne, Germany ([#80](https://github.com/gpkvt/pyinfra/pull/80)).
+- Updated Homepage's OpenWeatherMap location to Cologne, Germany.
 
 ### Fixed
 
 - Corrected the Mullvad configuration structure ([#78](https://github.com/gpkvt/pyinfra/pull/78)).
 - Fixed a missing host import in the Homepage task ([#79](https://github.com/gpkvt/pyinfra/pull/79)).
 - Aligned Homepage icon directory and file permissions with the running container, preventing repeated permission changes on subsequent deployments.
+
+### Documentation
+
+- Expanded Homepage documentation for service bookmarks, Proton links, widgets, local icon assets and change-triggered container restarts.
+- Documented the WG-Easy v15 deployment, storage and reverse-proxy setup.
 
 ## [10.11.2026]
 
@@ -101,7 +94,7 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 - Updated the pinned pip dependency from 24.0 to 26.2 ([#16](https://github.com/gpkvt/pyinfra/pull/16)).
 - Improved APT repository handling, including automatic source renewal when repository configuration changes.
 - Improved SSH key handling and generation.
-- Improved documentation for deployment, system configuration, secrets, udev, and USBGuard.
+- Improved documentation for deployment, system configuration, secrets, udev and USBGuard.
 - Consolidated configured APT and Flatpak application installation into batch operations instead of creating one operation per package ([#4](https://github.com/gpkvt/pyinfra/pull/4)).
 
 ### Security
@@ -152,7 +145,7 @@ Changes are tracked as a date timestamp until formal releases are introduced.
 
 ### Fixed
 
-- Pull new docker images before systemd start, to avoid timeouts
+- Pull Docker images before starting systemd services to prevent startup timeouts.
 - Fixed APT repository signing key formats.
 - Fixed missing imports and errors occurring during dry-run execution.
 - Fixed an incorrect applet ID in the COSMIC configuration.
