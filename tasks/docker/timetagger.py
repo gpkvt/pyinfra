@@ -94,7 +94,7 @@ if (
     or ":" not in credentials
     or not credentials.split(":", 1)[0]
     or not credentials.split(":", 1)[1]
-    or any(character in credentials for character in ("\\n", "\\r", "\\x00", '"', "'"))
+    or any(character in credentials for character in ("\n", "\r", "\x00", '"', "'"))
 ):
     raise ValueError(
         "secrets.docker.timetagger.credentials must be a single-line "
