@@ -35,6 +35,9 @@ Notes:
   dynamic secret values.
 
 """
+
+import shlex
+
 from common import command_output, initialize
 from pyinfra import host
 from pyinfra.operations import apt, files, server
