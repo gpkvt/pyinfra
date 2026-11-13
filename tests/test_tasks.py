@@ -951,4 +951,3 @@ def test_cron_task_rejects_invalid_configuration(
 ):
     with pytest.raises(ValueError, match=error):
         pyinfra_task_harness.load("cron.py", config)
-
