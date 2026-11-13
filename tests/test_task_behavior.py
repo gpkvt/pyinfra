@@ -45,7 +45,7 @@ def test_flatpak_command_output_is_parsed_as_application_ids(pyinfra_task_harnes
     module = pyinfra_task_harness.load("flatpak.py")
 
     assert module._command_lines(
-        "app.go2tv.go2tv\\norg.example.Installed\\n"
+        "app.go2tv.go2tv\norg.example.Installed\n"
     ) == ["app.go2tv.go2tv", "org.example.Installed"]
     assert module._command_lines("") == []
     assert module._command_lines(None) == []
@@ -67,9 +67,9 @@ def test_flatpak_install_resolves_ids_from_string_command_output(
         if getattr(fact, "__name__", "") == "Command":
             command = kwargs.get("command", args[0] if args else "")
             if command.startswith("flatpak list --user"):
-                return "org.example.AlreadyInstalled\\n"
+                return "org.example.AlreadyInstalled\n"
             if command.startswith("flatpak remote-ls --user"):
-                return "app.go2tv.go2tv\\norg.example.Available\\n"
+                return "app.go2tv.go2tv\norg.example.Available\n"
         return ""
 
     host.get_fact = get_fact
@@ -270,7 +270,7 @@ def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harnes
     assert observed == [
         "if [ -d /home/tester/.docker/data ]; then "
         "stat -c '%u:%g:%a' -- /home/tester/.docker/data; "
-        "else printf 'missing\\n'; fi"
+        "else printf 'missing\n'; fi"
     ]
 
 
