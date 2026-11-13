@@ -34,6 +34,7 @@ The example file documents the current data shape:
 | `hosts.<hostname>.docker.firefly-iii` | `tasks/docker/firefly-iii.py` | MariaDB credentials, Laravel application key and 32-character cron token. |
 | `hosts.<hostname>.docker.snipe-it` | `tasks/docker/snipe-it.py` | MariaDB credentials and Laravel application key. |
 | `hosts.<hostname>.docker.linkwarden` | `tasks/docker/linkwarden.py` | PostgreSQL password, NextAuth secret and Meilisearch master key. |
+| `hosts.<hostname>.docker.appflowy` | `tasks/docker/appflowy.py` | PostgreSQL password, initial GoTrue administrator password, JWT secret, and MinIO access/secret keys. |
 | `hosts.<hostname>.docker.homepage.environment` | `tasks/docker/homepage.py` | Homepage widget API keys/environment values; encrypted values override host-data defaults. |
 | `hosts.<hostname>.docker.vaultwarden` | `tasks/docker/vaultwarden.py` | Optional Argon2 PHC hash for the Vaultwarden admin token (`admin_token`). |
 | `hosts.<hostname>.ssh` | `tasks/ssh_keys.py` | Default and per-key passphrases. |
