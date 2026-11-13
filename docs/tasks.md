@@ -28,7 +28,7 @@ These task modules are included on every full deployment.
 | `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
 | `tasks/caddy.py` | `docker` and `caddy_config` | Builds and deploys the Docker-based Caddy image with the Sablier plugin and Dehydrated/Hetzner DNS-01 certificate renewal. |
 | `tasks/syncthing.py` | `syncthing` | Installs Syncthing, enables `syncthing@<username>`, and configures its GUI listen address (loopback by default). Device and folder sharing is configured separately in Syncthing. |
-| `tasks/zsh.py` | `zsh` | Installs/configures Zsh and related user configuration. |
+| `tasks/zsh.py` | `zsh` | Installs/configures Zsh, installs `playerctl`, and enables Hyfetch's MPRIS-based now-playing display. |
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
