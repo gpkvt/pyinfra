@@ -281,3 +281,21 @@ def test_ssh_key_generation_detects_incomplete_keypair(pyinfra_task_harness):
         and kwargs.get("name") == "Generate SSH keypair: incomplete"
     )
     assert generate["_if"]() is True
+
+
+def test_system_locale_skips_generation_for_installed_alias(pyinfra_task_harness):
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, **_kwargs: ["C.utf8"]
+        if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"locale": "C.UTF-8"})
+
+    assert not any(
+        namespace == "server" and name == "locale"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+    assert any(
+        namespace == "files" and name == "put"
+        and kwargs.get("name") == "Set system default locale: C.UTF-8"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
