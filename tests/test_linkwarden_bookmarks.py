@@ -717,7 +717,7 @@ def test_synchronize_aggregates_changes_and_normalizes_domain(
     [
         (["Private"], ["Archived", "Reading"]),
         (["Private", "Archived"], ["Reading"]),
-        (["pRiVaTe"], ["Archived", "Reading", "private"]),
+        (["pRiVaTe"], ["Archived", "Reading"]),
         ([], ["Archived", "Private", "Reading", "private"]),
     ],
 )
