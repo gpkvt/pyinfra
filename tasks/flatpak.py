@@ -44,6 +44,22 @@ def _command_lines(output):
     return [str(line).strip() for line in output if str(line).strip()]
 
 
+def _flatpak_ref_ids(output):
+    """Extract IDs from application and runtime refs."""
+    package_ids = []
+    for ref in _command_lines(output):
+        parts = ref.split("/")
+        if len(parts) >= 4 and parts[0] in {"app", "runtime"}:
+            package_ids.append(parts[1])
+        elif len(parts) >= 3:
+            # Installed refs omit the app/runtime kind.
+            package_ids.append(parts[0])
+        else:
+            # Some Flatpak versions/commands return bare application IDs.
+            package_ids.append(ref)
+    return package_ids
+
+
 def select_flatpak_remote(package_id, remote_applications):
     """Prefer Flathub, otherwise require exactly one matching remote."""
     matches = sorted(
@@ -70,21 +86,21 @@ apt.packages(
     packages=["flatpak"],
 )
 
-# Resolve each application to one explicit remote. This prevents Flatpak from
+# Resolve each configured application or runtime to one explicit remote. This prevents Flatpak from
 # prompting when duplicate refs exist and makes Flathub the consistent default.
 if flatpak_packages:
     remotes = host.get_fact(FlatpakRemotes, _sudo=False)
-    installed = set(_command_lines(host.get_fact(
+    installed = set(_flatpak_ref_ids(host.get_fact(
         Command,
-        command="flatpak list --user --app --columns=application",
+        command="flatpak list --user --columns=ref",
         _sudo=False,
     )))
     available_by_remote = {}
     for remote in remotes:
-        available_by_remote[remote] = set(_command_lines(host.get_fact(
+        available_by_remote[remote] = set(_flatpak_ref_ids(host.get_fact(
             Command,
             command=(
-                "flatpak remote-ls --user --app --columns=application "
+                "flatpak remote-ls --user --columns=ref "
                 f"{shlex.quote(remote)}"
             ),
             _sudo=False,
@@ -99,7 +115,7 @@ if flatpak_packages:
 
     for remote, packages in sorted(packages_by_remote.items()):
         flatpak.packages(
-            name=f"Install Flatpak applications from {remote}",
+            name=f"Install Flatpak packages from {remote}",
             packages=packages,
             remote=remote,
             user=True,
