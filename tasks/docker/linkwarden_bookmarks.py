@@ -213,14 +213,17 @@ def download_favicon(
 
 
 def build_bookmark_groups(
-    links, base_url, token, icon_dir, *, download_icons=True, icon_cache=None
+    links, base_url, token, icon_dir, *, blacklist=None, download_icons=True, icon_cache=None
 ):
     """Build deterministic Homepage groups, de-duplicated by URL."""
     grouped = {}
     seen_urls = set()
     icon_cache = icon_cache if icon_cache is not None else {}
+    blacklisted_ids = {str(value) for value in (blacklist or []) if value is not None}
     for link in links:
         if not isinstance(link, dict) or link.get("type") != "url":
+            continue
+        if link.get("id") is not None and str(link["id"]) in blacklisted_ids:
             continue
         url = link.get("url")
         name = (link.get("name") or url or "").strip()
@@ -397,7 +400,9 @@ def update_managed_bookmarks(config_path, groups):
     return False
 
 
-def synchronize(config_path, icon_dir, domain, token, *, services=None, dry_run=False):
+def synchronize(
+    config_path, icon_dir, domain, token, *, services=None, blacklist=None, dry_run=False
+):
     """Synchronize Linkwarden bookmarks and missing Homepage service icons."""
     base_url = domain.strip().rstrip("/")
     if not base_url.startswith(("https://", "http://")):
@@ -405,8 +410,8 @@ def synchronize(config_path, icon_dir, domain, token, *, services=None, dry_run=
     links = fetch_links(base_url, token)
     icon_cache = {}
     groups = build_bookmark_groups(
-        links, base_url, token, icon_dir, download_icons=not dry_run,
-        icon_cache=icon_cache,
+        links, base_url, token, icon_dir, blacklist=blacklist,
+        download_icons=not dry_run, icon_cache=icon_cache,
     )
     if dry_run:
         print(json.dumps(groups, indent=4, ensure_ascii=False))
@@ -500,6 +505,7 @@ def main():
         root / "files" / "homepage" / "icons",
         domain, token,
         services=config.get("docker", {}).get("homepage", {}).get("services", []),
+        blacklist=config.get("docker", {}).get("linkwarden", {}).get("blacklist", []),
         dry_run=args.dry_run,
     )
 

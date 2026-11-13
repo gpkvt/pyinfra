@@ -452,3 +452,41 @@ def test_cleanup_unused_favicons_handles_missing_directory(loaded_module, tmp_pa
     config = tmp_path / "@local.py"
     config.write_text("bookmarks = []\n", encoding="utf-8")
     assert loaded_module.cleanup_unused_favicons(config, tmp_path / "missing") is False
+
+
+def test_bookmark_blacklist_filters_by_linkwarden_id_before_favicon_download(
+    loaded_module, monkeypatch, tmp_path,
+):
+    downloaded = []
+    monkeypatch.setattr(
+        loaded_module, "download_favicon",
+        lambda _base, url, *_args, **_kwargs: downloaded.append(url) or "/icons/example.ico",
+    )
+    links = [
+        {"id": 101, "type": "url", "url": "https://blocked.example", "name": "Blocked",
+         "collection": {"name": "Reading"}},
+        {"id": "202", "type": "url", "url": "https://kept.example", "name": "Kept",
+         "collection": {"name": "Reading"}},
+        {"id": 303, "type": "url", "url": "https://also-blocked.example", "name": "Also blocked",
+         "collection": {"name": "Reading"}},
+    ]
+
+    groups = loaded_module.build_bookmark_groups(
+        links, "https://links.example", "token", tmp_path,
+        blacklist=[101, "303"],
+    )
+
+    assert [next(iter(entry)) for entry in groups[0]["Reading"]] == ["Kept"]
+    assert downloaded == ["https://kept.example"]
+
+
+def test_bookmark_blacklist_defaults_to_empty(loaded_module, monkeypatch, tmp_path):
+    monkeypatch.setattr(loaded_module, "download_favicon", lambda *_args, **_kwargs: None)
+    links = [{
+        "id": 101, "type": "url", "url": "https://example.com", "name": "Example",
+        "collection": {"name": "Reading"},
+    }]
+    groups = loaded_module.build_bookmark_groups(
+        links, "https://links.example", "token", tmp_path,
+    )
+    assert [next(iter(entry)) for entry in groups[0]["Reading"]] == ["Example"]
