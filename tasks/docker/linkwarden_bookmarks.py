@@ -174,6 +174,7 @@ def main():
     )
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
+    sys.path.insert(0, str(root))
     config = runpy.run_path(str(root / "group_data" / "@local.py"))
     decrypted = subprocess.run(
         ["gpg", "--quiet", "--decrypt", str(root / "secrets.json.gpg")],
