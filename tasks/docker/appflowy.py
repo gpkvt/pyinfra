@@ -2,6 +2,10 @@
 
 import builtins
 import re
+from io import StringIO
+from pathlib import Path
+
+from jinja2 import Environment
 
 from pyinfra import host
 from pyinfra.operations import files
@@ -29,11 +33,14 @@ if missing:
 
 # These values are interpolated into PostgreSQL connection URLs and must not
 # require URL encoding. Keep the check narrow and never include secret values.
-for key in ("postgres_password",):
-    if not re.fullmatch(r"[A-Za-z0-9_-]{32,}", appflowy_secrets[key]):
-        raise ValueError(
-            f"secrets.docker.appflowy.{key} must be at least 32 URL-safe characters"
-        )
+if not re.fullmatch(r"[A-Za-z0-9_-]{32,}", appflowy_secrets["postgres_password"]):
+    raise ValueError(
+        "secrets.docker.appflowy.postgres_password must be at least 32 URL-safe characters"
+    )
+if not re.fullmatch(r"[A-Za-z0-9_-]{16,}", appflowy_secrets["admin_password"]):
+    raise ValueError(
+        "secrets.docker.appflowy.admin_password must be at least 16 URL-safe characters"
+    )
 if not re.fullmatch(r"[A-Za-z0-9_-]{32,}", appflowy_secrets["jwt_secret"]):
     raise ValueError(
         "secrets.docker.appflowy.jwt_secret must be at least 32 URL-safe characters"
@@ -72,13 +79,10 @@ ensure_numeric_directory(f"{data_root}/postgres", 999, 999, "700")
 ensure_numeric_directory(f"{data_root}/minio", 1000, 1000, "750")
 ensure_numeric_directory(f"{data_root}/search", 1000, 1000, "750")
 
-env_file = files.template(
-    name="Configure AppFlowy environment",
-    src="templates/docker/appflowy/.env.j2",
-    dest=f"{homedir}/appflowy/.env",
-    user=username,
-    group=usergroup,
-    mode="600",
+# Upload the rendered secret-bearing environment file rather than using
+# files.template: template diffs would expose credentials in pyinfra output.
+env_template = Path("templates/docker/appflowy/.env.j2").read_text(encoding="utf-8")
+env_content = Environment().from_string(env_template).render(
     postgres_password=appflowy_secrets["postgres_password"],
     admin_email=admin_email,
     domain=domain,
@@ -86,6 +90,14 @@ env_file = files.template(
     jwt_secret=appflowy_secrets["jwt_secret"],
     minio_access_key=appflowy_secrets["minio_access_key"],
     minio_secret_key=appflowy_secrets["minio_secret_key"],
+)
+env_file = files.put(
+    name="Configure private AppFlowy environment",
+    src=StringIO(env_content),
+    dest=f"{homedir}/appflowy/.env",
+    user=username,
+    group=usergroup,
+    mode="600",
     _sudo=False,
 )
 
