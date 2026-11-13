@@ -5,7 +5,6 @@ import builtins
 import importlib.util
 import json
 import runpy
-import subprocess
 import sys
 import types
 from pathlib import Path
@@ -107,6 +106,7 @@ def pyinfra_task_harness(monkeypatch):
         "flatpak_packages": [],
         "wireguard_config": {},
     })
+    # pylint: disable=R0914,R0911,R0912,R0915
     def get_fact(fact, *args, **kwargs):
         name = getattr(fact, "__name__", "")
         if name in {"Directory", "File"}:
@@ -173,7 +173,7 @@ def pyinfra_task_harness(monkeypatch):
 
     def operation_decorator(*_args, **_kwargs):
         def decorate(function):
-            def schedule(*args, **kwargs):
+            def schedule(*_args, **kwargs):
                 calls.append(("operation", function.__name__, kwargs))
                 return result
             return schedule
@@ -243,4 +243,3 @@ def pyinfra_task_harness(monkeypatch):
         load=load_task,
         result=result,
     )
-
