@@ -417,7 +417,32 @@ def synchronize(config_path, icon_dir, domain, token, services=None, dry_run=Fal
     )
     bookmarks_changed = update_managed_bookmarks(config_path, groups)
     icons_changed = update_service_icon_references(config_path, service_icons)
-    return bookmarks_changed or icons_changed
+    icons_removed = cleanup_unused_favicons(config_path, icon_dir)
+    return bookmarks_changed or icons_changed or icons_removed
+
+
+
+def cleanup_unused_favicons(config_path, icon_dir):
+    """Remove unreferenced favicons managed by this synchronization script."""
+    if not icon_dir.is_dir():
+        return False
+
+    tree = ast.parse(config_path.read_text(encoding="utf-8"))
+    referenced = {
+        Path(node.value.removeprefix("/icons/")).name
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Constant)
+        and isinstance(node.value, str)
+        and node.value.startswith("/icons/")
+    }
+
+    removed = False
+    for prefix in ("linkwarden-", "homepage-"):
+        for icon in icon_dir.glob(f"{prefix}*"):
+            if icon.is_file() and icon.name not in referenced:
+                icon.unlink()
+                removed = True
+    return removed
 
 
 def resolve_sync_settings(config, secret_data):
