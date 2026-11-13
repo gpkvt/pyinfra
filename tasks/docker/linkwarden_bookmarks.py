@@ -78,15 +78,13 @@ def format_link_listing(links):
     writer.writerow(("ID", "CATEGORY", "TITLE", "URL"))
     for link in links:
         if not isinstance(link, dict):
-            continue
+            raise RuntimeError("Linkwarden returned a malformed link entry")
         link_id = link.get("id")
         if link_id is None:
             raise RuntimeError("Linkwarden returned a link without an ID")
         collection = link.get("collection")
-        category = (
-            collection.get("name", "Unorganized")
-            if isinstance(collection, dict) else "Unorganized"
-        )
+        collection_name = collection.get("name") if isinstance(collection, dict) else None
+        category = str(collection_name or "Unorganized")
         title = link.get("name") or link.get("url") or "(untitled)"
         writer.writerow((link_id, category, title, link.get("url", "")))
     return output.getvalue().rstrip("\n")
