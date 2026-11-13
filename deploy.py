@@ -110,6 +110,7 @@ for feature, task in (
     ("peripherals", "peripherals.py"),
     ("desktop", "desktop.py"),
     ("maintenance", "maintenance.py"),
+    ("limusic", "limusic.py"),
 ):
     if workstation.get(feature, {}).get("enabled", False):
         local.include(f"tasks/workstation/{task}")
