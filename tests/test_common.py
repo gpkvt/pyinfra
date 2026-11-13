@@ -29,11 +29,11 @@ def install_pyinfra_fact_stubs(monkeypatch):
 
 
 
-def test_command_output_text_normalizes_fact_lines_and_empty_values():
+def test_command_output_text_normalizes_fact_lines_and_empty_values(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_command_output")
 
-    assert common.command_output_text(["first", "second"]) == "first\\nsecond"
+    assert common.command_output_text(["first", "second"]) == "first\nsecond"
     assert common.command_output_text(["one"]) == "one"
     assert common.command_output_text([]) == ""
     assert common.command_output_text(None) == ""
