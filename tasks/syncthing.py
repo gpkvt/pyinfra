@@ -14,12 +14,11 @@ managed through Syncthing's GUI or REST/CLI interface.
 import shlex
 
 from pyinfra import host
-from common import command_output
 from pyinfra.operations import apt, server, systemd
 
-if not hasattr(__import__("builtins"), "homedir"):
-    from common import initialize
+from common import command_output, initialize
 
+if not hasattr(__import__("builtins"), "homedir"):
     initialize(host)
 
 syncthing_config = host.data.get("syncthing", {})
