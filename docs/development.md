@@ -91,6 +91,8 @@ Some hooks modify files automatically. Review the resulting diff after running t
 - Prefer `host.data.get("key", default)` for optional configuration.
 - Validate externally supplied values before constructing operations.
 - Use pyinfra facts and conditional operations to avoid unnecessary changes.
+- `host.get_fact(Command, ...)` returns a list of output lines, not a string. Use `common.command_output_text()` before applying string methods or comparing complete command output.
+- Do not branch on an operation's `.changed` state during task preparation. Use `OperationMeta.did_change` callbacks or `any_changed()` in `_if` conditions so dependent operations are evaluated during execution.
 - Make ownership, group and permissions explicit for sensitive files.
 - Avoid overwriting existing private keys or user data unless explicitly intended.
 - Handle service reloads/restarts only when the relevant configuration changes.
