@@ -43,7 +43,15 @@ ci = [("@local", {
     "powerline": False,
     "powerline_fonts": False,
     "ufw": False,
-    "docker": {},
+    # GitHub-hosted Ubuntu runners already provide Docker Engine and Compose.
+    # Reuse the runner installation instead of attempting to install docker-ce.
+    "docker_install": False,
+    "docker": {
+        "ci-smoke": {
+            "image": "alpine:3.21",
+            "app_services": ["smoke"],
+        },
+    },
     "docker_sablier": {"enabled": False},
     "caddy_config": {},
     "apparmor_profiles": {},
