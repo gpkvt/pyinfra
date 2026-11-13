@@ -55,14 +55,18 @@ jobs:
 
           totals = results.get("totals")
           if not isinstance(totals, dict):
-              raise SystemExit("pyinfra results do not contain operation totals")
+              raise SystemExit(
+        "pyinfra results do not contain operation totals"
+    )
 
           changed = totals.get("success")
           errors = totals.get("error")
           failed_hosts = results.get("failed_hosts")
 
           if not isinstance(changed, int) or not isinstance(errors, int):
-              raise SystemExit("pyinfra results contain invalid operation totals")
+              raise SystemExit(
+        "pyinfra results contain invalid operation totals"
+    )
 
           if errors or failed_hosts:
               raise SystemExit(
