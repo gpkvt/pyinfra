@@ -43,17 +43,20 @@ File permissions:
 - Segment and theme files: 0640.
 - Segment and theme directories: 0750.
 
-Plugin management: Commands are executed without sudo: - install_plugins all - update_plugins all
-
-Execution results are checked individually. If a command fails,
-a RuntimeError is raised containing the failed command and its
-combined output.
+Plugin management:
+- Plugin commands run as the configured user without sudo.
+- Both scripts are checked for executability before they are invoked.
+- Plugin installation and updates run only when the package or tmux
+  configuration changes.
+- Plugin commands are scheduled after package installation, not executed
+  during deployment preparation.
 
 Notes:
 
 - Package installation requires sudo.
 - User configuration and resource deployment run without sudo.
 - Plugin installation and updates are executed sequentially.
+- Unchanged deployments do not rerun plugin management.
 - Custom segments and themes are deployed independently of the
   tmux package installation.
 """
