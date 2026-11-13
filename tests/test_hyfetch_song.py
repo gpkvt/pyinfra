@@ -32,15 +32,15 @@ def test_helper_prints_only_the_playing_limusic_track(tmp_path):
         tmp_path,
         """#!/usr/bin/env bash
 case "$*" in
-    -l) printf '%s\\n' 'spotify' 'org.mpris.MediaPlayer2.LiMusic' ;;
-    *status) printf '%s\\n' 'Playing' ;;
-    *metadata*) printf '%s\\n' 'Artist — Track' ;;
+    -l) printf '%s\n' 'spotify' 'org.mpris.MediaPlayer2.LiMusic' ;;
+    *status) printf '%s\n' 'Playing' ;;
+    *metadata*) printf '%s\n' 'Artist — Track' ;;
 esac
 """,
     )
 
     assert result.returncode == 0
-    assert result.stdout == "Artist — Track\\n"
+    assert result.stdout == "Artist — Track\n"
     assert result.stderr == ""
 
 
@@ -49,9 +49,9 @@ def test_helper_is_silent_when_limusic_is_not_playing(tmp_path):
         tmp_path,
         """#!/usr/bin/env bash
 case "$*" in
-    -l) printf '%s\\n' 'org.mpris.MediaPlayer2.LiMusic' ;;
-    *status) printf '%s\\n' 'Paused' ;;
-    *metadata*) printf '%s\\n' 'must not be printed' ;;
+    -l) printf '%s\n' 'org.mpris.MediaPlayer2.LiMusic' ;;
+    *status) printf '%s\n' 'Paused' ;;
+    *metadata*) printf '%s\n' 'must not be printed' ;;
 esac
 """,
     )
