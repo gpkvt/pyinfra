@@ -126,7 +126,7 @@ from io import StringIO
 
 from common import command_output
 from pyinfra import host
-from pyinfra.facts.server import Timezone
+from pyinfra.facts.server import Locales, Timezone
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
 
@@ -200,12 +200,21 @@ if locale:
     # These declarative operations reconcile both locale availability and
     # the system default; no custom LANG fact or Python-side state branch is
     # needed, and files.put skips an unchanged /etc/default/locale.
-    server.locale(
-        name=f"Enable locale: {locale}",
-        locale=locale,
-        present=True,
-        _sudo=True,
-    )
+    # locale -a reports aliases such as C.utf8 for C.UTF-8. Normalize
+    # punctuation/case before asking pyinfra to generate a locale that is
+    # already available (which can also fail on duplicate locale.gen entries).
+    normalized_locale = re.sub(r"[^a-z0-9]", "", locale.lower())
+    installed_locales = host.get_fact(Locales)
+    if not any(
+        re.sub(r"[^a-z0-9]", "", installed.lower()) == normalized_locale
+        for installed in installed_locales
+    ):
+        server.locale(
+            name=f"Enable locale: {locale}",
+            locale=locale,
+            present=True,
+            _sudo=True,
+        )
 
     files.put(
         name=f"Set system default locale: {locale}",
