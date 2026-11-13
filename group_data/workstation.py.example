@@ -34,6 +34,13 @@ workstation = {  # Top-level settings consumed by workstation deployment tasks.
     "maintenance": {  # Workstation maintenance tools and scheduled maintenance.
         "enabled": False,  # Set True only after reviewing what the maintenance task changes.
     },
+    "cosmic": {  # COSMIC desktop preferences; all subfeatures are independently gated.
+        "enabled": False,  # Set True to enable the COSMIC configuration task group.
+        "appearance": {"enabled": False, "mode": "dark"},  # Choose dark or light mode.
+        "panel": {"enabled": False},  # Set position, size and applets when enabling.
+        "dock": {"enabled": False},  # Set position, size and applets when enabling.
+        "workspaces": {"enabled": False},  # Optional raw COSMIC RON workspace configuration.
+    },
     "limusic": {  # Limusic desktop music-player installation and launcher.
         "enabled": False,  # Set True to install Limusic and create its desktop launcher.
         # Installs the latest stable Limusic x86_64 AppImage and launcher.
