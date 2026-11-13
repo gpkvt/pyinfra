@@ -296,3 +296,21 @@ def test_numeric_directory_repairs_missing_or_mismatched_metadata(
     current["metadata"] = "1000:1000:700"
     assert operation["_if"]() is True
     assert "install -d -o 1000 -g 1000 -m 750" in operation["commands"][0]
+
+def test_zsh_task_installs_playerctl_for_hyfetch(pyinfra_task_harness):
+    pyinfra_task_harness.load("zsh.py")
+
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "apt" and name == "packages"
+    )
+    assert install["packages"] == ["playerctl"]
+    assert install["name"] == "Ensure playerctl is installed for Hyfetch music metadata"
+
+    hyfetch = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Configure hyfetch"
+    )
+    assert hyfetch["src"] == "files/hyfetch.conf"
+    assert hyfetch["dest"].endswith("/.config/neowofetch/config.conf")
