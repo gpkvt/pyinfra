@@ -38,7 +38,7 @@ class OperationResult:
     changed = False
 
     def did_change(self):
-        return False
+        return self.changed
 
 
 class HostData(dict):
