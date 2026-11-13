@@ -121,6 +121,8 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
                 return ["v1.3.0"]
             if "remote-list" in command:
                 return []
+            if "ip -j -4 addr show scope global" in command:
+                return ["[]"]
             return []
         if name == "UfwActive":
             return False
