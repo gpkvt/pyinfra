@@ -219,12 +219,14 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
     else:
         data = {}
         if relative_path == "tasks/caddy.py":
+            monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
             data = {
                 "caddy_config": {"ci.invalid": {"respond": "CI"}},
+                "docker": {"ci-smoke": {"app_services": ["smoke"]}},
                 "docker_sablier": {"enabled": False},
             }
         elif relative_path.startswith("tasks/cosmic/"):
-            component = Path(relative_path).stem
+            monkeypatch.delitem(sys.modules, "tasks.cosmic.config", raising=False)
             data = {
                 "cosmic": {
                     "enabled": True,
@@ -254,7 +256,7 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                     "vpn": False,
                     "pass": False,
                     "flatpak": False,
-                    "drive_cli": False,
+                    "drive_cli": True,
                 }
             }
         elif relative_path.startswith("tasks/workstation/"):
