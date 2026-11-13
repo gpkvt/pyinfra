@@ -1077,3 +1077,35 @@ def test_proton_drive_cli_rejects_invalid_version(pyinfra_task_harness):
                 "drive_cli_version": "0.9.0; touch /tmp/pwned",
             },
         })
+
+
+def test_timetagger_requires_credentials_and_passes_compose_escaped_hash(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"docker": {"timetagger": {"credentials": "tester:$2a$08$hash"}}},
+        raising=False,
+    )
+    pyinfra_task_harness.load("docker/timetagger.py", {
+        "docker": {"timetagger": {}},
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+    })
+
+    compose = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("name") == "Configure timetagger"
+    )
+    assert compose["credentials"] == "tester:" + "$" * 2 + "2a" + "$" * 2 + "08" + "$" * 2 + "hash"
+
+
+def test_timetagger_rejects_missing_credentials(pyinfra_task_harness, monkeypatch):
+    monkeypatch.setattr(builtins, "secrets", {}, raising=False)
+    with pytest.raises(ValueError, match="credentials must be a single-line"):
+        pyinfra_task_harness.load("docker/timetagger.py", {
+            "docker": {"timetagger": {}},
+        })
