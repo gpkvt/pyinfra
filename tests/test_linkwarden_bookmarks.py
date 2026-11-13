@@ -298,7 +298,7 @@ def test_update_service_icon_references_is_idempotent_and_adds_missing_icon(
         'docker = {"homepage": {"services": [{"Services": ['
         '{"AppFlowy": {"href": "https://appflowy.example"}}, '
         '{"NocoDB": {"icon": "/icons/missing.png", "href": "https://nocodb.example"}}'
-        ']}]}}\\n',
+        ']}]}}\n',
         encoding="utf-8",
     )
     references = {
