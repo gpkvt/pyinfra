@@ -122,9 +122,9 @@ Notes:
 
 import shlex
 
+from common import command_output, initialize
 from pyinfra import host
 from pyinfra.api import deploy
-from common import command_output
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
 
@@ -155,7 +155,6 @@ def ensure_numeric_directory(path, uid, gid, mode, sudo=True):
 
 
 if not hasattr(__import__('builtins'), 'homedir'):
-    from common import initialize
     initialize(host)
 
 @deploy("Deploy Docker service")
