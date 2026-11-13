@@ -124,28 +124,8 @@ import re
 from io import StringIO
 
 from pyinfra import host
-from pyinfra.api import FactBase
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
-
-# Locale needs a small custom parser; timezone is provided by pyinfra.
-class SystemLocale(FactBase):
-    """
-    Return the current LANG setting from /etc/default/locale.
-    """
-
-    command = "cat /etc/default/locale 2>/dev/null || true"
-
-    def process(self, output):
-        for line in output:
-            match = re.match(
-                r'^\s*LANG\s*=\s*["\']?([^"\']+)["\']?\s*$',
-                line,
-            )
-            if match:
-                return match.group(1)
-
-        return None
 
 # Load configuration
 hostname = host.data.get("hostname")
@@ -205,25 +185,25 @@ if locale:
             f"System locale must use UTF-8 encoding: {locale}"
         )
 
-    current_locale = host.get_fact(SystemLocale)
+    # These declarative operations reconcile both locale availability and
+    # the system default; no custom LANG fact or Python-side state branch is
+    # needed, and files.put skips an unchanged /etc/default/locale.
+    server.locale(
+        name=f"Enable locale: {locale}",
+        locale=locale,
+        present=True,
+        _sudo=True,
+    )
 
-    if current_locale != locale:
-        server.locale(
-            name=f"Enable locale: {locale}",
-            locale=locale,
-            present=True,
-            _sudo=True,
-        )
-
-        files.put(
-            name=f"Set system default locale: {locale}",
-            src=StringIO(f'LANG="{locale}"\n'),
-            dest="/etc/default/locale",
-            user="root",
-            group="root",
-            mode="644",
-            _sudo=True,
-        )
+    files.put(
+        name=f"Set system default locale: {locale}",
+        src=StringIO(f'LANG="{locale}"\n'),
+        dest="/etc/default/locale",
+        user="root",
+        group="root",
+        mode="644",
+        _sudo=True,
+    )
 
 # Configure default CLI editors
 for variable, value in {
