@@ -47,7 +47,13 @@ Run the mocked task regression tests in the synchronized development environment
 uv run pytest tests/ -v
 ```
 
-The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. The GitHub Actions workflow `.github/workflows/pytest.yml` runs this command on pushes and pull requests targeting `main`; it installs pytest but does not install or exercise a real pyinfra deployment.
+The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. The GitHub Actions workflow `.github/workflows/pytest.yml` runs this command on pushes and pull requests targeting `main`.
+
+## Deployment idempotency check
+
+The GitHub Actions workflow `.github/workflows/idempotency.yml` performs two real deployments with pyinfra against the runner's local host (`--limit @local`). It uses the dedicated inventory `.github/ci/inventory.py` and isolated data directory `.github/ci/group_data/`, rather than the production `inventory.py` and personal workstation configuration. The CI inventory explicitly enables tmux so the integration check exercises package installation and plugin-manager execution; unrelated workstation, VPN, Docker and desktop features are disabled. It still executes the normal `deploy.py` entry point and baseline tasks. The first run converges the disposable Ubuntu runner; the second run uses pyinfra's JSON results to verify that no operation changed anything. Any changed operation, failed operation, or missing result data fails the check.
+
+This is an integration check, not a dry run. It installs and configures software on the ephemeral GitHub Actions runner, which is discarded after the job. It does not target the production hosts in `inventory.py`.
 
 ## Configured checks
 
@@ -105,3 +111,6 @@ Some hooks modify files automatically. Review the resulting diff after running t
 - [ ] README and relevant documentation have been updated.
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for repository contribution guidance.
+
+
+The tmux task schedules plugin installation and updates as pyinfra operations after the `tmux-plugin-manager` package operation. It verifies both plugin-manager scripts at execution time and only runs plugin management when the package or tmux configuration changes. This avoids invoking commands during deployment preparation, before queued package installation has executed, and avoids reporting changes on an unchanged second deployment.

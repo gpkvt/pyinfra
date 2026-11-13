@@ -1,0 +1,112 @@
+---
+name: Deployment idempotency
+
+'on':
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  idempotency:
+    name: Check deployment idempotency
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install deployment dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Run deployment for the first time
+        run: |
+          pyinfra .github/ci/inventory.py deploy.py \
+            --group-data .github/ci/group_data \
+            --limit @local --json --yes \
+            > first-run.json
+
+      - name: Run deployment again and check for changes
+        run: |
+          pyinfra .github/ci/inventory.py deploy.py \
+            --group-data .github/ci/group_data \
+            --limit @local --json --yes \
+            > second-run.json
+
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          raw_output = Path("second-run.json").read_text()
+          decoder = json.JSONDecoder()
+          json_start = raw_output.find("{")
+
+          if json_start < 0:
+              raise SystemExit(
+                  "pyinfra did not emit a JSON result object; "
+                  f"stdout begins with {raw_output[:200]!r}"
+              )
+
+          try:
+              payload, json_end = decoder.raw_decode(raw_output, json_start)
+          except json.JSONDecodeError as error:
+              raise SystemExit(
+                  "Could not parse pyinfra JSON results; "
+                  f"stdout begins with {raw_output[:200]!r}"
+              ) from error
+
+          if raw_output[json_start + json_end:].strip():
+              raise SystemExit(
+                  "Unexpected trailing output after pyinfra JSON results: "
+                  f"{raw_output[json_start + json_end:][:200]!r}"
+              )
+
+          results = payload.get("results")
+          if not isinstance(results, dict):
+              raise SystemExit("pyinfra did not return deployment results")
+
+          totals = results.get("totals")
+          if not isinstance(totals, dict):
+              raise SystemExit(
+                  "pyinfra results do not contain operation totals"
+              )
+
+          changed = totals.get("success")
+          errors = totals.get("error")
+          failed_hosts = results.get("failed_hosts")
+
+          if not isinstance(changed, int) or not isinstance(errors, int):
+              raise SystemExit(
+                  "pyinfra results contain invalid operation totals"
+              )
+
+          if errors or failed_hosts:
+              raise SystemExit(
+                  "Second deployment failed: "
+                  + str(errors)
+                  + " failed operation(s); failed hosts: "
+                  + str(failed_hosts)
+              )
+
+          if changed:
+              raise SystemExit(
+                  "Deployment is not idempotent: second run changed "
+                  + str(changed)
+                  + " operation(s)."
+              )
+
+          print("Deployment is idempotent: second run made no changes.")
+          PY
