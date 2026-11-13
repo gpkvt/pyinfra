@@ -40,7 +40,7 @@ workstation = {  # Top-level settings consumed by workstation deployment tasks.
         "window_management": {
             "enabled": False,
             # Optional: autotile, autotile_behavior, focus_follows_cursor,
-            # cursor_follows_focus, edge_snap_threshold and active_hint.
+            # cursor_follows_focus and edge_snap_threshold.
         },
         "input": {
             "enabled": False,
