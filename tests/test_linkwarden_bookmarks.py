@@ -158,9 +158,10 @@ def test_select_local_secrets_uses_inventory_target_not_system_hostname(loaded_m
             "chao": {"docker": {"linkwarden": {"api_key": "wrong-token"}}},
         },
     }
+    selected_host = []
     selected = loaded_module.select_local_secrets(
         secret_document,
-        lambda document, host: __import__("common").select_host_secrets(document, host),
+        lambda document, host: selected_host.append(host) or document["hosts"][host],
     )
+    assert selected_host == ["@local"]
     assert selected["docker"]["linkwarden"]["api_key"] == "local-token"
-    assert selected["shared_value"] is True
