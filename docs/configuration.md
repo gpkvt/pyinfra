@@ -131,7 +131,7 @@ The VPN task currently checks globally scoped IPv4 addresses only. It starts/ena
 ## Packages and repositories
 
 - `apt_packages`: list of Debian package names installed by `tasks/apt.py`.
-- `apt_sources`: mapping of repository identifiers to signing-key and APT source definitions. The task downloads keys and creates `.list` source files.
+- `apt_sources`: mapping of repository identifiers to signing-key and APT source definitions. The task uses `apt.key` to install/dearmor signing keys and creates `.list` source files. Keyring paths must end in `.gpg` and must match each repository's `signed-by` option.
 - `flatpak_packages`: list of Flatpak application IDs. `tasks/flatpak.py` is included only when the Flatpak executable is detected.
 
 Example:
