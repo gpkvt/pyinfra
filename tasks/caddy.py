@@ -8,7 +8,7 @@ from copy import deepcopy
 
 from pyinfra import host
 from pyinfra.api import deploy
-from pyinfra.facts.server import Command
+from common import command_output
 from pyinfra.operations import files, server
 
 from tasks.homepage_config import homepage_api_exclusions
@@ -138,8 +138,8 @@ def configure_caddy():  # pylint: disable=R0914
     username = host.data.get("username", "root")
     usergroup = host.data.get("usergroup", "root")
     homedir = host.data.get("homedir", f"/home/{username}")
-    uid = host.get_fact(Command, f"id -u {shlex.quote(username)}").strip()
-    gid = host.get_fact(Command, f"id -g {shlex.quote(usergroup)}").strip()
+    uid = command_output(host, f"id -u {shlex.quote(username)}").strip()
+    gid = command_output(host, f"id -g {shlex.quote(usergroup)}").strip()
 
     root = f"{homedir}/.docker/caddy"
     build_dir = f"{root}/build"
