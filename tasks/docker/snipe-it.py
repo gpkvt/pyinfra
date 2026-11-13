@@ -33,6 +33,7 @@ deploy_docker_service(
     service="snipe-it",
     description="Snipe-IT Asset Management",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["db","app"],
     username=username,
     usergroup=usergroup,
     image=snipe.get("image", "snipe/snipe-it:latest"),
