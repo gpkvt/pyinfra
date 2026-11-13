@@ -140,7 +140,10 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `tmux` | `tasks/tmux.py` | Truthy enablement value. |
 | `powerline` | `tasks/powerline.py` | Truthy enablement value. |
 | `powerline_fonts` | `tasks/fonts.py` | Boolean-like flag for optional patched fonts. |
-| `workstation.cosmic` | `tasks/workstation/cosmic/deploy.py` | COSMIC desktop settings, enabled only through the workstation role. |
+| `workstation.cosmic` | `tasks/workstation/cosmic/deploy.py` | COSMIC desktop settings, enabled only through the workstation role. Display/output settings are deliberately excluded. |
+| `workstation.cosmic.window_management` | `tasks/workstation/cosmic/window_management.py` | Optional `autotile`, `autotile_behavior` (`PerWorkspace` or `Global`), `focus_follows_cursor`, `cursor_follows_focus`, `edge_snap_threshold` and `active_hint` values. |
+| `workstation.cosmic.input` | `tasks/workstation/cosmic/input.py` | Optional raw COSMIC RON strings for `default` (mouse) and `touchpad`; hardware-specific settings must be supplied explicitly. |
+| `workstation.cosmic.shortcuts` | `tasks/workstation/cosmic/shortcuts.py` | Optional raw RON map for `com.system76.CosmicSettings.Shortcuts/v1/custom`. |
 | `vscodium` | `tasks/vscodium.py` | Extension configuration dictionary. |
 | `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
