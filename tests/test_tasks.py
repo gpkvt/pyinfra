@@ -7,14 +7,12 @@ important behavior without contacting or modifying a real machine.
 """
 
 import builtins
-import importlib.util
 import json
 import os
 import runpy
 import subprocess
 import sys
 import types
-from pathlib import Path
 
 import pytest
 
