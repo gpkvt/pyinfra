@@ -354,6 +354,7 @@ def test_powerline_fonts_extracts_on_first_deployment(pyinfra_task_harness):
 
     assert extract["_if"]() is True
     assert copy_fonts["_if"]() is True
+    assert "cp -f" in copy_fonts["commands"][0]
     assert cache["_if"]() is True
 
 
