@@ -570,10 +570,8 @@ def test_proton_drive_cli_skips_when_requested_version_is_installed(pyinfra_task
 def test_docker_power_restore_uses_file_fact(pyinfra_task_harness):
     """The battery-saver marker is checked with pyinfra's File fact."""
     pyinfra_task_harness.host.get_fact = lambda fact, *args, **kwargs: (
-        True
-        if getattr(fact, "__name__", "") == "File"
+        getattr(fact, "__name__", "") == "File"
         and kwargs.get("path") == "/var/lib/docker-power-manager/running-containers"
-        else False
     )
     pyinfra_task_harness.load("docker_power.py", {
         "docker_sablier": {"enabled": True},
