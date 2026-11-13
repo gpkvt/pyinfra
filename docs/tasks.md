@@ -33,7 +33,7 @@ These task modules are included on every full deployment.
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
-| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured container services. |
+| `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured container services, including AppFlowy. |
 | `tasks/docker_power.py` | `docker` | Deploys the Docker battery monitor and its systemd unit; disables it and restores previously stopped containers when Sablier is enabled. |
 | `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Deploys Sablier as a Docker container using the Docker provider and enables on-demand startup through Compose labels. It is mutually exclusive with the Docker battery monitor. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
@@ -114,8 +114,11 @@ Persistent service data is stored below `~/.docker/`. All listed services use di
 | WG-Easy | `~/.docker/wg-easy/` | UI: `127.0.0.1:51821`; WireGuard: UDP `51820` |
 | Paperless-ngx | `~/.docker/paperless/postgres/`, `data/`, `media/`, `consume/`, `export/` | `127.0.0.1:8022` |
 | Snipe-IT | `~/.docker/snipe-it/database/`, `~/.docker/snipe-it/storage/` | `127.0.0.1:8025` |
+| AppFlowy | `~/.docker/appflowy/postgres/`, `minio/`, `search/` | `127.0.0.1:8026` |
 
 **Service-specific notes**
+
+- **AppFlowy** deploys the current AppFlowy Self-Hosted Commercial Compose stack (Cloud, GoTrue, PostgreSQL/pgvector, Redis, MinIO, AI, Worker, Search, Web, Admin and Nginx). Nginx binds only to `127.0.0.1:8026` and Caddy publishes `appflowy.21x9.org`. PostgreSQL, MinIO and Search data use direct bind mounts under `~/.docker/appflowy/`; no Docker-managed named volumes are used. The task renders a private `~/appflowy/.env` (mode `0600`) from encrypted `secrets.docker.appflowy` values. Set `postgres_password`, `admin_password`, `jwt_secret`, `minio_access_key` and `minio_secret_key`; URL-interpolated secrets must use the documented URL-safe formats. Change the initial administrator password after first login. Redis follows the upstream ephemeral configuration and has no persistent data mount or AOF; pending queue state may not survive Redis replacement. AppFlowy Self-Hosted Commercial is distributed under AppFlowy's commercial self-hosted license; review its terms before deployment. Homepage receives only a normal link, not an API widget or authenticated exporter.
 
 - **Paperless-ngx** runs with PostgreSQL 17, Valkey, Gotenberg and Tika. PostgreSQL data and Paperless data, media, consume and export directories are host bind mounts under `~/.docker/paperless/`; no Docker named volumes are used. The directories are created idempotently with PostgreSQL ownership `70:70` and Paperless ownership controlled by `docker.paperless.uid` / `gid` (defaults to `1000:1000`). Its web interface binds to `127.0.0.1:8022` and the supplied local Caddy configuration publishes `paperless.21x9.org`. Store `postgres_password` (URL-safe) and `secret_key` under `secrets.docker.paperless` in the encrypted secrets file. Generate a strong secret key and do not leave the example placeholders in place.
 

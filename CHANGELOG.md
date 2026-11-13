@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 This project follows a continuous development model. Changes are tracked using date-based entries until formal releases are introduced.
 
+## [13.11.2026]
+
+### Added
+
+- Added the AppFlowy Self-Hosted Commercial Docker Compose deployment with PostgreSQL, MinIO and Search host bind mounts, encrypted credentials, loopback-only Nginx publishing, Caddy/Sablier integration and a basic Homepage link.
+
 ## [12.11.2026]
 
 ### Added

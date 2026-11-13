@@ -20,7 +20,7 @@ The repository is primarily designed around Debian/Ubuntu systems and includes b
 | Base system | APT repositories and packages, hostname, timezone, locale, keyboard, editors, sysctl and udev |
 | Access and security | SSH keys and client configuration, sudoers rules, AppArmor profiles, USBGuard, UFW |
 | Networking | WireGuard configuration and conditional VPN activation based on local-network detection |
-| Services | Docker Compose applications including Homepage, Linkwarden, Paperless-ngx, Firefly III with FinTS import, Snipe-IT and WG-Easy; Caddy and Sablier containers for on-demand startup, with Hetzner DNS-01 certificates managed by Dehydrated; Syncthing file synchronization |
+| Services | Docker Compose applications including AppFlowy, Homepage, Linkwarden, Paperless-ngx, Firefly III with FinTS import, Snipe-IT and WG-Easy; Caddy and Sablier containers for on-demand startup, with Hetzner DNS-01 certificates managed by Dehydrated; Syncthing file synchronization |
 | Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications, optional workstation desktop utilities |
 | Workstation maintenance | Backup tools and Borgmatic config, power management, firmware/microcode tools, storage health utilities, optional printer/scanner support and maintenance tools |
 | User environment | Zsh, tmux, Powerline, Git, Midnight Commander, scripts and dotfiles |
@@ -43,7 +43,7 @@ See [Architecture](docs/architecture.md) for the execution flow and [Configurati
 
 ### Homepage dashboard
 
-The optional Homepage Docker service provides a configurable dashboard for deployed applications, external links and status widgets. Homepage is managed by Sablier for on-demand startup; configured widget API paths bypass Sablier so dashboard widgets can retrieve data without waking their target services. Its configuration is rendered from `docker.homepage` host data, while static icons are maintained in `files/homepage/icons/` and synchronized to `~/.docker/homepage/public/icons/`. The supplied local configuration groups bookmarks into Misc, Social, Entertainment and Proton, and includes service widgets for selected applications plus FRITZ!Box, Miniflux, Forgejo, Portainer, OpenWeatherMap and Glances integrations. API credentials belong in the encrypted secrets file, not tracked host data. See the [Docker task reference](docs/tasks.md#docker-services) for storage, networking, icon synchronization and widget details.
+The optional Homepage Docker service provides a configurable dashboard for deployed applications, external links and status widgets. The AppFlowy integration is a normal link only; it does not poll AppFlowy's authenticated API. Homepage is managed by Sablier for on-demand startup; configured widget API paths bypass Sablier so dashboard widgets can retrieve data without waking their target services. Its configuration is rendered from `docker.homepage` host data, while static icons are maintained in `files/homepage/icons/` and synchronized to `~/.docker/homepage/public/icons/`. The supplied local configuration groups bookmarks into Misc, Social, Entertainment and Proton, and includes service widgets for selected applications plus FRITZ!Box, Miniflux, Forgejo, Portainer, OpenWeatherMap and Glances integrations. API credentials belong in the encrypted secrets file, not tracked host data. See the [Docker task reference](docs/tasks.md#docker-services) for storage, networking, icon synchronization and widget details.
 
 ## Requirements
 

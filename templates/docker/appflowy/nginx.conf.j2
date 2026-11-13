@@ -1,0 +1,364 @@
+# Minimal nginx configuration for AppFlowy-Cloud
+# Self Hosted AppFlowy Cloud user should alter this file to suit their needs,
+# or use the appflowy.site.conf in external_proxy_config/nginx if they are using
+# an external proxy.
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    # docker dns resolver
+    resolver 127.0.0.11 valid=10s;
+    #error_log /var/log/nginx/error.log debug;
+
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+    }
+
+    # Parser-level errors can be logged before a location's access_log rule is
+    # selected, so exclude capability-bearing paths at the access-log boundary too.
+    map $request $appflowy_access_loggable {
+        default 1;
+        ~*^[^[:space:]]+[[:space:]]+(?:https?://[^/[:space:]]+)?/api/workspace/public-form/ 0;
+        ~*^[^[:space:]]+[[:space:]]+(?:https?://[^/[:space:]]+)?/form/ 0;
+        ~*^[^[:space:]]+[[:space:]]+(?:https?://[^/[:space:]]+)?/minio-api/ 0;
+    }
+
+    # Empty keys exempt ordinary attachments from the Form object limits.
+    # The plaintext guard evaluates this normalized, cacheable map before the
+    # MinIO location rewrites $uri; the limiter then reuses that classification.
+    map $uri $appflowy_form_object {
+        default 0;
+        ~^/minio-api/[^/]+/form-uploads/ 1;
+    }
+
+    # Caddy is the trusted edge proxy and overwrites client-supplied X-Forwarded-For.
+    # Use its client address rather than Nginx's Docker/host-network peer address.
+    map $http_x_forwarded_for $appflowy_client_ip {
+        default $http_x_forwarded_for;
+    }
+
+    map $appflowy_form_object $appflowy_form_object_client {
+        default "";
+        1 $appflowy_client_ip;
+    }
+
+    map "$http_x_forwarded_proto:$appflowy_form_object" $appflowy_insecure_form_object {
+        default 0;
+        "http:1" 1;
+    }
+
+    limit_req_zone $appflowy_client_ip zone=appflowy_public_form_per_ip:10m rate=5r/s;
+    limit_conn_zone $appflowy_client_ip zone=appflowy_public_form_connections_per_ip:1m;
+    limit_req_zone $appflowy_form_object_client zone=appflowy_form_objects_per_ip:10m rate=20r/s;
+    limit_conn_zone $appflowy_form_object_client zone=appflowy_form_object_connections_per_ip:1m;
+
+    server {
+        listen 8080;
+
+        # https://github.com/nginxinc/nginx-prometheus-exporter
+        location = /stub_status {
+            stub_status;
+        }
+    }
+
+
+    server {
+
+        listen 80;
+        access_log /var/log/nginx/access.log combined if=$appflowy_access_loggable;
+        client_max_body_size 10M;
+
+        underscores_in_headers on;
+        set $appflowy_cloud_backend "http://appflowy_cloud:8000";
+        set $gotrue_backend "http://gotrue:9999";
+        set $admin_frontend_backend "http://admin_frontend:3000";
+        set $appflowy_web_backend "http://appflowy_web:80";
+        set $minio_backend "http://minio:9001";
+        set $minio_api_backend "http://minio:9000";
+        # Host name for minio, used internally within docker compose
+        set $minio_internal_host "minio:9000";
+        set $pgadmin_backend "http://pgadmin:80";
+
+        # GoTrue
+        location /gotrue/ {
+            proxy_pass $gotrue_backend;
+
+            rewrite ^/gotrue(/.*)$ $1 break;
+
+            # Allow headers like redirect_to to be handed over to the gotrue
+            # for correct redirecting
+            proxy_set_header Host $http_host;
+            proxy_pass_request_headers on;
+        }
+
+        # WebSocket
+        location /ws {
+            # Existing proxy configuration
+            proxy_pass $appflowy_cloud_backend;
+
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+            proxy_read_timeout 86400s;
+        }
+
+        # Form tokens are bearer credentials. This location bounds anonymous
+        # work before Cloud and keeps token-bearing URIs out of proxy logs.
+        location ^~ /api/workspace/public-form/ {
+            if ($http_x_forwarded_proto != https) {
+                return 403;
+            }
+
+            proxy_pass $appflowy_cloud_backend;
+            access_log off;
+            error_log /dev/null;
+
+            client_max_body_size 256k;
+            client_body_timeout 10s;
+            limit_req zone=appflowy_public_form_per_ip burst=10 nodelay;
+            limit_conn appflowy_public_form_connections_per_ip 10;
+            limit_req_status 429;
+            limit_conn_status 429;
+
+            proxy_connect_timeout 5s;
+            proxy_send_timeout 30s;
+            proxy_read_timeout 40s;
+
+            proxy_set_header X-Request-Id $request_id;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $appflowy_client_ip;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+            proxy_set_header X-Forwarded-Host $host;
+            proxy_set_header Forwarded "";
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+        }
+
+        # Reject mixed-case lookalikes before they can reach generic API/Web logs.
+        location ~* ^/api/workspace/public-form(?:/|$) {
+            access_log off;
+            error_log /dev/null;
+            return 404;
+        }
+
+        location /api {
+            proxy_pass $appflowy_cloud_backend;
+            proxy_set_header X-Request-Id $request_id;
+            proxy_set_header Host $http_host;
+            # Caddy overwrites untrusted client XFF before forwarding this request.
+            # Preserve that client address for AppFlowy's per-client login throttling.
+            proxy_set_header X-Forwarded-For $appflowy_client_ip;
+
+            location ~* ^/api/workspace/([a-zA-Z0-9_-]+)/publish$ {
+                proxy_pass $appflowy_cloud_backend;
+                proxy_request_buffering off;
+                client_max_body_size 256M;
+            }
+
+            # AppFlowy-Cloud
+            location /api/chat {
+                proxy_pass $appflowy_cloud_backend;
+
+                proxy_http_version 1.1;
+                proxy_set_header Connection "";
+                chunked_transfer_encoding on;
+                proxy_buffering off;
+                proxy_cache off;
+
+                proxy_read_timeout 600s;
+                proxy_connect_timeout 600s;
+                proxy_send_timeout 600s;
+            }
+
+            location /api/import {
+                proxy_pass $appflowy_cloud_backend;
+
+                # Set headers
+                proxy_set_header X-Request-Id $request_id;
+                proxy_set_header Host $http_host;
+
+                # Timeouts
+                proxy_read_timeout 600s;
+                proxy_connect_timeout 600s;
+                proxy_send_timeout 600s;
+
+                # Disable buffering for large file uploads
+                proxy_request_buffering off;
+                proxy_buffering off;
+                proxy_cache off;
+                client_max_body_size 2G;
+            }
+        }
+
+        # SCIM 2.0 directory sync (self-hosted). Server-to-server (IdP) traffic,
+        # same upstream as /api. Without this, /scim/v2 falls through to the web
+        # frontend (location /) and the IdP gets a 404, an HTML page, or a 502
+        # instead of SCIM JSON.
+        location /scim {
+            # Never redirect a request carrying a bearer credential: by the time
+            # a redirect is returned, the credential has already crossed plaintext.
+            if ($http_x_forwarded_proto != https) {
+                return 403;
+            }
+
+            # SCIM filters can contain email addresses and external IDs.
+            access_log off;
+            error_log /dev/null;
+            # No trailing slash or rewrite: preserve /scim/v2/* for AppFlowy Cloud.
+            proxy_pass $appflowy_cloud_backend;
+            proxy_set_header X-Forwarded-For $appflowy_client_ip;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        }
+
+        # Minio Web UI
+        # Derive from: https://min.io/docs/minio/linux/integrations/setup-nginx-proxy-with-minio.html
+        # Optional Module, comment this section if you did not deploy minio in docker-compose.yml
+        # This endpoint is meant to be used for the MinIO Web UI, accessible via the admin portal
+        location /minio/ {
+            proxy_pass $minio_backend;
+
+            rewrite ^/minio/(.*) /$1 break;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+            proxy_set_header X-NginX-Proxy true;
+
+            ## This is necessary to pass the correct IP to be hashed
+            real_ip_header X-Real-IP;
+
+            proxy_connect_timeout 300s;
+
+            ## To support websockets in MinIO versions released after January 2023
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            # Some environments may encounter CORS errors (Kubernetes + Nginx Ingress)
+            # Uncomment the following line to set the Origin request to an empty string
+            # proxy_set_header Origin '';
+
+            chunked_transfer_encoding off;
+        }
+
+        # Optional Module, comment this section if you did not deploy minio in docker-compose.yml
+        # This is used for presigned url, which is needs to be exposed to the AppFlowy client application.
+        location ^~ /minio-api/ {
+            # Presigned query strings are temporary object-store credentials.
+            access_log off;
+            error_log /dev/null;
+
+            # SigV4 does not bind the URL scheme. Refuse plaintext Form object
+            # capabilities while preserving legacy HTTP attachment behavior.
+            if ($appflowy_insecure_form_object) {
+                return 403;
+            }
+
+            limit_req zone=appflowy_form_objects_per_ip burst=40 nodelay;
+            limit_conn appflowy_form_object_connections_per_ip 20;
+            limit_req_status 429;
+            limit_conn_status 429;
+
+            proxy_pass $minio_api_backend;
+
+            # Set the host to internal host because the presigned url was signed against the internal host
+            proxy_set_header Host $minio_internal_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $remote_addr;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+            proxy_set_header Forwarded "";
+
+            rewrite ^/minio-api/(.*) /$1 break;
+
+            proxy_connect_timeout 300s;
+            proxy_read_timeout 600s;
+            proxy_send_timeout 600s;
+            proxy_request_buffering off;
+            # Default is HTTP/1, keepalive is only enabled in HTTP/1.1
+            proxy_http_version 1.1;
+            proxy_set_header Connection "";
+            chunked_transfer_encoding off;
+            # The shared route also serves existing attachments without an
+            # edge size ceiling. Form PUTs are signed for at most 5 MiB.
+            client_max_body_size 0;
+        }
+
+        location ~* ^/minio-api(?:/|$) {
+            access_log off;
+            error_log /dev/null;
+            return 404;
+        }
+
+        # PgAdmin
+        # Optional Module, comment this section if you did not deploy pgadmin in docker-compose.yml
+        location /pgadmin/ {
+            set $pgadmin pgadmin;
+            proxy_pass $pgadmin_backend;
+
+            proxy_set_header X-Script-Name /pgadmin;
+            proxy_set_header X-Scheme $http_x_forwarded_proto;
+            proxy_set_header Host $host;
+            proxy_redirect off;
+        }
+
+        # AI
+        location /ai/ {
+            proxy_pass $appflowy_cloud_backend;
+            proxy_set_header X-Request-Id $request_id;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+        }
+
+        # Admin Frontend
+        location /console {
+            proxy_pass $admin_frontend_backend;
+
+            proxy_set_header X-Forwarded-Host $http_host;
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $http_x_forwarded_proto;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Scheme $http_x_forwarded_proto;
+
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_cache_bypass $http_upgrade;
+        }
+
+        # Keep /form/{token} out of both proxy layers' logs. The browser keeps
+        # its route while the Web container receives only the SPA entry point.
+        # /app works with both the static and SSR AppFlowy Web images.
+        location ~* ^/form(?:/|$) {
+            if ($http_x_forwarded_proto != https) {
+                return 403;
+            }
+
+            access_log off;
+            error_log /dev/null;
+            rewrite ^ /app? break;
+            proxy_pass $appflowy_web_backend;
+            proxy_set_header Referer "";
+            proxy_set_header X-Scheme $http_x_forwarded_proto;
+            proxy_set_header Host $host;
+            proxy_hide_header 'Referrer-Policy';
+            add_header 'Referrer-Policy' 'no-referrer' always;
+        }
+
+        # AppFlowy Web
+        location / {
+            proxy_pass $appflowy_web_backend;
+            proxy_set_header X-Scheme $http_x_forwarded_proto;
+            proxy_set_header Host $host;
+        }
+    }
+
+}

@@ -358,7 +358,6 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
         pyinfra_task_harness.load("vpn.py")
 
 
-
 def test_caddyfile_does_not_set_a_global_response_write_timeout():
     """Dynamic Sablier pages do not need the previous global response deadline."""
     template = (ROOT / "templates/Caddyfile.j2").read_text()
@@ -520,7 +519,6 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
     ]
 
 
-
 def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
@@ -675,7 +673,6 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
     assert status_sudo_flags == [False]
 
 
-
 def test_sablier_systemd_preparation_reconciles_existing_containers():
     """Sablier preparation updates labels without starting on-demand services."""
     unit = (ROOT / "templates/docker/systemd.service.j2").read_text()
@@ -717,7 +714,6 @@ def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
     ]
     assert len(directory_calls) == 1
     assert directory_calls[0]["_if"]() is False
-
 
 
 def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_harness):
@@ -790,7 +786,6 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
     assert False in sudo_flags
     assert status_sudo_flags == [False]
-
 
 
 def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_task_harness):
@@ -875,3 +870,101 @@ def test_snipe_it_uses_direct_bind_mounts():
     )
     assert "database_data:" not in compose
     assert "storage_data:" not in compose
+
+
+def test_appflowy_is_dispatched_when_configured(pyinfra_task_harness):
+    """AppFlowy deployment is included only when its Docker service key exists."""
+    pyinfra_task_harness.load("docker_container.py", {
+        "docker": {"appflowy": {}},
+    })
+    assert pyinfra_task_harness.included == ["tasks/docker/appflowy.py"]
+
+
+def test_appflowy_caddy_route_uses_loopback_upstream(pyinfra_task_harness):
+    """Caddy publishes AppFlowy through its configured loopback-only Nginx port."""
+    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
+    config = local_config["caddy_config"]
+    assert config["appflowy.21x9.org:443"]["reverse_proxy"] == "127.0.0.1:8026"
+
+    module = pyinfra_task_harness.load("caddy.py")
+    result = module.build_sablier_caddy_config(
+        config,
+        {"appflowy": local_config["docker"]["appflowy"]},
+        {"enabled": True},
+    )
+    route = result["appflowy.21x9.org:443"]["route"]
+    assert route["sablier http://127.0.0.1:10000"]["group"] == "appflowy"
+    assert route["reverse_proxy"] == "127.0.0.1:8026"
+
+
+def test_appflowy_requires_encrypted_credentials(pyinfra_task_harness):
+    """AppFlowy refuses to deploy with missing required credentials."""
+    with pytest.raises(ValueError, match="Missing required secrets.docker.appflowy"):
+        pyinfra_task_harness.load("docker/appflowy.py")
+
+
+def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
+    """A list of changed assets can restart a Compose service without nested triggers."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
+    })
+    observed = []
+    module.any_changed = lambda *operations: (
+        observed.extend(operations) or (lambda: False)
+    )
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
+        "1000" if command.startswith("id -u")
+        else ("active" if "is-active custom" in command else "")
+    )
+    triggers = [OperationResult(), OperationResult()]
+    module.deploy_docker_service(
+        "custom", "Custom", "/home/tester", restart_if=triggers
+    )
+    reload_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    reload_call["_if"]()
+    assert observed[-2:] == triggers
+
+
+def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
+    pyinfra_task_harness, monkeypatch,
+):
+    """The secret-bearing .env is uploaded without rendering a content diff."""
+    monkeypatch.setattr(builtins, "secrets", {
+        "docker": {
+            "appflowy": {
+                "postgres_password": "a" * 32,
+                "admin_password": "b" * 16,
+                "jwt_secret": "c" * 32,
+                "minio_access_key": "d" * 20,
+                "minio_secret_key": "e" * 32,
+            },
+        },
+    })
+    docker_module = types.ModuleType("tasks.docker")
+    docker_module.deploy_docker_service = lambda **_kwargs: None
+    docker_module.ensure_numeric_directory = lambda *_args, **_kwargs: None
+    monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
+
+    pyinfra_task_harness.load("docker/appflowy.py", {
+        "docker": {"appflowy": {}},
+    })
+
+    env_uploads = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("dest", "").endswith("/appflowy/.env")
+    ]
+    assert len(env_uploads) == 1
+    assert env_uploads[0]["mode"] == "600"
+    assert env_uploads[0]["user"] == "gpkvt"
+    assert "GOTRUE_JWT_SECRET=" in env_uploads[0]["src"].getvalue()
+    assert not any(
+        namespace == "files" and name == "template"
+        and kwargs.get("dest", "").endswith("/appflowy/.env")
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
