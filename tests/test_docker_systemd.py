@@ -210,3 +210,10 @@ def test_docker_compose_and_systemd_use_dot_docker_project_directory(
         / "templates/docker/systemd.service.j2"
     ).read_text(encoding="utf-8")
     assert "WorkingDirectory={{ homedir }}/.docker/{{ service }}" in unit_template
+
+    workflow = (
+        Path(__file__).resolve().parents[1]
+        / ".github/workflows/idempotency.yml"
+    ).read_text(encoding="utf-8")
+    assert "$HOME/.docker/ci-smoke/docker-compose.yml" in workflow
+    assert "$HOME/ci-smoke/docker-compose.yml" not in workflow
