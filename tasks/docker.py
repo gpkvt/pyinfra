@@ -261,6 +261,9 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         if sablier_enabled else "-f docker-compose.yml"
     )
 
+    # Keep Compose lifecycle management behind the user-level systemd unit.
+    # pyinfra's docker.compose operation would bypass this unit/Sablier flow
+    # and is not change-aware for this stateless Compose invocation.
     server.shell(
         name=f"Pull {service} Docker images",
         commands=[f"docker compose -f {compose_path} pull"],
