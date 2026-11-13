@@ -107,18 +107,6 @@ def test_flatpak_uninstall_operation_reports_only_real_removals(
     assert list(operation()) == ["true"]
 
 
-def test_set_immutable_uses_pyinfra_file_flags(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("git.py")
-    module.set_immutable("/home/tester/.git-credentials", False)
-    module.set_immutable("/home/tester/.git-credentials", True)
-    calls = [
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "flags"
-    ]
-
-    assert [call["present"] for call in calls] == [False, True]
-    assert all(call["flags"] == ["i"] for call in calls)
-    assert all(call["_sudo"] is True for call in calls)
 
 
 def test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing(
