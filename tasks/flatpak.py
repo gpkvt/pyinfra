@@ -6,15 +6,26 @@ This module ensures Flatpak is installed, installs configured
 applications and checks for updates.
 """
 
+import shlex
+
 from pyinfra.operations import flatpak, server, apt
 from pyinfra import host, logger
 from pyinfra.api import FactBase, operation
+from pyinfra.facts.server import Command
 
 if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
     initialize(host, check_flatpak=True)
 
 flatpak_packages = host.data.get("flatpak_packages", [])
+
+
+class FlatpakRemotes(FactBase):
+    """Return configured user Flatpak remotes."""
+    command = "flatpak remotes --columns=name"
+
+    def process(self, output):
+        return [line.strip() for line in output if line.strip()]
 
 
 class FlatpakUpdates(FactBase):
@@ -31,19 +42,66 @@ class FlatpakSystemUpdates(FactBase):
         return [line for line in output if line.strip()]
 
 
+def select_flatpak_remote(package_id, remote_applications):
+    """Prefer Flathub, otherwise require exactly one matching remote."""
+    matches = sorted(
+        remote for remote, applications in remote_applications.items()
+        if package_id in applications
+    )
+    if "flathub" in matches:
+        return "flathub"
+    if len(matches) == 1:
+        return matches[0]
+    if not matches:
+        raise ValueError(
+            f"Flatpak application {package_id!r} is unavailable from configured remotes"
+        )
+    raise ValueError(
+        f"Flatpak application {package_id!r} is available from multiple non-Flathub "
+        f"remotes: {', '.join(matches)}"
+    )
+
+
 # Ensure Flatpak is installed.
 apt.packages(
     name="Install flatpak",
     packages=["flatpak"],
 )
 
-# Install all configured Flatpak applications in a single operation.
+# Resolve each application to one explicit remote. This prevents Flatpak from
+# prompting when duplicate refs exist and makes Flathub the consistent default.
 if flatpak_packages:
-    flatpak.packages(
-        name="Install Flatpak applications",
-        packages=flatpak_packages,
+    remotes = host.get_fact(FlatpakRemotes, _sudo=False)
+    installed = set(host.get_fact(
+        Command,
+        command="flatpak list --app --columns=application",
         _sudo=False,
-    )
+    ) or [])
+    available_by_remote = {}
+    for remote in remotes:
+        available_by_remote[remote] = set(host.get_fact(
+            Command,
+            command=(
+                "flatpak remote-ls --app --columns=application "
+                f"{shlex.quote(remote)}"
+            ),
+            _sudo=False,
+        ) or [])
+
+    packages_by_remote = {}
+    for package in dict.fromkeys(flatpak_packages):
+        if package in installed:
+            continue
+        remote = select_flatpak_remote(package, available_by_remote)
+        packages_by_remote.setdefault(remote, []).append(package)
+
+    for remote, packages in sorted(packages_by_remote.items()):
+        flatpak.packages(
+            name=f"Install Flatpak applications from {remote}",
+            packages=packages,
+            remote=remote,
+            _sudo=False,
+        )
 
 
 # Update system-wide Flatpak runtimes.
@@ -51,8 +109,8 @@ server.shell(
     name="Update runtimes",
     commands=[
         """
-        flock -n /tmp/flatpak-update.lock \
-            flatpak update --system -y \
+        flock -n /tmp/flatpak-update.lock \\
+            flatpak update --system -y \\
             || echo "Flatpak update already running. Skipping."
         """
     ],
@@ -66,8 +124,8 @@ server.shell(
     name="Update packages",
     commands=[
         """
-        flock -n /tmp/flatpak-update.lock \
-            flatpak update -y \
+        flock -n /tmp/flatpak-update.lock \\
+            flatpak update -y \\
             || echo "Flatpak update already running. Skipping."
         """
     ],

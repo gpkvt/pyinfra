@@ -220,6 +220,9 @@ def test_flatpak_facts_ignore_blank_output_lines(pyinfra_task_harness):
         "app.one", " app.two ",
     ]
     assert module.FlatpakSystemUpdates().process([""]) == []
+    assert module.FlatpakRemotes().process(["flathub", "", "other"]) == [
+        "flathub", "other",
+    ]
 
 
 def test_ufw_fact_parsers_and_rule_matching(pyinfra_task_harness):
@@ -949,3 +952,4 @@ def test_cron_task_rejects_invalid_configuration(
 ):
     with pytest.raises(ValueError, match=error):
         pyinfra_task_harness.load("cron.py", config)
+
