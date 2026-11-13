@@ -8,11 +8,12 @@ import types
 from conftest import Data, load_module
 
 
-def run_deploy(monkeypatch, workstation):
+def run_deploy(monkeypatch, workstation, cron_jobs=None):
     included = []
     data = Data(
         ssh_config=False,
         workstation=workstation,
+        cron_jobs=cron_jobs or [],
     )
     host = types.SimpleNamespace(data=data)
     local = types.SimpleNamespace(include=included.append)
@@ -70,3 +71,20 @@ def test_deploy_keeps_core_tasks_enabled(monkeypatch):
         "tasks/git.py",
     ):
         assert path in included
+
+
+
+def test_deploy_includes_cron_task_only_when_jobs_are_configured(monkeypatch):
+    without_jobs = run_deploy(monkeypatch, {}, cron_jobs=[])
+    assert "tasks/cron.py" not in without_jobs
+
+    with_jobs = run_deploy(
+        monkeypatch,
+        {},
+        cron_jobs=[{
+            "name": "daily",
+            "command": "/usr/local/bin/daily",
+            "special_time": "@daily",
+        }],
+    )
+    assert "tasks/cron.py" in with_jobs
