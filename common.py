@@ -14,6 +14,15 @@ from pyinfra.facts.files import File
 from pyinfra.facts.server import Which
 
 
+def command_output_text(output):
+    """Normalize pyinfra Command fact output (a list of lines) to text."""
+    if output is None:
+        return ""
+    if isinstance(output, str):
+        return output
+    return "\n".join(str(line) for line in output)
+
+
 def merge_secrets(shared, host_secrets):
     """Recursively merge host secrets over shared secrets."""
     result = dict(shared)
