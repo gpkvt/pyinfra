@@ -26,12 +26,12 @@ import pytest
         ),
     ],
 )
-def test_flatpak_ref_ids_normalizes_application_and_runtime_refs(
+def testflatpak_ref_ids_normalizes_application_and_runtime_refs(
     pyinfra_task_harness, refs, expected
 ):
     """Both app and runtime refs resolve to their configured Flatpak IDs."""
     module = pyinfra_task_harness.load("flatpak.py")
-    assert module._flatpak_ref_ids(refs) == expected
+    assert module.flatpak_ref_ids(refs) == expected
 
 
 @pytest.mark.parametrize(
