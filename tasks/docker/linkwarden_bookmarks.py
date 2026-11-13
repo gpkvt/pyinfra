@@ -1,8 +1,8 @@
-"""Synchronize the authenticated Linkwarden account into Homepage bookmarks.
+"""Manually synchronize the authenticated Linkwarden account into Homepage bookmarks.
 
-The task runs on the pyinfra controller before Homepage is rendered. It only
-updates the explicitly managed section in group_data/@local.py and stores
-favicon files in files/homepage/icons/.
+Run this utility explicitly from the repository checkout. It updates only the
+managed section in group_data/@local.py and stores favicons in files/homepage/icons/.
+Changes should be reviewed and committed separately from infrastructure deployment.
 """
 # pylint: disable=R0912,R0914
 import hashlib
@@ -169,18 +169,6 @@ def synchronize(config_path, icon_dir, domain, token, dry_run=False):
     return update_managed_bookmarks(config_path, groups)
 
 
-def synchronize_for_deployment(config_path, icon_dir, domain, token):
-    """Skip optional bookmark synchronization when Linkwarden is unavailable."""
-    try:
-        return synchronize(config_path, icon_dir, domain, token)
-    except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
-        print(
-            f"WARNING: Linkwarden bookmark synchronization skipped: {error}",
-            file=sys.stderr,
-        )
-        return False
-
-
 def main():
     """Run a manual synchronization from the repository checkout."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -215,19 +203,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-else:
-    from pyinfra import host
-    host_docker = host.data.get("docker", {})
-    host_linkwarden = host_docker.get("linkwarden", {})
-    homepage = host_docker.get("homepage", {})
-    homepage_secrets = secrets.get("docker", {}).get("homepage", {})  # pylint: disable=undefined-variable
-    homepage_environment = homepage_secrets.get("environment", {})
-    api_token = homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
-    if host_linkwarden and homepage and api_token:
-        repository_root = Path(__file__).resolve().parents[2]
-        synchronize_for_deployment(
-            repository_root / "group_data" / "@local.py",
-            repository_root / "files" / "homepage" / "icons",
-            host_linkwarden.get("domain", "linkwarden.21x9.org"),
-            api_token,
-        )
+
