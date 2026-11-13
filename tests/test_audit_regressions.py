@@ -123,29 +123,15 @@ def test_timetagger_rejects_missing_credentials(pyinfra_task_harness, monkeypatc
             "docker": {"timetagger": {}},
         })
 
-def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
-    """An already-correct timezone does not schedule a change."""
-    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        "UTC" if fact.__name__ == "Timezone" else None
-    )
+def test_system_timezone_uses_builtin_idempotent_operation(pyinfra_task_harness):
+    """Timezone state is reconciled by pyinfra's built-in operation."""
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
-    assert not any(
-        namespace == "server" and name == "timezone"
-        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    timezone = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "timezone"
     )
-
-
-def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
-    """A mismatched timezone still schedules the required correction."""
-    pyinfra_task_harness.host.get_fact = lambda _fact, **_kwargs: "Europe/Berlin"
-    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
-
-    assert any(
-        namespace == "server" and name == "timezone"
-        and kwargs["timezone"] == "UTC"
-        for namespace, name, kwargs in pyinfra_task_harness.calls
-    )
+    assert timezone["timezone"] == "UTC"
 
 
 def test_powerline_fonts_extract_and_refresh_only_after_archive_changes(
