@@ -47,7 +47,13 @@ Run the mocked task regression tests in the synchronized development environment
 uv run pytest tests/ -v
 ```
 
-The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. The GitHub Actions workflow `.github/workflows/pytest.yml` runs this command on pushes and pull requests targeting `main`; it installs pytest but does not install or exercise a real pyinfra deployment.
+The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. The GitHub Actions workflow `.github/workflows/pytest.yml` runs this command on pushes and pull requests targeting `main`.
+
+## Deployment idempotency check
+
+The GitHub Actions workflow `.github/workflows/idempotency.yml` performs two real deployments with pyinfra against the runner's local host (`--limit @local`). The first run converges the disposable Ubuntu runner; the second run uses pyinfra's JSON results to verify that no operation changed anything. Any changed operation, failed operation, or missing result data fails the check.
+
+This is an integration check, not a dry run. It installs and configures software on the ephemeral GitHub Actions runner, which is discarded after the job. It does not target the production hosts in `inventory.py`.
 
 ## Configured checks
 
