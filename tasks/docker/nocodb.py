@@ -34,6 +34,7 @@ deploy_docker_service(
     service="nocodb",
     description="NocoDB Database Platform",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["nocodb"],
     username=username,
     usergroup=usergroup,
     image=nocodb.get("image", "nocodb/nocodb:latest"),
