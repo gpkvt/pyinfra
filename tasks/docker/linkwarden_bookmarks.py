@@ -5,6 +5,7 @@ managed section in group_data/@local.py and stores favicons in files/homepage/ic
 Changes should be reviewed and committed separately from infrastructure deployment.
 """
 # pylint: disable=R0912,R0914
+import ast
 import hashlib
 import json
 import argparse
@@ -85,15 +86,15 @@ def favicon_extension(content_type):
     return FAVICON_EXTENSIONS.get(media_type)
 
 
-def favicon_filename(url, extension):
+def favicon_filename(url, extension, prefix="linkwarden"):
     """Create a stable, filesystem-safe favicon name with its real extension."""
     digest = hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
     host_name = urllib.parse.urlsplit(url).hostname or "link"
     host_name = re.sub(r"[^a-zA-Z0-9.-]", "-", host_name).lower()
-    return f"linkwarden-{host_name}-{digest}{extension}"
+    return f"{prefix}-{host_name}-{digest}{extension}"
 
 
-def download_favicon(base_url, target_url, token, destination):
+def download_favicon(base_url, target_url, token, destination, prefix="linkwarden"):
     """Download a bounded favicon and write only when its bytes changed."""
     endpoint = f"{base_url}/api/v1/getFavicon?{urllib.parse.urlencode({'url': target_url})}"
     request = urllib.request.Request(
@@ -112,7 +113,7 @@ def download_favicon(base_url, target_url, token, destination):
     except (OSError, urllib.error.URLError, ValueError):
         return None
 
-    destination = destination.with_name(favicon_filename(target_url, extension))
+    destination = destination.with_name(favicon_filename(target_url, extension, prefix))
     destination.parent.mkdir(parents=True, exist_ok=True)
     if not destination.exists() or destination.read_bytes() != content:
         temporary = destination.with_suffix(destination.suffix + ".tmp")
@@ -154,6 +155,125 @@ def build_bookmark_groups(links, base_url, token, icon_dir, download_icons=True)
     ]
 
 
+
+def _service_entries(services):
+    """Yield (service name, mutable configuration) pairs from Homepage groups."""
+    for group in services if isinstance(services, list) else []:
+        if not isinstance(group, dict):
+            continue
+        for entries in group.values():
+            if not isinstance(entries, list):
+                continue
+            for entry in entries:
+                if not isinstance(entry, dict):
+                    continue
+                for name, config in entry.items():
+                    if isinstance(config, dict):
+                        yield name, config
+
+
+def collect_service_favicons(services, base_url, token, icon_dir, download_icons=True):
+    """Download missing Homepage service icons and return their config references."""
+    icon_references = {}
+    for name, service in _service_entries(services):
+        href = service.get("href")
+        current_icon = service.get("icon")
+        if not isinstance(href, str) or not href.startswith(("https://", "http://")):
+            continue
+        if isinstance(current_icon, str) and current_icon.startswith("/icons/"):
+            existing_icon = icon_dir / current_icon.removeprefix("/icons/")
+            if existing_icon.is_file():
+                continue
+        elif current_icon:
+            # Preserve explicit Homepage icon identifiers and external icon URLs.
+            continue
+        if not download_icons:
+            continue
+        filename = icon_dir / favicon_filename(href, ".ico", prefix="homepage")
+        icon = download_favicon(
+            base_url, href, token, filename, prefix="homepage"
+        )
+        if icon:
+            icon_references[name] = icon
+    return icon_references
+
+
+def update_service_icon_references(config_path, icon_references):
+    """Update only Homepage service icon values in the Python inventory source."""
+    if not icon_references:
+        return False
+    source = config_path.read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    docker_node = next(
+        (
+            node.value for node in tree.body
+            if isinstance(node, ast.Assign)
+            and any(isinstance(target, ast.Name) and target.id == "docker"
+                    for target in node.targets)
+            and isinstance(node.value, ast.Dict)
+        ),
+        None,
+    )
+    if docker_node is None:
+        raise RuntimeError("Could not locate docker configuration in inventory")
+
+    def dict_value(node, key):
+        for key_node, value_node in zip(node.keys, node.values):
+            if isinstance(key_node, ast.Constant) and key_node.value == key:
+                return value_node
+        return None
+
+    homepage_node = dict_value(docker_node, "homepage")
+    services_node = dict_value(homepage_node, "services") if isinstance(homepage_node, ast.Dict) else None
+    if not isinstance(services_node, ast.List):
+        raise RuntimeError("Could not locate Homepage services in inventory")
+
+    line_offsets = []
+    offset = 0
+    for line in source.splitlines(keepends=True):
+        line_offsets.append(offset)
+        offset += len(line)
+    edits = []
+    for group in services_node.elts:
+        if not isinstance(group, ast.Dict):
+            continue
+        for entries in group.values:
+            if not isinstance(entries, ast.List):
+                continue
+            for entry in entries.elts:
+                if not isinstance(entry, ast.Dict):
+                    continue
+                for name_node, service_node in zip(entry.keys, entry.values):
+                    if not isinstance(name_node, ast.Constant) or name_node.value not in icon_references:
+                        continue
+                    if not isinstance(service_node, ast.Dict):
+                        continue
+                    icon_node = dict_value(service_node, "icon")
+                    value = repr(icon_references[name_node.value])
+                    if icon_node is not None:
+                        start = line_offsets[icon_node.lineno - 1] + icon_node.col_offset
+                        end = line_offsets[icon_node.end_lineno - 1] + icon_node.end_col_offset
+                        edits.append((start, end, value))
+                    else:
+                        line_start = line_offsets[service_node.lineno - 1]
+                        line = source[line_start:source.find("\n", line_start)]
+                        indent = line[:len(line) - len(line.lstrip())]
+                        insert_at = line_start + service_node.col_offset + 1
+                        addition = f"\n{indent}    \"icon\": {value},"
+                        edits.append((insert_at, insert_at, addition))
+    if len(edits) != len(icon_references):
+        raise RuntimeError(
+            f"Could not update all Homepage service icons ({len(edits)}/{len(icon_references)})"
+        )
+    updated = source
+    for start, end, value in sorted(edits, reverse=True):
+        updated = updated[:start] + value + updated[end:]
+    if updated != source:
+        config_path.write_text(updated, encoding="utf-8")
+        return True
+    return False
+
+
 def update_managed_bookmarks(config_path, groups):
     """Replace only the marked managed section; leave all other source intact."""
     source = config_path.read_text(encoding="utf-8")
@@ -178,8 +298,8 @@ def update_managed_bookmarks(config_path, groups):
     return False
 
 
-def synchronize(config_path, icon_dir, domain, token, dry_run=False):
-    """Fetch a complete account snapshot, then update the managed source."""
+def synchronize(config_path, icon_dir, domain, token, services=None, dry_run=False):
+    """Synchronize Linkwarden bookmarks and missing Homepage service icons."""
     base_url = domain.strip().rstrip("/")
     if not base_url.startswith(("https://", "http://")):
         base_url = "https://" + base_url
@@ -191,7 +311,10 @@ def synchronize(config_path, icon_dir, domain, token, dry_run=False):
         print(json.dumps(groups, indent=4, ensure_ascii=False))
         print(f"Dry run: {sum(len(items) for group in groups for items in group.values())} bookmarks; no files changed.")
         return False
-    return update_managed_bookmarks(config_path, groups)
+    service_icons = collect_service_favicons(services or [], base_url, token, icon_dir)
+    bookmarks_changed = update_managed_bookmarks(config_path, groups)
+    icons_changed = update_service_icon_references(config_path, service_icons)
+    return bookmarks_changed or icons_changed
 
 
 def resolve_sync_settings(config, secret_data):
@@ -248,7 +371,9 @@ def main():
     synchronize(
         root / "group_data" / "@local.py",
         root / "files" / "homepage" / "icons",
-        domain, token, dry_run=args.dry_run,
+        domain, token,
+        services=config.get("docker", {}).get("homepage", {}).get("services", []),
+        dry_run=args.dry_run,
     )
 
 
