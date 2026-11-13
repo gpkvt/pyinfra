@@ -64,10 +64,10 @@ ci = [("@local", {
     "workstation": {
         "backup": {"enabled": False},
         "power": {"enabled": False},
-        "hardware": {"enabled": False},
-        "storage": {"enabled": False},
+        "hardware": {"enabled": True},
+        "storage": {"enabled": True},
         "peripherals": {"enabled": False},
-        "desktop": {"enabled": False},
-        "maintenance": {"enabled": False},
+        "desktop": {"enabled": True},
+        "maintenance": {"enabled": True},
     },
 })]
