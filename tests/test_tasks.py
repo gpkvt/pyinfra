@@ -938,3 +938,31 @@ def test_appflowy_requires_encrypted_credentials(pyinfra_task_harness):
     """AppFlowy refuses to deploy with missing required credentials."""
     with pytest.raises(ValueError, match="Missing required secrets.docker.appflowy"):
         pyinfra_task_harness.load("docker/appflowy.py")
+
+
+
+def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
+    """A list of changed assets can restart a Compose service without nested triggers."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
+    })
+    observed = []
+    module.any_changed = lambda *operations: (
+        observed.extend(operations) or (lambda: False)
+    )
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
+        "1000" if command.startswith("id -u")
+        else ("active" if "is-active custom" in command else "")
+    )
+    triggers = [OperationResult(), OperationResult()]
+    module.deploy_docker_service(
+        "custom", "Custom", "/home/tester", restart_if=triggers
+    )
+    reload_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    reload_call["_if"]()
+    assert observed[-2:] == triggers
