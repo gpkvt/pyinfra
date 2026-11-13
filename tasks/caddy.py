@@ -6,9 +6,9 @@ import re
 import shlex
 from copy import deepcopy
 
+from common import command_output, initialize
 from pyinfra import host
 from pyinfra.api import deploy
-from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
 from tasks.homepage_config import homepage_api_exclusions
@@ -120,7 +120,6 @@ def build_domains_file(certificates):
 
 
 if not hasattr(__import__("builtins"), "homedir"):
-    from common import initialize
     initialize(host)
 
 
@@ -138,8 +137,8 @@ def configure_caddy():  # pylint: disable=R0914
     username = host.data.get("username", "root")
     usergroup = host.data.get("usergroup", "root")
     homedir = host.data.get("homedir", f"/home/{username}")
-    uid = host.get_fact(Command, f"id -u {shlex.quote(username)}").strip()
-    gid = host.get_fact(Command, f"id -g {shlex.quote(usergroup)}").strip()
+    uid = command_output(host, f"id -u {shlex.quote(username)}").strip()
+    gid = command_output(host, f"id -g {shlex.quote(usergroup)}").strip()
 
     root = f"{homedir}/.docker/caddy"
     build_dir = f"{root}/build"
@@ -226,7 +225,7 @@ def configure_caddy():  # pylint: disable=R0914
         dest=f"{homedir}/.config/systemd/user/caddy-renew.timer",
         user=username, group=usergroup, mode="644", _sudo=False,
     )
-    current_uid = (host.get_fact(Command, "id -u", _sudo=False) or "").strip()
+    current_uid = (command_output(host, "id -u", _sudo=False) or "").strip()
     if not uid.isdigit():
         raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
     if current_uid == uid:
@@ -247,8 +246,7 @@ def configure_caddy():  # pylint: disable=R0914
             f"Cannot manage systemd user {username!r} (UID {uid}) "
             f"from unprivileged UID {current_uid}"
         )
-    renewal_timer_status = host.get_fact(
-        Command, f"{systemctl_user} is-active caddy-renew.timer", _sudo=False
+    renewal_timer_status = command_output(host, f"{systemctl_user} is-active caddy-renew.timer", _sudo=False
     ) or ""
     renewal_timer_active = renewal_timer_status.strip() == "active"
     server.shell(
@@ -269,9 +267,7 @@ def configure_caddy():  # pylint: disable=R0914
             dockerfile.did_change() or entrypoint.did_change()
             or hook.did_change() or renew_script.did_change()
         )
-    image_present = host.get_fact(
-        Command,
-        f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
+    image_present = command_output(host, f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
     ).strip() == "present"
     server.shell(
         name="Build Caddy image with Sablier plugin and Dehydrated",
@@ -279,11 +275,9 @@ def configure_caddy():  # pylint: disable=R0914
         _sudo=False, _if=lambda: build_changed() or not image_present,
     )
 
-    container_running = host.get_fact(
-        Command, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
+    container_running = command_output(host, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
     ).strip() == "true"
-    container_healthy = host.get_fact(
-        Command, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
+    container_healthy = command_output(host, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
     ).strip() == "healthy"
     def recreate():
         return (
@@ -317,9 +311,7 @@ def configure_caddy():  # pylint: disable=R0914
     # This survives pyinfra runs, so a skipped/failed reload is retried even
     # when files.template reports no change on the next deployment.
     caddyfile_loaded = (
-        host.get_fact(
-            Command,
-            "docker exec --user "
+        command_output(host, "docker exec --user "
             + f"{uid}:{gid} caddy sh -ec "
             + "'current=$(sha256sum /etc/pyinfra-caddy/Caddyfile | cut -d \" \" -f1); "
             + "previous=$(cat /config/.pyinfra-caddyfile.sha256 2>/dev/null || true); "

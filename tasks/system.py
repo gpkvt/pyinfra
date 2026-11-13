@@ -126,19 +126,7 @@ from io import StringIO
 from pyinfra import host
 from pyinfra.api import FactBase
 from pyinfra.operations import apt, files, server
-
-# Custom fact: retrieve current system locale
-class SystemTimezone(FactBase):
-    """Return the configured system timezone."""
-
-    command = (
-        "timedatectl show --property=Timezone --value 2>/dev/null "
-        "|| cat /etc/timezone 2>/dev/null || true"
-    )
-
-    def process(self, output):
-        return "".join(output).strip() or None
-
+from pyinfra.operations.util import any_changed
 
 class SystemLocale(FactBase):
     """
@@ -195,14 +183,13 @@ if timezone:
     ):
         raise ValueError(f"Invalid timezone: {timezone}")
 
-    current_timezone = host.get_fact(SystemTimezone)
-
-    if current_timezone != timezone:
-        server.timezone(
-            name=f"Set timezone to {timezone}",
-            timezone=timezone,
-            _sudo=True,
-        )
+    # The built-in operation uses pyinfra's server.Timezone fact and only
+    # changes the host when the requested timezone differs.
+    server.timezone(
+        name=f"Set timezone to {timezone}",
+        timezone=timezone,
+        _sudo=True,
+    )
 
 # Configure system locale
 if locale:
@@ -374,7 +361,7 @@ if sysctl:
 
 # Configure udev rules
 udev = host.data.get("udev", {})
-udev_changed = False
+udev_results = []
 
 if udev:
     if not isinstance(udev, dict):
@@ -392,7 +379,7 @@ if udev:
                 f"udev rule content must be a string: {filename}"
             )
 
-        result = files.put(
+        udev_results.append(files.put(
             name=f"Configure udev rules: {filename}",
             src=StringIO(content.rstrip() + "\n"),
             dest=f"/etc/udev/rules.d/{filename}",
@@ -400,16 +387,14 @@ if udev:
             group="root",
             mode="644",
             _sudo=True,
-        )
+        ))
 
-        if result.changed:
-            udev_changed = True
-
-    if udev_changed:
+    if udev_results:
         server.shell(
             name="Reload udev rules",
             commands=["udevadm control --reload-rules"],
             _sudo=True,
+            _if=any_changed(*udev_results),
         )
 
 # Configure USBGuard
@@ -486,9 +471,6 @@ if usbguard:
             _sudo=True,
         )
 
-        # Track configuration changes
-        usbguard_changed = False
-
         # Configure USBGuard daemon
         daemon_config = (
             "RuleFile=/etc/usbguard/rules.conf\n"
@@ -509,10 +491,6 @@ if usbguard:
             _sudo=True,
         )
 
-        if daemon_result.changed:
-            usbguard_changed = True
-
-        # Configure USBGuard rules
         rules_result = files.put(
             name="Configure USBGuard rules",
             src=StringIO("\n".join(rules) + "\n"),
@@ -523,24 +501,26 @@ if usbguard:
             _sudo=True,
         )
 
-        if rules_result.changed:
-            usbguard_changed = True
+        # Operation results are available through callbacks at execution time.
+        # Restart after either managed file changes; otherwise only ensure the
+        # daemon remains enabled and running.
+        def config_changed():
+            return daemon_result.did_change() or rules_result.did_change()
 
-        # Enable and restart USBGuard only when necessary
-        if usbguard_changed:
-            server.shell(
-                name="Enable and restart USBGuard",
-                commands=[
-                    "systemctl enable usbguard",
-                    "systemctl restart usbguard",
-                ],
-                _sudo=True,
-            )
-        else:
-            server.service(
-                name="Ensure USBGuard is enabled and running",
-                service="usbguard",
-                running=True,
-                enabled=True,
-                _sudo=True,
-            )
+        server.shell(
+            name="Enable and restart USBGuard after configuration changes",
+            commands=[
+                "systemctl enable usbguard",
+                "systemctl restart usbguard",
+            ],
+            _sudo=True,
+            _if=config_changed,
+        )
+        server.service(
+            name="Ensure USBGuard is enabled and running",
+            service="usbguard",
+            running=True,
+            enabled=True,
+            _sudo=True,
+            _if=lambda: not config_changed(),
+        )

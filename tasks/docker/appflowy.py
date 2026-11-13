@@ -58,17 +58,13 @@ domain = appflowy.get("domain", "appflowy.21x9.org")
 admin_email = appflowy.get("admin_email", "admin@appflowy.21x9.org")
 
 data_root = f"{homedir}/.docker/appflowy"
-for path in (
-    data_root,
-    f"{homedir}/appflowy",
-):
-    files.directory(
-        name=f"Create AppFlowy directory {path}",
-        path=path,
-        user=username,
-        group=usergroup,
-        mode="750",
-    )
+files.directory(
+    name="Create AppFlowy Docker directory",
+    path=data_root,
+    user=username,
+    group=usergroup,
+    mode="750",
+)
 
 # PostgreSQL's official image runs its entrypoint as root and fixes ownership
 # to its postgres user before starting the database.
@@ -98,10 +94,18 @@ for key, value in env_values.items():
 env_file = files.put(
     name="Configure private AppFlowy environment",
     src=StringIO(env_content),
-    dest=f"{homedir}/appflowy/.env",
+    dest=f"{data_root}/.env",
     user=username,
     group=usergroup,
     mode="600",
+    _sudo=False,
+)
+
+# Remove the former secret file location after deploying the new .docker path.
+files.file(
+    name="Remove legacy AppFlowy environment file",
+    path=f"{homedir}/appflowy/.env",
+    present=False,
     _sudo=False,
 )
 

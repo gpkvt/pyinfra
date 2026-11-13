@@ -28,11 +28,12 @@ Example inventory configuration::
     powerline_fonts = True
 """
 
-from pyinfra.operations import apt, server, files
-from pyinfra.facts.files import Directory
 from pyinfra import host
+from pyinfra.facts.files import Directory
+from pyinfra.operations import apt, files, server
+from pyinfra.operations.util import any_changed
 
-apt.packages(
+font_packages = apt.packages(
     name="Installing font packages",
     packages=[
         "fontconfig",
@@ -125,35 +126,41 @@ if host.data.get("powerline_fonts", False):
     )
 
     # Download Powerline fonts
-    files.download(
+    download = files.download(
         name="Download Powerline fonts",
         src="https://github.com/powerline/fonts/archive/refs/heads/master.zip",
         dest=ARCHIVE,
     )
 
-    if host.get_fact(Directory, EXTRACT_DIR):
-        # Extract archive
-        files.unarchive(
-            name="Extract Powerline fonts",
-            src=ARCHIVE,
-            dest=EXTRACT_DIR,
-            remote_src=True,
-        )
+    # Facts in deploy code are evaluated before earlier operations execute.
+    # Check for extraction at execution time so a fresh deployment does not
+    # skip extraction just because EXTRACT_DIR was absent during preparation.
+    extract = files.unarchive(
+        name="Extract Powerline fonts",
+        src=ARCHIVE,
+        dest=EXTRACT_DIR,
+        remote_src=True,
+        _if=lambda: (
+            download.did_change()
+            or not host.get_fact(Directory, f"{EXTRACT_DIR}/fonts-master")
+        ),
+    )
 
-        # Install all TTF and OTF fonts
-        server.shell(
-            name="Install Powerline fonts",
-            commands=[
-                f'find {EXTRACT_DIR}/fonts-master -type f '
-                r'\( -iname "*.ttf" -o -iname "*.otf" \) '
-                rf'-exec cp -n {{}} {FONT_DIR}/ \;'
-            ],
-        )
+    # Copy only after extraction actually changed the destination.
+    copy_fonts = server.shell(
+        name="Install Powerline fonts",
+        commands=[
+            f'find {EXTRACT_DIR}/fonts-master -type f '
+            r'\( -iname "*.ttf" -o -iname "*.otf" \) '
+            rf'-exec cp -n {{}} {FONT_DIR}/ \;'
+        ],
+        _if=extract.did_change,
+    )
 
-    # Refresh font cache
+    # server.shell is imperative, so avoid reporting a change on every run.
+    # Package installation and newly copied fonts are the only cache triggers.
     server.shell(
         name="Refresh font cache",
-        commands=[
-            f"fc-cache -f {FONT_DIR}"
-        ],
+        commands=[f"fc-cache -f {FONT_DIR}"],
+        _if=any_changed(font_packages, copy_fonts),
     )

@@ -19,23 +19,8 @@ import shlex
 from io import StringIO
 
 from pyinfra import host
-from pyinfra.api import FactBase
-from pyinfra.facts.server import Command
+from pyinfra.facts.files import FileContents
 from pyinfra.operations import files, server
-
-# Custom fact: retrieve current sudoers configuration
-class SudoersFile(FactBase):
-    """
-    Return the contents of the managed sudoers file.
-    """
-
-    command = "cat /etc/sudoers.d/99-local 2>/dev/null || true"
-
-    def process(self, output):
-        if not output:
-            return ""
-
-        return "\n".join(output) + "\n"
 
 # Load configuration
 sudoers_rules = host.data.get("sudoers_rules", [])
@@ -65,10 +50,6 @@ if sudoers_rules:
         group="root",
         mode="755",
         _sudo=True,
-        _if=lambda: host.get_fact(
-            Command,
-            "stat -c '%U:%G:%a' /etc/sudoers.d 2>/dev/null || true",
-        ) != "root:root:755",
     )
 
     # Build sudoers configuration
@@ -79,10 +60,10 @@ if sudoers_rules:
     )
 
     # Retrieve current configuration
-    current_content = host.get_fact(SudoersFile)
+    current_content = host.get_fact(FileContents, path=sudoers_file) or []
 
     # Only validate and install when configuration differs
-    if current_content != content:
+    if current_content != content.splitlines():
 
         # Validate configuration before installation
         validation_command = (

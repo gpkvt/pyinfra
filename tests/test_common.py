@@ -3,6 +3,7 @@
 
 import builtins
 import json
+from importlib.machinery import ModuleSpec
 import subprocess
 import sys
 import types
@@ -14,11 +15,13 @@ from conftest import load_module
 
 def install_pyinfra_fact_stubs(monkeypatch):
     pyinfra = types.ModuleType("pyinfra")
+    pyinfra.__spec__ = ModuleSpec("pyinfra", loader=None, is_package=True)
     facts = types.ModuleType("pyinfra.facts")
     files = types.ModuleType("pyinfra.facts.files")
     server = types.ModuleType("pyinfra.facts.server")
     files.File = type("File", (), {})
     server.Which = type("Which", (), {})
+    server.Command = type("Command", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.facts", facts),
@@ -132,3 +135,25 @@ def test_select_host_secrets_rejects_invalid_sections(monkeypatch):
         common.select_host_secrets({"shared": {}, "hosts": []}, "test-host")
     with pytest.raises(ValueError, match="Invalid secrets for host"):
         common.select_host_secrets({"hosts": {"test-host": []}}, "test-host")
+
+
+def test_command_output_normalizes_raw_fact_lines(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_command_output")
+    command = common.Command
+    host = types.SimpleNamespace(
+        get_fact=lambda fact, value, **_kwargs: [" first ", "second"]
+        if fact is command and value == "example"
+        else [],
+    )
+
+    assert common.command_output(host, "example") == " first \nsecond"
+
+
+def test_command_output_handles_empty_and_string_test_doubles(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_command_output_empty")
+    host = types.SimpleNamespace(get_fact=lambda *_args, **_kwargs: [])
+    assert common.command_output(host, "example") == ""
+    host.get_fact = lambda *_args, **_kwargs: "already normalized"
+    assert common.command_output(host, "example") == "already normalized"

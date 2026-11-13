@@ -14,7 +14,7 @@ Secrets:
         upstream container's /vaultwarden hash command.
 
 Persistent data:
-    Docker-managed named volume stores the Vaultwarden data directory.
+    Host bind mount at ~/.docker/vaultwarden/ stores the Vaultwarden data.
 
 Security:
     Public signups and invitations are disabled by default. The HTTP

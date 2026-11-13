@@ -11,7 +11,15 @@ import json
 import subprocess
 
 from pyinfra.facts.files import File
-from pyinfra.facts.server import Which
+from pyinfra.facts.server import Command, Which
+
+
+def command_output(host, command, **kwargs):
+    """Return a Command fact as normalized text instead of raw output lines."""
+    output = host.get_fact(Command, command, **kwargs) or []
+    if isinstance(output, str):
+        return output
+    return "\n".join(str(line) for line in output)
 
 
 def merge_secrets(shared, host_secrets):

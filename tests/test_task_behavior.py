@@ -1,7 +1,10 @@
 """Direct input/output tests for task helpers and pyinfra operations."""
 # pylint: disable=protected-access
 
+import hashlib
 from types import SimpleNamespace
+
+import pytest
 
 
 def test_upgrade_apt_packages_runs_only_after_an_index_change(
@@ -156,12 +159,6 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
     assert len(commands) == 1
     assert "aa-enforce" in str(commands[0])
     assert "/etc/apparmor.d/example" in str(commands[0])
-
-
-def test_system_timezone_fact_normalizes_output(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("system.py")
-    assert module.SystemTimezone().process([" Europe/Berlin ", "\n"]) == "Europe/Berlin"
-    assert module.SystemTimezone().process(["  ", "\n"]) is None
 
 
 def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
@@ -331,3 +328,356 @@ def test_zsh_task_installs_playerctl_for_hyfetch(pyinfra_task_harness):
     assert helper["src"] == "files/hyfetch-song"
     assert helper["dest"].endswith("/.local/bin/hyfetch-song")
     assert helper["mode"] == "750"
+
+
+def test_powerline_fonts_extracts_on_first_deployment(pyinfra_task_harness):
+    """Extraction and cache refresh are gated by actual operation changes."""
+    result = pyinfra_task_harness.result
+    result.did_change = lambda: True
+
+    pyinfra_task_harness.load("fonts.py", {"powerline_fonts": True})
+
+    extract = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "unarchive"
+    )
+    copy_fonts = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Powerline fonts"
+    )
+    cache = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Refresh font cache"
+    )
+
+    assert extract["_if"]() is True
+    assert copy_fonts["_if"]() is True
+    assert cache["_if"]() is True
+
+
+def test_system_reloads_are_gated_by_operation_callbacks(pyinfra_task_harness):
+    """udev and USBGuard reloads use execution-time change callbacks."""
+    pyinfra_task_harness.load("system.py", {
+        "locale": "",
+        "udev": {"99-test.rules": 'SUBSYSTEM=="usb", MODE="0660"'},
+        "usbguard": {
+            "enabled": True,
+            "rules": ["allow id 1234:5678"],
+        },
+    })
+
+    reload_udev = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload udev rules"
+    )
+    restart_usbguard = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Enable and restart USBGuard after configuration changes"
+    )
+    ensure_usbguard = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "service"
+        and kwargs.get("name") == "Ensure USBGuard is enabled and running"
+    )
+
+    assert callable(reload_udev["_if"])
+    assert callable(restart_usbguard["_if"])
+    assert callable(ensure_usbguard["_if"])
+    assert reload_udev["_if"]() is False
+    assert restart_usbguard["_if"]() is False
+    assert ensure_usbguard["_if"]() is True
+
+    pyinfra_task_harness.result.did_change = lambda: True
+    assert reload_udev["_if"]() is True
+    assert restart_usbguard["_if"]() is True
+    assert ensure_usbguard["_if"]() is False
+
+
+def test_mullvad_extensions_use_declarative_downloads(pyinfra_task_harness):
+    """Existing extension files are reconciled against the configured URL."""
+    pyinfra_task_harness.load("mullvad_extensions.py", {
+        "mullvad_browser_dir": "/opt/mullvad-browser/distribution",
+        "username": "tester",
+        "usergroup": "tester",
+        "mullvad_extensions": {
+            "privacy-addon": {
+                "id": "privacy@example.test",
+                "url": "https://example.test/privacy.xpi",
+            },
+        },
+    })
+
+    download = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "download"
+    )
+    assert download["src"] == "https://example.test/privacy.xpi"
+    assert download["dest"] == (
+        "/opt/mullvad-browser/distribution/extensions/privacy@example.test.xpi"
+    )
+    assert "_if" not in download
+
+
+def test_mullvad_extension_rejects_path_traversal_ids(pyinfra_task_harness):
+    """Extension IDs cannot escape the managed extensions directory."""
+    with pytest.raises(ValueError, match="Invalid Mullvad extension ID"):
+        pyinfra_task_harness.load("mullvad_extensions.py", {
+            "mullvad_browser_dir": "/opt/mullvad-browser/distribution",
+            "mullvad_extensions": {
+                "malicious": {
+                    "id": "../outside",
+                    "url": "https://example.test/extension.xpi",
+                },
+            },
+        })
+
+
+def test_mullvad_extension_skips_download_when_source_marker_matches(
+    pyinfra_task_harness
+):
+    """An existing XPI with its matching URL marker is left untouched."""
+    url = "https://example.test/privacy.xpi"
+    expected_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
+
+    def get_fact(fact, *_args, **_kwargs):
+        if getattr(fact, "__name__", "") == "Command":
+            return [expected_hash]
+        if getattr(fact, "__name__", "") == "File":
+            return True
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("mullvad_extensions.py", {
+        "mullvad_browser_dir": "/opt/mullvad-browser/distribution",
+        "mullvad_extensions": {
+            "privacy-addon": {
+                "id": "privacy@example.test",
+                "url": url,
+            },
+        },
+    })
+
+    assert not any(
+        namespace == "files" and name == "download"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+def test_proton_flatpak_detection_handles_command_fact_lines(pyinfra_task_harness):
+    """Flatpak remotes and installed applications are parsed as output lines."""
+    host = pyinfra_task_harness.host
+
+    def get_fact(fact, *args, **kwargs):
+        command = kwargs.get("command", args[0] if args else "")
+        if getattr(fact, "__name__", "") == "Command":
+            if command.startswith("flatpak remote-list"):
+                return ["flathub"]
+        return []
+
+    host.get_fact = get_fact
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": True,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": True,
+            "drive_cli": False,
+        },
+    })
+
+    remote_add = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Configure Flathub"
+    )
+    assert remote_add["_if"]() is False
+
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "flatpak" and name == "packages"
+    )
+    assert install["packages"] == ["me.proton.Mail"]
+    assert install["remote"] == "flathub"
+    assert install["user"] is True
+
+
+def test_proton_drive_cli_uses_documented_version_key(pyinfra_task_harness):
+    """The configured drive_cli_version is used in the download URL."""
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "1.2.3",
+        },
+    })
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Proton Drive CLI"
+    )
+    assert "https://proton.me/download/drive/cli/1.2.3/linux-x64/proton-drive" in install["commands"][0]
+
+
+def test_proton_drive_cli_rejects_invalid_version(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="Invalid Proton Drive CLI version"):
+        pyinfra_task_harness.load("proton.py", {
+            "proton": {
+                "mail": False,
+                "bridge": False,
+                "vpn": False,
+                "pass": False,
+                "flatpak": False,
+                "drive_cli": True,
+                "drive_cli_version": "../latest",
+            },
+        })
+
+
+def test_proton_drive_cli_skips_when_requested_version_is_installed(pyinfra_task_harness):
+    """An exact version marker prevents unnecessary binary downloads."""
+    pyinfra_task_harness.host.get_fact = lambda fact, *args, **kwargs: (
+        ["1.2.3"]
+        if getattr(fact, "__name__", "") == "Command"
+        and "proton-drive.version" in (kwargs.get("command", args[0] if args else ""))
+        else []
+    )
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "1.2.3",
+        },
+    })
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name", "").startswith("Install Proton Drive CLI")
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_docker_power_restore_uses_file_fact(pyinfra_task_harness):
+    """The battery-saver marker is checked with pyinfra's File fact."""
+    pyinfra_task_harness.host.get_fact = lambda fact, *args, **kwargs: (
+        True
+        if getattr(fact, "__name__", "") == "File"
+        and kwargs.get("path") == "/var/lib/docker-power-manager/running-containers"
+        else False
+    )
+    pyinfra_task_harness.load("docker_power.py", {
+        "docker_sablier": {"enabled": True},
+    })
+    restore = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Restore containers previously stopped by the battery saver"
+    )
+    assert restore["_if"]() is True
+
+def test_sudoers_uses_file_contents_fact_to_skip_unchanged_file(pyinfra_task_harness):
+    """An unchanged sudoers file skips validation and installation."""
+    content = (
+        "# Managed by pyinfra - do not edit manually\n"
+        "%sudo ALL=(ALL:ALL) ALL\n"
+    )
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        content.splitlines()
+        if getattr(fact, "__name__", "") == "FileContents"
+        else False
+    )
+    pyinfra_task_harness.load("sudo.py", {
+        "sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"],
+    })
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Validate custom sudoers configuration"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+    assert not any(
+        namespace == "files" and name == "put"
+        and kwargs.get("name") == "Manage custom sudoers configuration"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_ssh_keypair_incomplete_state_fails_instead_of_creating_empty_key(
+    pyinfra_task_harness
+):
+    """A half-present keypair reaches the explicit validation failure path."""
+    pyinfra_task_harness.host.get_fact = lambda fact, *args, **kwargs: (
+        getattr(fact, "__name__", "") == "File"
+        and kwargs.get("path", "").endswith("/id_ed25519")
+    )
+    pyinfra_task_harness.load("ssh_keys.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "ssh_keys": [{"name": "id_ed25519"}],
+    })
+    generation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Generate SSH keypair: id_ed25519"
+    )
+    assert generation["_if"][0]() is True
+    assert "Incomplete SSH keypair" in generation["commands"][0]
+
+
+def test_apt_sources_use_native_keyring_operation(pyinfra_task_harness):
+    """APT signing keys are managed by pyinfra's apt.key operation."""
+    pyinfra_task_harness.load("apt.py", {
+        "apt_sources": {
+            "example": {
+                "key": {
+                    "url": "https://example.test/archive-key.asc",
+                    "path": "/etc/apt/keyrings/example.gpg",
+                    "keyid": "0123456789ABCDEF",
+                },
+                "repository": {
+                    "url": "https://example.test/apt",
+                    "distribution": "stable",
+                    "components": ["main"],
+                },
+            },
+        },
+    })
+    key = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "apt" and name == "key"
+    )
+    assert key["src"] == "https://example.test/archive-key.asc"
+    assert key["dest"] == "/etc/apt/keyrings/example.gpg"
+    assert key["keyid"] == "0123456789ABCDEF"
+    assert not any(
+        namespace == "files" and name == "download"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_apt_sources_reject_non_gpg_keyring_paths(pyinfra_task_harness):
+    """apt.key destinations must match the enforced .gpg output extension."""
+    with pytest.raises(ValueError, match="must end in .gpg"):
+        pyinfra_task_harness.load("apt.py", {
+            "apt_sources": {
+                "example": {
+                    "key": {
+                        "url": "https://example.test/archive-key.asc",
+                        "path": "/etc/apt/keyrings/example.asc",
+                    },
+                    "repository": {
+                        "url": "https://example.test/apt",
+                        "distribution": "stable",
+                    },
+                },
+            },
+        })

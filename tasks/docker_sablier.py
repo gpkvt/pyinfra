@@ -1,7 +1,7 @@
 """Deploy Sablier as a Docker service using the Docker provider."""
 
+from common import command_output
 from pyinfra import host
-from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
 SABLIER_VERSION = "1.20.0"
@@ -38,8 +38,7 @@ if options.get("enabled", False):
         name="Enable lingering for Docker service user",
         commands=[f"loginctl enable-linger {username}"],
         _sudo=True,
-        _if=lambda: host.get_fact(
-            Command, f"loginctl show-user {username} -p Linger"
+        _if=lambda: command_output(host, f"loginctl show-user {username} -p Linger"
         ).strip() != "Linger=yes",
     )
     server.shell(
@@ -54,9 +53,7 @@ if options.get("enabled", False):
         _if=lambda: (
             compose.did_change()
             or config.did_change()
-            or host.get_fact(
-                Command,
-                "docker inspect -f '{{.State.Running}}' sablier 2>/dev/null || true",
+            or command_output(host, "docker inspect -f '{{.State.Running}}' sablier 2>/dev/null || true",
             ).strip() != "true"
         ),
     )

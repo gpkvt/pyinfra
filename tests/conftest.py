@@ -2,6 +2,7 @@
 """Shared test helpers for pyinfra deployment tests."""
 
 import builtins
+import importlib.machinery
 import importlib.util
 import json
 import runpy
@@ -35,8 +36,6 @@ def load_module(path, name):
 
 class OperationResult:
     """Small stand-in for pyinfra operation results."""
-    changed = False
-
     def did_change(self):
         return False
 
@@ -57,6 +56,9 @@ def task_environment(monkeypatch):
         return record
 
     pyinfra = types.ModuleType("pyinfra")
+    pyinfra.__spec__ = importlib.machinery.ModuleSpec(
+        "pyinfra", loader=None, is_package=True
+    )
     pyinfra.host = types.SimpleNamespace(data=Data())
     operations = types.ModuleType("pyinfra.operations")
     for name in ("apt", "files", "server"):
@@ -161,6 +163,9 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     )
     local = types.SimpleNamespace(include=included.append)
     pyinfra = types.ModuleType("pyinfra")
+    pyinfra.__spec__ = importlib.machinery.ModuleSpec(
+        "pyinfra", loader=None, is_package=True
+    )
     pyinfra.host = host
     pyinfra.local = local
     pyinfra.logger = types.SimpleNamespace(
@@ -194,7 +199,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     for namespace in ("apt", "files", "server", "systemd", "flatpak", "crontab"):
         module = types.ModuleType(f"pyinfra.operations.{namespace}")
         names = {
-            "apt": ("packages", "update", "upgrade"),
+            "apt": ("packages", "update", "upgrade", "key"),
             "files": (
                 "directory", "download", "template", "put", "sync",
                 "line", "file", "link", "unarchive",
@@ -213,14 +218,16 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
         monkeypatch.setitem(sys.modules, f"pyinfra.operations.{namespace}", module)
 
     util = types.ModuleType("pyinfra.operations.util")
-    util.any_changed = lambda *_operations: (lambda: False)
+    util.any_changed = lambda *operations: (lambda: any(operation.did_change() for operation in operations))
     facts = types.ModuleType("pyinfra.facts")
     facts_files = types.ModuleType("pyinfra.facts.files")
     facts_files.Directory = type("Directory", (), {})
     facts_files.File = type("File", (), {})
+    facts_files.FileContents = type("FileContents", (), {})
     pyinfra.facts.files = facts_files
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
+    facts_server.Which = type("Which", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.api", api),

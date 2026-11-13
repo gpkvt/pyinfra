@@ -9,9 +9,12 @@ Installation priority:
 APT repository configuration is managed by tasks/apt.py.
 """
 
+import re
+
+from common import command_output
 from pyinfra import host
-from pyinfra.facts.server import Command
-from pyinfra.operations import apt, server
+
+from pyinfra.operations import apt, flatpak, server
 
 proton = host.data.get("proton", {})
 
@@ -50,9 +53,7 @@ if use_flatpak and flatpak_apps:
     )
 
     # Check configured Flatpak remotes.
-    flathub_remotes = host.get_fact(
-        Command,
-        command="flatpak remote-list --user --columns=name",
+    flathub_remotes = command_output(host, command="flatpak remote-list --user --columns=name",
         _sudo=False
     )
 
@@ -66,36 +67,22 @@ if use_flatpak and flatpak_apps:
         _sudo=False
     )
 
-    # Check installed applications.
-    installed_apps = host.get_fact(
-        Command,
-        command="flatpak list --user --app --columns=application",
-        _sudo=False
+    # Let pyinfra's Flatpak operation compare installed application IDs and
+    # install only the missing user-scoped applications from Flathub.
+    flatpak.packages(
+        name="Install Proton Flatpak applications",
+        packages=flatpak_apps,
+        remote="flathub",
+        user=True,
     )
-
-    missing_apps = [
-        app
-        for app in flatpak_apps
-        if app not in installed_apps.splitlines()
-    ]
-
-    if missing_apps:
-        server.shell(
-            name="Install Proton Flatpak applications",
-            commands=[
-                "flatpak install --user "
-                "--noninteractive --assumeyes "
-                "flathub "
-                + " ".join(missing_apps),
-            ],
-            _sudo=False
-        )
 
 # Proton Drive CLI
 install_drive_cli = proton.get("drive_cli", True)
 
 if install_drive_cli:
-    drive_cli_version = host.data.get("proton", {}).get("drive_cll_version", "0.9.0")
+    drive_cli_version = proton.get("drive_cli_version", "0.9.0")
+    if not isinstance(drive_cli_version, str) or not re.fullmatch(r"[0-9]+(?:\.[0-9]+){1,3}", drive_cli_version):
+        raise ValueError(f"Invalid Proton Drive CLI version: {drive_cli_version!r}")
     drive_cli_platform = "linux-x64"
 
     drive_cli_url = (
@@ -111,17 +98,20 @@ if install_drive_cli:
         ],
     )
 
-    installed_drive_cli = host.get_fact(
-        Command,
-        command="test -x /usr/local/bin/proton-drive && echo installed || true",
-    )
+    # Track the installed release explicitly: checking only for the binary
+    # would prevent a configured version change from ever being applied.
+    installed_drive_cli_version = command_output(
+        host,
+        "cat /usr/local/bin/proton-drive.version 2>/dev/null || true",
+    ).strip()
 
-    if "installed" not in (installed_drive_cli or "").splitlines():
+    if installed_drive_cli_version != drive_cli_version:
         server.shell(
             name="Install Proton Drive CLI",
             commands=[
                 f"curl -fsSL '{drive_cli_url}' -o /tmp/proton-drive",
                 "install -m 0755 /tmp/proton-drive /usr/local/bin/proton-drive",
+                f"printf '%s\\n' '{drive_cli_version}' > /usr/local/bin/proton-drive.version",
                 "rm -f /tmp/proton-drive",
             ],
         )

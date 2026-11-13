@@ -47,7 +47,7 @@ File locations:
         ~/.docker/timetagger/
 
     Docker Compose configuration:
-        ~/timetagger/docker-compose.yml
+        ~/.docker/timetagger/docker-compose.yml
 
     systemd service unit:
         ~/.config/systemd/user/timetagger.service

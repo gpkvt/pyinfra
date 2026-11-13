@@ -46,7 +46,7 @@ File locations:
         ~/.docker/grav/data/
 
     Docker Compose configuration:
-        ~/grav/docker-compose.yml
+        ~/.docker/grav/docker-compose.yml
 
     systemd service unit:
         ~/.config/systemd/user/grav.service

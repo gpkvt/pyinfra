@@ -22,7 +22,6 @@ from tasks.homepage_config import homepage_api_exclusions
 
 class OperationResult:
     """Small stand-in for pyinfra operation results."""
-    changed = False
     def did_change(self):
         return False
 
@@ -91,29 +90,16 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
 
 
 
-def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
-    """An already-correct timezone does not schedule a change."""
-    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        "UTC" if fact.__name__ == "SystemTimezone" else None
-    )
+def test_system_timezone_uses_builtin_declarative_operation(pyinfra_task_harness):
+    """The built-in server.timezone operation owns current-state comparison."""
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
-    assert not any(
-        namespace == "server" and name == "timezone"
-        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    timezone = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "timezone"
     )
-
-
-def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
-    """A mismatched timezone still schedules the required correction."""
-    pyinfra_task_harness.host.get_fact = lambda _fact, **_kwargs: "Europe/Berlin"
-    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
-
-    assert any(
-        namespace == "server" and name == "timezone"
-        and kwargs["timezone"] == "UTC"
-        for namespace, name, kwargs in pyinfra_task_harness.calls
-    )
+    assert timezone["timezone"] == "UTC"
+    assert timezone["_sudo"] is True
 
 
 def test_tmux_plugin_commands_run_after_package_installation(pyinfra_task_harness):
@@ -293,14 +279,6 @@ def test_apparmor_fact_parses_json_profiles(pyinfra_task_harness):
     assert module.AppArmorStatus().process(['{"profiles": {"/usr/bin/foo": "enforce"}}']) == {
         "/usr/bin/foo": "enforce",
     }
-
-
-def test_sudoers_fact_preserves_file_content_with_trailing_newline(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("sudo.py")
-    assert module.SudoersFile().process(["Defaults timestamp_timeout=10"]) == (
-        "Defaults timestamp_timeout=10\n"
-    )
-    assert module.SudoersFile().process([]) == ""
 
 
 def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harness):
@@ -680,41 +658,38 @@ def test_sablier_systemd_preparation_reconciles_existing_containers():
     assert "docker compose {{ compose_files }} create" not in unit
 
 
-def test_sudo_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
-    """An already-correct sudoers directory is not scheduled for reconciliation."""
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
-        "root:root:755" if "stat -c" in command else ""
-    )
-    pyinfra_task_harness.load("sudo.py", {"sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"]})
-    directory_calls = [
+def test_sudo_directory_uses_declarative_permissions(pyinfra_task_harness):
+    """The native directory operation owns metadata comparison."""
+    pyinfra_task_harness.load("sudo.py", {
+        "sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"],
+    })
+    directory = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "directory"
         and kwargs.get("path") == "/etc/sudoers.d"
-    ]
-    assert len(directory_calls) == 1
-    assert directory_calls[0]["_if"]() is False
-
-
-def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
-    """An already-correct SSH directory is not scheduled for reconciliation."""
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
-        "tester:tester:700" if "stat -c" in command else ""
     )
+    assert directory["user"] == "root"
+    assert directory["group"] == "root"
+    assert directory["mode"] == "755"
+    assert "_if" not in directory
+
+
+def test_ssh_directory_uses_declarative_permissions(pyinfra_task_harness):
+    """The native directory operation owns metadata comparison."""
     pyinfra_task_harness.load("ssh_keys.py", {
         "username": "tester",
         "usergroup": "tester",
         "ssh_authorized_keys": {"tester": []},
     })
-    directory_calls = [
+    directory = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "directory"
         and kwargs.get("path") == "/home/tester/.ssh/"
-    ]
-    assert len(directory_calls) == 1
-    assert directory_calls[0]["_if"]() is False
-
-
-
+    )
+    assert directory["user"] == "tester"
+    assert directory["group"] == "tester"
+    assert directory["mode"] == "700"
+    assert "_if" not in directory
 
 def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_task_harness):
     """Homepage widget API prefixes bypass Sablier; other requests remain protected."""
@@ -879,6 +854,7 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
     pyinfra_task_harness.load("docker/appflowy.py", {
         "username": "gpkvt",
+        "homedir": "/home/tester",
         "docker": {"appflowy": {}},
     })
     env_uploads = [
@@ -888,6 +864,13 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     ]
     assert len(env_uploads) == 1
     assert env_uploads[0]["mode"] == "600"
+    assert env_uploads[0]["dest"] == "/home/tester/.docker/appflowy/.env"
+    assert any(
+        namespace == "files" and name == "file"
+        and kwargs.get("path") == "/home/tester/appflowy/.env"
+        and kwargs.get("present") is False
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
     assert env_uploads[0]["user"] == "gpkvt"
     assert "GOTRUE_JWT_SECRET=" in env_uploads[0]["src"].getvalue()
     assert not any(

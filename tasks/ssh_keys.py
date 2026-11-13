@@ -21,13 +21,12 @@ import builtins
 import re
 import shlex
 
+from common import initialize
 from pyinfra import host
 from pyinfra.operations import files, server
 from pyinfra.facts.files import File
-from pyinfra.facts.server import Command
 
 if not hasattr(builtins, "homedir"):
-    from common import initialize
     initialize(host)
 
 homedir: str = getattr(builtins, "homedir")
@@ -55,10 +54,6 @@ if ssh_keys or authorized_keys:
         group=usergroup,
         mode="700",
         _sudo=False,
-        _if=lambda: host.get_fact(
-            Command,
-            f"stat -c '%U:%G:%a' {shlex.quote(ssh_dir)} 2>/dev/null || true",
-        ) != f"{username}:{usergroup}:700",
     )
 
 for key in ssh_keys:
@@ -109,7 +104,7 @@ for key in ssh_keys:
         _if=[
             lambda private_key_exists=private_key_exists,
                    public_key_exists=public_key_exists:
-                not private_key_exists and not public_key_exists
+                not private_key_exists or not public_key_exists
         ],
         _sudo=False,
     )

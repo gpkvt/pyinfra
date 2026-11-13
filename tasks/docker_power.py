@@ -5,7 +5,7 @@ The battery saver and Sablier are mutually exclusive.
 """
 
 from pyinfra import host
-from pyinfra.facts.server import Command
+from pyinfra.facts.files import File
 from pyinfra.operations import files, server, systemd
 
 battery_container = host.data.get("docker_power_save", {})
@@ -64,10 +64,7 @@ if sablier_enabled:
         name="Restore containers previously stopped by the battery saver",
         commands=["/usr/local/sbin/docker-power-manager ac"],
         _sudo=True,
-        _if=lambda: host.get_fact(
-            Command,
-            "test -f /var/lib/docker-power-manager/running-containers && echo present || echo absent",
-        ).strip() == "present",
+        _if=lambda: bool(host.get_fact(File, path="/var/lib/docker-power-manager/running-containers")),
     )
     systemd.service(
         name="Disable Docker battery monitor while Sablier is enabled",

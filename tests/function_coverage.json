@@ -189,14 +189,11 @@
   "tasks/homepage_config.py:homepage_api_exclusions.visit": [
     "test_homepage_api_requests_bypass_sablier_only_on_matching_paths"
   ],
-  "tasks/sudo.py:SudoersFile.process": [
-    "test_sudoers_fact_preserves_file_content_with_trailing_newline"
-  ],
   "tasks/system.py:SystemLocale.process": [
     "test_system_locale_fact_parses_lang_value"
   ],
-  "tasks/system.py:SystemTimezone.process": [
-    "test_system_timezone_fact_normalizes_output"
+  "tasks/system.py:config_changed": [
+    "test_system_reloads_are_gated_by_operation_callbacks"
   ],
   "tasks/ufw.py:UfwActive.process": [
     "test_ufw_fact_parsers_and_rule_matching"

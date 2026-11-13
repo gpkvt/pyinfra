@@ -9,7 +9,7 @@ Configuration:
         host.data.apt_packages. Defaults to an empty list.
 
     apt_sources (dict): Third-party APT repositories to configure,
-        including their signing keys and repository definitions.
+        including their signing keys and repository definitions. Signing key paths must end in `.gpg`.
         Entries with enabled=False are retained as configuration fixtures
         but are not downloaded or added to the system.
 
@@ -67,17 +67,20 @@ for name, repo in apt_sources.items():
 
     key = repo["key"]
     repository = repo["repository"]
+    key_path = key["path"]
+    if not isinstance(key_path, str) or not key_path.endswith(".gpg"):
+        raise ValueError(f"APT keyring path for {name!r} must end in .gpg")
 
-    files.download(
-        name=f"Download {name} GPG key",
+    apt.key(
+        name=f"Install {name} APT signing key",
         src=key["url"],
-        dest=key["path"],
-        mode="0644",
+        dest=key_path,
+        keyid=key.get("keyid"),
     )
 
     architectures = repository.get("architectures", [])
     components = repository.get("components", [])
-    options = [f"signed-by={key['path']}"]
+    options = [f"signed-by={key_path}"]
 
     if architectures:
         options.append(f"arch={','.join(architectures)}")

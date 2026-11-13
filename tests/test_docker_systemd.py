@@ -1,5 +1,7 @@
 """Docker systemd and Sablier reconciliation task tests."""
 
+from pathlib import Path
+
 def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_harness):
     """Root-driven deployments must execute user-systemd commands as the owner."""
     module = pyinfra_task_harness.load("docker.py", {
@@ -167,3 +169,44 @@ def test_docker_service_uses_configured_compose_services_on_first_deployment(
         and kwargs.get("src") == "templates/docker/sablier-override.yml.j2"
     )
     assert override_call["sablier_services"] == ["database", "web", "worker"]
+
+
+def test_docker_compose_and_systemd_use_dot_docker_project_directory(
+    pyinfra_task_harness
+):
+    """Compose files, overrides and the unit working directory share one path."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
+    })
+    module.deploy_docker_service("custom", "Custom", "/home/tester")
+
+    compose = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("name") == "Configure custom"
+    )
+    assert compose["dest"] == (
+        "/home/tester/.docker/custom/docker-compose.yml"
+    )
+
+    legacy_files = {
+        kwargs["path"] for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "file"
+        and kwargs.get("present") is False
+    }
+    assert "/home/tester/custom/docker-compose.yml" in legacy_files
+    assert "/home/tester/custom/docker-compose.sablier.yml" in legacy_files
+
+    pull = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Pull custom Docker images"
+    )
+    assert "/home/tester/.docker/custom/docker-compose.yml" in pull["commands"][0]
+
+    unit_template = (
+        Path(__file__).resolve().parents[1]
+        / "templates/docker/systemd.service.j2"
+    ).read_text(encoding="utf-8")
+    assert "WorkingDirectory={{ homedir }}/.docker/{{ service }}" in unit_template

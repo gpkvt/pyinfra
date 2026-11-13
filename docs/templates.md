@@ -25,7 +25,7 @@ Templates may receive host data, runtime values initialized by `common.py`, and 
 
 ## Docker Compose templates and persistent data
 
-Each service has a Compose template under `templates/docker/<service>/docker-compose.yml.j2`; the shared systemd unit is `templates/docker/systemd.service.j2`. Compose files are deployed to `~/<service>/docker-compose.yml`. Persistent data is stored in host directories under `~/.docker/` and mounted into the containers:
+Each service has a Compose template under `templates/docker/<service>/docker-compose.yml.j2`; the shared systemd unit is `templates/docker/systemd.service.j2`. Compose files are deployed to `~/.docker/<service>/docker-compose.yml`. Persistent data is stored in host directories under `~/.docker/` and mounted into the containers:
 
 | Service | Host path | Container path |
 | --- | --- | --- |
