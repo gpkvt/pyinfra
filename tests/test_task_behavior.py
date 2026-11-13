@@ -107,25 +107,16 @@ def test_flatpak_uninstall_operation_reports_only_real_removals(
     assert list(operation()) == ["true"]
 
 
-def test_set_immutable_uses_requested_chattr_flag(pyinfra_task_harness, capsys):
-    module = pyinfra_task_harness.load("git.py")
-    calls = []
-    pyinfra_task_harness.host.run_shell_command = (
-        lambda command, **kwargs: calls.append((command, kwargs))
-    )
-
-    module.set_immutable("/home/tester/.git-credentials", False)
-    module.set_immutable("/home/tester/.git-credentials", True)
-
-    assert calls == [
-        ("chattr -i /home/tester/.git-credentials",
-         {"print_output": False, "_sudo": True}),
-        ("chattr +i /home/tester/.git-credentials",
-         {"print_output": False, "_sudo": True}),
+def test_set_immutable_uses_pyinfra_file_flags(pyinfra_task_harness):
+    pyinfra_task_harness.load("git.py")
+    calls = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "flags"
     ]
-    output = capsys.readouterr().out
-    assert "Set -i" in output
-    assert "Set +i" in output
+
+    assert [call["present"] for call in calls] == [False, True]
+    assert all(call["flags"] == ["i"] for call in calls)
+    assert all(call["_sudo"] is True for call in calls)
 
 
 def test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing(
