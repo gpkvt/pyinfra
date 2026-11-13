@@ -7,15 +7,18 @@ favicon files in files/homepage/icons/.
 # pylint: disable=R0912,R0914
 import hashlib
 import json
+import argparse
 import os
 import re
+import runpy
+import subprocess
+import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 from pprint import pformat
 
-from pyinfra import host
 
 BEGIN = "# BEGIN LINKWARDEN BOOKMARKS (managed)"
 END = "# END LINKWARDEN BOOKMARKS (managed)"
@@ -93,7 +96,7 @@ def download_favicon(base_url, target_url, token, destination):
     return f"/icons/{destination.name}"
 
 
-def build_bookmark_groups(links, base_url, token, icon_dir):
+def build_bookmark_groups(links, base_url, token, icon_dir, download_icons=True):
     """Build deterministic Homepage groups, de-duplicated by URL."""
     grouped = {}
     seen_urls = set()
@@ -112,7 +115,10 @@ def build_bookmark_groups(links, base_url, token, icon_dir):
             continue
         seen_urls.add(url)
         filename = favicon_filename(url)
-        icon = download_favicon(base_url, url, token, icon_dir / filename)
+        icon = (
+            download_favicon(base_url, url, token, icon_dir / filename)
+            if download_icons else None
+        )
         item = {"href": url}
         if icon:
             item["icon"] = icon
@@ -143,27 +149,68 @@ def update_managed_bookmarks(config_path, groups):
     return False
 
 
-def synchronize(config_path, icon_dir, domain, token):
+def synchronize(config_path, icon_dir, domain, token, dry_run=False):
     """Fetch a complete account snapshot, then update the managed source."""
     base_url = domain.strip().rstrip("/")
     if not base_url.startswith(("https://", "http://")):
         base_url = "https://" + base_url
     links = fetch_links(base_url, token)
-    groups = build_bookmark_groups(links, base_url, token, icon_dir)
+    groups = build_bookmark_groups(
+        links, base_url, token, icon_dir, download_icons=not dry_run
+    )
+    if dry_run:
+        print(json.dumps(groups, indent=4, ensure_ascii=False))
+        print(f"Dry run: {sum(len(items) for group in groups for items in group.values())} bookmarks; no files changed.")
+        return False
     return update_managed_bookmarks(config_path, groups)
 
 
-docker = host.data.get("docker", {})
-linkwarden = docker.get("linkwarden", {})
-homepage = docker.get("homepage", {})
-homepage_secrets = secrets.get("docker", {}).get("homepage", {})  # pylint: disable=undefined-variable
-homepage_environment = homepage_secrets.get("environment", {})
-api_token = homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
-if linkwarden and homepage and api_token:
-    repository_root = Path(__file__).resolve().parents[2]
-    synchronize(
-        repository_root / "group_data" / "@local.py",
-        repository_root / "files" / "homepage" / "icons",
-        linkwarden.get("domain", "linkwarden.21x9.org"),
-        api_token,
+def main():
+    """Run a manual synchronization from the repository checkout."""
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--dry-run", action="store_true",
+        help="fetch and display proposed bookmarks without downloading icons or changing files",
     )
+    args = parser.parse_args()
+    root = Path(__file__).resolve().parents[2]
+    config = runpy.run_path(str(root / "group_data" / "@local.py"))
+    decrypted = subprocess.run(
+        ["gpg", "--quiet", "--decrypt", str(root / "secrets.json.gpg")],
+        check=True, capture_output=True, text=True,
+    )
+    from common import select_host_secrets
+    secret_data = select_host_secrets(json.loads(decrypted.stdout), config["hostname"])
+    token = secret_data.get("docker", {}).get("homepage", {}).get(
+        "environment", {}
+    ).get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
+    docker = config.get("docker", {})
+    linkwarden = docker.get("linkwarden", {})
+    if not linkwarden or not docker.get("homepage") or not token:
+        parser.error("docker.linkwarden, docker.homepage and the Homepage Linkwarden API key are required")
+    synchronize(
+        root / "group_data" / "@local.py",
+        root / "files" / "homepage" / "icons",
+        linkwarden.get("domain", "linkwarden.21x9.org"), token,
+        dry_run=args.dry_run,
+    )
+
+
+if __name__ == "__main__":
+    main()
+else:
+    from pyinfra import host
+    docker = host.data.get("docker", {})
+    linkwarden = docker.get("linkwarden", {})
+    homepage = docker.get("homepage", {})
+    homepage_secrets = secrets.get("docker", {}).get("homepage", {})  # pylint: disable=undefined-variable
+    homepage_environment = homepage_secrets.get("environment", {})
+    api_token = homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
+    if linkwarden and homepage and api_token:
+        repository_root = Path(__file__).resolve().parents[2]
+        synchronize(
+            repository_root / "group_data" / "@local.py",
+            repository_root / "files" / "homepage" / "icons",
+            linkwarden.get("domain", "linkwarden.21x9.org"),
+            api_token,
+        )
