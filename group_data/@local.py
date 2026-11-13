@@ -527,7 +527,7 @@ docker = {
                 "saturate": 50,
                 "brightness": 50,
             },
-                        "layout": [
+                                    "layout": [
                 # First row: application services in three columns.
                 {
                     "Services": {
@@ -548,9 +548,9 @@ docker = {
                         "columns": 2,
                     },
                 },
-                # Bookmark categories are deliberately left out: Homepage
-                # places them after service groups, one column per category.
-            ],,
+                # Homepage places bookmark groups after configured service groups.
+                # Leaving them out keeps each bookmark category in its own column.
+            ],
             # Keep the API key in secrets.json.gpg; Homepage resolves this
             # environment placeholder through its shared provider configuration.
             "providers": {
