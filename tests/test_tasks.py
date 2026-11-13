@@ -939,7 +939,6 @@ def test_docker_service_uses_configured_compose_services_on_first_deployment(
         "docker_sablier": {"enabled": True},
     })
     commands = []
-
     def get_fact(_fact, command="", **_kwargs):
         commands.append(command)
         if command.startswith("id -u"):
@@ -949,7 +948,6 @@ def test_docker_service_uses_configured_compose_services_on_first_deployment(
         if "docker inspect" in command:
             return "match"
         raise AssertionError("Unexpected fact during first deployment: " + command)
-
     pyinfra_task_harness.host.get_fact = get_fact
     module.deploy_docker_service(
         "custom",
@@ -957,7 +955,6 @@ def test_docker_service_uses_configured_compose_services_on_first_deployment(
         "/home/tester",
         compose_services=["worker", "web", "database"],
     )
-
     assert not any("config --services" in command for command in commands)
     override_call = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
