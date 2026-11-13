@@ -111,8 +111,8 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
 
 def test_system_timezone_fact_normalizes_output(pyinfra_task_harness):
     module = pyinfra_task_harness.load("system.py")
-    assert module.SystemTimezone().process([" Europe/Berlin ", "\\n"]) == "Europe/Berlin"
-    assert module.SystemTimezone().process(["  ", "\\n"]) is None
+    assert module.SystemTimezone().process([" Europe/Berlin ", "\n"]) == "Europe/Berlin"
+    assert module.SystemTimezone().process(["  ", "\n"]) is None
 
 
 def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
@@ -195,5 +195,5 @@ def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
     assert uploads[-1]["dest"] == (
         "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1/plugins.ron"
     )
-    assert uploads[-1]["src"].getvalue() == '["dock"]\\n'
+    assert uploads[-1]["src"].getvalue() == '["dock"]\n'
     assert uploads[-1]["mode"] == "0644"
