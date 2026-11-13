@@ -38,9 +38,9 @@ if not re.fullmatch(r"[A-Za-z0-9_-]{32,}", appflowy_secrets["jwt_secret"]):
     raise ValueError(
         "secrets.docker.appflowy.jwt_secret must be at least 32 URL-safe characters"
     )
-if not re.fullmatch(r"[A-Za-z0-9_-]{20,}", appflowy_secrets["minio_access_key"]):
+if not re.fullmatch(r"[A-Za-z0-9_-]{20}", appflowy_secrets["minio_access_key"]):
     raise ValueError(
-        "secrets.docker.appflowy.minio_access_key must be at least 20 URL-safe characters"
+        "secrets.docker.appflowy.minio_access_key must be exactly 20 URL-safe characters"
     )
 if not re.fullmatch(r"[A-Za-z0-9_-]{32,}", appflowy_secrets["minio_secret_key"]):
     raise ValueError(
