@@ -197,3 +197,53 @@ def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
     )
     assert uploads[-1]["src"].getvalue() == '["dock"]\n'
     assert uploads[-1]["mode"] == "0644"
+
+
+def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("docker.py")
+    observed = []
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, command, **_kwargs: observed.append(command)
+        or "1000:1000:750"
+    )
+
+    module.ensure_numeric_directory(
+        "/home/tester/.docker/data", "1000", "1000", "750", sudo=False
+    )
+
+    operation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs["name"] == "Ensure directory metadata: /home/tester/.docker/data"
+    )
+    assert observed == [
+        "if [ -d /home/tester/.docker/data ]; then "
+        "stat -c '%u:%g:%a' -- /home/tester/.docker/data; "
+        "else printf 'missing\\n'; fi"
+    ]
+    assert operation["_sudo"] is False
+    assert operation["_if"]() is False
+
+
+def test_numeric_directory_repairs_missing_or_mismatched_metadata(
+    pyinfra_task_harness
+):
+    module = pyinfra_task_harness.load("docker.py")
+    current = {"metadata": "missing"}
+    pyinfra_task_harness.host.get_fact = (
+        lambda *_args, **_kwargs: current["metadata"]
+    )
+
+    module.ensure_numeric_directory(
+        "/home/tester/.docker/data", "1000", "1000", "750"
+    )
+    operation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs["name"] == "Ensure directory metadata: /home/tester/.docker/data"
+    )
+
+    assert operation["_if"]() is True
+    current["metadata"] = "1000:1000:700"
+    assert operation["_if"]() is True
+    assert "install -d -o 1000 -g 1000 -m 750" in operation["commands"][0]
