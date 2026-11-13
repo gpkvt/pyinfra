@@ -23,6 +23,20 @@ def test_appflowy_compose_uses_host_bind_mounts_and_loopback_only():
     assert "appflowy_backup:" not in compose
 
 
+def test_appflowy_services_receive_their_redis_urls():
+    """Every AppFlowy component uses the Compose Redis service, not localhost."""
+    compose = (
+        ROOT / "templates/docker/appflowy/docker-compose.yml.j2"
+    ).read_text()
+
+    assert "APPFLOWY_REDIS_URI=${APPFLOWY_REDIS_URI}" in compose
+    assert "AI_REDIS_URL=${AI_REDIS_URL}" in compose
+    assert "APPFLOWY_WORKER_REDIS_URL=${APPFLOWY_WORKER_REDIS_URL}" in compose
+    assert "APPFLOWY_INDEXER_REDIS_URL=${APPFLOWY_INDEXER_REDIS_URL}" in compose
+    assert "APPFLOWY_SEARCH_REDIS_URL=${APPFLOWY_INDEXER_REDIS_URL}" in compose
+    assert "redis://localhost:6379" not in compose
+
+
 def test_appflowy_homepage_entry_is_link_only():
     """Homepage links to AppFlowy without adding an authenticated API widget."""
     local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
