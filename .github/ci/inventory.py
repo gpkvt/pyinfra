@@ -30,7 +30,7 @@ ci = [("@local", {
     "sudoers_rules": [],
     "ssh_config": {},
     "ssh_keys": [],
-    "ssh_authorized_keys": [],
+    "ssh_authorized_keys": {},
     "sysctl": {},
     "udev": {},
     "usbguard": {},
