@@ -5,6 +5,7 @@ import builtins
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -49,12 +50,14 @@ def test_coverage_entries_use_supported_execution_kinds():
 
     assert not invalid, f"Unsupported CI coverage kinds: {invalid}"
     assert coverage.get("tasks/homepage_config.py") == "helper"
+    assert coverage.get("tasks/cosmic/config.py") == "helper"
     assert all(
         kind == "deployment"
         for path, kind in coverage.items()
         if path.startswith("tasks/")
         and path not in {
             "tasks/homepage_config.py",
+            "tasks/cosmic/config.py",
             "tasks/docker/linkwarden_bookmarks.py",
             "tasks/cosmic/deploy.py",
             "tasks/docker_container.py",
@@ -165,6 +168,7 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
     calls_before = len(pyinfra_task_harness.calls)
     includes_before = len(pyinfra_task_harness.included)
     if relative_path.startswith("tasks/docker/"):
+        monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
         service = Path(relative_path).stem
         docker_config = {service: {}}
         if service == "ci-smoke":
@@ -213,7 +217,53 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
             },
         )
     else:
-        pyinfra_task_harness.load(module_path)
+        data = {}
+        if relative_path == "tasks/caddy.py":
+            data = {
+                "caddy_config": {"ci.invalid": {"respond": "CI"}},
+                "docker_sablier": {"enabled": False},
+            }
+        elif relative_path.startswith("tasks/cosmic/"):
+            component = Path(relative_path).stem
+            data = {
+                "cosmic": {
+                    "enabled": True,
+                    "appearance": {"enabled": True},
+                    "dock": {"enabled": True},
+                    "panel": {"enabled": True},
+                    "workspaces": {"enabled": True, "ron": "[]"},
+                }
+            }
+        elif relative_path == "tasks/cron.py":
+            data = {
+                "username": "tester",
+                "cron_jobs": [{
+                    "name": "ci-coverage",
+                    "command": "/usr/bin/true",
+                    "minute": "0",
+                    "hour": "0",
+                }],
+            }
+        elif relative_path == "tasks/docker_container.py":
+            data = {"docker": {"ci-smoke": {"app_services": ["smoke"]}}}
+        elif relative_path == "tasks/proton.py":
+            data = {
+                "proton": {
+                    "mail": True,
+                    "bridge": False,
+                    "vpn": False,
+                    "pass": False,
+                    "flatpak": False,
+                    "drive_cli": False,
+                }
+            }
+        elif relative_path.startswith("tasks/workstation/"):
+            feature = Path(relative_path).stem
+            config = {"enabled": True}
+            if feature == "peripherals":
+                config["printing"] = True
+            data = {"workstation": {feature: config}}
+        pyinfra_task_harness.load(module_path, data)
 
     assert (
         len(pyinfra_task_harness.calls) > calls_before
