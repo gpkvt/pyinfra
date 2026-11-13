@@ -966,3 +966,44 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     )
     reload_call["_if"]()
     assert observed[-2:] == triggers
+
+
+
+def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
+    pyinfra_task_harness, monkeypatch,
+):
+    """The secret-bearing .env is uploaded without rendering a content diff."""
+    monkeypatch.setattr(builtins, "secrets", {
+        "docker": {
+            "appflowy": {
+                "postgres_password": "a" * 32,
+                "admin_password": "b" * 16,
+                "jwt_secret": "c" * 32,
+                "minio_access_key": "d" * 20,
+                "minio_secret_key": "e" * 32,
+            },
+        },
+    })
+    docker_module = types.ModuleType("tasks.docker")
+    docker_module.deploy_docker_service = lambda **_kwargs: None
+    docker_module.ensure_numeric_directory = lambda *_args, **_kwargs: None
+    monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
+
+    pyinfra_task_harness.load("docker/appflowy.py", {
+        "docker": {"appflowy": {}},
+    })
+
+    env_uploads = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("dest", "").endswith("/appflowy/.env")
+    ]
+    assert len(env_uploads) == 1
+    assert env_uploads[0]["mode"] == "600"
+    assert env_uploads[0]["user"] == "gpkvt"
+    assert "GOTRUE_JWT_SECRET=" in env_uploads[0]["src"].getvalue()
+    assert not any(
+        namespace == "files" and name == "template"
+        and kwargs.get("dest", "").endswith("/appflowy/.env")
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
