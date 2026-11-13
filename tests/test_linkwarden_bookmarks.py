@@ -490,3 +490,165 @@ def test_bookmark_blacklist_defaults_to_empty(loaded_module, monkeypatch, tmp_pa
         links, "https://links.example", "token", tmp_path,
     )
     assert [next(iter(entry)) for entry in groups[0]["Reading"]] == ["Example"]
+
+
+def test_api_json_sends_bearer_token_and_parses_json(loaded_module, monkeypatch):
+    class Response:
+        status = 200
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b'{"data": {"ok": true}}'
+
+    observed = {}
+
+    def open_request(request, timeout):
+        observed["url"] = request.full_url
+        observed["authorization"] = request.get_header("Authorization")
+        observed["accept"] = request.get_header("Accept")
+        observed["timeout"] = timeout
+        return Response()
+
+    monkeypatch.setattr(loaded_module.urllib.request, "urlopen", open_request)
+
+    assert loaded_module.api_json("https://links.example/api", "secret") == {
+        "data": {"ok": True}
+    }
+    assert observed == {
+        "url": "https://links.example/api",
+        "authorization": "Bearer secret",
+        "accept": "application/json",
+        "timeout": loaded_module.TIMEOUT,
+    }
+
+
+def test_api_json_rejects_non_success_http_status(loaded_module, monkeypatch):
+    class Response:
+        status = 503
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self):
+            return b"{}"
+
+    monkeypatch.setattr(
+        loaded_module.urllib.request, "urlopen", lambda *_args, **_kwargs: Response()
+    )
+    with pytest.raises(RuntimeError, match="HTTP 503"):
+        loaded_module.api_json("https://links.example/api", "secret")
+
+
+def test_favicon_origin_normalizes_scheme_and_host(loaded_module):
+    assert loaded_module.favicon_origin("HTTPS://Example.COM/path?q=1") == (
+        "https://example.com"
+    )
+
+
+def test_favicon_html_parser_collects_only_icon_links(loaded_module):
+    parser = loaded_module.FaviconHTMLParser()
+    parser.feed(
+        '<link rel="stylesheet" href="style.css">'
+        '<link rel="shortcut icon" href="/favicon.ico">'
+        '<link rel="apple-touch-icon" href="/touch.png">'
+        '<a href="/not-an-icon">ignored</a>'
+    )
+    assert parser.icons == ["/favicon.ico", "/touch.png"]
+
+
+@pytest.mark.parametrize(
+    ("content_type", "content", "expected"),
+    [
+        ("image/png", b"png", (b"png", ".png")),
+        ("text/html", b"<html>", None),
+        ("image/png", b"", None),
+    ],
+)
+def test_download_image_accepts_only_nonempty_supported_images(
+    loaded_module, monkeypatch, content_type, content, expected
+):
+    class Response:
+        headers = {"Content-Type": content_type}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _size):
+            return content
+
+    monkeypatch.setattr(
+        loaded_module.urllib.request, "urlopen",
+        lambda *_args, **_kwargs: Response(),
+    )
+    assert loaded_module._download_image("https://example.com/icon") == expected
+
+
+def test_download_image_rejects_content_over_size_limit(loaded_module, monkeypatch):
+    class Response:
+        headers = {"Content-Type": "image/png"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, size):
+            assert size == 5
+            return b"12345"
+
+    monkeypatch.setattr(loaded_module, "MAX_FAVICON_SIZE", 4)
+    monkeypatch.setattr(
+        loaded_module.urllib.request, "urlopen",
+        lambda *_args, **_kwargs: Response(),
+    )
+    assert loaded_module._download_image("https://example.com/icon") is None
+
+
+def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
+    loaded_module, monkeypatch, tmp_path
+):
+    root = tmp_path
+    monkeypatch.setattr(loaded_module, "__file__", str(root / "tasks/docker/linkwarden_bookmarks.py"))
+    monkeypatch.setattr(loaded_module.Path, "resolve", lambda _path: root / "tasks/docker/linkwarden_bookmarks.py")
+    monkeypatch.setattr(loaded_module.sys, "argv", ["linkwarden_bookmarks.py", "--dry-run"])
+    monkeypatch.setattr(
+        loaded_module.runpy, "run_path",
+        lambda _path: {
+            "docker": {
+                "linkwarden": {"blacklist": ["blocked"]},
+                "homepage": {"services": [{"Services": []}]},
+            }
+        },
+    )
+    monkeypatch.setattr(
+        loaded_module.subprocess, "run",
+        lambda *_args, **_kwargs: types.SimpleNamespace(stdout='{"hosts": {"@local": {}}}'),
+    )
+    common = types.ModuleType("common")
+    common.select_host_secrets = lambda document, host: document["hosts"][host]
+    monkeypatch.setitem(sys.modules, "common", common)
+    calls = []
+    monkeypatch.setattr(
+        loaded_module, "synchronize",
+        lambda *args, **kwargs: calls.append((args, kwargs)),
+    )
+
+    loaded_module.main()
+
+    assert len(calls) == 1
+    args, kwargs = calls[0]
+    assert args[2:] == ("linkwarden.21x9.org", None)
+    assert kwargs["dry_run"] is True
+    assert kwargs["blacklist"] == ["blocked"]
