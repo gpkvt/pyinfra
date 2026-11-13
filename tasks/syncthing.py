@@ -15,6 +15,7 @@ import shlex
 
 from pyinfra import host
 from pyinfra.facts.server import Command
+from common import command_output_text
 from pyinfra.operations import apt, server, systemd
 
 if not hasattr(__import__("builtins"), "homedir"):
@@ -45,10 +46,10 @@ systemd.service(
 # Read the current value as a fact so the operation is skipped when already
 # configured; this keeps repeated deployments idempotent.
 cli_prefix = f"runuser --user {shlex.quote(username)} -- syncthing cli config gui raw-address"
-current_gui_address = host.get_fact(
+current_gui_address = command_output_text(host.get_fact(
     Command,
     command=f"{cli_prefix} get",
-)
+)).strip()
 
 server.shell(
     name="Configure Syncthing GUI listen address",
