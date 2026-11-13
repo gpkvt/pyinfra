@@ -67,10 +67,11 @@ files.put(
     _sudo=False,
 )
 
-# Create git-credentials
-set_immutable(f"{homedir}/.git-credentials", False) # pylint: disable=undefined-variable
-
+# Manage credentials only when the encrypted secret key is configured.
+# An existing file remains untouched (and keeps its immutable flag) otherwise.
 if secrets.get("git_credentials") is not None: # pylint: disable=undefined-variable
+    set_immutable(f"{homedir}/.git-credentials", False) # pylint: disable=undefined-variable
+
     files.template(
         name="Create git-credentials",
         src="templates/git/git-credentials.j2",
@@ -80,4 +81,4 @@ if secrets.get("git_credentials") is not None: # pylint: disable=undefined-varia
         _sudo=False,
     )
 
-set_immutable(f"{homedir}/.git-credentials", True) # pylint: disable=undefined-variable
+    set_immutable(f"{homedir}/.git-credentials", True) # pylint: disable=undefined-variable
