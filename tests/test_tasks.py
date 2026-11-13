@@ -6,7 +6,9 @@ that task modules can be evaluated and that selected helpers/facts preserve
 important behavior without contacting or modifying a real machine.
 """
 
+import ast
 import builtins
+import re
 import json
 import os
 import runpy
@@ -52,6 +54,44 @@ def test_apt_update_helper_forces_update_when_repository_changed(pyinfra_task_ha
     assert any(call[2]["name"] == "Force APT update (repositories changed)"
                for call in apt_updates)
     assert any(call[2].get("cache_time") == 14400 for call in apt_updates)
+
+
+
+def test_docker_service_modules_declare_compose_services():
+    """Sablier service names are static so first deployment needs no remote Compose fact."""
+    for task_path in sorted((ROOT / "tasks/docker").glob("*.py")):
+        if task_path.stem == "linkwarden_bookmarks":
+            continue
+
+        tree = ast.parse(task_path.read_text())
+        deploy_call = next(
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "deploy_docker_service"
+        )
+        compose_argument = next(
+            keyword.value for keyword in deploy_call.keywords
+            if keyword.arg == "compose_services"
+        )
+        declared_services = ast.literal_eval(compose_argument)
+
+        template = ROOT / "templates/docker" / task_path.stem / "docker-compose.yml.j2"
+        template_lines = template.read_text().splitlines()
+        in_services = False
+        template_services = []
+        for line in template_lines:
+            if line.strip() == "services:":
+                in_services = True
+                continue
+            if in_services and line and not line.startswith(" "):
+                break
+            if in_services:
+                match = re.match(r"^  ([A-Za-z0-9_.-]+):\s*$", line)
+                if match:
+                    template_services.append(match.group(1))
+
+        assert declared_services == template_services, task_path.name
 
 
 def test_ci_inventory_runs_tmux_without_personal_workstation_features():
