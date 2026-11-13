@@ -5,7 +5,6 @@ import re
 
 from pyinfra import host
 from pyinfra.operations import files
-from pyinfra.operations.util import any_changed
 
 from tasks.docker import deploy_docker_service, ensure_numeric_directory
 
@@ -106,7 +105,7 @@ deploy_docker_service(
     homedir=homedir,
     username=username,
     usergroup=usergroup,
-    restart_if=any_changed(env_file, nginx_config),
+    restart_if=[env_file, nginx_config],
     app_services=appflowy.get("app_services", ["nginx"]),
     port=port,
 )
