@@ -1,6 +1,7 @@
 """Direct input/output tests for task helpers and pyinfra operations."""
 # pylint: disable=protected-access
 
+import sys
 from types import SimpleNamespace
 
 
@@ -160,14 +161,15 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
 
 
 def test_udev_reload_uses_runtime_change_detection(pyinfra_task_harness, monkeypatch):
-    module = pyinfra_task_harness.load("system.py", {
-        "udev": {"99-example.rules": 'SUBSYSTEM=="example", MODE="0600"'},
-    })
     observed = []
     monkeypatch.setattr(
-        module, "any_changed",
+        sys.modules["pyinfra.operations.util"],
+        "any_changed",
         lambda *operations: observed.extend(operations) or (lambda: True),
     )
+    pyinfra_task_harness.load("system.py", {
+        "udev": {"99-example.rules": 'SUBSYSTEM=="example", MODE="0600"'},
+    })
     reload_op = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
@@ -180,13 +182,15 @@ def test_udev_reload_uses_runtime_change_detection(pyinfra_task_harness, monkeyp
 def test_usbguard_restart_is_conditional_on_configuration_changes(
     pyinfra_task_harness, monkeypatch,
 ):
-    module = pyinfra_task_harness.load("system.py", {
-        "usbguard": {"enabled": True, "rules": ["allow id 1234:5678"]},
-    })
     changed = {"value": False}
     monkeypatch.setattr(
-        module, "any_changed", lambda *_ops: lambda: changed["value"]
+        sys.modules["pyinfra.operations.util"],
+        "any_changed",
+        lambda *_ops: lambda: changed["value"],
     )
+    pyinfra_task_harness.load("system.py", {
+        "usbguard": {"enabled": True, "rules": ["allow id 1234:5678"]},
+    })
     restart = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
