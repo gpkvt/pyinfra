@@ -51,12 +51,13 @@ if config.get("enabled", False):
     if not latest_tag:
         raise RuntimeError("Could not resolve the latest stable Limusic release")
 
+    installed_state_command = (
+        f"if [ -x {shlex.quote(appimage)} ] && "
+        f"[ -s {shlex.quote(icon_file)} ]; then "
+        f"cat {shlex.quote(version_file)} 2>/dev/null || true; fi"
+    )
     installed_tag = (
-        host.get_fact(
-            Command,
-            f"cat {shlex.quote(version_file)} 2>/dev/null || true",
-        )
-        or ""
+        host.get_fact(Command, installed_state_command) or ""
     ).strip()
 
     files.directory(
@@ -195,10 +196,7 @@ atomic_write(version, (tag + "\n").encode(), 0o644)
             _sudo=True,
             _sudo_user=username,
             _if=lambda: (
-                host.get_fact(
-                    Command,
-                    f"cat {shlex.quote(version_file)} 2>/dev/null || true",
-                )
+                host.get_fact(Command, installed_state_command)
                 or ""
             ).strip() != latest_tag,
         )
