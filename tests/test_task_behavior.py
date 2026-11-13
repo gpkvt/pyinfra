@@ -216,13 +216,13 @@ def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harnes
         if namespace == "server" and name == "shell"
         and kwargs["name"] == "Ensure directory metadata: /home/tester/.docker/data"
     )
+    assert operation["_sudo"] is False
+    assert operation["_if"]() is False
     assert observed == [
         "if [ -d /home/tester/.docker/data ]; then "
         "stat -c '%u:%g:%a' -- /home/tester/.docker/data; "
         "else printf 'missing\\n'; fi"
     ]
-    assert operation["_sudo"] is False
-    assert operation["_if"]() is False
 
 
 def test_numeric_directory_repairs_missing_or_mismatched_metadata(
