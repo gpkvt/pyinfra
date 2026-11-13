@@ -9,7 +9,7 @@
 
 A configuration-driven automation repository built on [pyinfra](https://pyinfra.com). It provisions Linux hosts from a shared set of reusable tasks while keeping inventory, host-specific settings, deployment logic, templates, static files, and secrets separate.
 
-The repository is primarily designed around Debian/Ubuntu systems and includes both server infrastructure and desktop/workstation configuration. It is an opinionated starting point: the checked-in `group_data/@local.py` and `inventory.py` contain environment-specific examples and **must be reviewed before use**.
+The repository is primarily designed around Debian/Ubuntu systems and includes both server infrastructure and desktop/workstation configuration. It is an opinionated starting point. Machine-specific host and workstation data is excluded from Git; tracked `.example` templates provide safe starting points.
 
 > **Caution:** A deployment can install or upgrade packages, change system files and networking, enable services, and modify firewall or USB authorization policies. Start with a dry run and a non-production target. Do not deploy the example configuration unchanged.
 
@@ -31,7 +31,7 @@ Optional features are included by `deploy.py` only when their configuration and 
 ## How it works
 
 1. `inventory.py` defines local and remote targets and their connection options.
-2. `group_data/<host>.py` supplies host-specific configuration; group memberships in `inventory.py` can also load shared role configuration such as `group_data/workstation.py`.
+2. Copy `group_data/@local.py.example` to `group_data/@local.py` and `group_data/workstation.py.example` to `group_data/workstation.py`; these local files are ignored by Git. Host data supplies machine-specific configuration, while inventory groups load shared role configuration.
 3. `deploy.py` initializes shared values and selects task modules.
 4. Modules in `tasks/` declare pyinfra operations.
 5. `templates/` contains rendered Jinja2 configuration; `files/` contains static payloads.
@@ -57,6 +57,15 @@ The optional Homepage Docker service provides a configurable dashboard for deplo
 Individual features may require additional software or capabilities, such as Docker, Flatpak, UFW, AppArmor, USBGuard, WireGuard, or a graphical COSMIC session. Their prerequisites are described in the relevant task documentation.
 
 ## Quick start
+
+Before the first deployment, create and edit the ignored machine-specific configuration files:
+
+```bash
+cp group_data/@local.py.example group_data/@local.py
+cp group_data/workstation.py.example group_data/workstation.py
+```
+
+Replace all placeholders and review the workstation feature flags before deploying. Never commit these local files.
 
 ### 1. Get the repository
 
@@ -85,9 +94,9 @@ The special `@local` target executes against the machine running pyinfra. It is 
 
 ### 4. Create host configuration
 
-Create or edit `group_data/<inventory-host>.py`. For the local target, the supplied file is `group_data/@local.py`.
+Create or edit `group_data/<inventory-host>.py`. For the local target, first copy `group_data/@local.py.example` to the ignored `group_data/@local.py`; for workstation role settings, copy `group_data/workstation.py.example` to the ignored `group_data/workstation.py`.
 
-At minimum, review the user identity and home directory, hostname, locale, timezone, package lists, network settings, and every optional service configuration. Inventory groups can apply shared role data: the supplied `workstation = ["@local"]` group membership loads `group_data/workstation.py` for `@local`. Remove settings that do not apply to your environment. See [Configuration](docs/configuration.md) for a categorized reference.
+At minimum, review the user identity and home directory, hostname, locale, timezone, package lists, network settings, and every optional service configuration. Inventory groups can apply shared role data: the `workstation = ["@local"]` group membership loads your local `group_data/workstation.py` for `@local`. The tracked examples are deliberately portable and disable workstation features until you opt in. See [Configuration](docs/configuration.md) for a categorized reference.
 
 ### 5. Prepare secrets (optional)
 

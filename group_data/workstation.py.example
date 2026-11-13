@@ -1,0 +1,41 @@
+"""Portable example for the workstation group configuration.
+
+Copy this file to workstation.py and enable only features appropriate for
+the target workstation. Hardware-specific values must be checked locally.
+"""
+
+workstation = {  # Top-level settings consumed by workstation deployment tasks.
+    "backup": {  # Backup tooling and schedules for this workstation.
+        "enabled": False,  # Set True only after repository, credentials and paths are configured.
+        # Configure repository, credentials, source paths and retention first.
+    },
+    "power": {  # Power-management service and policy.
+        "enabled": False,  # Set True after choosing and reviewing a power manager.
+        "manager": "power-profiles-daemon",  # Supported choice: power-profiles-daemon or tlp.
+    },
+    "hardware": {  # CPU-vendor-specific hardware support packages/settings.
+        "enabled": False,  # Set True only after verifying the actual hardware.
+        "cpu_vendor": None,  # Use "intel" or "amd"; None skips vendor-specific setup.
+    },
+    "storage": {  # Storage health monitoring utilities and configuration.
+        "enabled": False,  # Set True to install/configure storage monitoring tools.
+        # Installs smartmontools and nvme-cli when enabled.
+    },
+    "peripherals": {  # Desktop peripheral support such as printers and scanners.
+        "enabled": False,  # Set True to manage the peripheral support packages below.
+        "printing": False,  # Set True when this workstation needs printer support.
+        "scanning": False,  # Set True when this workstation needs scanner support.
+    },
+    "desktop": {  # General desktop integration packages and settings.
+        "enabled": False,  # Set True to apply desktop-specific configuration.
+        # Optional package override:
+        # "packages": ["xdg-utils", "xdg-user-dirs"],  # Replace with the packages you want.
+    },
+    "maintenance": {  # Workstation maintenance tools and scheduled maintenance.
+        "enabled": False,  # Set True only after reviewing what the maintenance task changes.
+    },
+    "limusic": {  # Limusic desktop music-player installation and launcher.
+        "enabled": False,  # Set True to install Limusic and create its desktop launcher.
+        # Installs the latest stable Limusic x86_64 AppImage and launcher.
+    },
+}

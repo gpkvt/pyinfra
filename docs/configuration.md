@@ -1,10 +1,19 @@
 # Host configuration
 
-Host-specific desired state is stored as Python data in `group_data/`. pyinfra exposes the values for a target through `host.data`. The supplied `group_data/@local.py` is an example configuration for one environment, not a portable default. Audit and adapt it before running any deployment.
+Host-specific desired state is stored as Python data in `group_data/`. pyinfra exposes the values for a target through `host.data`. Real machine configuration is intentionally untracked: `.gitignore` excludes `group_data/@local.py` and `group_data/workstation.py`. The repository tracks portable templates at `group_data/@local.py.example` and `group_data/workstation.py.example` instead.
+
+After cloning, create local copies before deploying:
+
+```bash
+cp group_data/@local.py.example group_data/@local.py
+cp group_data/workstation.py.example group_data/workstation.py
+```
+
+Edit both files for the target machine. Replace every identity placeholder, verify hardware and network settings, and explicitly enable only the workstation features required on that host. Keep credentials, private keys, USB device rules, real hostnames, IP addresses and other machine-specific data in the ignored local files. Do not force-add these files to Git.
 
 ## Which files are used?
 
-The inventory target name determines its host-data file: the local target uses `group_data/@local.py`, and a target named `web01` uses `group_data/web01.py`. Inventory groups can add shared configuration for a role or class of hosts. For example, `workstation = ["@local"]` in `inventory.py` makes `@local` a member of the `workstation` group, so pyinfra also loads `group_data/workstation.py`. Group data and host data are both available through `host.data`; keep role-wide defaults in the group file and host-specific overrides in the host file.
+The inventory target name determines its host-data file: the local target uses the ignored `group_data/@local.py`, and a target named `web01` uses `group_data/web01.py`. Inventory groups can add shared configuration for a role or class of hosts. For example, `workstation = ["@local"]` in `inventory.py` makes `@local` a member of the `workstation` group, so pyinfra also loads the ignored `group_data/workstation.py`. Group data and host data are both available through `host.data`; keep role-wide defaults in the workstation file and host-specific overrides in the local file.
 
 The workstation group is optional. Add a host to the `workstation` inventory group only if it should receive that role's configuration and eligible workstation tasks.
 
@@ -37,9 +46,9 @@ editor = "vim"
 
 ## Workstation role
 
-The supplied `group_data/workstation.py` defines a shared, nested `workstation` configuration. `deploy.py` checks each feature's `enabled` flag and includes its corresponding task only when that flag is true. Features are independently gated; a disabled feature is not installed by the workstation task set.
+The tracked `group_data/workstation.py.example` defines a shared, nested `workstation` configuration. Copy it to the ignored `group_data/workstation.py` and edit it locally. `deploy.py` checks each feature's `enabled` flag and includes its corresponding task only when that flag is true. The example disables every feature until explicitly enabled.
 
-| Setting | Default in supplied group data | Effect |
+| Setting | Default in tracked example | Effect |
 | --- | --- | --- |
 | `workstation.backup.enabled` | `True` | Installs Restic, Borg, rsync and Borgmatic, and renders `/etc/borgmatic/config.yaml`. It does not create or run a backup job; repository locations, credentials, sources, retention and restore testing still need configuration. |
 | `workstation.power.enabled` | `True` | Installs and enables the selected power manager. `manager` must be `tlp` or `power-profiles-daemon`; the other manager is removed. |
@@ -67,7 +76,7 @@ workstation = {
 }
 ```
 
-Review the checked-in role defaults before deploying: backup tools and power/hardware/storage utilities are enabled in the supplied example. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0600`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
+The tracked workstation example disables all features by default. Review each feature's requirements before enabling it. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0600`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
 
 ## Network and name resolution
 
@@ -196,7 +205,7 @@ Service-specific behavior:
 - **Paperless-ngx** runs PostgreSQL 17, Valkey, Gotenberg and Tika alongside the web application. PostgreSQL and Paperless application directories are mounted directly from `~/.docker/paperless/` on the host. Set `uid` and `gid` to the numeric user/group IDs that should own Paperless data (defaults to `1000:1000`); PostgreSQL storage is owned by UID/GID `70:70`. Configure `postgres_password` (URL-safe) and `secret_key` in `secrets.docker.paperless`. The web interface binds to loopback port `8022` and the supplied local Caddy hostname is `paperless.21x9.org`.
 - **WG-Easy** stores WireGuard configuration in a Docker-managed local named volume backed by `~/.docker/wg-easy/`. Its web UI binds to `127.0.0.1:51821` by default and is published through Caddy at `vpn.21x9.org`; WireGuard listens on public UDP port `51820`. The first visit opens the WG-Easy setup wizard: configure the public endpoint as `vpn.21x9.org` and create the administrator account there. The Compose configuration sets `INSECURE=true` because Caddy terminates HTTPS and proxies to the local HTTP UI. Keep the UI behind Caddy and do not expose port `51821` publicly.
 
-Homepage configuration is managed through the `docker.homepage` dictionary in the host's `group_data/<host>.py` (for example, `group_data/@local.py`). Each configuration area is optional and is rendered into its own YAML file:
+Homepage configuration is managed through the `docker.homepage` dictionary in the host's `group_data/<host>.py` (for example, the ignored local copy `group_data/@local.py`). Each configuration area is optional and is rendered into its own YAML file:
 
 | Host-data key | Generated file | Purpose |
 | --- | --- | --- |
@@ -288,7 +297,7 @@ ufw = {
 }
 ```
 
-The task sets default incoming policy to deny and outgoing policy to allow, applies configured rules, and enables UFW. Review the effective policy and ensure an independent recovery path before applying firewall changes remotely. The checked-in `group_data/@local.py` sets `ssh` to `Deny`.
+The task sets default incoming policy to deny and outgoing policy to allow, applies configured rules, and enables UFW. Review the effective policy and ensure an independent recovery path before applying firewall changes remotely. Set firewall policy deliberately in the ignored local host configuration; the tracked example leaves UFW configuration empty.
 
 ## Secrets-dependent configuration
 
