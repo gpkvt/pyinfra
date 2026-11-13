@@ -94,7 +94,7 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
 def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
     """An already-correct timezone does not schedule a change."""
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        "UTC" if fact.__name__ == "SystemTimezone" else None
+        "UTC" if fact.__name__ == "Timezone" else None
     )
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
