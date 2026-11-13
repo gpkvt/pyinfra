@@ -184,4 +184,4 @@ def test_system_locale_uses_native_idempotent_operations(pyinfra_task_harness):
 
     assert locale["locale"] == "en_GB.UTF-8"
     assert locale["present"] is True
-    assert default_locale["src"].getvalue() == 'LANG="en_GB.UTF-8"\\n'
+    assert default_locale["src"].getvalue() == 'LANG="en_GB.UTF-8"\n'
