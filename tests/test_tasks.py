@@ -484,10 +484,10 @@ def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
         ["example.com", "*.example.com"],
-        ["example.com", "www.example.com", "api.example.com"],
+        ["other.example.com", "www.other.example.com", "api.other.example.com"],
     ]) == [
         "example.com *.example.com",
-        "example.com www.example.com api.example.com",
+        "other.example.com www.other.example.com api.other.example.com",
     ]
 
 
