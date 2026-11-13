@@ -249,7 +249,10 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     )
     restart_triggers = [compose_file, override_file, systemd_unit]
     if restart_if is not None:
-        restart_triggers.append(restart_if)
+        if isinstance(restart_if, (list, tuple)):
+            restart_triggers.extend(restart_if)
+        else:
+            restart_triggers.append(restart_if)
 
     # pyinfra does not necessarily inherit the interactive user's systemd
     # environment. Set it explicitly so an active unit is not misdetected as
