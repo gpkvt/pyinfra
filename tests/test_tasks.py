@@ -1083,7 +1083,10 @@ def test_proton_drive_cli_rejects_invalid_version(pyinfra_task_harness):
 def test_timetagger_requires_credentials_and_passes_compose_escaped_hash(
     pyinfra_task_harness, monkeypatch,
 ):
-    monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
+    captured = {}
+    docker_module = types.ModuleType("tasks.docker")
+    docker_module.deploy_docker_service = lambda **kwargs: captured.update(kwargs)
+    monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
     monkeypatch.setattr(
         builtins,
         "secrets",
@@ -1097,13 +1100,8 @@ def test_timetagger_requires_credentials_and_passes_compose_escaped_hash(
         "homedir": "/home/tester",
     })
 
-    compose = next(
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "template"
-        and "credentials" in kwargs
-    )
-    assert compose["credentials"] == "tester:" + "$" * 2 + "2a" + "$" * 2 + "08" + "$" * 2 + "hash"
-
+    assert captured["service"] == "timetagger"
+    assert captured["credentials"] == "tester:" + "$" * 2 + "2a" + "$" * 2 + "08" + "$" * 2 + "hash"
 
 def test_timetagger_rejects_missing_credentials(pyinfra_task_harness, monkeypatch):
     monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
