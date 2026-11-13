@@ -125,7 +125,6 @@ from io import StringIO
 
 from pyinfra import host
 from pyinfra.api import FactBase
-from pyinfra.facts.server import Timezone
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
 
@@ -185,14 +184,13 @@ if timezone:
     ):
         raise ValueError(f"Invalid timezone: {timezone}")
 
-    current_timezone = host.get_fact(Timezone)
-
-    if current_timezone != timezone:
-        server.timezone(
-            name=f"Set timezone to {timezone}",
-            timezone=timezone,
-            _sudo=True,
-        )
+    # Let pyinfra's operation compare the effective timezone itself. Aliases
+    # such as UTC and Etc/UTC must not trigger a change on every deployment.
+    server.timezone(
+        name=f"Set timezone to {timezone}",
+        timezone=timezone,
+        _sudo=True,
+    )
 
 # Configure system locale
 if locale:
