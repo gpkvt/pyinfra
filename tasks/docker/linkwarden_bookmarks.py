@@ -169,6 +169,31 @@ def synchronize(config_path, icon_dir, domain, token, dry_run=False):
     return update_managed_bookmarks(config_path, groups)
 
 
+def resolve_sync_settings(config, secret_data):
+    """Resolve Linkwarden and Homepage settings from host data and secrets."""
+    docker_config = config.get("docker", {})
+    docker_secrets = secret_data.get("docker", {})
+    linkwarden = docker_config.get("linkwarden", {})
+    homepage = docker_config.get("homepage", {})
+    linkwarden_secrets = docker_secrets.get("linkwarden", {})
+    homepage_environment = docker_secrets.get("homepage", {}).get("environment", {})
+
+    token = (
+        linkwarden_secrets.get("api_key")
+        or homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
+    )
+    if "linkwarden" not in docker_config:
+        raise ValueError("docker.linkwarden is missing from group_data/@local.py")
+    if "homepage" not in docker_config:
+        raise ValueError("docker.homepage is missing from group_data/@local.py")
+    if not token:
+        raise ValueError(
+            "Missing Linkwarden API key: set secrets.docker.linkwarden.api_key "
+            "or secrets.docker.homepage.environment.HOMEPAGE_VAR_LINKWARDEN_API_KEY"
+        )
+    return linkwarden.get("domain", "linkwarden.21x9.org"), token
+
+
 def main():
     """Run a manual synchronization from the repository checkout."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -186,18 +211,14 @@ def main():
     )
     from common import select_host_secrets  # pylint: disable=import-outside-toplevel
     secret_data = select_host_secrets(json.loads(decrypted.stdout), config["hostname"])
-    token = secret_data.get("docker", {}).get("homepage", {}).get(
-        "environment", {}
-    ).get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
-    manual_docker = config.get("docker", {})
-    manual_linkwarden = manual_docker.get("linkwarden", {})
-    if not manual_linkwarden or not manual_docker.get("homepage") or not token:
-        parser.error("docker.linkwarden, docker.homepage and the Homepage Linkwarden API key are required")
+    try:
+        domain, token = resolve_sync_settings(config, secret_data)
+    except ValueError as error:
+        parser.error(str(error))
     synchronize(
         root / "group_data" / "@local.py",
         root / "files" / "homepage" / "icons",
-        manual_linkwarden.get("domain", "linkwarden.21x9.org"), token,
-        dry_run=args.dry_run,
+        domain, token, dry_run=args.dry_run,
     )
 
 
