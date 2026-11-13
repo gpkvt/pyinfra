@@ -163,7 +163,7 @@ def _download_image(url, headers=None):
 
 
 def download_favicon(
-    base_url, target_url, token, destination, prefix="linkwarden", icon_cache=None
+    base_url, target_url, token, destination, *, prefix="linkwarden", icon_cache=None
 ):
     """Discover, cache and download one favicon per website origin."""
     origin = favicon_origin(target_url)
@@ -213,7 +213,7 @@ def download_favicon(
 
 
 def build_bookmark_groups(
-    links, base_url, token, icon_dir, download_icons=True, icon_cache=None
+    links, base_url, token, icon_dir, *, download_icons=True, icon_cache=None
 ):
     """Build deterministic Homepage groups, de-duplicated by URL."""
     grouped = {}
@@ -268,7 +268,7 @@ def _service_entries(services):
 
 
 def collect_service_favicons(
-    services, base_url, token, icon_dir, download_icons=True, icon_cache=None
+    services, base_url, token, icon_dir, *, download_icons=True, icon_cache=None
 ):
     """Download missing Homepage service icons and return their config references."""
     icon_references = {}
@@ -397,7 +397,7 @@ def update_managed_bookmarks(config_path, groups):
     return False
 
 
-def synchronize(config_path, icon_dir, domain, token, services=None, dry_run=False):
+def synchronize(config_path, icon_dir, domain, token, *, services=None, dry_run=False):
     """Synchronize Linkwarden bookmarks and missing Homepage service icons."""
     base_url = domain.strip().rstrip("/")
     if not base_url.startswith(("https://", "http://")):
@@ -506,4 +506,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
