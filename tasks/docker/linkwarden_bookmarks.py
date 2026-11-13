@@ -10,6 +10,8 @@ import hashlib
 import html.parser
 import json
 import argparse
+import csv
+import io
 import os
 import re
 import runpy
@@ -72,7 +74,7 @@ def fetch_links(base_url, token):
 def format_link_listing(links):
     """Format every Linkwarden link as a copy-friendly tab-separated table."""
     output = io.StringIO()
-    writer = csv.writer(output, delimiter="\\t", lineterminator="\\n")
+    writer = csv.writer(output, delimiter="\t", lineterminator="\n")
     writer.writerow(("ID", "CATEGORY", "TITLE", "URL"))
     for link in links:
         if not isinstance(link, dict):
@@ -87,7 +89,7 @@ def format_link_listing(links):
         )
         title = link.get("name") or link.get("url") or "(untitled)"
         writer.writerow((link_id, category, title, link.get("url", "")))
-    return output.getvalue().rstrip("\\n")
+    return output.getvalue().rstrip("\n")
 
 
 def list_links(base_url, token):
