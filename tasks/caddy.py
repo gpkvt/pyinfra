@@ -12,6 +12,7 @@ from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
 from tasks.homepage_config import homepage_api_exclusions
+from common import command_output_text
 
 CADDY_VERSION = "2.11.2"
 PLUGIN_VERSION = "v1.0.2"
@@ -138,8 +139,8 @@ def configure_caddy():  # pylint: disable=R0914
     username = host.data.get("username", "root")
     usergroup = host.data.get("usergroup", "root")
     homedir = host.data.get("homedir", f"/home/{username}")
-    uid = host.get_fact(Command, f"id -u {shlex.quote(username)}").strip()
-    gid = host.get_fact(Command, f"id -g {shlex.quote(usergroup)}").strip()
+    uid = command_output_text(host.get_fact(Command, f"id -u {shlex.quote(username)}")).strip()
+    gid = command_output_text(host.get_fact(Command, f"id -g {shlex.quote(usergroup)}")).strip()
 
     root = f"{homedir}/.docker/caddy"
     build_dir = f"{root}/build"
@@ -226,7 +227,7 @@ def configure_caddy():  # pylint: disable=R0914
         dest=f"{homedir}/.config/systemd/user/caddy-renew.timer",
         user=username, group=usergroup, mode="644", _sudo=False,
     )
-    current_uid = (host.get_fact(Command, "id -u", _sudo=False) or "").strip()
+    current_uid = command_output_text(host.get_fact(Command, "id -u", _sudo=False)).strip()
     if not uid.isdigit():
         raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
     if current_uid == uid:
@@ -249,8 +250,8 @@ def configure_caddy():  # pylint: disable=R0914
         )
     renewal_timer_status = host.get_fact(
         Command, f"{systemctl_user} is-active caddy-renew.timer", _sudo=False
-    ) or ""
-    renewal_timer_active = renewal_timer_status.strip() == "active"
+    )
+    renewal_timer_active = command_output_text(renewal_timer_status).strip() == "active"
     server.shell(
         name="Enable daily Caddy certificate renewal",
         commands=[
@@ -269,22 +270,22 @@ def configure_caddy():  # pylint: disable=R0914
             dockerfile.did_change() or entrypoint.did_change()
             or hook.did_change() or renew_script.did_change()
         )
-    image_present = host.get_fact(
+    image_present = command_output_text(host.get_fact(
         Command,
         f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
-    ).strip() == "present"
+    )).strip() == "present"
     server.shell(
         name="Build Caddy image with Sablier plugin and Dehydrated",
         commands=[f"docker build --tag {shlex.quote(IMAGE)} {shlex.quote(build_dir)}"],
         _sudo=False, _if=lambda: build_changed() or not image_present,
     )
 
-    container_running = host.get_fact(
+    container_running = command_output_text(host.get_fact(
         Command, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
-    ).strip() == "true"
-    container_healthy = host.get_fact(
+    )).strip() == "true"
+    container_healthy = command_output_text(host.get_fact(
         Command, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
-    ).strip() == "healthy"
+    )).strip() == "healthy"
     def recreate():
         return (
             compose.did_change() or build_changed()
