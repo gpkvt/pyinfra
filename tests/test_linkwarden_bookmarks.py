@@ -206,3 +206,53 @@ def test_select_local_secrets_uses_inventory_target_not_system_hostname(loaded_m
     )
     assert selected_host == ["@local"]
     assert selected["docker"]["linkwarden"]["api_key"] == "local-token"
+
+
+@pytest.mark.parametrize(
+    ("content_type", "extension"),
+    [
+        ("image/x-icon", ".ico"),
+        ("image/vnd.microsoft.icon", ".ico"),
+        ("image/png", ".png"),
+        ("image/svg+xml; charset=utf-8", ".svg"),
+        ("image/jpeg", ".jpg"),
+        ("image/webp", ".webp"),
+        ("image/gif", ".gif"),
+    ],
+)
+def test_favicon_extension_matches_content_type(loaded_module, content_type, extension):
+    assert loaded_module.favicon_extension(content_type) == extension
+
+
+def test_favicon_extension_rejects_unknown_content_type(loaded_module):
+    assert loaded_module.favicon_extension("text/html") is None
+
+
+def test_download_favicon_uses_detected_extension_and_is_idempotent(
+    loaded_module, monkeypatch, tmp_path,
+):
+    class Response:
+        headers = {"Content-Type": "image/png"}
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_args):
+            return False
+
+        def read(self, _size):
+            return b"png-image-data"
+
+    monkeypatch.setattr(loaded_module.urllib.request, "urlopen", lambda *_args, **_kwargs: Response())
+    destination = tmp_path / loaded_module.favicon_filename("https://example.com", ".ico")
+    result = loaded_module.download_favicon(
+        "https://links.example", "https://example.com", "token", destination
+    )
+    assert result.endswith(".png")
+    icon_path = tmp_path / result.rsplit("/", 1)[1]
+    assert icon_path.read_bytes() == b"png-image-data"
+    before = icon_path.stat().st_mtime_ns
+    assert loaded_module.download_favicon(
+        "https://links.example", "https://example.com", "token", destination
+    ) == result
+    assert icon_path.stat().st_mtime_ns == before
