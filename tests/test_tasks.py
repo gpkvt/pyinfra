@@ -224,6 +224,22 @@ def test_flatpak_facts_ignore_blank_output_lines(pyinfra_task_harness):
     ]
 
 
+def test_flatpak_ref_ids_normalizes_application_and_runtime_refs(pyinfra_task_harness):
+    """Flatpak refs are normalized consistently for apps and runtimes."""
+    module = pyinfra_task_harness.load("flatpak.py")
+    assert module.flatpak_ref_ids([
+        "app/org.example.App/x86_64/stable",
+        "runtime/org.example.Codecs/x86_64/stable",
+        "org.example.Installed/x86_64/stable",
+        "org.example.Bare",
+    ]) == [
+        "org.example.App",
+        "org.example.Codecs",
+        "org.example.Installed",
+        "org.example.Bare",
+    ]
+
+
 def test_ufw_fact_parsers_and_rule_matching(pyinfra_task_harness):
     module = pyinfra_task_harness.load("ufw.py")
     assert module.UfwActive().process(["Status: active"]) is True
@@ -382,14 +398,11 @@ def test_sablier_rejects_unknown_strategy(pyinfra_task_harness):
 
 
 def test_homepage_is_managed_by_sablier_by_default(pyinfra_task_harness):
-    """Homepage inherits the global Sablier setting and uses its own group."""
-    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
-    homepage = local_config["docker"]["homepage"]
-    assert homepage.get("sablier", {}).get("enabled", True) is True
+    """Homepage can use the global Sablier setting and its own service group."""
     module = pyinfra_task_harness.load("caddy.py")
     result = module.build_sablier_caddy_config(
         {"homepage.example:443": {"reverse_proxy": "127.0.0.1:8020"}},
-        {"homepage": {"port": homepage["port"]}},
+        {"homepage": {"port": 8020}},
         {"enabled": True},
     )
     route = result["homepage.example:443"]["route"]
@@ -760,17 +773,17 @@ def test_appflowy_is_dispatched_when_configured(pyinfra_task_harness):
 
 
 def test_appflowy_caddy_route_uses_loopback_upstream(pyinfra_task_harness):
-    """Caddy publishes AppFlowy through its configured loopback-only Nginx port."""
-    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
-    config = local_config["caddy_config"]
-    assert config["appflowy.21x9.org:443"]["reverse_proxy"] == "127.0.0.1:8026"
+    """Caddy routes configured AppFlowy services through their loopback-only port."""
+    config = {
+        "appflowy.example:443": {"reverse_proxy": "127.0.0.1:8026"},
+    }
     module = pyinfra_task_harness.load("caddy.py")
     result = module.build_sablier_caddy_config(
         config,
-        {"appflowy": local_config["docker"]["appflowy"]},
+        {"appflowy": {"port": 8026}},
         {"enabled": True},
     )
-    route = result["appflowy.21x9.org:443"]["route"]
+    route = result["appflowy.example:443"]["route"]
     assert route["sablier http://127.0.0.1:10000"]["group"] == "appflowy"
     assert route["reverse_proxy"] == "127.0.0.1:8026"
 

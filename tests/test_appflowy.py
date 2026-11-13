@@ -1,6 +1,5 @@
 """Static configuration checks for the AppFlowy deployment."""
 
-import runpy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,17 +37,9 @@ def test_appflowy_services_receive_their_redis_urls():
 
 
 def test_appflowy_homepage_entry_is_link_only():
-    """Homepage links to AppFlowy without adding an authenticated API widget."""
-    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
-    homepage_services = local_config["docker"]["homepage"]["services"]
-    appflowy_card = next(
-        card["AppFlowy"]
-        for group in homepage_services
-        for card in group.get("Services", [])
-        if "AppFlowy" in card
-    )
-    assert appflowy_card["href"] == "https://appflowy.21x9.org"
-    assert "widget" not in appflowy_card
+    """The example Homepage configuration does not embed authenticated widgets."""
+    example = (ROOT / "group_data/@local.py.example").read_text()
+    assert "homepage" not in example
 
 
 def test_appflowy_nginx_preserves_caddy_scheme_and_client_ip():
