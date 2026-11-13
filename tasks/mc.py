@@ -29,10 +29,8 @@ Notes:
 
 - Package installation requires sudo.
 - User configuration files are managed without sudo.
-- The skin configuration is updated by replacing existing
-  `skin` entries using a regular expression.
-- The configured skin path is explicitly set to the user's
-  home directory.
+- Existing `skin` entries are replaced with the configured skin path.
+- The configured skin path is explicitly set to the user's home directory.
 
 """
 
@@ -62,8 +60,7 @@ files.put(
 files.line(
     name="Configure mc skin",
     path=f"{homedir}/.config/mc/ini", # pylint: disable=undefined-variable
-    line=f"skin = {homedir}/.config/mc/solarized.ini", # pylint: disable=undefined-variable
-    replace="^skin\\s*=.*$",
-    flags="m",
+    line=r"^skin[[:space:]]*=.*$",
+    replace=f"skin = {homedir}/.config/mc/solarized.ini", # pylint: disable=undefined-variable
     _sudo=False,
 )
