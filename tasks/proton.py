@@ -11,7 +11,7 @@ APT repository configuration is managed by tasks/apt.py.
 
 from pyinfra import host
 from common import command_output
-from pyinfra.operations import apt, server
+from pyinfra.operations import apt, files, server
 
 proton = host.data.get("proton", {})
 
@@ -107,16 +107,32 @@ if install_drive_cli:
         ],
     )
 
-    installed_drive_cli = command_output(
-        host, "test -x /usr/local/bin/proton-drive && echo installed || true"
-    )
+    version_file = "/usr/local/share/proton-drive/version"
+    installed_drive_cli_version = command_output(
+        host,
+        "if [ -x /usr/local/bin/proton-drive ] && "
+        f"[ -f {version_file} ]; then cat {version_file}; else printf missing; fi",
+    ).strip()
 
-    if "installed" not in (installed_drive_cli or "").splitlines():
-        server.shell(
-            name="Install Proton Drive CLI",
-            commands=[
-                f"curl -fsSL '{drive_cli_url}' -o /tmp/proton-drive",
-                "install -m 0755 /tmp/proton-drive /usr/local/bin/proton-drive",
-                "rm -f /tmp/proton-drive",
-            ],
-        )
+    # Track the version installed by this task. A missing binary or a changed
+    # requested version triggers one download; matching versions are untouched.
+    files.directory(
+        name="Create Proton Drive CLI version directory",
+        path="/usr/local/share/proton-drive",
+        user="root",
+        group="root",
+        mode="755",
+        _sudo=True,
+    )
+    server.shell(
+        name="Install Proton Drive CLI",
+        commands=[
+            "set -eu; "
+            f"curl -fsSL '{drive_cli_url}' -o /tmp/proton-drive; "
+            "install -m 0755 /tmp/proton-drive /usr/local/bin/proton-drive; "
+            f"printf '%s\\n' '{drive_cli_version}' > {version_file}; "
+            "rm -f /tmp/proton-drive"
+        ],
+        _sudo=True,
+        _if=lambda: installed_drive_cli_version != drive_cli_version,
+    )
