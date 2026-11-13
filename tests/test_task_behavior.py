@@ -216,14 +216,14 @@ def test_vscodium_fact_quotes_user_and_normalizes_installed_ids(
 
 
 def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("cosmic/config.py", {
-        "cosmic": {"enabled": False}
+    module = pyinfra_task_harness.load("workstation/cosmic/config.py", {
+        "workstation": {"cosmic": {"enabled": False}}
     })
     module.deploy_cosmic_values("dock", {"config.ron": "value"})
     assert not pyinfra_task_harness.calls
 
-    module = pyinfra_task_harness.load("cosmic/config.py", {
-        "cosmic": {"enabled": True},
+    module = pyinfra_task_harness.load("workstation/cosmic/config.py", {
+        "workstation": {"cosmic": {"enabled": True}},
         "homedir": "/home/tester",
         "username": "tester",
     })

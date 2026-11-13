@@ -85,4 +85,3 @@ def test_helper_is_silent_when_limusic_is_not_available(tmp_path):
 
     assert result.returncode == 0
     assert result.stdout == ""
-}

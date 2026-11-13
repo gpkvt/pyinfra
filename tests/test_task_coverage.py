@@ -162,7 +162,7 @@ def test_dispatchers_include_child_task_modules():
 )
 def test_every_task_module_evaluates_in_a_pyinfra_context(
     pyinfra_task_harness, monkeypatch, relative_path
-):
+):  # pylint: disable=R0912
     """Evaluate every deployable module, including nested service tasks."""
     module_path = relative_path.removeprefix("tasks/")
     calls_before = len(pyinfra_task_harness.calls)
@@ -230,17 +230,32 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                 "caddy_config": {"ci.invalid": {"respond": "CI"}},
                 "docker": {"ci-smoke": {"app_services": ["smoke"]}},
                 "docker_sablier": {"enabled": False},
+                "dehydrated_domains": [["ci.invalid"]],
+                "username": "tester",
+                "usergroup": "tester",
+                "homedir": "/home/tester",
             }
         elif relative_path.startswith("tasks/workstation/cosmic/"):
-            monkeypatch.delitem(sys.modules, "tasks.cosmic.config", raising=False)
+            monkeypatch.delitem(sys.modules, "tasks.workstation.cosmic.config", raising=False)
             data = {
-                "cosmic": {
-                    "enabled": True,
-                    "appearance": {"enabled": True},
-                    "dock": {"enabled": True},
-                    "panel": {"enabled": True},
-                    "workspaces": {"enabled": True, "ron": "[]"},
-                }
+                "workstation": {
+                    "cosmic": {
+                        "enabled": True,
+                        "appearance": {"enabled": True},
+                        "window_management": {"enabled": True, "autotile": False},
+                        "input": {"enabled": True, "default": "()"},
+                        "shortcuts": {"enabled": True, "ron": "{}"},
+                        "dock": {"enabled": True},
+                        "panel": {"enabled": True},
+                        "workspaces": {"enabled": True, "ron": "[]"},
+                        "config_files": {
+                            "custom": {"src": "files", "dest": ".config/cosmic/custom"}
+                        },
+                    }
+                },
+                "username": "tester",
+                "usergroup": "tester",
+                "homedir": "/home/tester",
             }
         elif relative_path == "tasks/cron.py":
             data = {
@@ -264,6 +279,25 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                     "flatpak": False,
                     "drive_cli": True,
                 }
+            }
+        elif relative_path == "tasks/docker_sablier.py":
+            data = {"docker_sablier": {"enabled": True}}
+        elif relative_path == "tasks/hosts.py":
+            data = {"hostnames": {"127.0.0.1": ["localhost"]}}
+        elif relative_path == "tasks/ssh_keys.py":
+            data = {
+                "username": "tester",
+                "usergroup": "tester",
+                "ssh_authorized_keys": {
+                    "tester": ["ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITestFixture ci"]
+                },
+            }
+        elif relative_path == "tasks/sudo.py":
+            data = {"sudoers_rules": ["tester ALL=(ALL) NOPASSWD: /usr/bin/true"]}
+        elif relative_path == "tasks/vscodium.py":
+            data = {
+                "username": "tester",
+                "vscodium": {"extensions": ["Vendor.Extension"]},
             }
         elif relative_path.startswith("tasks/workstation/"):
             feature = Path(relative_path).stem

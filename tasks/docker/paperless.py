@@ -7,6 +7,8 @@ host data directories (defaults to 1000:1000). PostgreSQL's data directory is
 owned by the postgres:alpine container user (70:70).
 """
 
+import builtins
+
 from pyinfra import host
 from pyinfra.operations import files
 from tasks.docker import deploy_docker_service, ensure_numeric_directory
@@ -17,18 +19,19 @@ if not paperless_secrets.get("postgres_password") or not paperless_secrets.get("
     raise ValueError("Paperless-ngx requires docker.paperless.postgres_password and docker.paperless.secret_key in encrypted secrets")
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
+homedir = getattr(builtins, "homedir", host.data.get("homedir", f"/home/{username}"))
 uid = int(paperless.get("uid", 1000))
 gid = int(paperless.get("gid", 1000))
 
 # PostgreSQL 17 Alpine runs as UID/GID 70:70.
 ensure_numeric_directory(
-    f"{homedir}/.docker/paperless/postgres", 70, 70, "700"  # pylint: disable=E0602
+    f"{homedir}/.docker/paperless/postgres", 70, 70, "700"
 )
 
 # Paperless application storage.
 for directory in ("data", "media", "consume", "export"):
     ensure_numeric_directory(
-        f"{homedir}/.docker/paperless/{directory}", uid, gid, "750"  # pylint: disable=E0602
+        f"{homedir}/.docker/paperless/{directory}", uid, gid, "750"
     )
 
 # Expose the consume directory at a convenient, non-hidden host path.
@@ -46,7 +49,7 @@ files.link(
 deploy_docker_service(
     service="paperless",
     description="Paperless-ngx Document Management",
-    homedir=homedir,  # pylint: disable=undefined-variable
+    homedir=homedir,
     username=username,
     usergroup=usergroup,
     image=paperless.get("image", "ghcr.io/paperless-ngx/paperless-ngx:latest"),

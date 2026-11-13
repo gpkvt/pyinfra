@@ -86,6 +86,7 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
             "packages": ["xdg-utils", "xdg-user-dirs"],
         },
         "maintenance": {"enabled": True},
+        "cosmic": {"enabled": False},
     }
 
 
@@ -307,7 +308,10 @@ def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harn
         {"addr_info": [{"family": "inet", "local": "192.168.42.25"}]},
     ])])
     pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (True, output)
-    pyinfra_task_harness.load("vpn.py")
+    pyinfra_task_harness.load("vpn.py", {
+        "local_network_cidr": "192.168.42.0/24",
+        "wireguard_interface": "home",
+    })
     service_calls = [
         call for call in pyinfra_task_harness.calls
         if call[0] == "server" and call[1] == "service"
@@ -479,11 +483,11 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
 def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
-        ["21x9.org", "*.21x9.org"],
-        ["example.com", "www.example.com", "api.example.com"],
+        ["example.com", "*.example.com"],
+        ["other.example.com", "www.other.example.com", "api.other.example.com"],
     ]) == [
-        "21x9.org *.21x9.org",
-        "example.com www.example.com api.example.com",
+        "example.com *.example.com",
+        "other.example.com www.other.example.com api.other.example.com",
     ]
 
 
@@ -874,6 +878,7 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     docker_module.ensure_numeric_directory = lambda *_args, **_kwargs: None
     monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
     pyinfra_task_harness.load("docker/appflowy.py", {
+        "username": "gpkvt",
         "docker": {"appflowy": {}},
     })
     env_uploads = [

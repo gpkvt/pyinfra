@@ -209,14 +209,14 @@ def test_resolve_sync_settings_reads_linkwarden_api_key_from_secrets(loaded_modu
 
 def test_resolve_sync_settings_supports_homepage_environment_fallback(loaded_module):
     config = {"docker": {
-        "linkwarden": {},
+        "linkwarden": {"domain": "linkwarden.example.com"},
         "homepage": {"bookmarks": []},
     }}
     secret_data = {"docker": {"homepage": {"environment": {
         "HOMEPAGE_VAR_LINKWARDEN_API_KEY": "homepage-token"
     }}}}
     assert loaded_module.resolve_sync_settings(config, secret_data) == (
-        "linkwarden.21x9.org", "homepage-token"
+        "linkwarden.example.com", "homepage-token"
     )
 
 
@@ -673,7 +673,7 @@ def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
         loaded_module.runpy, "run_path",
         lambda _path: {
             "docker": {
-                "linkwarden": {"blacklist": ["blocked"]},
+                "linkwarden": {"domain": "linkwarden.example.com", "blacklist": ["blocked"]},
                 "homepage": {"services": [{"Services": []}]},
             }
         },
@@ -695,7 +695,7 @@ def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
 
     assert len(calls) == 1
     args, kwargs = calls[0]
-    assert args[2:] == ("linkwarden.21x9.org", "local-token")
+    assert args[2:] == ("linkwarden.example.com", "local-token")
     assert kwargs["dry_run"] is True
     assert kwargs["blacklist"] == ["blocked"]
 
