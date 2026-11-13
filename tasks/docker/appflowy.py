@@ -119,6 +119,7 @@ deploy_docker_service(
     service="appflowy",
     description="AppFlowy Self-Hosted",
     homedir=homedir,
+    compose_services=["nginx","minio","postgres","redis","gotrue","appflowy_cloud","admin_frontend","ai","appflowy_worker","appflowy_search","appflowy_web"],
     username=username,
     usergroup=usergroup,
     restart_if=[env_file, nginx_config],
