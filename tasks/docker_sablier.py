@@ -1,7 +1,6 @@
 """Deploy Sablier as a Docker service using the Docker provider."""
 
 from pyinfra import host
-from pyinfra.facts.server import Command
 from common import command_output
 from pyinfra.operations import files, server
 
