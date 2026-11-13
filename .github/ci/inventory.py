@@ -53,6 +53,7 @@ ci = [("@local", {
         },
     },
     "docker_sablier": {"enabled": False},
+    "docker_power_monitor": False,
     "caddy_config": {},
     "apparmor_profiles": {},
     "cosmic": {},
