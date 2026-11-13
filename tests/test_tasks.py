@@ -86,6 +86,7 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
             "packages": ["xdg-utils", "xdg-user-dirs"],
         },
         "maintenance": {"enabled": True},
+        "cosmic": {"enabled": False},
     }
 
 
@@ -874,6 +875,7 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     docker_module.ensure_numeric_directory = lambda *_args, **_kwargs: None
     monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
     pyinfra_task_harness.load("docker/appflowy.py", {
+        "username": "gpkvt",
         "docker": {"appflowy": {}},
     })
     env_uploads = [
