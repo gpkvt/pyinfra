@@ -79,6 +79,17 @@ files.directory(
     mode="750",
 )
 
+# Homepage loads custom.css directly from its config directory. Keep the
+# bookmark-group sizing in CSS because settings.layout does not control it.
+homepage_custom_css = files.put(
+    name="Deploy Homepage custom CSS",
+    src="files/homepage/custom.css",
+    dest=f"{homedir}/.docker/homepage/config/custom.css",  # pylint: disable=undefined-variable
+    user=username,
+    group=usergroup,
+    mode="640",
+)
+
 for config_name, filename in config_files.items():
     config = homepage.get(config_name)
     if config is not None:
@@ -150,7 +161,7 @@ deploy_docker_service(
     homedir=homedir,  # pylint: disable=undefined-variable
     username=username,
     usergroup=usergroup,
-    restart_if=homepage_icons,
+    restart_if=[homepage_icons, homepage_custom_css],
     image=homepage.get("image", "ghcr.io/gethomepage/homepage:latest"),
     port=homepage.get("port", 8020),
     domain=homepage.get("domain", "homepage.21x9.org"),
