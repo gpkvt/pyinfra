@@ -48,10 +48,14 @@ def test_flatpak_remote_selection_rejects_unavailable_applications(
 def test_flatpak_task_installs_duplicate_refs_from_flathub(pyinfra_task_harness):
     """The task passes an explicit Flathub remote to avoid ambiguous installs."""
     pyinfra_task_harness.host.data["flatpak_packages"] = ["app.one"]
+    fact_commands = []
+
     def get_fact(fact, *args, **kwargs):
+        command = kwargs.get("command", "")
+        if command:
+            fact_commands.append(command)
         if fact.__name__ == "FlatpakRemotes":
             return ["flathub", "other"]
-        command = kwargs.get("command", "")
         if command == "flatpak list --user --app --columns=application":
             return []
         if command.endswith(" flathub"):
@@ -71,6 +75,14 @@ def test_flatpak_task_installs_duplicate_refs_from_flathub(pyinfra_task_harness)
     assert installs[0]["packages"] == ["app.one"]
     assert installs[0]["remote"] == "flathub"
     assert installs[0]["user"] is True
+    assert (
+        "flatpak remote-ls --user --app --columns=application flathub"
+        in fact_commands
+    )
+    assert (
+        "flatpak remote-ls --user --app --columns=application other"
+        in fact_commands
+    )
 
 
 def test_flatpak_task_skips_already_installed_applications(pyinfra_task_harness):

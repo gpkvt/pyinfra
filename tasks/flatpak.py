@@ -75,7 +75,7 @@ if flatpak_packages:
         available_by_remote[remote] = set(host.get_fact(
             Command,
             command=(
-                "flatpak remote-ls --app --columns=application "
+                "flatpak remote-ls --user --app --columns=application "
                 f"{shlex.quote(remote)}"
             ),
             _sudo=False,
@@ -142,7 +142,7 @@ def uninstall_unused_packages():
         """
         before=$(flatpak list --user --all --columns=application,arch,branch,installation | sort)
         flatpak uninstall --user --unused --noninteractive --assumeyes
-        after=$(flatpak list --all --columns=application,arch,branch,installation | sort)
+        after=$(flatpak list --user --all --columns=application,arch,branch,installation | sort)
         if [ "$before" = "$after" ]; then
             echo UNCHANGED
         else
