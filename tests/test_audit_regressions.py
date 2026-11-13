@@ -124,7 +124,7 @@ def test_timetagger_rejects_missing_credentials(pyinfra_task_harness, monkeypatc
         })
 
 def test_system_timezone_skips_equivalent_zoneinfo_alias(pyinfra_task_harness):
-    def get_fact(fact, command=None, **_kwargs):
+    def get_fact(fact, _command=None, **_kwargs):
         if fact.__name__ == "Timezone":
             return "Etc/UTC"
         if fact.__name__ == "Command":
