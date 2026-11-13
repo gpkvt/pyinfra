@@ -930,6 +930,40 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     assert observed[-2:] == triggers
 
 
+def test_docker_service_uses_configured_compose_services_on_first_deployment(
+    pyinfra_task_harness,
+):
+    """Static Compose services avoid querying a file not yet deployed."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": True},
+    })
+    commands = []
+    def get_fact(_fact, command="", **_kwargs):
+        commands.append(command)
+        if command.startswith("id -u"):
+            return "1000"
+        if "is-active custom" in command:
+            return "active"
+        if "docker inspect" in command:
+            return "match"
+        raise AssertionError("Unexpected fact during first deployment: " + command)
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service(
+        "custom",
+        "Custom",
+        "/home/tester",
+        compose_services=["worker", "web", "database"],
+    )
+    assert not any("config --services" in command for command in commands)
+    override_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("src") == "templates/docker/sablier-override.yml.j2"
+    )
+    assert override_call["sablier_services"] == ["database", "web", "worker"]
+
+
 def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     pyinfra_task_harness, monkeypatch,
 ):
