@@ -1352,7 +1352,7 @@ flatpak_packages = [
   "com.github.d4nj1.tlpui",
   "com.github.donadigo.appeditor",
   "com.github.hmrdsmoke.void-watcher",
-  "com.github.phase1geo.minder",
+  "io.github.phase1geo.minder",
   "com.github.tchx84.Flatseal",
   "com.github.wwmm.easyeffects",
   "com.obsproject.Studio",
