@@ -65,6 +65,7 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
     assert data["zsh"] is False
     assert data["powerline"] is False
     assert data["docker"] == {}
+    assert data["ssh_authorized_keys"] == {}
     assert all(
         not options["enabled"]
         for options in data["workstation"].values()
