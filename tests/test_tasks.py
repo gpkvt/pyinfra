@@ -968,5 +968,3 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
         and kwargs.get("dest", "").endswith("/appflowy/.env")
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
-
-
