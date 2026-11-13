@@ -101,6 +101,24 @@ def test_tmux_plugin_commands_run_after_package_installation(pyinfra_task_harnes
     assert "update_plugins all" in command
 
 
+def test_mc_skin_line_replaces_existing_skin_setting(pyinfra_task_harness):
+    """The mc skin task matches the existing setting and replaces it with one stable line."""
+    pyinfra_task_harness.load("mc.py", {
+        "username": "tester",
+        "usergroup": "tester",
+    })
+    skin_call = next(
+        call for call in pyinfra_task_harness.calls
+        if call[0] == "files" and call[1] == "line"
+        and call[2].get("name") == "Configure mc skin"
+    )
+    assert skin_call[2]["line"] == r"^skin[[:space:]]*=.*$"
+    assert skin_call[2]["replace"] == (
+        "skin = /home/tester/.config/mc/solarized.ini"
+    )
+    assert "flags" not in skin_call[2]
+
+
 def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
     pyinfra_task_harness.load("hosts.py", {
         "hostnames": {"192.0.2.10": "example.test alias.test"},
