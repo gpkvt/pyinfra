@@ -1035,3 +1035,45 @@ def test_udev_reload_uses_execute_phase_change_detection(pyinfra_task_harness):
     assert reload["_if"]() is False
     pyinfra_task_harness.result.changed = True
     assert reload["_if"]() is True
+
+
+def test_proton_drive_cli_skips_install_when_requested_version_is_current(
+    pyinfra_task_harness,
+):
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, command, **_kwargs: "9.8.7"
+        if "/usr/local/share/proton-drive/version" in command
+        else ""
+    )
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "9.8.7",
+        },
+    })
+
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Proton Drive CLI"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_proton_drive_cli_rejects_invalid_version(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="Invalid Proton Drive CLI version"):
+        pyinfra_task_harness.load("proton.py", {
+            "proton": {
+                "mail": False,
+                "bridge": False,
+                "vpn": False,
+                "pass": False,
+                "flatpak": False,
+                "drive_cli": True,
+                "drive_cli_version": "0.9.0; touch /tmp/pwned",
+            },
+        })
