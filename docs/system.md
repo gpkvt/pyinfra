@@ -32,7 +32,7 @@ locale = "en_US.UTF-8"
 # Set to None to skip locale management.
 ```
 
-The task checks `/etc/default/locale`, enables the requested locale when necessary, and maintains the `LANG` setting. The configured locale must use UTF-8 encoding. The custom `SystemLocale` fact is used to inspect the current setting.
+The task checks `/etc/default/locale`, enables the requested locale when necessary, and maintains the `LANG` setting. The configured locale must use UTF-8 encoding. The custom `SystemLocale` fact inspects the current setting; timezone comparison uses pyinfra's built-in `server.Timezone` fact.
 
 ## Default editors
 
