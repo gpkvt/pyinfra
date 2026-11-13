@@ -50,7 +50,30 @@ jobs:
           import json
           from pathlib import Path
 
-          payload = json.loads(Path("second-run.json").read_text())
+          raw_output = Path("second-run.json").read_text()
+          decoder = json.JSONDecoder()
+          json_start = raw_output.find("{")
+
+          if json_start < 0:
+              raise SystemExit(
+                  "pyinfra did not emit a JSON result object; "
+                  f"stdout begins with {raw_output[:200]!r}"
+              )
+
+          try:
+              payload, json_end = decoder.raw_decode(raw_output, json_start)
+          except json.JSONDecodeError as error:
+              raise SystemExit(
+                  "Could not parse pyinfra JSON results; "
+                  f"stdout begins with {raw_output[:200]!r}"
+              ) from error
+
+          if raw_output[json_start + json_end:].strip():
+              raise SystemExit(
+                  "Unexpected trailing output after pyinfra JSON results: "
+                  f"{raw_output[json_start + json_end:][:200]!r}"
+              )
+
           results = payload.get("results")
           if not isinstance(results, dict):
               raise SystemExit("pyinfra did not return deployment results")
