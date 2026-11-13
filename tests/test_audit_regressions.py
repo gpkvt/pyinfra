@@ -1,6 +1,8 @@
 """Regression tests for pyinfra API use and task idempotency."""
 
 import builtins
+import json
+from pathlib import Path
 import sys
 import types
 
@@ -172,3 +174,10 @@ def test_powerline_fonts_extract_and_refresh_only_after_archive_changes(
     pyinfra_task_harness.result.changed = True
     assert install["_if"]() is True
     assert refresh["_if"]() is True
+
+
+def test_encrypted_secrets_example_is_valid_json_and_documents_timetagger():
+    example = Path(__file__).resolve().parents[1] / "secrets.json.gpg.example"
+    secrets = json.loads(example.read_text(encoding="utf-8"))
+
+    assert secrets["hosts"]["@local"]["docker"]["timetagger"]["credentials"]
