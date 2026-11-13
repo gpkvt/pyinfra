@@ -20,7 +20,7 @@ The repository is primarily designed around Debian/Ubuntu systems and includes b
 | Base system | APT repositories and packages, hostname, timezone, locale, keyboard, editors, sysctl and udev |
 | Access and security | SSH keys and client configuration, sudoers rules, AppArmor profiles, USBGuard, UFW |
 | Networking | WireGuard configuration and conditional VPN activation based on local-network detection |
-| Services | Docker Compose applications including Homepage, Linkwarden, Paperless-ngx, Firefly III with FinTS import, Snipe-IT and WG-Easy; Caddy and Sablier containers for on-demand startup, with Hetzner DNS-01 certificates managed by Dehydrated; Syncthing file synchronization |
+| Services | Docker Compose applications including AppFlowy, Homepage, Linkwarden, Paperless-ngx, Firefly III with FinTS import, Snipe-IT and WG-Easy; Caddy and Sablier containers for on-demand startup, with Hetzner DNS-01 certificates managed by Dehydrated; Syncthing file synchronization |
 | Desktop | Flatpak applications, COSMIC settings, fonts, VSCodium extensions, Proton applications, optional workstation desktop utilities |
 | Workstation maintenance | Backup tools and Borgmatic config, power management, firmware/microcode tools, storage health utilities, optional printer/scanner support and maintenance tools |
 | User environment | Zsh, tmux, Powerline, Git, Midnight Commander, scripts and dotfiles |
