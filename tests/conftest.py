@@ -182,7 +182,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     api.operation = operation_decorator
     api.deploy = decorator_factory
     operations = types.ModuleType("pyinfra.operations")
-    for namespace in ("apt", "files", "server", "systemd", "flatpak"):
+    for namespace in ("apt", "files", "server", "systemd", "flatpak", "crontab"):
         module = types.ModuleType(f"pyinfra.operations.{namespace}")
         names = {
             "apt": ("packages", "update", "upgrade"),
@@ -196,6 +196,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             ),
             "systemd": ("service",),
             "flatpak": ("packages",),
+            "crontab": ("crontab",),
         }[namespace]
         for name in names:
             setattr(module, name, make_operation(namespace, name))
