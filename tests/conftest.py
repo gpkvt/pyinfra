@@ -223,6 +223,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     pyinfra.facts.files = facts_files
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
+    facts_server.Timezone = type("Timezone", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.api", api),
