@@ -38,6 +38,46 @@ def test_fetch_links_follows_cursor_and_rejects_repeated_cursor(loaded_module, m
     ]
 
 
+def test_format_link_listing_includes_ids_categories_titles_and_urls(loaded_module):
+    links = [
+        {
+            "id": 123,
+            "name": "Example documentation",
+            "url": "https://example.com/docs",
+            "collection": {"name": "Reading"},
+        },
+        {
+            "id": "456",
+            "url": "https://example.org",
+            "collection": None,
+        },
+    ]
+    assert loaded_module.format_link_listing(links) == (
+        "ID\\tCATEGORY\\tTITLE\\tURL\\n"
+        "123\\tReading\\tExample documentation\\thttps://example.com/docs\\n"
+        "456\\tUnorganized\\thttps://example.org\\thttps://example.org"
+    )
+
+
+def test_format_link_listing_rejects_link_without_id(loaded_module):
+    with pytest.raises(RuntimeError, match="without an ID"):
+        loaded_module.format_link_listing([{"name": "Missing ID"}])
+
+
+def test_list_links_fetches_all_links_without_sync_side_effects(loaded_module, monkeypatch):
+    links = [{"id": 7, "name": "Example", "url": "https://example.com"}]
+    calls = []
+    monkeypatch.setattr(
+        loaded_module, "fetch_links",
+        lambda base_url, token: calls.append((base_url, token)) or links,
+    )
+    assert loaded_module.list_links("https://links.example", "token") == (
+        "ID\\tCATEGORY\\tTITLE\\tURL\\n"
+        "7\\tUnorganized\\tExample\\thttps://example.com"
+    )
+    assert calls == [("https://links.example", "token")]
+
+
 def test_fetch_links_rejects_incomplete_response(loaded_module, monkeypatch):
     monkeypatch.setattr(loaded_module, "api_json", lambda *_args: {"data": {"links": []}})
     with pytest.raises(RuntimeError, match="Unexpected"):
