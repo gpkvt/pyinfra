@@ -61,7 +61,7 @@ class CertNeedsRenewal(FactBase):
     """
 
     def process(self, output):
-        return output[-1].strip() == "true"
+        return bool(output and output[-1].strip() == "true")
 
 files.template(
     name="Configure dehydrated",
