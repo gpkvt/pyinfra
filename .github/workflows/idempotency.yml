@@ -94,6 +94,12 @@ jobs:
             --limit @local --json --yes \
             > first-run.json
 
+      - name: Verify Docker smoke container is running
+        run: |
+          container_id="$(docker compose -f "$HOME/ci-smoke/docker-compose.yml" ps -q smoke)"
+          test -n "$container_id"
+          test "$(docker inspect --format '{{.State.Running}}' "$container_id")" = "true"
+
       - name: Run deployment again and check for changes
         run: |
           pyinfra .github/ci/inventory.py deploy.py \
