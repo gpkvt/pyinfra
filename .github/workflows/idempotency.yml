@@ -180,6 +180,9 @@ jobs:
               )
 
           if changed:
+              # Preserve the operation-level result in CI logs so a failed
+              # idempotency check identifies the exact operation to fix.
+              print(json.dumps(payload, indent=2, sort_keys=True))
               raise SystemExit(
                   "Deployment is not idempotent: second run changed "
                   + str(changed)
