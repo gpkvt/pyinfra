@@ -108,7 +108,9 @@ def test_flatpak_uninstall_operation_reports_only_real_removals(
 
 
 def test_set_immutable_uses_pyinfra_file_flags(pyinfra_task_harness):
-    pyinfra_task_harness.load("git.py")
+    module = pyinfra_task_harness.load("git.py")
+    module.set_immutable("/home/tester/.git-credentials", False)
+    module.set_immutable("/home/tester/.git-credentials", True)
     calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "flags"
