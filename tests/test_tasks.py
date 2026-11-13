@@ -54,6 +54,35 @@ def test_apt_update_helper_forces_update_when_repository_changed(pyinfra_task_ha
     assert any(call[2].get("cache_time") == 14400 for call in apt_updates)
 
 
+def test_tmux_plugin_commands_run_after_package_installation(pyinfra_task_harness):
+    """Plugin scripts are invoked as operations after their package is installed."""
+    pyinfra_task_harness.load("tmux.py", {
+        "tmux": True,
+        "username": "tester",
+        "usergroup": "tester",
+    })
+
+    package_index = next(
+        index for index, call in enumerate(pyinfra_task_harness.calls)
+        if call[0] == "apt" and call[1] == "packages"
+        and "tmux-plugin-manager" in call[2]["packages"]
+    )
+    plugin_index = next(
+        index for index, call in enumerate(pyinfra_task_harness.calls)
+        if call[0] == "server" and call[1] == "shell"
+        and call[2].get("name") == "Install and update tmux plugins"
+    )
+    plugin_operation = pyinfra_task_harness.calls[plugin_index][2]
+
+    assert package_index < plugin_index
+    assert callable(plugin_operation["_if"])
+    command = plugin_operation["commands"][0]
+    assert "test -x /usr/share/tmux-plugin-manager/bin/install_plugins" in command
+    assert "test -x /usr/share/tmux-plugin-manager/bin/update_plugins" in command
+    assert "install_plugins all" in command
+    assert "update_plugins all" in command
+
+
 def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
     pyinfra_task_harness.load("hosts.py", {
         "hostnames": {"192.0.2.10": "example.test alias.test"},
