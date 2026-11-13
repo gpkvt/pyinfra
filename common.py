@@ -14,7 +14,7 @@ from pyinfra.facts.files import File
 from pyinfra.facts.server import Which
 
 
-def command_output_text(output):
+def command_output_text(output: str | list[str] | None) -> str:
     """Normalize pyinfra Command fact output (a list of lines) to text."""
     if output is None:
         return ""
