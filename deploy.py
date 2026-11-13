@@ -87,9 +87,6 @@ if host.data.get("docker"):
 if host.data.get("apparmor_profiles") and host.data.get("apparmor_enabled", True):
     local.include("tasks/apparmor.py")
 
-if host.data.get("cosmic"):
-    local.include("tasks/cosmic/deploy.py")
-
 if host.data.get("mullvad_extensions") and host.data.get("mullvad_browser_enabled", True):
     local.include("tasks/mullvad_extensions.py")
 
@@ -111,6 +108,7 @@ for feature, task in (
     ("desktop", "desktop.py"),
     ("maintenance", "maintenance.py"),
     ("limusic", "limusic.py"),
+    ("cosmic", "cosmic/deploy.py"),
 ):
     if workstation.get(feature, {}).get("enabled", False):
         local.include(f"tasks/workstation/{task}")
