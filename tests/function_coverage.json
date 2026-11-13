@@ -165,9 +165,6 @@
   "tasks/flatpak.py:FlatpakRemotes.process": [
     "test_flatpak_facts_ignore_blank_output_lines"
   ],
-  "tasks/flatpak.py:FlatpakSystemUpdates.process": [
-    "test_flatpak_facts_ignore_blank_output_lines"
-  ],
   "tasks/flatpak.py:FlatpakUpdates.process": [
     "test_flatpak_facts_ignore_blank_output_lines"
   ],

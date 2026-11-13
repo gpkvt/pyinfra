@@ -219,7 +219,6 @@ def test_flatpak_facts_ignore_blank_output_lines(pyinfra_task_harness):
     assert module.FlatpakUpdates().process(["app.one", "", " app.two "]) == [
         "app.one", " app.two ",
     ]
-    assert module.FlatpakSystemUpdates().process([""]) == []
     assert module.FlatpakRemotes().process(["flathub", "", "other"]) == [
         "flathub", "other",
     ]

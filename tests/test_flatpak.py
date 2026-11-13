@@ -2,7 +2,6 @@
 
 import pytest
 
-from conftest import ROOT
 
 
 def load_flatpak_task(pyinfra_task_harness):
@@ -53,13 +52,13 @@ def test_flatpak_task_installs_duplicate_refs_from_flathub(pyinfra_task_harness)
         if fact.__name__ == "FlatpakRemotes":
             return ["flathub", "other"]
         command = kwargs.get("command", "")
-        if command == "flatpak list --app --columns=application":
+        if command == "flatpak list --user --app --columns=application":
             return []
         if command.endswith(" flathub"):
             return ["app.one"]
         if command.endswith(" other"):
             return ["app.one"]
-        if fact.__name__ in {"FlatpakUpdates", "FlatpakSystemUpdates"}:
+        if fact.__name__ == "FlatpakUpdates":
             return []
         return []
     pyinfra_task_harness.host.get_fact = get_fact
@@ -71,6 +70,7 @@ def test_flatpak_task_installs_duplicate_refs_from_flathub(pyinfra_task_harness)
     assert len(installs) == 1
     assert installs[0]["packages"] == ["app.one"]
     assert installs[0]["remote"] == "flathub"
+    assert installs[0]["user"] is True
 
 
 def test_flatpak_task_skips_already_installed_applications(pyinfra_task_harness):
@@ -79,7 +79,7 @@ def test_flatpak_task_skips_already_installed_applications(pyinfra_task_harness)
     def get_fact(fact, *args, **kwargs):
         if fact.__name__ == "FlatpakRemotes":
             return ["flathub"]
-        if kwargs.get("command") == "flatpak list --app --columns=application":
+        if kwargs.get("command") == "flatpak list --user --app --columns=application":
             return ["app.one"]
         if fact.__name__ in {"FlatpakUpdates", "FlatpakSystemUpdates"}:
             return []
@@ -91,3 +91,12 @@ def test_flatpak_task_skips_already_installed_applications(pyinfra_task_harness)
         for call in pyinfra_task_harness.calls
     )
 
+
+
+def test_flatpak_facts_are_user_scoped(pyinfra_task_harness):
+    """Remote discovery and update checks only inspect user installations."""
+    module = pyinfra_task_harness.load("flatpak.py")
+    assert module.FlatpakRemotes.command == "flatpak remotes --user --columns=name"
+    assert module.FlatpakUpdates.command == (
+        "flatpak remote-ls --user --updates --columns=application"
+    )

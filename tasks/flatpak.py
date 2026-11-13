@@ -22,21 +22,14 @@ flatpak_packages = host.data.get("flatpak_packages", [])
 
 class FlatpakRemotes(FactBase):
     """Return configured user Flatpak remotes."""
-    command = "flatpak remotes --columns=name"
+    command = "flatpak remotes --user --columns=name"
 
     def process(self, output):
         return [line.strip() for line in output if line.strip()]
 
 
 class FlatpakUpdates(FactBase):
-    command = "flatpak remote-ls --updates --columns=application"
-
-    def process(self, output):
-        return [line for line in output if line.strip()]
-
-
-class FlatpakSystemUpdates(FactBase):
-    command = "flatpak remote-ls --system --updates --columns=application"
+    command = "flatpak remote-ls --user --updates --columns=application"
 
     def process(self, output):
         return [line for line in output if line.strip()]
@@ -74,7 +67,7 @@ if flatpak_packages:
     remotes = host.get_fact(FlatpakRemotes, _sudo=False)
     installed = set(host.get_fact(
         Command,
-        command="flatpak list --app --columns=application",
+        command="flatpak list --user --app --columns=application",
         _sudo=False,
     ) or [])
     available_by_remote = {}
@@ -100,39 +93,24 @@ if flatpak_packages:
             name=f"Install Flatpak applications from {remote}",
             packages=packages,
             remote=remote,
+            user=True,
             _sudo=False,
         )
 
 
-# Update system-wide Flatpak runtimes.
+# Update user Flatpak applications and runtimes only.
 server.shell(
-    name="Update runtimes",
+    name="Update user Flatpak packages",
     commands=[
         """
         flock -n /tmp/flatpak-update.lock \\
-            flatpak update --system -y \\
-            || echo "Flatpak update already running. Skipping."
-        """
-    ],
-    _sudo=True,
-    _if=lambda: bool(host.get_fact(FlatpakSystemUpdates, _sudo=False)),
-)
-
-
-# Update user Flatpak applications.
-server.shell(
-    name="Update packages",
-    commands=[
-        """
-        flock -n /tmp/flatpak-update.lock \\
-            flatpak update -y \\
+            flatpak update --user -y \\
             || echo "Flatpak update already running. Skipping."
         """
     ],
     _sudo=False,
     _if=lambda: bool(host.get_fact(FlatpakUpdates, _sudo=False)),
 )
-
 
 def _output_as_text(result) -> str:
     """Normalize whatever run_shell_command returns into plain text."""
@@ -162,8 +140,8 @@ def _output_as_text(result) -> str:
 def uninstall_unused_packages():
     result = host.run_shell_command(
         """
-        before=$(flatpak list --all --columns=application,arch,branch,installation | sort)
-        flatpak uninstall --unused --noninteractive --assumeyes
+        before=$(flatpak list --user --all --columns=application,arch,branch,installation | sort)
+        flatpak uninstall --user --unused --noninteractive --assumeyes
         after=$(flatpak list --all --columns=application,arch,branch,installation | sort)
         if [ "$before" = "$after" ]; then
             echo UNCHANGED
@@ -187,14 +165,8 @@ def uninstall_unused_packages():
     yield "true"  # change already happened via run_shell_command; record it
 
 
-# Remove unused user packages.
+# Remove unused user packages and runtimes only.
 uninstall_unused_packages(
-    name="Remove unused packages",
+    name="Remove unused user Flatpak packages and runtimes",
     _sudo=False,
-)
-
-# Remove unused system runtimes.
-uninstall_unused_packages(
-    name="Remove unused runtimes",
-    _sudo=True,
 )
