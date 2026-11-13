@@ -194,6 +194,11 @@ def resolve_sync_settings(config, secret_data):
     return linkwarden.get("domain", "linkwarden.21x9.org"), token
 
 
+def select_local_secrets(secret_document, selector):
+    """Select secrets for the local inventory target, not the system hostname."""
+    return selector(secret_document, "@local")
+
+
 def main():
     """Run a manual synchronization from the repository checkout."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -210,7 +215,7 @@ def main():
         check=True, capture_output=True, text=True,
     )
     from common import select_host_secrets  # pylint: disable=import-outside-toplevel
-    secret_data = select_host_secrets(json.loads(decrypted.stdout), config["hostname"])
+    secret_data = select_local_secrets(json.loads(decrypted.stdout), select_host_secrets)
     try:
         domain, token = resolve_sync_settings(config, secret_data)
     except ValueError as error:
