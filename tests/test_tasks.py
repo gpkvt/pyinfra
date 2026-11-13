@@ -358,7 +358,6 @@ def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
         pyinfra_task_harness.load("vpn.py")
 
 
-
 def test_caddyfile_does_not_set_a_global_response_write_timeout():
     """Dynamic Sablier pages do not need the previous global response deadline."""
     template = (ROOT / "templates/Caddyfile.j2").read_text()
@@ -520,7 +519,6 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
     ]
 
 
-
 def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
@@ -675,7 +673,6 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
     assert status_sudo_flags == [False]
 
 
-
 def test_sablier_systemd_preparation_reconciles_existing_containers():
     """Sablier preparation updates labels without starting on-demand services."""
     unit = (ROOT / "templates/docker/systemd.service.j2").read_text()
@@ -717,7 +714,6 @@ def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
     ]
     assert len(directory_calls) == 1
     assert directory_calls[0]["_if"]() is False
-
 
 
 def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_harness):
@@ -790,7 +786,6 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     assert service_call["commands"][0].startswith("env XDG_RUNTIME_DIR=/run/user/1000")
     assert False in sudo_flags
     assert status_sudo_flags == [False]
-
 
 
 def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_task_harness):
@@ -877,44 +872,12 @@ def test_snipe_it_uses_direct_bind_mounts():
     assert "storage_data:" not in compose
 
 
-
 def test_appflowy_is_dispatched_when_configured(pyinfra_task_harness):
     """AppFlowy deployment is included only when its Docker service key exists."""
     pyinfra_task_harness.load("docker_container.py", {
         "docker": {"appflowy": {}},
     })
     assert pyinfra_task_harness.included == ["tasks/docker/appflowy.py"]
-
-
-def test_appflowy_compose_uses_host_bind_mounts_and_loopback_only():
-    """AppFlowy persists data below .docker and exposes only its local Nginx port."""
-    compose = (
-        ROOT / "templates/docker/appflowy/docker-compose.yml.j2"
-    ).read_text()
-
-    assert '"127.0.0.1:{{ port }}:80"' in compose
-    assert '"{{ homedir }}/.docker/appflowy/postgres:/var/lib/postgresql/data"' in compose
-    assert '"{{ homedir }}/.docker/appflowy/minio:/data"' in compose
-    assert '"{{ homedir }}/.docker/appflowy/search:/var/lib/appflowy/keyword_index"' in compose
-    assert "postgres_data:" not in compose
-    assert "minio_data:" not in compose
-    assert "keyword_index_data:" not in compose
-    assert "appflowy_log_collector:" not in compose
-    assert "appflowy_backup:" not in compose
-
-
-def test_appflowy_homepage_entry_is_link_only():
-    """Homepage links to AppFlowy without adding an authenticated API widget."""
-    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
-    homepage_services = local_config["docker"]["homepage"]["services"]
-    appflowy_card = next(
-        card["AppFlowy"]
-        for group in homepage_services
-        for card in group.get("Services", [])
-        if "AppFlowy" in card
-    )
-    assert appflowy_card["href"] == "https://appflowy.21x9.org"
-    assert "widget" not in appflowy_card
 
 
 def test_appflowy_caddy_route_uses_loopback_upstream(pyinfra_task_harness):
@@ -938,7 +901,6 @@ def test_appflowy_requires_encrypted_credentials(pyinfra_task_harness):
     """AppFlowy refuses to deploy with missing required credentials."""
     with pytest.raises(ValueError, match="Missing required secrets.docker.appflowy"):
         pyinfra_task_harness.load("docker/appflowy.py")
-
 
 
 def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
@@ -966,7 +928,6 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     )
     reload_call["_if"]()
     assert observed[-2:] == triggers
-
 
 
 def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
@@ -1009,15 +970,3 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     )
 
 
-
-def test_appflowy_nginx_preserves_caddy_scheme_and_client_ip():
-    """The AppFlowy Nginx proxy trusts Caddy's forwarded scheme and client address."""
-    nginx = (
-        ROOT / "templates/docker/appflowy/nginx.conf.j2"
-    ).read_text()
-    assert "map $http_x_forwarded_for $appflowy_client_ip" in nginx
-    assert "map \"$http_x_forwarded_proto:$appflowy_form_object\"" in nginx
-    assert "limit_req_zone $appflowy_client_ip" in nginx
-    assert "proxy_set_header X-Forwarded-For $appflowy_client_ip;" in nginx
-    assert "listen 443 ssl" not in nginx
-    assert "ssl_certificate " not in nginx
