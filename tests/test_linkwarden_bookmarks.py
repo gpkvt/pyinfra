@@ -128,10 +128,10 @@ def test_managed_bookmark_update_requires_markers(loaded_module, tmp_path):
 def test_dry_run_does_not_download_icons_or_modify_config(loaded_module, monkeypatch, tmp_path):
     config = tmp_path / "@local.py"
     original = (
-        'bookmarks = [\\n'
-        '            # BEGIN LINKWARDEN BOOKMARKS (managed)\\n'
-        '            # END LINKWARDEN BOOKMARKS (managed)\\n'
-        '        ]\\n'
+        'bookmarks = [\n'
+        '            # BEGIN LINKWARDEN BOOKMARKS (managed)\n'
+        '            # END LINKWARDEN BOOKMARKS (managed)\n'
+        '        ]\n'
     )
     config.write_text(original, encoding="utf-8")
     monkeypatch.setattr(loaded_module, "fetch_links", lambda *_args: [
@@ -264,7 +264,8 @@ def test_collect_service_favicons_downloads_only_missing_local_icons(
     (tmp_path / "existing.png").write_bytes(b"existing")
     calls = []
 
-    def download(_base, url, _token, _destination, prefix="linkwarden", **_kwargs):
+    def download(_base, url, _token, _destination, **kwargs):
+        prefix = kwargs.get("prefix", "linkwarden")
         calls.append((url, prefix))
         return f"/icons/{prefix}-new.png"
 
@@ -370,8 +371,11 @@ def test_bookmarks_on_same_site_download_one_favicon(
 ):
     calls = []
     def download(_base, url, _token, _destination, prefix="linkwarden", icon_cache=None):
+        origin = loaded_module.favicon_origin(url)
+        if origin in icon_cache:
+            return icon_cache[origin]
         calls.append(url)
-        icon_cache[loaded_module.favicon_origin(url)] = "/icons/shared.png"
+        icon_cache[origin] = "/icons/shared.png"
         return "/icons/shared.png"
 
     monkeypatch.setattr(loaded_module, "download_favicon", download)
@@ -398,9 +402,9 @@ def test_cleanup_unused_favicons_removes_only_unreferenced_managed_icons(
     config = tmp_path / "@local.py"
     config.write_text(
         'bookmarks = [{"Reading": [{"Kept": [{"href": "https://kept.example", '
-        '"icon": "/icons/linkwarden-kept.png"}]}]}]\\n'
+        '"icon": "/icons/linkwarden-kept.png"}]}]}]\n'
         'docker = {"homepage": {"services": [{"Services": ['
-        '{"UsedService": {"icon": "/icons/homepage-used.svg"}}]}]}}\\n',
+        '{"UsedService": {"icon": "/icons/homepage-used.svg"}}]}]}}\n',
         encoding="utf-8",
     )
     icons = tmp_path / "icons"
@@ -424,7 +428,7 @@ def test_cleanup_unused_favicons_preserves_shared_icon_until_last_reference(
     config = tmp_path / "@local.py"
     config.write_text(
         'bookmarks = [{"A": [{"One": [{"icon": "/icons/linkwarden-shared.png"}]}, '
-        '{"Two": [{"icon": "/icons/linkwarden-shared.png"}]}]}]\\n',
+        '{"Two": [{"icon": "/icons/linkwarden-shared.png"}]}]}]\n',
         encoding="utf-8",
     )
     icons = tmp_path / "icons"
@@ -434,16 +438,16 @@ def test_cleanup_unused_favicons_preserves_shared_icon_until_last_reference(
 
     assert loaded_module.cleanup_unused_favicons(config, icons) is False
     config.write_text(
-        'bookmarks = [{"A": [{"Two": [{"icon": "/icons/linkwarden-shared.png"}]}]}]\\n',
+        'bookmarks = [{"A": [{"Two": [{"icon": "/icons/linkwarden-shared.png"}]}]}]\n',
         encoding="utf-8",
     )
     assert loaded_module.cleanup_unused_favicons(config, icons) is False
-    config.write_text("bookmarks = []\\n", encoding="utf-8")
+    config.write_text("bookmarks = []\n", encoding="utf-8")
     assert loaded_module.cleanup_unused_favicons(config, icons) is True
     assert not shared.exists()
 
 
 def test_cleanup_unused_favicons_handles_missing_directory(loaded_module, tmp_path):
     config = tmp_path / "@local.py"
-    config.write_text("bookmarks = []\\n", encoding="utf-8")
+    config.write_text("bookmarks = []\n", encoding="utf-8")
     assert loaded_module.cleanup_unused_favicons(config, tmp_path / "missing") is False
