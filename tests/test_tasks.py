@@ -727,7 +727,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
     status_sudo_flags = []
     def get_fact(_fact, command="", **kwargs):
         sudo_flags.append(kwargs.get("_sudo"))
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             status_sudo_flags.append(kwargs.get("_sudo"))
         if command == "id -u":
             return "0"
@@ -735,7 +735,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
             return "1000"
         if "config --services" in command:
             return "custom"
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             return "active"
         return ""
 
@@ -764,13 +764,13 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     status_sudo_flags = []
     def get_fact(_fact, command="", **kwargs):
         sudo_flags.append(kwargs.get("_sudo"))
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             status_sudo_flags.append(kwargs.get("_sudo"))
         if command in {"id -u", "id -u tester"}:
             return "1000"
         if "config --services" in command:
             return "custom"
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             return "active"
         return ""
 
@@ -915,7 +915,7 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     )
     pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
         "1000" if command.startswith("id -u")
-        else ("active" if "is-active custom" in command else "")
+        else ("active" if "show --property=ActiveState --value custom" in command else "")
     )
     triggers = [OperationResult(), OperationResult()]
     module.deploy_docker_service(
@@ -930,6 +930,39 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     assert observed[-2:] == triggers
 
 
+
+def test_docker_service_starts_when_systemd_unit_is_inactive(pyinfra_task_harness):
+    """Inactive systemd units are detected without a failing is-active fact."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
+    })
+    commands = []
+
+    def get_fact(_fact, command="", **_kwargs):
+        commands.append(command)
+        if command.startswith("id -u"):
+            return "1000"
+        if "show --property=ActiveState --value custom" in command:
+            return "inactive"
+        raise AssertionError("Unexpected fact: " + command)
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service("custom", "Custom", "/home/tester")
+
+    assert any(
+        "show --property=ActiveState --value custom" in command
+        for command in commands
+    )
+    assert not any("is-active custom" in command for command in commands)
+    service_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    assert service_call["commands"][-1].endswith("start custom")
+    assert service_call["_if"]() is True
+
 def test_docker_service_uses_configured_compose_services_on_first_deployment(
     pyinfra_task_harness,
 ):
@@ -943,7 +976,7 @@ def test_docker_service_uses_configured_compose_services_on_first_deployment(
         commands.append(command)
         if command.startswith("id -u"):
             return "1000"
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             return "active"
         if "docker inspect" in command:
             return "match"
