@@ -741,6 +741,8 @@ docker = {
                     },
                 ],
             },
+            # BEGIN LINKWARDEN BOOKMARKS (managed)
+            # END LINKWARDEN BOOKMARKS (managed)
         ],
         # Homepage services are configured as groups containing service entries.
         # Override or extend these entries here; the task renders services.yaml.

@@ -60,6 +60,10 @@ The supplied `group_data/workstation.py` enables backup, power, hardware and sto
 
 ## Feature notes
 
+### Linkwarden bookmarks in Homepage
+
+When both `docker.linkwarden` and `docker.homepage` are configured and `secrets.docker.homepage.environment.HOMEPAGE_VAR_LINKWARDEN_API_KEY` is present, `tasks/docker/linkwarden_bookmarks.py` runs on the pyinfra controller before Homepage is rendered. It retrieves the authenticated account’s paginated Linkwarden search results, groups URL bookmarks by collection, and updates only the marked managed section in `group_data/@local.py`. Favicons are stored in `files/homepage/icons/` and deployed by the existing additive Homepage icon sync. Manual bookmarks outside the managed section are preserved. Run `python tasks/docker/linkwarden_bookmarks.py --dry-run` from the repository checkout to preview the generated groups; this fetches the API data but does not download favicons or modify files. Run the same command without `--dry-run` to perform the synchronization manually. API or pagination failures abort synchronization before the managed bookmarks are changed; unavailable favicons are simply omitted. The controller therefore needs network access to the configured Linkwarden domain and write access to the repository checkout. Reuse the existing Homepage Linkwarden widget API key from the encrypted secrets file; no additional token is needed.
+
 ### GPG secret utility
 
 `tasks/scripts.py` deploys `files/scripts/gpg-vault` with the other user scripts and creates its command link. The helper provides `create`, `edit`, `view`, `encrypt`, `decrypt`, `rekey` and `status`; see [Secrets management](secrets.md). It is not invoked by `deploy.py`: `common.initialize()` remains responsible for decrypting `secrets.json.gpg` during deployment.

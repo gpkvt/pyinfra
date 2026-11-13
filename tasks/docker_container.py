@@ -35,6 +35,8 @@ if "linkwarden" in container:
     local.include("tasks/docker/linkwarden.py")
 
 if "homepage" in container:
+    if "linkwarden" in container:
+        local.include("tasks/docker/linkwarden_bookmarks.py")
     local.include("tasks/docker/homepage.py")
 
 if "appflowy" in container:
