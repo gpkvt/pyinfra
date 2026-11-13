@@ -167,3 +167,21 @@ def test_encrypted_secrets_example_is_valid_json_and_documents_timetagger():
     secrets = json.loads(example.read_text(encoding="utf-8"))
 
     assert secrets["hosts"]["@local"]["docker"]["timetagger"]["credentials"]
+
+
+def test_system_locale_uses_native_idempotent_operations(pyinfra_task_harness):
+    pyinfra_task_harness.load("system.py", {"locale": "en_GB.UTF-8"})
+
+    locale = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "locale"
+    )
+    default_locale = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Set system default locale: en_GB.UTF-8"
+    )
+
+    assert locale["locale"] == "en_GB.UTF-8"
+    assert locale["present"] is True
+    assert default_locale["src"].getvalue() == 'LANG="en_GB.UTF-8"\\n'
