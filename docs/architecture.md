@@ -67,6 +67,18 @@ Tasks are grouped by responsibility rather than by host. General tasks live dire
 - Avoid overwriting user-generated material unless that behavior is intentional and documented.
 - Be safe to run repeatedly and use pyinfra facts/conditions to minimize unnecessary changes.
 
+## Docker lifecycle
+
+Docker Compose projects, generated environment files and persistent host data live below
+\`~/.docker/<service>/\`. Each project is managed by a user-level systemd unit whose
+working directory is that service directory. Persistent data uses explicit host bind
+mounts; Docker-managed named volumes are not used.
+
+Keep Compose lifecycle commands behind the shared systemd helper. Replacing this flow
+with pyinfra's stateless \`docker.compose\` operation would bypass the user-level unit
+and Sablier preparation/restart rules. The helper instead gates image pulls,
+container reconciliation and systemd restarts on actual configuration changes.
+
 ## Templates and static assets
 
 Use `templates/` when a file needs host-specific values or secrets at render time. Use `files/` for static content. A task is responsible for choosing the destination, owner, group, mode and reload/restart behavior. See [Templates and static files](templates.md).
