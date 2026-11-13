@@ -12,6 +12,7 @@ from io import StringIO
 
 from pyinfra import host
 from pyinfra.operations import files, server
+from common import command_output_text
 
 
 config = host.data.get("workstation", {}).get("limusic", {})
@@ -47,7 +48,7 @@ if config.get("enabled", False):
             "print(json.load(urllib.request.urlopen(request, timeout=30))['tag_name'])"
         )
     )
-    latest_tag = (host.get_fact(Command, release_command) or "").strip()
+    latest_tag = command_output_text(host.get_fact(Command, release_command)).strip()
 
     if not latest_tag:
         raise RuntimeError("Could not resolve the latest stable Limusic release")
@@ -57,8 +58,8 @@ if config.get("enabled", False):
         f"[ -s {shlex.quote(icon_file)} ]; then "
         f"cat {shlex.quote(version_file)} 2>/dev/null || true; fi"
     )
-    installed_tag = (
-        host.get_fact(Command, installed_state_command) or ""
+    installed_tag = command_output_text(
+        host.get_fact(Command, installed_state_command)
     ).strip()
 
     files.directory(
@@ -196,9 +197,8 @@ atomic_write(version, (tag + "\n").encode(), 0o644)
             ],
             _sudo=True,
             _sudo_user=username,
-            _if=lambda: (
+            _if=lambda: command_output_text(
                 host.get_fact(Command, installed_state_command)
-                or ""
             ).strip() != latest_tag,
         )
 
