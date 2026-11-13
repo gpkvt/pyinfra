@@ -35,7 +35,7 @@ local_network_cidr = None
 wireguard_interface = None
 syncthing = False
 zsh = False
-tmux = False
+# tmux is enabled explicitly by .github/ci/inventory.py.
 powerline = False
 powerline_fonts = False
 ufw = False
