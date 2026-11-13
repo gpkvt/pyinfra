@@ -19,6 +19,7 @@ def install_pyinfra_fact_stubs(monkeypatch):
     server = types.ModuleType("pyinfra.facts.server")
     files.File = type("File", (), {})
     server.Which = type("Which", (), {})
+    server.Command = type("Command", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.facts", facts),
@@ -132,3 +133,26 @@ def test_select_host_secrets_rejects_invalid_sections(monkeypatch):
         common.select_host_secrets({"shared": {}, "hosts": []}, "test-host")
     with pytest.raises(ValueError, match="Invalid secrets for host"):
         common.select_host_secrets({"hosts": {"test-host": []}}, "test-host")
+
+
+def test_command_output_joins_pyinfra_fact_lines(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_command_output")
+    host = types.SimpleNamespace(
+        get_fact=lambda _fact, command, **kwargs: ["first", "second"],
+    )
+
+    assert common.command_output(host, "printf test") == "first\\nsecond"
+
+
+def test_command_output_handles_empty_and_legacy_string_results(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_command_output_shapes")
+    result = {"value": []}
+    host = types.SimpleNamespace(
+        get_fact=lambda *_args, **_kwargs: result["value"],
+    )
+
+    assert common.command_output(host, "true") == ""
+    result["value"] = "legacy output"
+    assert common.command_output(host, "printf test") == "legacy output"
