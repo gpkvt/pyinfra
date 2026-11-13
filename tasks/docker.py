@@ -197,8 +197,9 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
 
     if sablier_enabled:
-        if compose_services is None:
-            compose_services = service_options.get("sablier_services")
+        configured_compose_services = service_options.get("sablier_services")
+        if configured_compose_services is not None:
+            compose_services = configured_compose_services
 
         if compose_services is not None:
             if (
