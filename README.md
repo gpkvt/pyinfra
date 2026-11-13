@@ -94,9 +94,9 @@ The special `@local` target executes against the machine running pyinfra. It is 
 
 ### 4. Create host configuration
 
-Create or edit `group_data/<inventory-host>.py`. For the local target, the supplied file is `group_data/@local.py`.
+Create or edit `group_data/<inventory-host>.py`. For the local target, first copy `group_data/@local.py.example` to the ignored `group_data/@local.py`; for workstation role settings, copy `group_data/workstation.py.example` to the ignored `group_data/workstation.py`.
 
-At minimum, review the user identity and home directory, hostname, locale, timezone, package lists, network settings, and every optional service configuration. Inventory groups can apply shared role data: the supplied `workstation = ["@local"]` group membership loads `group_data/workstation.py` for `@local`. Remove settings that do not apply to your environment. See [Configuration](docs/configuration.md) for a categorized reference.
+At minimum, review the user identity and home directory, hostname, locale, timezone, package lists, network settings, and every optional service configuration. Inventory groups can apply shared role data: the `workstation = ["@local"]` group membership loads your local `group_data/workstation.py` for `@local`. The tracked examples are deliberately portable and disable workstation features until you opt in. See [Configuration](docs/configuration.md) for a categorized reference.
 
 ### 5. Prepare secrets (optional)
 
