@@ -41,6 +41,7 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
     module = pyinfra_task_harness.load("docker.py", {
         "username": "tester",
         "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
     })
     sudo_flags = []
     status_sudo_flags = []
