@@ -314,3 +314,20 @@ def test_zsh_task_installs_playerctl_for_hyfetch(pyinfra_task_harness):
     )
     assert hyfetch["src"] == "files/hyfetch.conf"
     assert hyfetch["dest"].endswith("/.config/neowofetch/config.conf")
+
+    helper_dir = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "directory"
+        and kwargs.get("name") == "Create Hyfetch helper directory"
+    )
+    assert helper_dir["path"].endswith("/.local/bin/")
+    assert helper_dir["mode"] == "755"
+
+    helper = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Deploy HyFetch LiMusic now-playing helper"
+    )
+    assert helper["src"] == "files/hyfetch-song"
+    assert helper["dest"].endswith("/.local/bin/hyfetch-song")
+    assert helper["mode"] == "750"
