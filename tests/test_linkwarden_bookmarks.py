@@ -83,12 +83,12 @@ def test_managed_bookmark_groups_are_top_level_and_preserve_homepage_layout(
 ):
     config = tmp_path / "@local.py"
     config.write_text(
-        'bookmarks = [\\n'
-        '    {"Existing": [{"Kept": [{"href": "https://existing.example"}]}]},\\n'
-        '    # BEGIN LINKWARDEN BOOKMARKS (managed)\\n'
-        '    # END LINKWARDEN BOOKMARKS (managed)\\n'
-        ']\\n'
-        'settings = {"layout": [{"Services": {"style": "row", "columns": 3}}]}\\n',
+        'bookmarks = [\n'
+        '    {"Existing": [{"Kept": [{"href": "https://existing.example"}]}]},\n'
+        '    # BEGIN LINKWARDEN BOOKMARKS (managed)\n'
+        '    # END LINKWARDEN BOOKMARKS (managed)\n'
+        ']\n'
+        'settings = {"layout": [{"Services": {"style": "row", "columns": 3}}]}\n',
         encoding="utf-8",
     )
     groups = [
