@@ -144,3 +144,31 @@ def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
         and kwargs["timezone"] == "UTC"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+
+def test_powerline_fonts_extract_and_refresh_only_after_archive_changes(
+    pyinfra_task_harness,
+):
+    pyinfra_task_harness.load("fonts.py")
+    extraction = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "unarchive"
+        and kwargs.get("name") == "Extract Powerline fonts"
+    )
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Powerline fonts"
+    )
+    refresh = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Refresh font cache"
+    )
+
+    assert extraction["creates"].endswith("/fonts-master/fonts")
+    assert install["_if"]() is False
+    assert refresh["_if"]() is False
+    pyinfra_task_harness.result.changed = True
+    assert install["_if"]() is True
+    assert refresh["_if"]() is True
