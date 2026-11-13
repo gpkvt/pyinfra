@@ -54,6 +54,22 @@ def test_apt_update_helper_forces_update_when_repository_changed(pyinfra_task_ha
     assert any(call[2].get("cache_time") == 14400 for call in apt_updates)
 
 
+def test_ci_inventory_runs_tmux_without_personal_workstation_features():
+    """The CI inventory explicitly tests tmux while isolating personal settings."""
+    inventory = runpy.run_path(str(ROOT / ".github/ci/inventory.py"))
+    hosts, data = inventory["ci"]
+
+    assert hosts == ["@local"]
+    assert data["tmux"] is True
+    assert data["zsh"] is False
+    assert data["powerline"] is False
+    assert data["docker"] == {}
+    assert all(
+        not options["enabled"]
+        for options in data["workstation"].values()
+    )
+
+
 def test_tmux_plugin_commands_run_after_package_installation(pyinfra_task_harness):
     """Plugin scripts are invoked as operations after their package is installed."""
     pyinfra_task_harness.load("tmux.py", {
