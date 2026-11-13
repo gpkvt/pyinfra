@@ -1,4 +1,5 @@
 """Tests for the Linkwarden-to-Homepage bookmark synchronization helpers."""
+# pylint: disable=redefined-outer-name
 import importlib.util
 import sys
 import types
