@@ -37,18 +37,6 @@ if [ -f ~/.local/share/fnm/fnm ]; then
     fnm use v23
 fi
 
-# fnm
-export PATH="/home/gpkvt/.local/share/fnm:$PATH"
-eval "`fnm env`"
-
-echo ""
-echo "Wireguard status:"
-sudo wg show
-
-echo ""
-echo "Firewall status:"
-sudo ufw status verbose
-
 # source settings
 {% for source in zshrc_imports %}
 source ~/.dotfiles/zsh/{{ source }}.zsh
