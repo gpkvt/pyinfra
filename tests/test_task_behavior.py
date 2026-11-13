@@ -686,3 +686,35 @@ def test_apt_sources_reject_non_gpg_keyring_paths(pyinfra_task_harness):
                 },
             },
         })
+
+
+def test_proton_drive_cli_reinstalls_when_binary_is_missing(pyinfra_task_harness):
+    """A stale version marker cannot hide a missing executable."""
+    def get_fact(fact, *args, **kwargs):
+        if getattr(fact, "__name__", "") == "File":
+            return False
+        command = kwargs.get("command", args[0] if args else "")
+        if (
+            getattr(fact, "__name__", "") == "Command"
+            and "proton-drive.version" in command
+        ):
+            return ["1.2.3"]
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "1.2.3",
+        },
+    })
+    assert any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Proton Drive CLI"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
