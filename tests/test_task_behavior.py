@@ -158,6 +158,52 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
     assert "/etc/apparmor.d/example" in str(commands[0])
 
 
+
+def test_udev_reload_uses_runtime_change_detection(pyinfra_task_harness, monkeypatch):
+    module = pyinfra_task_harness.load("system.py", {
+        "udev": {"99-example.rules": 'SUBSYSTEM=="example", MODE="0600"'},
+    })
+    observed = []
+    monkeypatch.setattr(
+        module, "any_changed",
+        lambda *operations: observed.extend(operations) or (lambda: True),
+    )
+    reload_op = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload udev rules"
+    )
+    assert len(observed) == 1
+    assert reload_op["_if"]() is True
+
+
+def test_usbguard_restart_is_conditional_on_configuration_changes(
+    pyinfra_task_harness, monkeypatch,
+):
+    module = pyinfra_task_harness.load("system.py", {
+        "usbguard": {"enabled": True, "rules": ["allow id 1234:5678"]},
+    })
+    changed = {"value": False}
+    monkeypatch.setattr(
+        module, "any_changed", lambda *_ops: lambda: changed["value"]
+    )
+    restart = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Enable and restart USBGuard"
+    )
+    ensure = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "service"
+        and kwargs.get("name") == "Ensure USBGuard is enabled and running"
+    )
+    assert restart["_if"]() is False
+    assert ensure["_if"]() is True
+    changed["value"] = True
+    assert restart["_if"]() is True
+    assert ensure["_if"]() is False
+
+
 def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
     module = pyinfra_task_harness.load("dehydrated.py")
     fact = module.CertNeedsRenewal()
@@ -247,7 +293,7 @@ def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harnes
     observed = []
     pyinfra_task_harness.host.get_fact = (
         lambda _fact, command, **_kwargs: observed.append(command)
-        or "1000:1000:750"
+        or ["1000:1000:750"]
     )
 
     module.ensure_numeric_directory(
