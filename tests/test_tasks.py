@@ -308,7 +308,10 @@ def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harn
         {"addr_info": [{"family": "inet", "local": "192.168.42.25"}]},
     ])])
     pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (True, output)
-    pyinfra_task_harness.load("vpn.py")
+    pyinfra_task_harness.load("vpn.py", {
+        "local_network_cidr": "192.168.42.0/24",
+        "wireguard_interface": "home",
+    })
     service_calls = [
         call for call in pyinfra_task_harness.calls
         if call[0] == "server" and call[1] == "service"
