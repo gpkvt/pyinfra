@@ -204,3 +204,10 @@ def test_zsh_configuration_lists_are_non_empty_and_unique(local_data):
         assert values
         assert all(isinstance(value, str) and value.strip() for value in values)
         assert len(values) == len(set(values)), f"duplicate entries in {key}"
+
+
+def test_flatpak_minder_uses_current_flathub_application_id(local_data):
+    packages = local_data["flatpak_packages"]
+
+    assert "io.github.phase1geo.minder" in packages
+    assert "com.github.phase1geo.minder" not in packages
