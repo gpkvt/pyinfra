@@ -144,7 +144,7 @@ if host.data.get("powerline_fonts", False):
 
     missing_fonts_command = (
         f"missing=$(find {EXTRACT_DIR}/fonts-master -type f "
-        r"\( -iname '*.ttf' -o -iname '*.otf' \) -printf '%f\\n' "
+        r"\( -iname '*.ttf' -o -iname '*.otf' \) -printf '%f\n' "
         f"| while IFS= read -r name; do "
         f"[ -e {FONT_DIR}/\"$name\" ] || printf '%s\\n' \"$name\"; "
         "done); "
@@ -154,7 +154,7 @@ if host.data.get("powerline_fonts", False):
         name="Install missing Powerline fonts",
         commands=[
             f'find {EXTRACT_DIR}/fonts-master -type f '
-            r'\\( -iname "*.ttf" -o -iname "*.otf" \) '
+            r'\( -iname "*.ttf" -o -iname "*.otf" \) '
             rf'-exec cp -n {{}} {FONT_DIR}/ \;'
         ],
         _if=lambda: "missing" in (host.get_fact(Command, missing_fonts_command) or []),
