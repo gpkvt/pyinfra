@@ -120,3 +120,29 @@ def test_timetagger_rejects_missing_credentials(pyinfra_task_harness, monkeypatc
         pyinfra_task_harness.load("docker/timetagger.py", {
             "docker": {"timetagger": {}},
         })
+
+def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
+    """An already-correct timezone does not schedule a change."""
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        "UTC" if fact.__name__ == "Timezone" else None
+    )
+    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
+
+    assert not any(
+        namespace == "server" and name == "timezone"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
+    """A mismatched timezone still schedules the required correction."""
+    pyinfra_task_harness.host.get_fact = lambda _fact, **_kwargs: "Europe/Berlin"
+    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
+
+    assert any(
+        namespace == "server" and name == "timezone"
+        and kwargs["timezone"] == "UTC"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+
