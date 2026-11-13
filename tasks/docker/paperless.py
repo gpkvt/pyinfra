@@ -8,6 +8,7 @@ owned by the postgres:alpine container user (70:70).
 """
 
 from pyinfra import host
+from pyinfra.operations import files
 from tasks.docker import deploy_docker_service, ensure_numeric_directory
 
 paperless = host.data.get("docker", {}).get("paperless", {})
@@ -29,6 +30,18 @@ for directory in ("data", "media", "consume", "export"):
     ensure_numeric_directory(
         f"{homedir}/.docker/paperless/{directory}", uid, gid, "750"  # pylint: disable=E0602
     )
+
+# Expose the consume directory at a convenient, non-hidden host path.
+# Dropping files into ~/Paperless imports them into Paperless-ngx.
+files.link(
+    name="Create Paperless host import folder",
+    path=f"{homedir}/Paperless",
+    target=f"{homedir}/.docker/paperless/consume",
+    user=username,
+    group=usergroup,
+    symbolic=True,
+    _sudo=False,
+)
 
 deploy_docker_service(
     service="paperless",
