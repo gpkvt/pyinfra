@@ -269,8 +269,8 @@ def configure_caddy():  # pylint: disable=R0914
             dockerfile.did_change() or entrypoint.did_change()
             or hook.did_change() or renew_script.did_change()
         )
-    image_present = host.get_fact(
-        Command,
+    image_present = command_output(
+        host,
         f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
     ).strip() == "present"
     server.shell(
@@ -279,11 +279,11 @@ def configure_caddy():  # pylint: disable=R0914
         _sudo=False, _if=lambda: build_changed() or not image_present,
     )
 
-    container_running = host.get_fact(
-        Command, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
+    container_running = command_output(
+        host, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
     ).strip() == "true"
-    container_healthy = host.get_fact(
-        Command, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
+    container_healthy = command_output(
+        host, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
     ).strip() == "healthy"
     def recreate():
         return (
