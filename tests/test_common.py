@@ -142,7 +142,7 @@ def test_command_output_joins_pyinfra_fact_lines(monkeypatch):
         get_fact=lambda _fact, command, **kwargs: ["first", "second"],
     )
 
-    assert common.command_output(host, "printf test") == "first\\nsecond"
+    assert common.command_output(host, "printf test") == "first\nsecond"
 
 
 def test_command_output_handles_empty_and_legacy_string_results(monkeypatch):
