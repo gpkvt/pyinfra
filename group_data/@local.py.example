@@ -15,56 +15,55 @@ usergroup = "YOUR_USERNAME"  # The primary group for the configured user.
 homedir = "/home/YOUR_USERNAME"  # Absolute home directory of the configured user.
 
 keyboard = {  # XKB keyboard settings used by the desktop configuration.
-    "layout": "us",  # Keyboard layout code, for example de or us.
-    "model": "pc105",  # Keyboard model; pc105 is a common PC keyboard model.
-    "variant": "",  # Optional layout variant; keep empty for the layout default.
-    "options": "",  # Optional XKB options, for example compose:ralt.
+    "layout": "us",
+    "model": "pc105",
+    "variant": "",
+    "options": "",
 }
 
-# Optional network configuration. Leave empty until adapted to the target host.
-local_network_cidr = ""  # Local network CIDR, if a task needs this network range.
-hostnames = {}  # Additional hostname-to-address mappings; empty means none.
-wireguard_interface = None  # WireGuard interface name; None disables interface setup.
-wireguard_config = {}  # WireGuard peer/interface configuration; never commit private keys.
+# Optional network configuration.
+local_network_cidr = ""
+hostnames = {}
+wireguard_interface = None
+wireguard_config = {}
 
 # User environment.
-editor = "nano"  # Default command-line editor for the configured user.
-zsh = False  # Set True to install/configure zsh as the user's shell.
-powerline = False  # Set True to enable Powerline prompt integration.
-tmux = True  # Set False only if tmux should not be installed/configured.
-powerline_fonts = False  # Set True when Powerline-compatible fonts are installed.
-zplug_plugins = []  # List zplug plugin identifiers to install; empty installs none.
-zshrc_imports = []  # Extra zsh configuration files to source; use absolute paths.
+editor = "nano"
+zsh = False
+powerline = False
+tmux = True
+powerline_fonts = False
+zplug_plugins = []
+zshrc_imports = []
 
 # System configuration examples.
-apt_packages = []  # Additional APT package names to install; keep empty for none.
-apt_sources = {}  # Additional APT repositories and their configuration.
-flatpak_packages = []  # Flatpak application/runtime IDs to install from configured remotes.
-sysctl = {}  # Kernel sysctl key/value overrides; empty leaves defaults unchanged.
-udev = {}  # Custom udev rules/configuration; empty installs no custom rules.
-usbguard = {"enabled": False, "rules": []}  # USBGuard settings; add reviewed rules before enabling.
-sudoers_rules = []  # Sudoers rule entries; use validated, least-privilege rules only.
-ssh_keys = []  # SSH public keys to provision; do not put private keys here.
-ssh_authorized_keys = {}  # Per-user authorized public keys, keyed by username.
-ssh_config = {}  # SSH daemon/client configuration overrides supported by the tasks.
-apparmor_profiles = []  # AppArmor profiles to install/enable; empty means none.
+apt_packages = []
+apt_sources = {}
+flatpak_packages = []
+sysctl = {}
+udev = {}
+usbguard = {"enabled": False, "rules": []}
+sudoers_rules = []
+ssh_keys = []
+ssh_authorized_keys = {}
+ssh_config = {}
+apparmor_profiles = []
 
 # Optional workstation/desktop configuration.
-cosmic = {"enabled": False}  # COSMIC desktop settings; enable only on a compatible system.
-cosmic_config_files = {}  # COSMIC config file content keyed by destination path.
-vscodium = {"extensions": []}  # VSCodium extension IDs to install.
-proton = {}  # Proton-related configuration; leave empty when not needed.
-mullvad_extensions = {}  # Mullvad Browser extension settings, if managed.
-mullvad_browser_dir = None  # Existing Mullvad Browser profile/install path, or None.
+# COSMIC settings belong exclusively in workstation.cosmic in group_data/workstation.py.
+vscodium = {"extensions": []}
+proton = {}
+mullvad_extensions = {}
+mullvad_browser_dir = None
 
-# Optional services. Add only services configured for this machine.
-docker = {}  # Docker daemon/engine settings; container data should use host directories.
-docker_sablier = {"enabled": False}  # Sablier service settings; configure before enabling.
-docker_power_save = []  # Docker power-save container/service definitions.
-caddy_config = {}  # Caddy site configuration; add only domains served by this host.
-dehydrated_domains = []  # ACME domains for dehydrated certificate management.
-cron_jobs = []  # Cron job definitions; specify user, schedule and command per job.
-syncthing = {}  # Syncthing configuration; keep device IDs and secrets local.
+# Optional services.
+docker = {}
+docker_sablier = {"enabled": False}
+docker_power_save = []
+caddy_config = {}
+dehydrated_domains = []
+cron_jobs = []
+syncthing = {}
 
 # Firewall is intentionally not enabled by this example.
-ufw = {}  # UFW policy/configuration; define and verify rules before enabling a firewall.
+ufw = {}
