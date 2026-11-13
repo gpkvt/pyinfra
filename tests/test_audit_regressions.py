@@ -216,7 +216,8 @@ def test_system_locale_uses_native_idempotent_operations(pyinfra_task_harness):
 
     assert locale["locale"] == "en_GB.UTF-8"
     assert locale["present"] is True
-    assert default_locale["src"].getvalue() == 'LANG="en_GB.UTF-8"\n'
+    assert default_locale["line"] == 'LANG="en_GB.UTF-8"'
+    assert default_locale["replace"] == "^LANG="
 
 
 def test_git_credentials_clear_only_an_existing_immutable_flag(
@@ -299,7 +300,7 @@ def test_system_locale_skips_generation_for_installed_alias(pyinfra_task_harness
         for namespace, name, _kwargs in pyinfra_task_harness.calls
     )
     assert any(
-        namespace == "files" and name == "put"
+        namespace == "files" and name == "line"
         and kwargs.get("name") == "Set system default locale: C.UTF-8"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
