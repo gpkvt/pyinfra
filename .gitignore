@@ -8,3 +8,7 @@ __pycache__
 .pytest_cache
 uv.lock
 package-lock.json
+
+# Machine-specific configuration (copy the tracked .example files locally).
+group_data/@local.py
+group_data/workstation.py
