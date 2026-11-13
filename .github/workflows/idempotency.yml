@@ -39,7 +39,7 @@ jobs:
           python -m compileall -q tasks files/scripts/translate.py
           while IFS= read -r script; do
             bash -n "$script"
-          done < <(find files/scripts -type f ! -name '*.py' -print | sort)
+          done < <(find files/scripts -type f ! -name '*.py' ! -path '*/__pycache__/*' -print | sort)
 
   pre-commit:
     name: Pre-commit
