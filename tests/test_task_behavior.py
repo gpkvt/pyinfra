@@ -41,6 +41,55 @@ def test_flatpak_output_normalization_handles_common_result_shapes(
     assert module._output_as_text(SimpleNamespace(combined="combined")) == "combined"
 
 
+def test_flatpak_command_output_is_parsed_as_application_ids(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("flatpak.py")
+
+    assert module._command_lines(
+        "app.go2tv.go2tv\\norg.example.Installed\\n"
+    ) == ["app.go2tv.go2tv", "org.example.Installed"]
+    assert module._command_lines("") == []
+    assert module._command_lines(None) == []
+    assert module._command_lines([" app.one ", "", "app.two"]) == [
+        "app.one", "app.two"
+    ]
+
+
+def test_flatpak_install_resolves_ids_from_string_command_output(
+    pyinfra_task_harness
+):
+    host = pyinfra_task_harness.host
+
+    def get_fact(fact, *args, **kwargs):
+        if getattr(fact, "__name__", "") == "FlatpakRemotes":
+            return ["flathub"]
+        if getattr(fact, "__name__", "") == "FlatpakUpdates":
+            return []
+        if getattr(fact, "__name__", "") == "Command":
+            command = kwargs.get("command", args[0] if args else "")
+            if command.startswith("flatpak list --user"):
+                return "org.example.AlreadyInstalled\\n"
+            if command.startswith("flatpak remote-ls --user"):
+                return "app.go2tv.go2tv\\norg.example.Available\\n"
+        return ""
+
+    host.get_fact = get_fact
+    pyinfra_task_harness.load("flatpak.py", {
+        "flatpak_packages": [
+            "app.go2tv.go2tv",
+            "org.example.AlreadyInstalled",
+        ],
+    })
+
+    installs = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "flatpak" and name == "packages"
+    ]
+    assert len(installs) == 1
+    assert installs[0]["packages"] == ["app.go2tv.go2tv"]
+    assert installs[0]["remote"] == "flathub"
+    assert installs[0]["user"] is True
+
+
 def test_flatpak_uninstall_operation_reports_only_real_removals(
     pyinfra_task_harness, monkeypatch
 ):
