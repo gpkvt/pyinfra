@@ -327,7 +327,7 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
             )
         label_check_command = " ".join(label_checks) + " printf match"
         sablier_labels_match = (
-            host.get_fact(Command, label_check_command) or ""
+            command_output(host, label_check_command)
         ).strip() == "match"
 
         server.shell(
