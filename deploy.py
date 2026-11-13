@@ -44,6 +44,9 @@ local.include("tasks/fonts.py")
 local.include("tasks/scripts.py")
 local.include("tasks/mc.py")
 
+if host.data.get("cron_jobs"):
+    local.include("tasks/cron.py")
+
 if flatpak:
     local.include("tasks/flatpak.py")
 
