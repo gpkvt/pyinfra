@@ -12,8 +12,9 @@ APT repository configuration is managed by tasks/apt.py.
 import re
 
 from pyinfra import host
-from common import command_output
 from pyinfra.operations import apt, files, server
+
+from common import command_output
 
 proton = host.data.get("proton", {})
 
