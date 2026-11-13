@@ -302,7 +302,7 @@ The following features combine host data with encrypted secrets:
 - Paperless-ngx requires `secrets.docker.paperless.postgres_password` and `secret_key`.
 - Firefly III requires database credentials, `app_key` and a 32-character `cron_token` under `secrets.docker.firefly-iii`.
 - Snipe-IT requires database credentials and a persistent Laravel `app_key` under `secrets.docker.snipe-it`.
-- Linkwarden requires PostgreSQL, NextAuth and Meilisearch secrets under `secrets.docker.linkwarden`.
+- Linkwarden requires PostgreSQL, NextAuth and Meilisearch secrets under `secrets.docker.linkwarden`. Set the optional `api_token` there to synchronize the authenticated account’s bookmarks into Homepage by collection; the synchronizer updates the managed block in `group_data/@local.py` and stores downloaded favicons in `files/homepage/icons/`.
 - Homepage can receive widget API keys through `secrets.docker.homepage.environment`; these values override matching host-data environment defaults.
 - Vaultwarden optionally uses `secrets.docker.vaultwarden.admin_token` for its Argon2 PHC admin-token hash.
 
