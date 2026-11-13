@@ -53,9 +53,9 @@ def test_format_link_listing_includes_ids_categories_titles_and_urls(loaded_modu
         },
     ]
     assert loaded_module.format_link_listing(links) == (
-        "ID\\tCATEGORY\\tTITLE\\tURL\\n"
-        "123\\tReading\\tExample documentation\\thttps://example.com/docs\\n"
-        "456\\tUnorganized\\thttps://example.org\\thttps://example.org"
+        "ID\tCATEGORY\tTITLE\tURL\n"
+        "123\tReading\tExample documentation\thttps://example.com/docs\n"
+        "456\tUnorganized\thttps://example.org\thttps://example.org"
     )
 
 
@@ -72,8 +72,8 @@ def test_list_links_fetches_all_links_without_sync_side_effects(loaded_module, m
         lambda base_url, token: calls.append((base_url, token)) or links,
     )
     assert loaded_module.list_links("https://links.example", "token") == (
-        "ID\\tCATEGORY\\tTITLE\\tURL\\n"
-        "7\\tUnorganized\\tExample\\thttps://example.com"
+        "ID\tCATEGORY\tTITLE\tURL\n"
+        "7\tUnorganized\tExample\thttps://example.com"
     )
     assert calls == [("https://links.example", "token")]
 
