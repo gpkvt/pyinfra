@@ -172,6 +172,35 @@ def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
     assert calls[0][2]["hostnames"] == "example.test alias.test"
 
 
+def test_paperless_exposes_consume_directory_in_home(pyinfra_task_harness, monkeypatch):
+    """Paperless imports files placed in the user's visible ~/Paperless folder."""
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"docker": {"paperless": {
+            "postgres_password": "ci-postgres",
+            "secret_key": "ci-paperless-secret",
+        }}},
+        raising=False,
+    )
+    pyinfra_task_harness.load("docker/paperless.py", {
+        "docker": {"paperless": {}},
+        "username": "tester",
+        "usergroup": "tester",
+    })
+
+    link = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "link"
+        and kwargs["name"] == "Create Paperless host import folder"
+    )
+    assert link["path"] == "/home/tester/Paperless"
+    assert link["target"] == "/home/tester/.docker/paperless/consume"
+    assert link["symbolic"] is True
+    assert link["user"] == "tester"
+    assert link["group"] == "tester"
+    assert link["_sudo"] is False
+
 def test_docker_container_includes_only_configured_services(pyinfra_task_harness):
     pyinfra_task_harness.load("docker_container.py", {
         "docker": {"ci-smoke": {}, "miniflux": {}, "grav": {}},
