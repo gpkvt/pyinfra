@@ -46,12 +46,12 @@ for job in jobs:
     present = job.get("present", True)
 
     if not isinstance(name, str) or not name.strip() or any(
-        character in name for character in ("\\n", "\\r")
+        character in name for character in ("\n", "\r")
     ):
         raise ValueError("Every cron job requires a single-line name")
 
     if not isinstance(command, str) or not command.strip() or any(
-        character in command for character in ("\\n", "\\r")
+        character in command for character in ("\n", "\r")
     ):
         raise ValueError(f"Cron job {name!r} requires a single-line command")
 
@@ -95,7 +95,7 @@ for job in jobs:
             isinstance(item, bool)
             or not isinstance(item, (str, int))
             or (isinstance(item, str) and any(
-                character in item for character in ("\\n", "\\r")
+                character in item for character in ("\n", "\r")
             ))
             for item in values
         ):
