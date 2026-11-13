@@ -44,7 +44,7 @@ def _command_lines(output):
     return [str(line).strip() for line in output if str(line).strip()]
 
 
-def _flatpak_ref_ids(output):
+def flatpak_ref_ids(output):
     """Extract IDs from application and runtime refs."""
     package_ids = []
     for ref in _command_lines(output):
@@ -90,14 +90,14 @@ apt.packages(
 # prompting when duplicate refs exist and makes Flathub the consistent default.
 if flatpak_packages:
     remotes = host.get_fact(FlatpakRemotes, _sudo=False)
-    installed = set(_flatpak_ref_ids(host.get_fact(
+    installed = set(flatpak_ref_ids(host.get_fact(
         Command,
         command="flatpak list --user --columns=ref",
         _sudo=False,
     )))
     available_by_remote = {}
     for remote in remotes:
-        available_by_remote[remote] = set(_flatpak_ref_ids(host.get_fact(
+        available_by_remote[remote] = set(flatpak_ref_ids(host.get_fact(
             Command,
             command=(
                 "flatpak remote-ls --user --columns=ref "
