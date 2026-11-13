@@ -209,7 +209,7 @@ def test_resolve_sync_settings_reads_linkwarden_api_key_from_secrets(loaded_modu
 
 def test_resolve_sync_settings_supports_homepage_environment_fallback(loaded_module):
     config = {"docker": {
-        "linkwarden": {},
+        "linkwarden": {"domain": "linkwarden.example.com"},
         "homepage": {"bookmarks": []},
     }}
     secret_data = {"docker": {"homepage": {"environment": {
@@ -673,7 +673,7 @@ def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
         loaded_module.runpy, "run_path",
         lambda _path: {
             "docker": {
-                "linkwarden": {"blacklist": ["blocked"]},
+                "linkwarden": {"domain": "linkwarden.example.com", "blacklist": ["blocked"]},
                 "homepage": {"services": [{"Services": []}]},
             }
         },
