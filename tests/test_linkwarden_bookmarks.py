@@ -127,8 +127,9 @@ def test_deployment_skips_bookmark_sync_on_http_502(
 
     assert config.read_text(encoding="utf-8") == original
     assert not (tmp_path / "icons").exists()
-    assert "synchronization skipped" in capsys.readouterr().err
-    assert "502" in capsys.readouterr().err if False else True
+    warning = capsys.readouterr().err
+    assert "synchronization skipped" in warning
+    assert "502" in warning
 
 
 def test_deployment_does_not_hide_unexpected_errors(loaded_module, monkeypatch, tmp_path):
