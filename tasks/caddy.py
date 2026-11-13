@@ -317,16 +317,14 @@ def configure_caddy():  # pylint: disable=R0914
     # Track the last Caddyfile that was successfully validated and reloaded.
     # This survives pyinfra runs, so a skipped/failed reload is retried even
     # when files.template reports no change on the next deployment.
-    caddyfile_loaded = (
-        host.get_fact(
-            Command,
-            "docker exec --user "
-            + f"{uid}:{gid} caddy sh -ec "
-            + "'current=$(sha256sum /etc/pyinfra-caddy/Caddyfile | cut -d \" \" -f1); "
-            + "previous=$(cat /config/.pyinfra-caddyfile.sha256 2>/dev/null || true); "
-            + "[ \"$current\" = \"$previous\" ] && printf match || printf drift'",
-        ) or ""
-    ).strip() == "match"
+    caddyfile_loaded = command_output_text(host.get_fact(
+        Command,
+        "docker exec --user "
+        + f"{uid}:{gid} caddy sh -ec "
+        + "'current=$(sha256sum /etc/pyinfra-caddy/Caddyfile | cut -d \" \" -f1); "
+        + "previous=$(cat /config/.pyinfra-caddyfile.sha256 2>/dev/null || true); "
+        + "[ \"$current\" = \"$previous\" ] && printf match || printf drift'",
+    )).strip() == "match"
     server.shell(
         name="Validate and reload Caddy when deployed configuration is unacknowledged",
         commands=[
