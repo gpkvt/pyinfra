@@ -50,6 +50,7 @@ deploy_docker_service(
     service="paperless",
     description="Paperless-ngx Document Management",
     homedir=homedir,
+    compose_services=["broker","db","gotenberg","tika","webserver"],
     username=username,
     usergroup=usergroup,
     image=paperless.get("image", "ghcr.io/paperless-ngx/paperless-ngx:latest"),
