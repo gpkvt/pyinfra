@@ -32,11 +32,11 @@ workstation = {
         # "packages": ["xdg-utils", "xdg-user-dirs"],
     },
     "maintenance": {
-        "enabled": False,
+        "enabled": True,
         # Installs maintenance utilities only. No unattended upgrades/reboots.
     },
     "limusic": {
-        "enabled": False,
+        "enabled": True,
         # Installs the latest stable Limusic x86_64 AppImage and COSMIC launcher.
     },
 }
