@@ -50,7 +50,11 @@ def fetch_links(base_url, token):
             url += "?" + urllib.parse.urlencode(query)
         payload = api_json(url, token)
         data = payload.get("data")
-        if not isinstance(data, dict) or not isinstance(data.get("links"), list):
+        if (
+            not isinstance(data, dict)
+            or not isinstance(data.get("links"), list)
+            or "nextCursor" not in data
+        ):
             raise RuntimeError("Unexpected Linkwarden search response")
         links.extend(data["links"])
         next_cursor = data.get("nextCursor")
