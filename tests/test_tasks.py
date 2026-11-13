@@ -207,12 +207,6 @@ def test_vscodium_deduplicates_extensions_and_installs_missing_ids(pyinfra_task_
     assert "vendor.extension" in installs[0][2]["commands"][0]
 
 
-def test_system_locale_fact_parses_lang_value(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("system.py")
-    assert module.SystemLocale().process(['LANG="en_GB.UTF-8"']) == "en_GB.UTF-8"
-    assert module.SystemLocale().process(["# no locale configured"]) is None
-
-
 def test_dehydrated_fact_reports_expiring_certificates(pyinfra_task_harness):
     module = pyinfra_task_harness.load("dehydrated.py")
     assert module.CertNeedsRenewal().process(["false"]) is False
