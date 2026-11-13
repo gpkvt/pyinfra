@@ -1,11 +1,11 @@
-import subprocess
-import runpy
-import json
-import builtins
 # pylint: disable=E1101
 """Shared test helpers for pyinfra deployment tests."""
 
+import builtins
 import importlib.util
+import json
+import runpy
+import subprocess
 import sys
 import types
 from pathlib import Path
