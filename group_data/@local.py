@@ -68,6 +68,9 @@ username="gpkvt"
 usergroup="gpkvt"
 homedir="/home/gpkvt"
 
+# Managed cron jobs (empty by default)
+cron_jobs = []
+
 local_network_cidr="192.168.42.0/24"
 wireguard_interface="home"
 editor = "mcedit"

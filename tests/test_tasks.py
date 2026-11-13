@@ -737,3 +737,106 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
         and kwargs.get("dest", "").endswith("/appflowy/.env")
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+
+def test_cron_task_manages_user_and_root_jobs(pyinfra_task_harness):
+    pyinfra_task_harness.load("cron.py", {
+        "username": "deploy",
+        "cron_jobs": [
+            {
+                "name": "user-cleanup",
+                "command": "/usr/local/bin/cleanup",
+                "scope": "user",
+                "minute": "*/15",
+            },
+            {
+                "name": "root-maintenance",
+                "command": "/usr/local/sbin/maintenance",
+                "scope": "root",
+                "special_time": "@daily",
+            },
+        ],
+    })
+
+    installs = [
+        call for call in pyinfra_task_harness.calls
+        if call[0] == "crontab" and call[1] == "crontab"
+    ]
+    assert len(installs) == 2
+    user_job = installs[0][2]
+    assert user_job["cron_name"] == "user-cleanup"
+    assert user_job["user"] == "deploy"
+    assert user_job["_sudo"] is True
+    assert user_job["minute"] == "*/15"
+
+    root_job = installs[1][2]
+    assert root_job["cron_name"] == "root-maintenance"
+    assert root_job["user"] == "root"
+    assert root_job["special_time"] == "@daily"
+
+    assert any(
+        call[0] == "apt" and call[1] == "packages"
+        and call[2]["packages"] == ["cron"]
+        for call in pyinfra_task_harness.calls
+    )
+    assert any(
+        call[0] == "server" and call[1] == "service"
+        and call[2]["service"] == "cron"
+        and call[2]["running"] is True
+        and call[2]["enabled"] is True
+        for call in pyinfra_task_harness.calls
+    )
+
+
+def test_cron_task_does_nothing_without_configured_jobs(pyinfra_task_harness):
+    pyinfra_task_harness.load("cron.py", {"cron_jobs": []})
+
+    assert not pyinfra_task_harness.calls
+
+
+def test_cron_task_can_remove_job_by_stable_name(pyinfra_task_harness):
+    pyinfra_task_harness.load("cron.py", {
+        "username": "deploy",
+        "cron_jobs": [{
+            "name": "obsolete-job",
+            "command": "/usr/local/bin/obsolete",
+            "scope": "user",
+            "present": False,
+        }],
+    })
+
+    removal = [
+        call for call in pyinfra_task_harness.calls
+        if call[0] == "crontab" and call[1] == "crontab"
+    ]
+    assert len(removal) == 1
+    assert removal[0][2]["cron_name"] == "obsolete-job"
+    assert removal[0][2]["present"] is False
+
+
+@pytest.mark.parametrize(
+    ("config", "error"),
+    [
+        ({"cron_jobs": "not-a-list"}, "cron_jobs must be a list"),
+        ({"username": "deploy", "cron_jobs": [{
+            "name": "missing-schedule", "command": "/bin/true",
+        }]}, "requires a schedule"),
+        ({"username": "deploy", "cron_jobs": [{
+            "name": "bad-scope", "command": "/bin/true", "scope": "system",
+            "minute": 0,
+        }]}, "Invalid cron scope"),
+        ({"username": "deploy", "cron_jobs": [{
+            "name": "bad-command", "command": "/bin/true\n/bin/false",
+            "minute": 0,
+        }]}, "single-line command"),
+        ({"username": "deploy", "cron_jobs": [
+            {"name": "duplicate", "command": "/bin/true", "minute": 0},
+            {"name": "duplicate", "command": "/bin/false", "minute": 5},
+        ]}, "Duplicate cron job name"),
+    ],
+)
+def test_cron_task_rejects_invalid_configuration(
+    pyinfra_task_harness, config, error,
+):
+    with pytest.raises(ValueError, match=error):
+        pyinfra_task_harness.load("cron.py", config)
