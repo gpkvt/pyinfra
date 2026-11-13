@@ -544,18 +544,18 @@ def test_proton_drive_cli_rejects_invalid_version(pyinfra_task_harness):
 
 def test_proton_drive_cli_skips_when_requested_version_is_installed(pyinfra_task_harness):
     """An exact version marker prevents unnecessary binary downloads."""
-    pyinfra_task_harness.host.get_fact = lambda fact, *args, **kwargs: (
-        True
-        if getattr(fact, "__name__", "") == "File"
-        else (
-            ["1.2.3"]
-            if getattr(fact, "__name__", "") == "Command"
-            and "proton-drive.version" in (
-                kwargs.get("command", args[0] if args else "")
-            )
-            else []
-        )
-    )
+    def get_fact(fact, *args, **kwargs):
+        if getattr(fact, "__name__", "") == "File":
+            return True
+        command = kwargs.get("command", args[0] if args else "")
+        if (
+            getattr(fact, "__name__", "") == "Command"
+            and "proton-drive.version" in command
+        ):
+            return ["1.2.3"]
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
     pyinfra_task_harness.load("proton.py", {
         "proton": {
             "mail": False,
