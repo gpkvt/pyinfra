@@ -18,7 +18,7 @@
   "tasks/docker/grav.py": "deployment",
   "tasks/docker/homepage.py": "deployment",
   "tasks/docker/linkwarden.py": "deployment",
-  "tasks/docker/linkwarden_bookmarks.py": "deployment",
+  "tasks/docker/linkwarden_bookmarks.py": "utility",
   "tasks/docker/miniflux.py": "deployment",
   "tasks/docker/nocodb.py": "deployment",
   "tasks/docker/paperless.py": "deployment",
