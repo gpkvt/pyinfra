@@ -224,6 +224,22 @@ def test_flatpak_facts_ignore_blank_output_lines(pyinfra_task_harness):
     ]
 
 
+def test_flatpak_ref_ids_normalizes_application_and_runtime_refs(pyinfra_task_harness):
+    """Flatpak refs are normalized consistently for apps and runtimes."""
+    module = pyinfra_task_harness.load("flatpak.py")
+    assert module.flatpak_ref_ids([
+        "app/org.example.App/x86_64/stable",
+        "runtime/org.example.Codecs/x86_64/stable",
+        "org.example.Installed/x86_64/stable",
+        "org.example.Bare",
+    ]) == [
+        "org.example.App",
+        "org.example.Codecs",
+        "org.example.Installed",
+        "org.example.Bare",
+    ]
+
+
 def test_ufw_fact_parsers_and_rule_matching(pyinfra_task_harness):
     module = pyinfra_task_harness.load("ufw.py")
     assert module.UfwActive().process(["Status: active"]) is True
