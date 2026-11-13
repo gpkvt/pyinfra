@@ -4,9 +4,11 @@ All notable changes to this project are documented in this file.
 
 This project follows a continuous development model. Changes are tracked using date-based entries until formal releases are introduced.
 
-## [12.11.2026]
+## [13.11.2026]
 
 ### Added
+
+- Added the AppFlowy Self-Hosted Commercial Docker Compose deployment with PostgreSQL, MinIO and Search host bind mounts, encrypted credentials, loopback-only Nginx publishing, Caddy/Sablier integration and a basic Homepage link.
 
 - Added Docker-based Caddy and Sablier deployment. Sablier uses the Docker provider and Compose labels to start application containers on demand; Caddy uses host networking to retain loopback upstreams.
 - Added Dehydrated certificate renewal inside the Caddy container with the Hetzner DNS-01 hook. `dehydrated_domains` in `group_data/@local.py` supports multiple certificates, each defined by one list of primary name and SANs.
