@@ -361,15 +361,18 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
 
 container = host.data.get("docker", {})
 
-apt.packages(
-    name="Install docker",
-    packages=[
-        "docker-ce",
-        "docker-ce-cli",
-        "docker-ce-rootless-extras",
-    ],
-    _sudo=True,
-)
+# CI runners already provide Docker Engine and Compose. Allow inventories to
+# reuse that installation without creating a misleading package operation.
+if host.data.get("docker_install", True):
+    apt.packages(
+        name="Install docker",
+        packages=[
+            "docker-ce",
+            "docker-ce-cli",
+            "docker-ce-rootless-extras",
+        ],
+        _sudo=True,
+    )
 
 files.directory(
     name="Create docker directory structure",

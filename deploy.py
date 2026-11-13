@@ -11,27 +11,15 @@ Task execution: Core tasks are always included:
     - git
 
 Optional tasks are included depending on available software,
-host configuration, and configured secrets:
-    - flatpak
-    - ssh_config
-    - wireguard
-    - vpn
-    - caddy (Docker)
-    - zsh
-    - tmux
-    - powerline
-    - ufw
-    - docker
-
-Note: Configuration values are accessed through host.data, while shared runtime configuration and secrets are exposed through builtins.
+host configuration, and configured secrets.
 """
 
 from common import initialize
 from pyinfra import host, local
 
 initialize(host, check_flatpak=True)
-local_network_cidr=host.data.get("local_network_cidr")
-wireguard_interface=host.data.get("wireguard_interface")
+local_network_cidr = host.data.get("local_network_cidr")
+wireguard_interface = host.data.get("wireguard_interface")
 
 # Tasks
 local.include("tasks/apt.py")
@@ -53,13 +41,22 @@ if flatpak:
 if host.data.ssh_config:
     local.include("tasks/ssh_config.py")
 
-if host.data.get("wireguard_config") and secrets.get("wireguard"):
+if (
+    host.data.get("wireguard_config")
+    and secrets.get("wireguard")
+    and host.data.get("wireguard_enabled", True)
+):
     local.include("tasks/wireguard.py")
 
-if local_network_cidr and wireguard_interface:
+if (
+    local_network_cidr
+    and wireguard_interface
+    and host.data.get("vpn_enabled", True)
+):
     local.include("tasks/vpn.py")
 
-if host.data.get("syncthing"):
+syncthing_config = host.data.get("syncthing", {})
+if syncthing_config and syncthing_config.get("enabled", True):
     local.include("tasks/syncthing.py")
 
 if host.data.get("zsh"):
@@ -71,30 +68,32 @@ if host.data.get("tmux"):
 if host.data.get("powerline"):
     local.include("tasks/powerline.py")
 
-if host.data.get("ufw"):
+ufw_config = host.data.get("ufw", {})
+if ufw_config and ufw_config.get("enabled", True):
     local.include("tasks/ufw.py")
 
 if host.data.get("docker"):
     local.include("tasks/docker.py")
     # Sablier must be available before app containers are created for on-demand
     # startup. The battery saver is mutually exclusive with Sablier.
-    local.include("tasks/docker_power.py")
+    if host.data.get("docker_power_monitor", True):
+        local.include("tasks/docker_power.py")
     if host.data.get("docker_sablier", {}).get("enabled", False):
         local.include("tasks/docker_sablier.py")
     local.include("tasks/docker_container.py")
-    if host.data.get("caddy_config"):
+    if host.data.get("caddy_config") and host.data.get("caddy_enabled", True):
         local.include("tasks/caddy.py")
 
-if host.data.get("apparmor_profiles"):
+if host.data.get("apparmor_profiles") and host.data.get("apparmor_enabled", True):
     local.include("tasks/apparmor.py")
 
 if host.data.get("cosmic"):
     local.include("tasks/cosmic/deploy.py")
 
-if host.data.get("mullvad_extensions"):
+if host.data.get("mullvad_extensions") and host.data.get("mullvad_browser_enabled", True):
     local.include("tasks/mullvad_extensions.py")
 
-if host.data.get("vscodium"):
+if host.data.get("vscodium") and host.data.get("vscodium_enabled", True):
     local.include("tasks/vscodium.py")
 
 if host.data.get("proton"):

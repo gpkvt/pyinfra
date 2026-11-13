@@ -34,6 +34,18 @@ jobs:
       - name: Run tests
         run: python -m pytest tests/ -v
 
+      - name: Validate task and utility coverage
+        run: |
+          python -m compileall -q tasks files/scripts/translate.py
+          while IFS= read -r script; do
+            bash -n "$script"
+          done < <(
+            find files/scripts -type f \
+              ! -name '*.py' \
+              ! -path '*/__pycache__/*' \
+              -print | sort
+          )
+
   pre-commit:
     name: Pre-commit
     runs-on: ubuntu-24.04
@@ -89,14 +101,25 @@ jobs:
 
       - name: Run deployment for the first time
         run: |
-          pyinfra .github/ci/inventory.py deploy.py \
+          pyinfra .github/ci/inventory.py deploy.py --diff \
             --group-data .github/ci/group_data \
             --limit @local --json --yes \
             > first-run.json
 
+      - name: Verify Docker smoke container is running
+        run: |
+          container_id="$(
+            docker compose -f "$HOME/ci-smoke/docker-compose.yml" ps -q smoke
+          )"
+          test -n "$container_id"
+          running="$(
+            docker inspect --format '{{.State.Running}}' "$container_id"
+          )"
+          test "$running" = "true"
+
       - name: Run deployment again and check for changes
         run: |
-          pyinfra .github/ci/inventory.py deploy.py \
+          pyinfra .github/ci/inventory.py deploy.py --diff \
             --group-data .github/ci/group_data \
             --limit @local --json --yes \
             > second-run.json

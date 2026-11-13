@@ -4,6 +4,9 @@ from pyinfra import host, local
 
 container = host.data.get("docker", {})
 
+if "ci-smoke" in container:
+    local.include("tasks/docker/ci-smoke.py")
+
 if "miniflux" in container:
     local.include("tasks/docker/miniflux.py")
 

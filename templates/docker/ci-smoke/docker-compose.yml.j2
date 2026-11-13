@@ -1,0 +1,9 @@
+services:
+  smoke:
+    image: {{ image }}
+    container_name: ci-smoke
+    command:
+      - sh
+      - -c
+      - sleep 3600
+    restart: unless-stopped
