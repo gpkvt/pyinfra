@@ -221,5 +221,9 @@
   ],
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
+  ],
+  "common.py:command_output": [
+    "test_command_output_joins_pyinfra_fact_lines",
+    "test_command_output_handles_empty_and_legacy_string_results"
   ]
 }
