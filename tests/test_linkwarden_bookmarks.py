@@ -1,5 +1,7 @@
 """Tests for the Linkwarden-to-Homepage bookmark synchronization helpers."""
 import importlib.util
+import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -11,10 +13,7 @@ SPEC = importlib.util.spec_from_file_location(
 
 
 @pytest.fixture
-def module(monkeypatch):
-    import sys
-    import types
-
+def loaded_module(monkeypatch):
     pyinfra = types.ModuleType("pyinfra")
     pyinfra.host = types.SimpleNamespace(data={"docker": {}})
     monkeypatch.setitem(sys.modules, "pyinfra", pyinfra)
@@ -25,13 +24,13 @@ def module(monkeypatch):
     return loaded
 
 
-def test_fetch_links_follows_cursor_and_rejects_repeated_cursor(module, monkeypatch):
+def test_fetch_links_follows_cursor_and_rejects_repeated_cursor(loaded_loaded_loaded_module, monkeypatch):
     responses = iter([
         {"data": {"links": [{"id": 1}], "nextCursor": 10}},
         {"data": {"links": [{"id": 2}], "nextCursor": None}},
     ])
     monkeypatch.setattr(module, "api_json", lambda *_args: next(responses))
-    assert module.fetch_links("https://links.example", "token") == [
+    assert loaded_module.fetch_links("https://links.example", "token") == [
         {"id": 1}, {"id": 2},
     ]
 
@@ -59,7 +58,7 @@ def test_bookmarks_are_grouped_and_deduplicated(module, monkeypatch, tmp_path):
 
 
 def test_managed_bookmark_update_is_idempotent_and_preserves_surrounding_text(
-    module, tmp_path,
+    loaded_module, tmp_path,
 ):
     config = tmp_path / "@local.py"
     config.write_text(
