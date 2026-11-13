@@ -57,9 +57,10 @@ def test_apt_update_helper_forces_update_when_repository_changed(pyinfra_task_ha
 def test_ci_inventory_runs_tmux_without_personal_workstation_features():
     """The CI inventory explicitly tests tmux while isolating personal settings."""
     inventory = runpy.run_path(str(ROOT / ".github/ci/inventory.py"))
-    hosts, data = inventory["ci"]
+    hosts = inventory["ci"]
+    hostname, data = hosts[0]
 
-    assert hosts == ["@local"]
+    assert hostname == "@local"
     assert data["tmux"] is True
     assert data["zsh"] is False
     assert data["powerline"] is False
