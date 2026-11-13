@@ -34,13 +34,15 @@ jobs:
 
       - name: Run deployment for the first time
         run: |
-          pyinfra .github/ci/inventory.py deploy.py --group-data .github/ci/group_data \
+          pyinfra .github/ci/inventory.py deploy.py \
+            --group-data .github/ci/group_data \
             --limit @local --json --yes \
             > first-run.json
 
       - name: Run deployment again and check for changes
         run: |
-          pyinfra .github/ci/inventory.py deploy.py --group-data .github/ci/group_data \
+          pyinfra .github/ci/inventory.py deploy.py \
+            --group-data .github/ci/group_data \
             --limit @local --json --yes \
             > second-run.json
 
