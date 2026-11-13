@@ -20,7 +20,6 @@ from io import StringIO
 
 from pyinfra import host
 from pyinfra.api import FactBase
-from pyinfra.facts.server import Command
 from common import command_output
 from pyinfra.operations import files, server
 
