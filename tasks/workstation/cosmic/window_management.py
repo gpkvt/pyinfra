@@ -23,8 +23,11 @@ if config.get("enabled", False):
 
     for option in boolean_options:
         if option in config:
+            setting = config[option]
+            if not isinstance(setting, bool):
+                raise ValueError(f"COSMIC {option} must be a boolean")
             values[f"com.system76.CosmicComp/v1/{option}"] = str(
-                bool(config[option])
+                setting
             ).lower()
 
     if "autotile_behavior" in config:
