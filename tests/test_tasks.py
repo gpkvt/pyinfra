@@ -24,7 +24,7 @@ class OperationResult:
     """Small stand-in for pyinfra operation results."""
     changed = False
     def did_change(self):
-        return False
+        return self.changed
 
 
 ROOT_TASKS = sorted(
@@ -998,3 +998,44 @@ def test_cron_task_rejects_invalid_configuration(
 ):
     with pytest.raises(ValueError, match=error):
         pyinfra_task_harness.load("cron.py", config)
+
+
+def test_proton_drive_cli_uses_configured_version(pyinfra_task_harness):
+    """The documented version setting controls the downloaded Drive CLI."""
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "9.8.7",
+        },
+    })
+
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Proton Drive CLI"
+    )
+    assert "https://proton.me/download/drive/cli/9.8.7/linux-x64/proton-drive" in install["commands"][0]
+
+
+def test_udev_reload_uses_execute_phase_change_detection(pyinfra_task_harness, monkeypatch):
+    """udevadm reload is gated by the actual file operation result."""
+    module = pyinfra_task_harness.load("system.py", {
+        "udev": {"99-example.rules": "SUBSYSTEM==\\\"usb\\\", MODE=\\\"0660\\\""},
+    })
+    monkeypatch.setattr(
+        module, "any_changed",
+        lambda *operations: lambda: any(operation.did_change() for operation in operations),
+    )
+    reload = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload udev rules"
+    )
+    assert reload["_if"]() is False
+    pyinfra_task_harness.result.changed = True
+    assert reload["_if"]() is True
