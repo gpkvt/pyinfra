@@ -527,7 +527,7 @@ docker = {
                 "saturate": 50,
                 "brightness": 50,
             },
-                        "layout": [
+            "layout": [
                 # First row: application services in three columns.
                 {
                     "Services": {
