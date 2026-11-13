@@ -70,10 +70,15 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
         "app_services": ["smoke"],
     }
     assert data["ssh_authorized_keys"] == {}
-    assert all(
-        not options["enabled"]
-        for options in data["workstation"].values()
-    )
+    assert data["workstation"] == {
+        "backup": {"enabled": False},
+        "power": {"enabled": False},
+        "hardware": {"enabled": True},
+        "storage": {"enabled": True},
+        "peripherals": {"enabled": False},
+        "desktop": {"enabled": True},
+        "maintenance": {"enabled": True},
+    }
 
 
 def test_tmux_plugin_commands_run_after_package_installation(pyinfra_task_harness):
