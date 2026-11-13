@@ -46,16 +46,14 @@ systemd.service(
 # Read the current value as a fact so the operation is skipped when already
 # configured; this keeps repeated deployments idempotent.
 cli_prefix = f"runuser --user {shlex.quote(username)} -- syncthing cli config gui raw-address"
-current_gui_address = command_output_text(host.get_fact(
-    Command,
-    command=f"{cli_prefix} get",
-)).strip()
-
 server.shell(
     name="Configure Syncthing GUI listen address",
     commands=[
         f"{cli_prefix} set {shlex.quote(gui_address)}"
     ],
     _sudo=True,
-    _if=lambda: current_gui_address.strip() != gui_address,
+    _if=lambda: command_output_text(host.get_fact(
+        Command,
+        command=f"{cli_prefix} get",
+    )).strip() != gui_address,
 )
