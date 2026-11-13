@@ -80,7 +80,7 @@ def task_environment(monkeypatch):
 
 
 @pytest.fixture
-def pyinfra_task_harness(monkeypatch):
+def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     """Install generic pyinfra stubs and capture scheduled operations."""
     calls = []
     included = []
@@ -106,7 +106,7 @@ def pyinfra_task_harness(monkeypatch):
         "flatpak_packages": [],
         "wireguard_config": {},
     })
-    # pylint: disable=R0914,R0911,R0912,R0915
+    # pylint: disable=R0911,R0912
     def get_fact(fact, *args, **kwargs):
         name = getattr(fact, "__name__", "")
         if name in {"Directory", "File"}:
