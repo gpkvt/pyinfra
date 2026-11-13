@@ -32,7 +32,7 @@ locale = "en_US.UTF-8"
 # Set to None to skip locale management.
 ```
 
-The task checks `/etc/default/locale`, enables the requested locale when necessary, and maintains the `LANG` setting. The configured locale must use UTF-8 encoding. The custom `SystemLocale` fact inspects the current setting. Timezone reconciliation is delegated to pyinfra's built-in `server.timezone` operation so timezone aliases do not cause repeated changes.
+The task checks `/etc/default/locale`, enables the requested locale when necessary, and maintains the `LANG` setting. The configured locale must use UTF-8 encoding. The custom `SystemLocale` fact inspects the current setting. Timezone comparison uses pyinfra's built-in `server.Timezone` fact and resolves `/etc/localtime` against the requested zoneinfo file. Aliases that resolve to the same file (for example, `UTC` and `Etc/UTC`) do not trigger repeated changes; `server.timezone` is scheduled only when the effective timezone differs.
 
 ## Default editors
 
