@@ -483,10 +483,10 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
 def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
-        ["21x9.org", "*.21x9.org"],
+        ["example.com", "*.example.com"],
         ["example.com", "www.example.com", "api.example.com"],
     ]) == [
-        "21x9.org *.21x9.org",
+        "example.com *.example.com",
         "example.com www.example.com api.example.com",
     ]
 
