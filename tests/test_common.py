@@ -29,7 +29,7 @@ def install_pyinfra_fact_stubs(monkeypatch):
 
 
 
-def test_command_output_text_normalizes_fact_lines_and_empty_values(monkeypatch):
+def test_command_output_text_normalizes_fact_lines_and_empty_values():
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_command_output")
 
