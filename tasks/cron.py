@@ -3,12 +3,12 @@
 Configuration uses host.data["cron_jobs"], a list of jobs with a stable
 name, command, scope ("user" or "root"), and a cron schedule. User-scoped
 jobs are installed in the configured deployment user's crontab; root-scoped
-jobs are installed in root's crontab. pyinfra's crontab operation handles
-drift detection and updates entries by their stable cron_name.
+jobs are installed in root's crontab. The cron daemon is installed and kept
+running whenever at least one job is configured.
 """
 
 from pyinfra import host
-from pyinfra.operations import crontab
+from pyinfra.operations import apt, crontab, server
 
 
 SCHEDULE_FIELDS = (
@@ -27,6 +27,7 @@ jobs = host.data.get("cron_jobs", [])
 if not isinstance(jobs, list):
     raise ValueError("cron_jobs must be a list")
 
+validated_jobs = []
 seen_jobs = set()
 
 for job in jobs:
@@ -77,12 +78,18 @@ for job in jobs:
         if field in job
     }
 
+    if present and not schedule:
+        raise ValueError(f"Cron job {name!r} requires a schedule")
+
     if "special_time" in schedule and len(schedule) > 1:
         raise ValueError(
             f"Cron job {name!r} cannot combine special_time with a field schedule"
         )
 
     for field, value in schedule.items():
+        if field == "special_time" and not isinstance(value, str):
+            raise ValueError(f"Cron job {name!r} special_time must be a string")
+
         values = value if isinstance(value, list) else [value]
         if not values or any(
             isinstance(item, bool)
@@ -94,6 +101,25 @@ for job in jobs:
         ):
             raise ValueError(f"Invalid cron schedule value for {name}: {field}")
 
+    validated_jobs.append((name, command, target_user, present, schedule))
+
+if validated_jobs:
+    apt.packages(
+        name="Install cron",
+        packages=["cron"],
+        present=True,
+        _sudo=True,
+    )
+
+    server.service(
+        name="Ensure cron daemon is enabled and running",
+        service="cron",
+        running=True,
+        enabled=True,
+        _sudo=True,
+    )
+
+for name, command, target_user, present, schedule in validated_jobs:
     crontab.crontab(
         name=f"Manage cron job: {name}",
         cron_name=name,
