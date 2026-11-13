@@ -107,3 +107,44 @@ def test_dry_run_does_not_download_icons_or_modify_config(loaded_module, monkeyp
     assert config.read_text(encoding="utf-8") == original
     assert not (tmp_path / "icons").exists()
 
+
+
+def test_resolve_sync_settings_reads_linkwarden_api_key_from_secrets(loaded_module):
+    config = {"docker": {
+        "linkwarden": {"domain": "links.example"},
+        "homepage": {"bookmarks": []},
+    }}
+    secret_data = {"docker": {"linkwarden": {"api_key": "linkwarden-token"}}}
+    assert loaded_module.resolve_sync_settings(config, secret_data) == (
+        "links.example", "linkwarden-token"
+    )
+
+
+def test_resolve_sync_settings_supports_homepage_environment_fallback(loaded_module):
+    config = {"docker": {
+        "linkwarden": {},
+        "homepage": {"bookmarks": []},
+    }}
+    secret_data = {"docker": {"homepage": {"environment": {
+        "HOMEPAGE_VAR_LINKWARDEN_API_KEY": "homepage-token"
+    }}}}
+    assert loaded_module.resolve_sync_settings(config, secret_data) == (
+        "linkwarden.21x9.org", "homepage-token"
+    )
+
+
+def test_resolve_sync_settings_prefers_linkwarden_api_key(loaded_module):
+    config = {"docker": {"linkwarden": {}, "homepage": {"bookmarks": []}}}
+    secret_data = {"docker": {
+        "linkwarden": {"api_key": "linkwarden-token"},
+        "homepage": {"environment": {
+            "HOMEPAGE_VAR_LINKWARDEN_API_KEY": "homepage-token"
+        }},
+    }}
+    assert loaded_module.resolve_sync_settings(config, secret_data)[1] == "linkwarden-token"
+
+
+def test_resolve_sync_settings_reports_missing_api_key(loaded_module):
+    config = {"docker": {"linkwarden": {}, "homepage": {"bookmarks": []}}}
+    with pytest.raises(ValueError, match="secrets.docker.linkwarden.api_key"):
+        loaded_module.resolve_sync_settings(config, {})
