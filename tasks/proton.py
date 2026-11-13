@@ -12,6 +12,7 @@ APT repository configuration is managed by tasks/apt.py.
 from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import apt, server
+from common import command_output_text
 
 proton = host.data.get("proton", {})
 
@@ -62,7 +63,7 @@ if use_flatpak and flatpak_apps:
             "flatpak remote-add --user flathub "
             "https://flathub.org/repo/flathub.flatpakrepo",
         ],
-        _if=lambda: "flathub" not in flathub_remotes.splitlines(),
+        _if=lambda: "flathub" not in command_output_text(flathub_remotes).splitlines(),
         _sudo=False
     )
 
@@ -76,7 +77,7 @@ if use_flatpak and flatpak_apps:
     missing_apps = [
         app
         for app in flatpak_apps
-        if app not in installed_apps.splitlines()
+        if app not in command_output_text(installed_apps).splitlines()
     ]
 
     if missing_apps:
@@ -95,7 +96,7 @@ if use_flatpak and flatpak_apps:
 install_drive_cli = proton.get("drive_cli", True)
 
 if install_drive_cli:
-    drive_cli_version = host.data.get("proton", {}).get("drive_cll_version", "0.9.0")
+    drive_cli_version = proton.get("drive_cli_version", proton.get("drive_cll_version", "0.9.0"))
     drive_cli_platform = "linux-x64"
 
     drive_cli_url = (
@@ -116,7 +117,7 @@ if install_drive_cli:
         command="test -x /usr/local/bin/proton-drive && echo installed || true",
     )
 
-    if "installed" not in (installed_drive_cli or "").splitlines():
+    if "installed" not in command_output_text(installed_drive_cli).splitlines():
         server.shell(
             name="Install Proton Drive CLI",
             commands=[
