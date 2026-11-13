@@ -155,7 +155,7 @@ def configure_caddy():  # pylint: disable=R0914
             "homepage_services": host.data.get("docker", {}).get("homepage", {}).get("services", []),
         },
     )
-    caddyfile = files.template(
+    files.template(
         name="Deploy Caddyfile",
         src="templates/Caddyfile.j2",
         dest=f"{root}/config-files/Caddyfile",

@@ -4,7 +4,7 @@ Run this utility explicitly from the repository checkout. It updates only the
 managed section in group_data/@local.py and stores favicons in files/homepage/icons/.
 Changes should be reviewed and committed separately from infrastructure deployment.
 """
-# pylint: disable=R0912,R0914
+# pylint: disable=R0912,R0913,R0914
 import ast
 import hashlib
 import html.parser
@@ -163,7 +163,7 @@ def _download_image(url, headers=None):
 
 
 def download_favicon(
-    base_url, target_url, token, destination, prefix="linkwarden", icon_cache=None
+    base_url, target_url, token, destination, *, prefix="linkwarden", icon_cache=None
 ):
     """Discover, cache and download one favicon per website origin."""
     origin = favicon_origin(target_url)
@@ -213,7 +213,7 @@ def download_favicon(
 
 
 def build_bookmark_groups(
-    links, base_url, token, icon_dir, download_icons=True, icon_cache=None
+    links, base_url, token, icon_dir, *, download_icons=True, icon_cache=None
 ):
     """Build deterministic Homepage groups, de-duplicated by URL."""
     grouped = {}
@@ -268,7 +268,7 @@ def _service_entries(services):
 
 
 def collect_service_favicons(
-    services, base_url, token, icon_dir, download_icons=True, icon_cache=None
+    services, base_url, token, icon_dir, *, download_icons=True, icon_cache=None
 ):
     """Download missing Homepage service icons and return their config references."""
     icon_references = {}
@@ -397,7 +397,7 @@ def update_managed_bookmarks(config_path, groups):
     return False
 
 
-def synchronize(config_path, icon_dir, domain, token, services=None, dry_run=False):
+def synchronize(config_path, icon_dir, domain, token, *, services=None, dry_run=False):
     """Synchronize Linkwarden bookmarks and missing Homepage service icons."""
     base_url = domain.strip().rstrip("/")
     if not base_url.startswith(("https://", "http://")):
@@ -450,7 +450,6 @@ def resolve_sync_settings(config, secret_data):
     docker_config = config.get("docker", {})
     docker_secrets = secret_data.get("docker", {})
     linkwarden = docker_config.get("linkwarden", {})
-    homepage = docker_config.get("homepage", {})
     linkwarden_secrets = docker_secrets.get("linkwarden", {})
     homepage_environment = docker_secrets.get("homepage", {}).get("environment", {})
 
@@ -507,4 +506,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
