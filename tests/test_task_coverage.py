@@ -1,6 +1,7 @@
 """Keep CI coverage inventory synchronized with every task and utility."""
 
 import ast
+import builtins
 import json
 import shutil
 import subprocess
@@ -157,8 +158,58 @@ def test_dispatchers_include_child_task_modules():
     ],
 )
 def test_every_task_module_evaluates_in_a_pyinfra_context(
-    pyinfra_task_harness, relative_path
+    pyinfra_task_harness, monkeypatch, relative_path
 ):
     """Evaluate every deployable module, including nested service tasks."""
     module_path = relative_path.removeprefix("tasks/")
+    if relative_path.startswith("tasks/docker/"):
+        service = Path(relative_path).stem
+        docker_config = {service: {}}
+        if service == "ci-smoke":
+            docker_config[service] = {
+                "image": "alpine:3.21",
+                "app_services": ["smoke"],
+            }
+
+        monkeypatch.setattr(
+            builtins,
+            "secrets",
+            {
+                "docker": {
+                    "appflowy": {
+                        "postgres_password": "ci-postgres",
+                        "admin_password": "ci-admin",
+                        "jwt_secret": "ci-jwt-secret",
+                        "minio_access_key": "ci-minio-access",
+                        "minio_secret_key": "ci-minio-secret",
+                    },
+                    "firefly-iii": {
+                        "database_password": "ci-database",
+                        "mysql_root_password": "ci-mysql-root",
+                        "app_key": "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                        "cron_token": "ci-cron-token",
+                    },
+                    "paperless": {
+                        "postgres_password": "ci-postgres",
+                        "secret_key": "ci-paperless-secret",
+                    },
+                    "snipe-it": {
+                        "database_password": "ci-database",
+                        "mysql_root_password": "ci-mysql-root",
+                        "app_key": "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                    },
+                }
+            },
+            raising=False,
+        )
+        pyinfra_task_harness.load(
+            module_path,
+            {
+                "docker": docker_config,
+                "docker_sablier": {"enabled": False},
+                "docker_power_monitor": False,
+            },
+        )
+        return
+
     pyinfra_task_harness.load(module_path)
