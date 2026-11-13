@@ -104,5 +104,5 @@ deploy_docker_service(
     username=host.data.get("username", "root"),
     usergroup=host.data.get("usergroup", "root"),
     port=timetagger.get("port", 8080),
-    credentials=credentials,
+    credentials=credentials.replace("$", "$"),
 )
