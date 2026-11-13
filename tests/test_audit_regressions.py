@@ -289,7 +289,7 @@ def test_ssh_key_generation_detects_incomplete_keypair(pyinfra_task_harness):
 
 def test_system_locale_skips_generation_for_installed_alias(pyinfra_task_harness):
     pyinfra_task_harness.host.get_fact = (
-        lambda fact, **_kwargs: ["C.utf8"]
+        lambda fact, *_args, **_kwargs: ["C.utf8"]
         if fact.__name__ == "Locales" else None
     )
     pyinfra_task_harness.load("system.py", {"locale": "C.UTF-8"})
