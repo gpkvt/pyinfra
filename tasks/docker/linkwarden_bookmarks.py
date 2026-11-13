@@ -4,7 +4,7 @@ Run this utility explicitly from the repository checkout. It updates only the
 managed section in group_data/@local.py and stores favicons in files/homepage/icons/.
 Changes should be reviewed and committed separately from infrastructure deployment.
 """
-# pylint: disable=R0912,R0914
+# pylint: disable=R0912,R0913,R0914
 import ast
 import hashlib
 import html.parser
@@ -450,7 +450,6 @@ def resolve_sync_settings(config, secret_data):
     docker_config = config.get("docker", {})
     docker_secrets = secret_data.get("docker", {})
     linkwarden = docker_config.get("linkwarden", {})
-    homepage = docker_config.get("homepage", {})
     linkwarden_secrets = docker_secrets.get("linkwarden", {})
     homepage_environment = docker_secrets.get("homepage", {}).get("environment", {})
 
