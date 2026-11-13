@@ -35,22 +35,12 @@ Notes:
   dynamic secret values.
 
 """
+from common import command_output, initialize
 from pyinfra import host
-from pyinfra.operations import apt, files
+from pyinfra.operations import apt, files, server
 
 if not hasattr(__import__('builtins'), 'homedir'):
-    from common import initialize
     initialize(host)
-
-def set_immutable(path, immutable=True):
-    """Ensure the immutable filesystem flag is present or absent."""
-    files.flags(
-        name=f"{'Set' if immutable else 'Clear'} immutable flag for {path}",
-        path=path,
-        flags=["i"],
-        present=immutable,
-        _sudo=True,
-    )
 
 # Install git
 apt.packages(
@@ -68,17 +58,27 @@ files.put(
 )
 
 # Manage credentials only when the encrypted secret key is configured.
-# An existing file remains untouched (and keeps its immutable flag) otherwise.
 if secrets.get("git_credentials") is not None: # pylint: disable=undefined-variable
-    set_immutable(f"{homedir}/.git-credentials", False) # pylint: disable=undefined-variable
+    credentials_path = f"{homedir}/.git-credentials" # pylint: disable=undefined-variable
+    flags_command = (
+        f"lsattr -d -- {shlex.quote(credentials_path)} 2>/dev/null || true"
+    )
+    # pyinfra 3.11 has no files.flags operation. Clear a legacy immutable bit
+    # only when it is actually present; mode 0600 protects the managed file.
+    server.shell(
+        name="Clear legacy immutable flag on Git credentials",
+        commands=[f"chattr -i -- {shlex.quote(credentials_path)}"],
+        _sudo=True,
+        _if=lambda: "i" in (
+            command_output(host, flags_command).split() or [""]
+        )[0],
+    )
 
     files.template(
         name="Create git-credentials",
         src="templates/git/git-credentials.j2",
-        dest=f"{homedir}/.git-credentials", # pylint: disable=undefined-variable
+        dest=credentials_path,
         mode="600",
         git_credentials=secrets.get("git_credentials", []), # pylint: disable=undefined-variable
         _sudo=False,
     )
-
-    set_immutable(f"{homedir}/.git-credentials", True) # pylint: disable=undefined-variable
