@@ -175,7 +175,7 @@
   "tasks/flatpak.py:select_flatpak_remote": [
     "test_flatpak_remote_selection_prefers_flathub_or_sole_match",
     "test_flatpak_remote_selection_rejects_ambiguous_non_flathub_refs",
-    "test_flatpak_remote_selection_rejects_unavailable_applications"
+    "test_flatpak_remote_selection_rejects_unavailable_packages"
   ],
   "tasks/flatpak.py:uninstall_unused_packages": [
     "test_flatpak_uninstall_operation_reports_only_real_removals"
@@ -221,5 +221,8 @@
   ],
   "tasks/vscodium.py:VSCodiumExtensions.process": [
     "test_vscodium_fact_quotes_user_and_normalizes_installed_ids"
+  ],
+  "tasks/flatpak.py:_flatpak_ref_ids": [
+    "test_flatpak_ref_ids_normalizes_application_and_runtime_refs"
   ]
 }
