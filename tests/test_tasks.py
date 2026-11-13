@@ -1007,3 +1007,17 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
         and kwargs.get("dest", "").endswith("/appflowy/.env")
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+
+
+def test_appflowy_nginx_preserves_caddy_scheme_and_client_ip():
+    """The AppFlowy Nginx proxy trusts Caddy's forwarded scheme and client address."""
+    nginx = (
+        ROOT / "templates/docker/appflowy/nginx.conf.j2"
+    ).read_text()
+    assert "map $http_x_forwarded_for $appflowy_client_ip" in nginx
+    assert "map \"$http_x_forwarded_proto:$appflowy_form_object\"" in nginx
+    assert "limit_req_zone $appflowy_client_ip" in nginx
+    assert "proxy_set_header X-Forwarded-For $appflowy_client_ip;" in nginx
+    assert "listen 443 ssl" not in nginx
+    assert "ssl_certificate " not in nginx
