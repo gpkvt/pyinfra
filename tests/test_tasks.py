@@ -614,6 +614,8 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
             return "healthy"
         if "systemctl --user is-active caddy-renew.timer" in command:
             return "active"
+        if ".pyinfra-caddyfile.sha256" in command:
+            return "match"
         return ""
 
     pyinfra_task_harness.host.get_fact = get_fact
@@ -633,12 +635,57 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
             "Build Caddy image with Sablier plugin and Dehydrated",
             "Start Caddy and Dehydrated containers",
             "Wait for Caddy container health",
-            "Reload Caddy after Caddyfile changes",
+            "Validate and reload Caddy when deployed configuration is unacknowledged",
         }
     ]
     assert len(docker_actions) == 5
     assert all(call["_if"]() is False for call in docker_actions)
     assert status_sudo_flags == [False]
+
+
+def test_caddy_retries_reload_when_deployed_config_is_not_acknowledged(
+    pyinfra_task_harness, monkeypatch,
+):
+    """A missing or stale reload marker causes validation and reload to run."""
+    monkeypatch.setattr(builtins, "secrets", {
+        "dehydrated": {"hetzner_api_token": "test-token"},
+    })
+    def get_fact(_fact, command="", **_kwargs):
+        if "id -u" in command or "id -g" in command:
+            return "1000"
+        if "docker image inspect" in command:
+            return "present"
+        if "docker inspect -f '{{.State.Running}}'" in command:
+            return "true"
+        if "docker inspect -f '{{.State.Health.Status}}'" in command:
+            return "healthy"
+        if "systemctl --user is-active caddy-renew.timer" in command:
+            return "active"
+        if ".pyinfra-caddyfile.sha256" in command:
+            return "drift"
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("caddy.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "docker": {"custom": {"port": 8080}},
+        "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
+        "dehydrated_domains": [["example.org"]],
+    })
+    reload_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == (
+            "Validate and reload Caddy when deployed configuration is unacknowledged"
+        )
+    )
+    assert reload_call["_if"]() is True
+    command = reload_call["commands"][0]
+    assert "caddy validate --config /etc/pyinfra-caddy/Caddyfile" in command
+    assert "caddy reload --config /etc/pyinfra-caddy/Caddyfile" in command
+    assert "/config/.pyinfra-caddyfile.sha256" in command
 
 
 def test_sablier_systemd_preparation_reconciles_existing_containers():
@@ -887,6 +934,40 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     reload_call["_if"]()
     assert observed[-2:] == triggers
 
+
+
+def test_docker_service_restarts_when_sablier_labels_drift(pyinfra_task_harness):
+    """Existing containers with missing Sablier labels trigger service preparation."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": True},
+    })
+    def get_fact(_fact, command="", **_kwargs):
+        if command.startswith("id -u"):
+            return "1000"
+        if "show --property=ActiveState --value custom" in command:
+            return "active"
+        if "container_ids=" in command:
+            return "drift"
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service(
+        "custom", "Custom", "/home/tester", compose_services=["web", "db"]
+    )
+    reconcile_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Recreate custom containers with Sablier labels"
+    )
+    restart_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    assert reconcile_call["_if"]() is True
+    assert restart_call["_if"]() is True
 
 
 def test_docker_service_starts_when_systemd_unit_is_inactive(pyinfra_task_harness):
