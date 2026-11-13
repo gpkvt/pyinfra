@@ -485,6 +485,8 @@ docker = {
         "domain": "linkwarden.21x9.org",
         # Linkwarden bookmark IDs to exclude from Homepage synchronization.
         "blacklist": [],
+        # Linkwarden collection names to exclude from Homepage synchronization.
+        "exclude_categories": [],
         "app_services": ["linkwarden"],
         "sablier_services": ["linkwarden", "postgres", "meilisearch"],
     },

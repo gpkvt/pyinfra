@@ -709,3 +709,74 @@ def test_synchronize_aggregates_changes_and_normalizes_domain(
         tmp_path / "@local.py", tmp_path / "icons", "https://links.example",
         "api-token",
     ) is False
+
+
+
+@pytest.mark.parametrize(
+    ("excluded", "expected"),
+    [
+        (["Private"], ["Archived", "Reading"]),
+        (["Private", "Archived"], ["Reading"]),
+        (["pRiVaTe"], ["Archived", "Reading"]),
+        ([], ["Archived", "Private", "Reading", "private"]),
+    ],
+)
+def test_category_exclusions_filter_collections_case_insensitively(
+    loaded_module, monkeypatch, tmp_path, excluded, expected,
+):
+    monkeypatch.setattr(loaded_module, "download_favicon", lambda *_args, **_kwargs: None)
+    links = [
+        {"id": 1, "type": "url", "url": "https://private.example", "name": "Private",
+         "collection": {"name": "Private"}},
+        {"id": 2, "type": "url", "url": "https://archived.example", "name": "Archived",
+         "collection": {"name": "Archived"}},
+        {"id": 3, "type": "url", "url": "https://reading.example", "name": "Reading",
+         "collection": {"name": "Reading"}},
+        {"id": 4, "type": "url", "url": "https://private-lower.example", "name": "Lower",
+         "collection": {"name": "private"}},
+    ]
+    groups = loaded_module.build_bookmark_groups(
+        links, "https://links.example", "token", tmp_path,
+        exclude_categories=excluded,
+    )
+    assert [next(iter(group)) for group in groups] == expected
+
+
+def test_category_exclusions_happen_before_favicon_download(
+    loaded_module, monkeypatch, tmp_path,
+):
+    downloaded = []
+    monkeypatch.setattr(
+        loaded_module, "download_favicon",
+        lambda _base, url, *_args, **_kwargs: downloaded.append(url) or "/icons/kept.ico",
+    )
+    links = [
+        {"type": "url", "url": "https://excluded.example", "name": "Excluded",
+         "collection": {"name": "Private"}},
+        {"type": "url", "url": "https://included.example", "name": "Included",
+         "collection": {"name": "Reading"}},
+    ]
+    loaded_module.build_bookmark_groups(
+        links, "https://links.example", "token", tmp_path,
+        exclude_categories=[" private "],
+    )
+    assert downloaded == ["https://included.example"]
+
+
+def test_category_exclusions_compose_with_bookmark_id_blacklist(
+    loaded_module, monkeypatch, tmp_path,
+):
+    monkeypatch.setattr(loaded_module, "download_favicon", lambda *_args, **_kwargs: None)
+    links = [
+        {"id": 1, "type": "url", "url": "https://id.example", "name": "ID",
+         "collection": {"name": "Reading"}},
+        {"id": 2, "type": "url", "url": "https://category.example", "name": "Category",
+         "collection": {"name": "Private"}},
+        {"id": 3, "type": "url", "url": "https://kept.example", "name": "Kept",
+         "collection": {"name": "Reading"}},
+    ]
+    groups = loaded_module.build_bookmark_groups(
+        links, "https://links.example", "token", tmp_path,
+        blacklist=[1], exclude_categories=["Private"],
+    )
+    assert [next(iter(entry)) for entry in groups[0]["Reading"]] == ["Kept"]
