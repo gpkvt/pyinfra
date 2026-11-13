@@ -48,11 +48,5 @@ if config.get("enabled", False):
             threshold
         )
 
-    if "active_hint" in config:
-        active_hint = config["active_hint"]
-        if not isinstance(active_hint, int) or active_hint < 0:
-            raise ValueError("COSMIC active_hint must be a non-negative integer")
-        values["com.system76.CosmicComp/v1/active_hint"] = str(active_hint)
-
     if values:
         deploy_cosmic_values("window management", values)
