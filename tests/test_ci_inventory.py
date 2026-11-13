@@ -18,7 +18,7 @@ def test_ci_inventory_values_are_explicit_and_nonempty():
         "wireguard_interface", "syncthing", "zsh", "powerline",
         "powerline_fonts", "ufw", "docker_install", "docker",
         "docker_sablier", "docker_power_monitor", "caddy_config",
-        "apparmor_profiles", "cosmic", "mullvad_extensions", "vscodium",
+        "apparmor_profiles",  "mullvad_extensions", "vscodium",
         "proton", "cron_jobs", "workstation",
     }
 

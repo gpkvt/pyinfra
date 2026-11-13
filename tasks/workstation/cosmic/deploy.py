@@ -12,15 +12,15 @@ unmanaged user configuration.
 
 Run this deployment using:
 
-    pyinfra inventory.py tasks/cosmic/deploy.py
+    pyinfra inventory.py tasks/workstation/cosmic/deploy.py
 """
 
 from pyinfra import host, local
 
-cosmic = host.data.get("cosmic", {})
+cosmic = host.data.get("workstation", {}).get("cosmic", {})
 
 if cosmic.get("enabled", False):
-    local.include("tasks/cosmic/appearance.py")
-    local.include("tasks/cosmic/panel.py")
-    local.include("tasks/cosmic/dock.py")
-    local.include("tasks/cosmic/workspaces.py")
+    local.include("tasks/workstation/cosmic/appearance.py")
+    local.include("tasks/workstation/cosmic/panel.py")
+    local.include("tasks/workstation/cosmic/dock.py")
+    local.include("tasks/workstation/cosmic/workspaces.py")

@@ -6,9 +6,9 @@ Configure COSMIC dock position, size, margins, autohide behavior, and applets.
 import json
 
 from pyinfra import host
-from tasks.cosmic.config import deploy_cosmic_values
+from tasks.workstation.cosmic.config import deploy_cosmic_values
 
-config = host.data.get("cosmic", {}).get("dock", {})
+config = host.data.get("workstation", {}).get("cosmic", {}).get("dock", {})
 
 if config.get("enabled", False):
 

@@ -64,7 +64,7 @@ The core set can still have conditional behavior internally, but its modules are
 | `host.data.docker` is truthy | `tasks/docker.py`, `tasks/docker_power.py` and `tasks/docker_container.py` |
 | `host.data.docker_sablier.enabled` is true (inside the Docker gate) | `tasks/docker_sablier.py` |
 | `host.data.apparmor_profiles` is truthy | `tasks/apparmor.py` |
-| `host.data.cosmic` is truthy | `tasks/cosmic/deploy.py` |
+| `workstation.cosmic.enabled` is true | `tasks/workstation/cosmic/deploy.py` |
 | `host.data.mullvad_extensions` is truthy | `tasks/mullvad_extensions.py` |
 | `host.data.vscodium` is truthy | `tasks/vscodium.py` |
 | `host.data.proton` is truthy | `tasks/proton.py` |
@@ -88,8 +88,9 @@ The workstation role is assigned through inventory group membership, not by nami
 | `workstation.peripherals.enabled` | `tasks/workstation/peripherals.py` | Printer and scanner packages are separately controlled by `printing` and `scanning`; printing enables CUPS. |
 | `workstation.desktop.enabled` | `tasks/workstation/desktop.py` | Installs common desktop integration packages; optional `packages` replaces the defaults. |
 | `workstation.maintenance.enabled` | `tasks/workstation/maintenance.py` | Installs maintenance utilities only; no unattended upgrades or scheduled reboots. |
+| `workstation.cosmic.enabled` | `tasks/workstation/cosmic/deploy.py` | Applies enabled COSMIC appearance, panel, dock and workspace settings. |
 
-The supplied group-data file enables backup, power, hardware and storage, while peripherals, desktop and maintenance are disabled. Audit these values before applying a deployment.
+The tracked workstation example disables all workstation features by default. Audit and explicitly enable each feature before applying a deployment.
 
 ## Deployment behavior to understand
 

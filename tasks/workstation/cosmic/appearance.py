@@ -4,9 +4,9 @@ Configure COSMIC appearance settings such as dark and light mode.
 """
 
 from pyinfra import host
-from tasks.cosmic.config import deploy_cosmic_values
+from tasks.workstation.cosmic.config import deploy_cosmic_values
 
-config = host.data.get("cosmic", {}).get("appearance", {})
+config = host.data.get("workstation", {}).get("cosmic", {}).get("appearance", {})
 
 if config.get("enabled", False):
     mode = config.get("mode", "dark").lower()

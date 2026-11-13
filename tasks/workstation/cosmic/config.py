@@ -17,7 +17,7 @@ def deploy_cosmic_values(component, values):
         }
     """
 
-    config = host.data.get("cosmic", {})
+    config = host.data.get("workstation", {}).get("cosmic", {})
 
     if not config.get("enabled", False):
         return

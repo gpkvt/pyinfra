@@ -36,7 +36,7 @@ These task modules are included on every full deployment.
 | `tasks/docker_power.py` | `docker` | Deploys the Docker battery monitor and its systemd unit; disables it and restores previously stopped containers when Sablier is enabled. |
 | `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Deploys Sablier as a Docker container using the Docker provider and enables on-demand startup through Compose labels. It is mutually exclusive with the Docker battery monitor. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
-| `tasks/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
+| `tasks/workstation/cosmic/deploy.py` | `cosmic` | Deploys COSMIC desktop configuration and assets. |
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
 | `tasks/vscodium.py` | `vscodium` | Installs configured VSCodium extensions that are not already installed. |
 | `tasks/proton.py` | `proton` | Installs/configures selected Proton applications using the configured distribution sources. |

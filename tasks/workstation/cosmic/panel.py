@@ -5,9 +5,9 @@ Configure COSMIC panel position, size, margins, autohide behavior, and applets.
 
 import json
 from pyinfra import host
-from tasks.cosmic.config import deploy_cosmic_values
+from tasks.workstation.cosmic.config import deploy_cosmic_values
 
-config = host.data.get("cosmic", {}).get("panel", {})
+config = host.data.get("workstation", {}).get("cosmic", {}).get("panel", {})
 
 if config.get("enabled", False):
 

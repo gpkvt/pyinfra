@@ -140,7 +140,7 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `tmux` | `tasks/tmux.py` | Truthy enablement value. |
 | `powerline` | `tasks/powerline.py` | Truthy enablement value. |
 | `powerline_fonts` | `tasks/fonts.py` | Boolean-like flag for optional patched fonts. |
-| `cosmic` | `tasks/cosmic/deploy.py` | COSMIC desktop configuration dictionary. |
+| `workstation.cosmic` | `tasks/workstation/cosmic/deploy.py` | COSMIC desktop settings, enabled only through the workstation role. |
 | `vscodium` | `tasks/vscodium.py` | Extension configuration dictionary. |
 | `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
