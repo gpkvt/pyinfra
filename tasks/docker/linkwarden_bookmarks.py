@@ -213,13 +213,19 @@ def download_favicon(
 
 
 def build_bookmark_groups(
-    links, base_url, token, icon_dir, *, blacklist=None, download_icons=True, icon_cache=None
+    links, base_url, token, icon_dir, *, blacklist=None, exclude_categories=None,
+    download_icons=True, icon_cache=None
 ):
     """Build deterministic Homepage groups, de-duplicated by URL."""
     grouped = {}
     seen_urls = set()
     icon_cache = icon_cache if icon_cache is not None else {}
     blacklisted_ids = {str(value) for value in (blacklist or []) if value is not None}
+    excluded_categories = {
+        str(value).strip().casefold()
+        for value in (exclude_categories or [])
+        if value is not None and str(value).strip()
+    }
     for link in links:
         if not isinstance(link, dict) or link.get("type") != "url":
             continue
@@ -233,7 +239,11 @@ def build_bookmark_groups(
         if not name or not isinstance(collection, dict):
             continue
         collection_name = (collection.get("name") or "Unorganized").strip()
-        if not collection_name or url in seen_urls:
+        if (
+            not collection_name
+            or collection_name.casefold() in excluded_categories
+            or url in seen_urls
+        ):
             continue
         seen_urls.add(url)
         filename = favicon_filename(url, ".ico")
@@ -401,7 +411,8 @@ def update_managed_bookmarks(config_path, groups):
 
 
 def synchronize(
-    config_path, icon_dir, domain, token, *, services=None, blacklist=None, dry_run=False
+    config_path, icon_dir, domain, token, *, services=None, blacklist=None,
+    exclude_categories=None, dry_run=False
 ):
     """Synchronize Linkwarden bookmarks and missing Homepage service icons."""
     base_url = domain.strip().rstrip("/")
@@ -411,6 +422,7 @@ def synchronize(
     icon_cache = {}
     groups = build_bookmark_groups(
         links, base_url, token, icon_dir, blacklist=blacklist,
+        exclude_categories=exclude_categories,
         download_icons=not dry_run, icon_cache=icon_cache,
     )
     if dry_run:
@@ -506,6 +518,9 @@ def main():
         domain, token,
         services=config.get("docker", {}).get("homepage", {}).get("services", []),
         blacklist=config.get("docker", {}).get("linkwarden", {}).get("blacklist", []),
+        exclude_categories=config.get("docker", {}).get("linkwarden", {}).get(
+            "exclude_categories", []
+        ),
         dry_run=args.dry_run,
     )
 
