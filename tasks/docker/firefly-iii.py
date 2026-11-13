@@ -49,6 +49,7 @@ deploy_docker_service(
     service="firefly-iii",
     description="Firefly III Personal Finance",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["db","app","cron","fints"],
     username=username,
     usergroup=usergroup,
     image=firefly.get("image", "fireflyiii/core:latest"),
