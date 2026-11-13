@@ -261,7 +261,7 @@ def test_vpn_network_detection_uses_command_fact_and_gates_service(
 
 
 def test_ssh_key_generation_detects_incomplete_keypair(pyinfra_task_harness):
-    def get_fact(fact, command=None, **kwargs):
+    def get_fact(fact, _command=None, **kwargs):
         if fact.__name__ == "Command":
             return ["tester:tester:700"]
         if fact.__name__ == "File":
