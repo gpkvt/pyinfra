@@ -145,3 +145,20 @@ def test_dispatchers_include_child_task_modules():
             and isinstance(node.args[0].value, str)
         }
         assert includes, f"{relative_path} does not include any child tasks"
+
+
+
+@pytest.mark.parametrize(
+    "relative_path",
+    [
+        path
+        for path, kind in json.loads(MANIFEST.read_text(encoding="utf-8")).items()
+        if kind in {"deployment", "dispatcher"}
+    ],
+)
+def test_every_task_module_evaluates_in_a_pyinfra_context(
+    pyinfra_task_harness, relative_path
+):
+    """Evaluate every deployable module, including nested service tasks."""
+    module_path = relative_path.removeprefix("tasks/")
+    pyinfra_task_harness.load(module_path)
