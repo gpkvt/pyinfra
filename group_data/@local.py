@@ -548,8 +548,13 @@ docker = {
                         "columns": 2,
                     },
                 },
-                # Homepage places bookmark groups after configured service groups.
-                # Leaving them out keeps each bookmark category in its own column.
+                # Bookmark groups use four columns.
+                {
+                    "Bookmarks": {
+                        "style": "column",
+                        "columns": 4,
+                    },
+                },
             ],
             # Keep the API key in secrets.json.gpg; Homepage resolves this
             # environment placeholder through its shared provider configuration.
