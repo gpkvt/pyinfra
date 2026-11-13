@@ -25,7 +25,7 @@ def test_workstation_group_data_has_expected_features_and_defaults():
 
     expected_features = {
         "backup", "power", "hardware", "storage",
-        "peripherals", "desktop", "maintenance", "limusic",
+        "peripherals", "desktop", "maintenance", "cosmic", "limusic",
     }
     assert set(workstation) == expected_features
     assert all(isinstance(config["enabled"], bool) for config in workstation.values())
