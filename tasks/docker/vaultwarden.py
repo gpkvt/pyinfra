@@ -35,6 +35,7 @@ deploy_docker_service(
     service="vaultwarden",
     description="Vaultwarden Password Manager",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["vaultwarden"],
     username=username,
     usergroup=usergroup,
     image=vaultwarden.get("image", "vaultwarden/server:latest"),
