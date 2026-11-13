@@ -1,0 +1,43 @@
+"""Portable example for the workstation group configuration.
+
+Copy this file to workstation.py and enable only features appropriate for
+the target workstation. Hardware-specific values must be checked locally.
+"""
+
+workstation = {
+    "backup": {
+        "enabled": False,
+        # Configure repository, credentials, source paths and retention first.
+    },
+    "power": {
+        "enabled": False,
+        # Choose exactly one: "power-profiles-daemon" or "tlp".
+        "manager": "power-profiles-daemon",
+    },
+    "hardware": {
+        "enabled": False,
+        # Set to "intel" or "amd" after checking the actual CPU vendor.
+        "cpu_vendor": None,
+    },
+    "storage": {
+        "enabled": False,
+        # Installs smartmontools and nvme-cli when enabled.
+    },
+    "peripherals": {
+        "enabled": False,
+        "printing": False,
+        "scanning": False,
+    },
+    "desktop": {
+        "enabled": False,
+        # Optional package override:
+        # "packages": ["xdg-utils", "xdg-user-dirs"],
+    },
+    "maintenance": {
+        "enabled": False,
+    },
+    "limusic": {
+        "enabled": False,
+        # Installs the latest stable Limusic x86_64 AppImage and launcher.
+    },
+}
