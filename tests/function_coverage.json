@@ -1,0 +1,207 @@
+{
+  "tasks/apparmor.py:AppArmorStatus.process": [
+    "test_apparmor_fact_parses_json_profiles"
+  ],
+  "tasks/apparmor.py:enforce_apparmor_profile": [
+    "test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing",
+    "test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing"
+  ],
+  "tasks/apt.py:update_apt_sources": [
+    "test_apt_update_helper_forces_update_when_repository_changed"
+  ],
+  "tasks/apt.py:upgrade_apt_packages": [
+    "test_upgrade_apt_packages_runs_only_after_an_index_change"
+  ],
+  "tasks/caddy.py:build_sablier_caddy_config": [
+    "test_sablier_caddy_routes_only_wrap_configured_docker_services",
+    "test_sablier_dynamic_options_can_be_overridden_per_service",
+    "test_sablier_blocking_strategy_remains_available",
+    "test_homepage_api_requests_bypass_sablier_only_on_matching_paths"
+  ],
+  "tasks/caddy.py:build_sablier_caddy_config.wrap_routes": [
+    "test_sablier_caddy_routes_only_wrap_configured_docker_services",
+    "test_sablier_dynamic_options_can_be_overridden_per_service",
+    "test_sablier_blocking_strategy_remains_available"
+  ],
+  "tasks/caddy.py:build_domains_file": [
+    "test_dehydrated_domains_support_multiple_certificates_and_sans",
+    "test_dehydrated_domains_reject_empty_or_duplicate_definitions"
+  ],
+  "tasks/caddy.py:configure_caddy": [
+    "test_caddy_deploys_and_enables_daily_renewal_timer",
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/caddy.py:configure_caddy.build_changed": [
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/caddy.py:configure_caddy.recreate": [
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/dehydrated.py:CertNeedsRenewal.process": [
+    "test_dehydrated_fact_reports_expiring_certificates",
+    "test_dehydrated_fact_handles_true_false_and_empty_output"
+  ],
+  "tasks/docker.py:ensure_numeric_directory": [
+    "test_numeric_directory_skips_when_uid_gid_and_mode_match",
+    "test_numeric_directory_repairs_missing_or_mismatched_metadata"
+  ],
+  "tasks/docker.py:deploy_docker_service": [
+    "test_docker_service_app_services_come_from_service_configuration",
+    "test_docker_service_treats_missing_systemd_status_as_inactive",
+    "test_docker_service_accepts_multiple_restart_triggers"
+  ],
+  "tasks/flatpak.py:FlatpakUpdates.process": [
+    "test_flatpak_facts_ignore_blank_output_lines"
+  ],
+  "tasks/flatpak.py:FlatpakSystemUpdates.process": [
+    "test_flatpak_facts_ignore_blank_output_lines"
+  ],
+  "tasks/flatpak.py:_output_as_text": [
+    "test_flatpak_output_normalization_handles_common_result_shapes"
+  ],
+  "tasks/flatpak.py:uninstall_unused_packages": [
+    "test_flatpak_uninstall_operation_reports_only_real_removals"
+  ],
+  "tasks/git.py:set_immutable": [
+    "test_set_immutable_uses_requested_chattr_flag"
+  ],
+  "tasks/homepage_config.py:homepage_api_exclusions": [
+    "test_homepage_api_requests_bypass_sablier_only_on_matching_paths"
+  ],
+  "tasks/homepage_config.py:homepage_api_exclusions.visit": [
+    "test_homepage_api_requests_bypass_sablier_only_on_matching_paths"
+  ],
+  "tasks/sudo.py:SudoersFile.process": [
+    "test_sudoers_fact_preserves_file_content_with_trailing_newline"
+  ],
+  "tasks/system.py:SystemTimezone.process": [
+    "test_system_timezone_fact_normalizes_output"
+  ],
+  "tasks/system.py:SystemLocale.process": [
+    "test_system_locale_fact_parses_lang_value"
+  ],
+  "tasks/ufw.py:UfwActive.process": [
+    "test_ufw_fact_parsers_and_rule_matching"
+  ],
+  "tasks/ufw.py:UfwRules.process": [
+    "test_ufw_fact_parsers_and_rule_matching"
+  ],
+  "tasks/ufw.py:ufw_rule_exists": [
+    "test_ufw_fact_parsers_and_rule_matching"
+  ],
+  "tasks/ufw.py:UfwAddedRules.process": [
+    "test_ufw_added_rules_normalizes_only_added_rule_commands"
+  ],
+  "tasks/ufw.py:ufw_custom_rule_exists": [
+    "test_ufw_custom_rule_matches_with_or_without_explicit_in_token"
+  ],
+  "tasks/ufw.py:UfwDefaults.process": [
+    "test_ufw_fact_parsers_and_rule_matching"
+  ],
+  "tasks/vscodium.py:VSCodiumExtensions.command": [
+    "test_vscodium_fact_quotes_user_and_normalizes_installed_ids"
+  ],
+  "tasks/vscodium.py:VSCodiumExtensions.process": [
+    "test_vscodium_fact_quotes_user_and_normalizes_installed_ids"
+  ],
+  "tasks/cosmic/config.py:deploy_cosmic_values": [
+    "test_cosmic_values_are_deployed_only_when_enabled"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:api_json": [
+    "test_api_json_sends_bearer_token_and_parses_json",
+    "test_api_json_rejects_non_success_http_status"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:fetch_links": [
+    "test_fetch_links_follows_cursor_and_rejects_repeated_cursor",
+    "test_fetch_links_rejects_incomplete_response"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:favicon_extension": [
+    "test_favicon_extension_matches_content_type",
+    "test_favicon_extension_rejects_unknown_content_type"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:favicon_origin": [
+    "test_favicon_origin_normalizes_scheme_and_host"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:favicon_filename": [
+    "test_favicon_filename_is_shared_by_urls_on_same_origin"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.__init__": [
+    "test_favicon_html_parser_collects_only_icon_links"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.handle_starttag": [
+    "test_favicon_html_parser_collects_only_icon_links"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:discover_favicon_urls": [
+    "test_discover_favicon_urls_resolves_nonstandard_and_relative_paths"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:_download_image": [
+    "test_download_image_accepts_only_nonempty_supported_images",
+    "test_download_image_rejects_content_over_size_limit"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:download_favicon": [
+    "test_download_favicon_uses_detected_extension_and_is_idempotent",
+    "test_download_favicon_reuses_origin_cache_without_network"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:build_bookmark_groups": [
+    "test_bookmarks_are_grouped_and_deduplicated",
+    "test_bookmarks_on_same_site_download_one_favicon",
+    "test_bookmark_blacklist_filters_by_linkwarden_id_before_favicon_download"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:_service_entries": [
+    "test_collect_service_favicons_downloads_only_missing_local_icons"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:collect_service_favicons": [
+    "test_collect_service_favicons_downloads_only_missing_local_icons"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:update_service_icon_references": [
+    "test_update_service_icon_references_is_idempotent_and_adds_missing_icon"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:update_service_icon_references.dict_value": [
+    "test_update_service_icon_references_is_idempotent_and_adds_missing_icon"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:update_managed_bookmarks": [
+    "test_managed_bookmark_update_is_idempotent_and_preserves_surrounding_text",
+    "test_managed_bookmark_groups_are_top_level_and_preserve_homepage_layout",
+    "test_managed_bookmark_update_requires_markers"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:synchronize": [
+    "test_dry_run_does_not_download_icons_or_modify_config"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:cleanup_unused_favicons": [
+    "test_cleanup_unused_favicons_removes_only_unreferenced_managed_icons",
+    "test_cleanup_unused_favicons_preserves_shared_icon_until_last_reference",
+    "test_cleanup_unused_favicons_handles_missing_directory"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:resolve_sync_settings": [
+    "test_resolve_sync_settings_reads_linkwarden_api_key_from_secrets",
+    "test_resolve_sync_settings_supports_homepage_environment_fallback",
+    "test_resolve_sync_settings_prefers_linkwarden_api_key",
+    "test_resolve_sync_settings_reports_missing_api_key"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:select_local_secrets": [
+    "test_select_local_secrets_uses_inventory_target_not_system_hostname"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:main": [
+    "test_main_uses_local_secrets_and_passes_dry_run_to_sync"
+  ],
+  "files/scripts/translate.py:is_audio_descriptor": [
+    "test_is_audio_descriptor_respects_configuration"
+  ],
+  "files/scripts/translate.py:translate_cue": [
+    "test_translate_cue_preserves_empty_and_audio_description_text",
+    "test_translate_cue_translates_and_restores_asterisk_markers"
+  ],
+  "files/scripts/translate.py:wrap_sub_line": [
+    "test_wrap_sub_line_handles_empty_short_and_overflow_text",
+    "test_wrap_sub_line_never_splits_an_overlong_word"
+  ],
+  "files/scripts/translate.py:ts": [
+    "test_ts_converts_decimal_separators"
+  ],
+  "files/scripts/translate.py:main": [
+    "test_main_writes_numbered_srt_cues_from_ttml"
+  ]
+}
