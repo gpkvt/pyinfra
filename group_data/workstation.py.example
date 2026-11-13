@@ -4,45 +4,107 @@ Copy this file to workstation.py and enable only features appropriate for
 the target workstation. Hardware-specific values must be checked locally.
 """
 
-workstation = {  # Top-level settings consumed by workstation deployment tasks.
-    "backup": {  # Backup tooling and schedules for this workstation.
-        "enabled": False,  # Set True only after repository, credentials and paths are configured.
-        # Configure repository, credentials, source paths and retention first.
+workstation = {
+    "backup": {
+        "enabled": False,
     },
-    "power": {  # Power-management service and policy.
-        "enabled": False,  # Set True after choosing and reviewing a power manager.
-        "manager": "power-profiles-daemon",  # Supported choice: power-profiles-daemon or tlp.
+    "power": {
+        "enabled": False,
+        "manager": "power-profiles-daemon",
     },
-    "hardware": {  # CPU-vendor-specific hardware support packages/settings.
-        "enabled": False,  # Set True only after verifying the actual hardware.
-        "cpu_vendor": None,  # Use "intel" or "amd"; None skips vendor-specific setup.
+    "hardware": {
+        "enabled": False,
+        "cpu_vendor": None,
     },
-    "storage": {  # Storage health monitoring utilities and configuration.
-        "enabled": False,  # Set True to install/configure storage monitoring tools.
-        # Installs smartmontools and nvme-cli when enabled.
+    "storage": {
+        "enabled": False,
     },
-    "peripherals": {  # Desktop peripheral support such as printers and scanners.
-        "enabled": False,  # Set True to manage the peripheral support packages below.
-        "printing": False,  # Set True when this workstation needs printer support.
-        "scanning": False,  # Set True when this workstation needs scanner support.
+    "peripherals": {
+        "enabled": False,
+        "printing": False,
+        "scanning": False,
     },
-    "desktop": {  # General desktop integration packages and settings.
-        "enabled": False,  # Set True to apply desktop-specific configuration.
-        # Optional package override:
-        # "packages": ["xdg-utils", "xdg-user-dirs"],  # Replace with the packages you want.
+    "desktop": {
+        "enabled": False,
     },
-    "maintenance": {  # Workstation maintenance tools and scheduled maintenance.
-        "enabled": False,  # Set True only after reviewing what the maintenance task changes.
+    "maintenance": {
+        "enabled": False,
     },
-    "cosmic": {  # COSMIC desktop preferences; all subfeatures are independently gated.
-        "enabled": False,  # Set True to enable the COSMIC configuration task group.
-        "appearance": {"enabled": False, "mode": "dark"},  # Choose dark or light mode.
-        "panel": {"enabled": False},  # Set position, size and applets when enabling.
-        "dock": {"enabled": False},  # Set position, size and applets when enabling.
-        "workspaces": {"enabled": False},  # Optional raw COSMIC RON workspace configuration.
+    "cosmic": {
+        "enabled": False,
+
+        "appearance": {
+            "enabled": False,
+            "mode": "dark",
+        },
+
+        "window_management": {
+            "enabled": False,
+            "autotile": False,
+            "autotile_behavior": "PerWorkspace",
+            "focus_follows_cursor": False,
+            "cursor_follows_focus": False,
+            "edge_snap_threshold": 10,
+        },
+
+        "input": {
+            "enabled": False,
+            # Supply raw COSMIC RON strings for "default" (mouse)
+            # and/or "touchpad". No hardware-specific values are assumed.
+        },
+
+        "shortcuts": {
+            "enabled": False,
+            # "ron": "<COSMIC custom shortcut map in RON syntax>",
+        },
+
+        "workspaces": {
+            "enabled": False,
+            # "ron": "<COSMIC workspace configuration in RON syntax>",
+        },
+
+        "panel": {
+            "enabled": False,
+            "position": "top",
+            "size": "xs",
+            "autohide": False,
+            "extend": True,
+            "anchor_gap": 0,
+            "applets": {
+                "left": [],
+                "center": [],
+                "right": [],
+            },
+        },
+
+        "dock": {
+            "enabled": False,
+            "position": "bottom",
+            "size": "small",
+            "autohide": False,
+            "extend": True,
+            "anchor_gap": 0,
+            "applets": {
+                "left": [],
+                "center": [],
+                "right": [],
+            },
+        },
+
+        # Optional directory synchronization. Each entry requires:
+        # "src": a repository-relative source directory,
+        # "dest": a path relative to the configured user's home directory.
+        # Example:
+        # "config_files": {
+        #     "appearance": {
+        #         "src": "files/cosmic/local/appearance/",
+        #         "dest": ".config/cosmic/com.system76.CosmicTheme.Mode/v1/",
+        #     },
+        # },
+
+        # Display/output configuration is intentionally not managed.
     },
-    "limusic": {  # Limusic desktop music-player installation and launcher.
-        "enabled": False,  # Set True to install Limusic and create its desktop launcher.
-        # Installs the latest stable Limusic x86_64 AppImage and launcher.
+    "limusic": {
+        "enabled": False,
     },
 }

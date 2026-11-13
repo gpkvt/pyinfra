@@ -76,6 +76,34 @@ workstation = {
 }
 ```
 
+COSMIC configuration is nested exclusively under `workstation.cosmic`; do not define a separate top-level `cosmic` variable in per-host data. The COSMIC deployment includes independently gated appearance, window management, input, shortcuts, panel, dock and workspace modules. Display/output settings are intentionally excluded.
+
+Optional custom COSMIC configuration directories can be synchronized with `workstation.cosmic.config_files`. Each entry is a mapping with a repository-relative `src` directory and a destination `dest` relative to the configured user's home directory:
+
+```python
+workstation = {
+    "cosmic": {
+        "enabled": True,
+        "config_files": {
+            "appearance": {
+                "src": "files/cosmic/local/appearance/",
+                "dest": ".config/cosmic/com.system76.CosmicTheme.Mode/v1/",
+            },
+            "panel": {
+                "src": "files/cosmic/local/panel/",
+                "dest": ".config/cosmic/com.system76.CosmicPanel.Panel/v1/",
+            },
+            "dock": {
+                "src": "files/cosmic/local/dock/",
+                "dest": ".config/cosmic/com.system76.CosmicPanel.Dock/v1/",
+            },
+        },
+    },
+}
+```
+
+The source directories are synchronized as supplied, with files owned by the configured user and group. Keep machine-specific files and secrets out of tracked source directories. Do not put display/output configuration in these directories if the goal is to keep display layouts machine-specific.
+
 The tracked workstation example disables all features by default. Review each feature's requirements before enabling it. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (`B0rgm4t1C!`) and the generated file is mode `0600`; do not use that fallback for real backups. See [Templates and static assets](templates.md) for the security caveat.
 
 ## Network and name resolution
@@ -140,7 +168,10 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `tmux` | `tasks/tmux.py` | Truthy enablement value. |
 | `powerline` | `tasks/powerline.py` | Truthy enablement value. |
 | `powerline_fonts` | `tasks/fonts.py` | Boolean-like flag for optional patched fonts. |
-| `workstation.cosmic` | `tasks/workstation/cosmic/deploy.py` | COSMIC desktop settings, enabled only through the workstation role. |
+| `workstation.cosmic` | `tasks/workstation/cosmic/deploy.py` | COSMIC desktop settings, enabled only through the workstation role. Display/output settings are deliberately excluded. |
+| `workstation.cosmic.window_management` | `tasks/workstation/cosmic/window_management.py` | Optional `autotile`, `autotile_behavior` (`PerWorkspace` or `Global`), `focus_follows_cursor`, `cursor_follows_focus`, `edge_snap_threshold` value. |
+| `workstation.cosmic.input` | `tasks/workstation/cosmic/input.py` | Optional raw COSMIC RON strings for `default` (mouse) and `touchpad`; hardware-specific settings must be supplied explicitly. |
+| `workstation.cosmic.shortcuts` | `tasks/workstation/cosmic/shortcuts.py` | Optional raw RON map for `com.system76.CosmicSettings.Shortcuts/v1/custom`. |
 | `vscodium` | `tasks/vscodium.py` | Extension configuration dictionary. |
 | `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
