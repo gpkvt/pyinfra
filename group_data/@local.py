@@ -558,115 +558,43 @@ docker = {
         },
         # Homepage bookmarks are grouped by category.
         "bookmarks": [
-            {
-                "Misc": [
-                    {
-                        "GitHub": [
-                            {
-                                "icon": "/icons/github.png",
-                                "href": "https://github.com/gpkvt?tab=repositories",
-                            },
-                        ],
-                    },
-                    {
-                        "Kachelmannwetter": [
-                            {
-                                "icon": "/icons/kachelmann-logo.svg",
-                                "href": "https://kachelmannwetter.com/de/vorhersage/2886242-koeln/14-tage-trend",
-                            },
-                        ],
-                    },
-                    {
-                        "dict.leo": [
-                            {
-                                "icon": "/icons/leo_ende.svg",
-                                "href": "https://dict.leo.org/englisch-deutsch/",
-                            },
-                        ],
-                    },
-                    {
-                        "docsbot": [
-                            {
-                                "icon": "/icons/docsbot.ico",
-                                "href": "https://docsbot.ai/tools/image/description-generator",
-                            },
-                        ],
-                    },
-                    {
-                        "lookscanned": [
-                            {
-                                "icon": "/icons/lookscanned.ico",
-                                "href": "https://lookscanned.io/",
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                "Social": [
-                    {
-                        "Reddit": [
-                            {
-                                "icon": "/icons/reddit.png",
-                                "href": "https://www.reddit.com/",
-                            },
-                        ],
-                    },
-                    {
-                        "Mastodon": [
-                            {
-                                "icon": "/icons/mastodon.svg",
-                                "href": "https://23.social/",
-                            },
-                        ],
-                    },
-                    {
-                        "Discord": [
-                            {
-                                "icon": "/icons/discord.svg",
-                                "href": "https://discord.com/",
-                            },
-                        ],
-                    },
-                    {
-                        "LinkedIn": [
-                            {
-                                "icon": "/icons/linkedin.ico",
-                                "href": "https://www.linkedin.com/in/denis-w-96b83a282/",
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                "Entertainment": [
-                    {
-                        "YouTube": [
-                            {
-                                "icon": "/icons/youtube.png",
-                                "href": "https://www.youtube.com/",
-                            },
-                        ],
-                    },
-                    {
-                        "Last.fm": [
-                            {
-                                "icon": "/icons/lastfm.svg",
-                                "href": "https://www.last.fm/user/rbbot",
-                            },
-                        ],
-                    },
-                    {
-                        "Letterboxd": [
-                            {
-                                "icon": "/icons/letterboxd.ico",
-                                "href": "https://letterboxd.com/rbbot/",
-                            }
-                        ]
-                    }
-                ],
-            },
-            {
+            # BEGIN LINKWARDEN BOOKMARKS (managed)
+            {'Entertainment': [{'BattleDex – Punchline-Datenbank für deutschen Battlerap': [{'href': 'https://battledex.de/',
+                                                                                             'icon': '/icons/linkwarden-battledex.de-cd05eff8526df847.ico'}]},
+                               {'rbbot’s Music Profile | Last.fm': [{'href': 'https://www.last.fm/user/rbbot',
+                                                                     'icon': '/icons/linkwarden-www.last.fm-4b25b2fef1e5e8a3.ico'}]},
+                               {'Stadtbibliothek': [{'href': 'https://www.stadt-koeln.de/leben-in-koeln/stadtbibliothek/digitale-angebote-stadtbibliothek/index.html',
+                                                     'icon': '/icons/linkwarden-www.stadt-koeln.de-808b31496c270a38.ico'}]},
+                               {'Subscriptions - YouTube': [{'href': 'https://www.youtube.com/feed/subscriptions',
+                                                             'icon': '/icons/linkwarden-www.youtube.com-3ea7090e0d5dc62f.ico'}]}]},
+            {'Finanzen': [{'FinTS Sync to Firefly III': [{'href': 'https://fints.21x9.org/'}]},
+                          {'Startseite » Überblick » Firefly III': [{'href': 'https://firefly.21x9.org/'}]}]},
+            {'Politik': [{'Alle Demonstrationen in Köln - demoheute.de': [{'href': 'https://www.demoheute.de/koeln',
+                                                                           'icon': '/icons/linkwarden-www.demoheute.de-c9721f712309c2e4.ico'}]},
+                         {'Der Rechte Puls — DIVER': [{'href': 'https://diver.fyi/der-rechte-puls',
+                                                       'icon': '/icons/linkwarden-diver.fyi-b9e5a13ec6f895e0.ico'}]},
+                         {"Making sure you're not a bot!": [{'href': 'https://radar.squat.net/de/plotter/events-list',
+                                                             'icon': '/icons/linkwarden-radar.squat.net-16d6e40f28c5aff7.ico'}]}]},
+            {'Systemadministration': [{'Dashboard :: Snipe-IT': [{'href': 'https://snipeit.21x9.org/'}]},
+                                      {'gpkvt/pyinfra: A configuration-driven infrastructure automation project built with pyinfra.': [{'href': 'https://github.com/gpkvt/pyinfra',
+                                                                                                                                        'icon': '/icons/linkwarden-github.com-fa9800b000526cc1.ico'}]},
+                                      {'Portainer | local': [{'href': 'https://portainer.21x9.org/#!/3/docker/dashboard'}]},
+                                      {'pyinfra - Das bessere Ansible? – 21x9.org': [{'href': 'https://21x9.bearblog.dev/pyinfra-das-bessere-ansible/',
+                                                                                      'icon': '/icons/linkwarden-21x9.bearblog.dev-b08c3b9e97233276.ico'}]}]},
+            {'Tools': [{'EN ⇔ DE': [{'href': 'https://dict.leo.org/englisch-deutsch/',
+                                     'icon': '/icons/linkwarden-dict.leo.org-500a6fdaaf883e44.ico'}]},
+                       {'Free AI Image Description Generator for Photos | DocsBot': [{'href': 'https://docsbot.ai/tools/image/description-generator',
+                                                                                      'icon': '/icons/linkwarden-docsbot.ai-4864795b8843452e.ico'}]},
+                       {'Homepage': [{'href': 'https://homepage.21x9.org/'}]},
+                       {'Linkwarden': [{'href': 'https://linkwarden.21x9.org/dashboard'}]},
+                       {'Look Scanned - Make PDF Look Scanned Online, Free & Private': [{'href': 'https://lookscanned.io/',
+                                                                                         'icon': '/icons/linkwarden-lookscanned.io-1e16f32bcf7790ac.ico'}]},
+                       {'NocoDB': [{'href': 'https://nocodb.21x9.org/w8lxtsm4'}]}]},
+            {'Work': [{'Feed | LinkedIn': [{'href': 'https://www.linkedin.com/feed/',
+                                            'icon': '/icons/linkwarden-www.linkedin.com-761a7fc1155e3224.ico'}]},
+                      {'nocodb.21x9.org/': [{'href': 'https://nocodb.21x9.org/'}]}]}
+            # END LINKWARDEN BOOKMARKS (managed)
+            ,{
                 "Proton": [
                     {
                         "Proton Mail": [
@@ -758,8 +686,6 @@ docker = {
                     },
                 ],
             },
-            # BEGIN LINKWARDEN BOOKMARKS (managed)
-            # END LINKWARDEN BOOKMARKS (managed)
         ],
         # Homepage services are configured as groups containing service entries.
         # Override or extend these entries here; the task renders services.yaml.
