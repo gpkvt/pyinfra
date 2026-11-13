@@ -34,12 +34,14 @@ jobs:
 
       - name: Run deployment for the first time
         run: |
-          pyinfra inventory.py deploy.py --limit @local --json --yes \
+          pyinfra inventory.py deploy.py --group-data .github/ci/group_data \
+            --limit @local --json --yes \
             > first-run.json
 
       - name: Run deployment again and check for changes
         run: |
-          pyinfra inventory.py deploy.py --limit @local --json --yes \
+          pyinfra inventory.py deploy.py --group-data .github/ci/group_data \
+            --limit @local --json --yes \
             > second-run.json
 
           python - <<'PY'
@@ -64,14 +66,17 @@ jobs:
 
           if errors or failed_hosts:
               raise SystemExit(
-                  f"Second deployment had {errors} failed operation(s); "
-                  f"failed hosts: {failed_hosts}"
+                  "Second deployment failed: "
+                  + str(errors)
+                  + " failed operation(s); failed hosts: "
+                  + str(failed_hosts)
               )
 
           if changed:
               raise SystemExit(
-                  f"Deployment is not idempotent: second run changed "
-                  f"{changed} operation(s)."
+                  "Deployment is not idempotent: second run changed "
+                  + str(changed)
+                  + " operation(s)."
               )
 
           print("Deployment is idempotent: second run made no changes.")
