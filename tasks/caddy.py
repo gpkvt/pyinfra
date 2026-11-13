@@ -226,7 +226,7 @@ def configure_caddy():  # pylint: disable=R0914
         dest=f"{homedir}/.config/systemd/user/caddy-renew.timer",
         user=username, group=usergroup, mode="644", _sudo=False,
     )
-    current_uid = (host.get_fact(Command, "id -u", _sudo=False) or "").strip()
+    current_uid = (command_output(host, "id -u", _sudo=False) or "").strip()
     if not uid.isdigit():
         raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
     if current_uid == uid:
@@ -247,8 +247,8 @@ def configure_caddy():  # pylint: disable=R0914
             f"Cannot manage systemd user {username!r} (UID {uid}) "
             f"from unprivileged UID {current_uid}"
         )
-    renewal_timer_status = host.get_fact(
-        Command, f"{systemctl_user} is-active caddy-renew.timer", _sudo=False
+    renewal_timer_status = command_output(
+        host, f"{systemctl_user} is-active caddy-renew.timer", _sudo=False
     ) or ""
     renewal_timer_active = renewal_timer_status.strip() == "active"
     server.shell(
@@ -317,8 +317,8 @@ def configure_caddy():  # pylint: disable=R0914
     # This survives pyinfra runs, so a skipped/failed reload is retried even
     # when files.template reports no change on the next deployment.
     caddyfile_loaded = (
-        host.get_fact(
-            Command,
+        command_output(
+            host,
             "docker exec --user "
             + f"{uid}:{gid} caddy sh -ec "
             + "'current=$(sha256sum /etc/pyinfra-caddy/Caddyfile | cut -d \" \" -f1); "
