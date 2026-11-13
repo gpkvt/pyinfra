@@ -506,6 +506,12 @@ docker = {
         "app_services": ["app"],
         "sablier_services": ["app", "db"],
     },
+    "appflowy": {
+        "port": 8026,
+        "domain": "appflowy.21x9.org",
+        "admin_email": "admin@appflowy.21x9.org",
+        "app_services": ["nginx"],
+    },
     "homepage": {
         "image": "ghcr.io/gethomepage/homepage:latest",
         # API keys are supplied by secrets.json.gpg. The Homepage task merges
@@ -908,6 +914,12 @@ docker = {
                         },
                     },
                     {
+                        "AppFlowy": {
+                            "href": "https://appflowy.21x9.org",
+                            "description": "Collaborative workspace",
+                        },
+                    },
+                    {
                         "Grav": {
                             "icon": "/icons/grav.png",
                             "href": "https://grav.21x9.org",
@@ -1055,6 +1067,13 @@ docker = {
 
 # Caddy configuration
 caddy_config = {
+  "appflowy.21x9.org:443": {
+    "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
+    "reverse_proxy": "127.0.0.1:8026",
+    "header": [
+      "-Server"
+    ],
+  },
   "rss.21x9.org:443": {
     "tls": "/var/lib/dehydrated/certs/21x9.org/fullchain.pem /var/lib/dehydrated/certs/21x9.org/privkey.pem",
     "reverse_proxy": "127.0.0.1:8005",
