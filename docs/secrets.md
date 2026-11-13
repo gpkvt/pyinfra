@@ -37,6 +37,7 @@ The example file documents the current data shape:
 | `hosts.<hostname>.docker.appflowy` | `tasks/docker/appflowy.py` | PostgreSQL password, initial GoTrue administrator password, JWT secret, and MinIO access/secret keys. |
 | `hosts.<hostname>.docker.homepage.environment` | `tasks/docker/homepage.py`, `tasks/docker/linkwarden_bookmarks.py` | Homepage widget API keys/environment values, including the Linkwarden bearer API key reused by the bookmark synchronizer; encrypted values override host-data defaults. |
 | `hosts.<hostname>.docker.vaultwarden` | `tasks/docker/vaultwarden.py` | Optional Argon2 PHC hash for the Vaultwarden admin token (`admin_token`). |
+| `hosts.<hostname>.docker.timetagger` | `tasks/docker/timetagger.py` | Required TimeTagger `credentials` value in `username:bcrypt-hash` format. |
 | `hosts.<hostname>.ssh` | `tasks/ssh_keys.py` | Default and per-key passphrases. |
 
 
@@ -86,6 +87,9 @@ Use `secrets.json.gpg.example` as the authoritative example. A simplified struct
           "admin_username": "admin@example.net",
           "admin_password": "REPLACE_ME",
           "postgres_password": "REPLACE_ME"
+        },
+        "timetagger": {
+          "credentials": "REPLACE_USERNAME:REPLACE_WITH_BCRYPT_HASH"
         }
       },
       "ssh": {
