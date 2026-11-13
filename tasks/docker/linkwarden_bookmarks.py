@@ -10,6 +10,8 @@ import hashlib
 import html.parser
 import json
 import argparse
+import csv
+import io
 import os
 import re
 import runpy
@@ -67,6 +69,30 @@ def fetch_links(base_url, token):
             raise RuntimeError("Linkwarden pagination cursor repeated")
         seen_cursors.add(marker)
         cursor = next_cursor
+
+
+def format_link_listing(links):
+    """Format every Linkwarden link as a copy-friendly tab-separated table."""
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter="\t", lineterminator="\n")
+    writer.writerow(("ID", "CATEGORY", "TITLE", "URL"))
+    for link in links:
+        if not isinstance(link, dict):
+            raise RuntimeError("Linkwarden returned a malformed link entry")
+        link_id = link.get("id")
+        if link_id is None:
+            raise RuntimeError("Linkwarden returned a link without an ID")
+        collection = link.get("collection")
+        collection_name = collection.get("name") if isinstance(collection, dict) else None
+        category = str(collection_name or "Unorganized")
+        title = link.get("name") or link.get("url") or "(untitled)"
+        writer.writerow((link_id, category, title, link.get("url", "")))
+    return output.getvalue().rstrip("\n")
+
+
+def list_links(base_url, token):
+    """Fetch and format all links without downloading icons or changing files."""
+    return format_link_listing(fetch_links(base_url, token))
 
 
 FAVICON_EXTENSIONS = {
@@ -498,6 +524,10 @@ def main():
         "--dry-run", action="store_true",
         help="fetch and display proposed bookmarks without downloading icons or changing files",
     )
+    parser.add_argument(
+        "--list-links", action="store_true",
+        help="list all Linkwarden link IDs, categories, titles and URLs without syncing",
+    )
     args = parser.parse_args()
     root = Path(__file__).resolve().parents[2]
     sys.path.insert(0, str(root))
@@ -512,6 +542,12 @@ def main():
         domain, token = resolve_sync_settings(config, secret_data)
     except ValueError as error:
         parser.error(str(error))
+    if args.list_links:
+        base_url = domain.strip().rstrip("/")
+        if not base_url.startswith(("https://", "http://")):
+            base_url = "https://" + base_url
+        print(list_links(base_url, token))
+        return
     synchronize(
         root / "group_data" / "@local.py",
         root / "files" / "homepage" / "icons",
