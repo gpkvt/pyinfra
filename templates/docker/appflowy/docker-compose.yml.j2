@@ -167,7 +167,6 @@ services:
       # and rely on the whitelist + invitations to gate who can sign up.
       - SIGNUP_WHITELIST_ENABLED=${SIGNUP_WHITELIST_ENABLED:-false}
       - GUEST_INVITES_REQUIRE_ADMIN_APPROVAL=${GUEST_INVITES_REQUIRE_ADMIN_APPROVAL:-false}
-      # No collector dependency or startup probe when server logs are disabled.
     image: appflowyinc/appflowy_cloud:0.21.3@sha256:18afc47ca348e483752c3cd6b318a4b905b879f5b5a163abe329d23c393ddd56
     healthcheck:
       test: "curl --fail http://127.0.0.1:8000/api/health || exit 1"
