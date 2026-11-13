@@ -187,10 +187,16 @@ def test_system_locale_uses_native_idempotent_operations(pyinfra_task_harness):
     assert default_locale["src"].getvalue() == 'LANG="en_GB.UTF-8"\n'
 
 
-def test_git_credentials_clear_only_an_existing_immutable_flag(pyinfra_task_harness):
-    pyinfra_task_harness.load("git.py", {
-        "git_credentials": ["https://user:secret@example.invalid"],
-    })
+def test_git_credentials_clear_only_an_existing_immutable_flag(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"git_credentials": ["https://user:secret@example.invalid"]},
+        raising=False,
+    )
+    pyinfra_task_harness.load("git.py")
     clear_flag = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
