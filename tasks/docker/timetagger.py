@@ -87,6 +87,7 @@ deploy_docker_service(
     service="timetagger",
     description="TimeTagger Docker Service",
     homedir=homedir, # pylint: disable=undefined-variable
+    compose_services=["timetagger"],
     username=host.data.get("username", "root"),
     usergroup=host.data.get("usergroup", "root"),
     port=timetagger.get("port", 8080),
