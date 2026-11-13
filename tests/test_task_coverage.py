@@ -177,17 +177,17 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
             {
                 "docker": {
                     "appflowy": {
-                        "postgres_password": "ci-postgres",
-                        "admin_password": "ci-admin",
-                        "jwt_secret": "ci-jwt-secret",
-                        "minio_access_key": "ci-minio-access",
-                        "minio_secret_key": "ci-minio-secret",
+                        "postgres_password": "a" * 40,
+                        "admin_password": "b" * 40,
+                        "jwt_secret": "c" * 40,
+                        "minio_access_key": "d" * 20,
+                        "minio_secret_key": "e" * 40,
                     },
                     "firefly-iii": {
                         "database_password": "ci-database",
                         "mysql_root_password": "ci-mysql-root",
                         "app_key": "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-                        "cron_token": "ci-cron-token",
+                        "cron_token": "f" * 32,
                     },
                     "paperless": {
                         "postgres_password": "ci-postgres",
