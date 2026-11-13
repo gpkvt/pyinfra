@@ -67,6 +67,7 @@
   "tasks/workstation/backup.py": "deployment",
   "tasks/workstation/desktop.py": "deployment",
   "tasks/workstation/hardware.py": "deployment",
+  "tasks/workstation/limusic.py": "deployment",
   "tasks/workstation/maintenance.py": "deployment",
   "tasks/workstation/peripherals.py": "deployment",
   "tasks/workstation/power.py": "deployment",
