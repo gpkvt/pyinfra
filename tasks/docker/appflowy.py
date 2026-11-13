@@ -6,6 +6,7 @@ import re
 from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import files
+from pyinfra.operations.util import any_changed
 
 from tasks.docker import deploy_docker_service, ensure_numeric_directory
 
@@ -71,20 +72,8 @@ for path in (
 ensure_numeric_directory(f"{data_root}/postgres", 999, 999, "700")
 # MinIO and AppFlowy Search run as unprivileged container users. Their data
 # directories are deliberately writable without making them world-accessible.
-files.directory(
-    name="Create AppFlowy MinIO data directory",
-    path=f"{data_root}/minio",
-    user=username,
-    group=usergroup,
-    mode="770",
-)
-files.directory(
-    name="Create AppFlowy Search index directory",
-    path=f"{data_root}/search",
-    user=username,
-    group=usergroup,
-    mode="770",
-)
+ensure_numeric_directory(f"{data_root}/minio", 1000, 1000, "750")
+ensure_numeric_directory(f"{data_root}/search", 1000, 1000, "750")
 
 env_file = files.template(
     name="Configure AppFlowy environment",
@@ -95,6 +84,7 @@ env_file = files.template(
     mode="600",
     postgres_password=appflowy_secrets["postgres_password"],
     admin_email=admin_email,
+    domain=domain,
     admin_password=appflowy_secrets["admin_password"],
     jwt_secret=appflowy_secrets["jwt_secret"],
     minio_access_key=appflowy_secrets["minio_access_key"],
@@ -118,7 +108,7 @@ deploy_docker_service(
     homedir=homedir,
     username=username,
     usergroup=usergroup,
-    restart_if=[env_file, nginx_config],
+    restart_if=any_changed(env_file, nginx_config),
     app_services=appflowy.get("app_services", ["nginx"]),
     port=port,
 )
