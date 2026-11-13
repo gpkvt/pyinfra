@@ -49,6 +49,8 @@ uv run pytest tests/ -v
 
 The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. The GitHub Actions workflow `.github/workflows/idempotency.yml` runs pytest and pre-commit as separate jobs for pushes and pull requests targeting `main`.
 
+The CI coverage inventory in `.github/ci/task_coverage.json` enumerates every Python task module and every file under `files/scripts/`. The `tests/test_task_coverage.py` checks that the inventory cannot silently omit new or removed files, that every task module is explicitly classified, and that Python and shell utility sources pass syntax validation. The `helper` classification is reserved for shared code that does not itself schedule pyinfra operations. This inventory is a completeness guard; it does not by itself claim that every task has already been exercised in a real deployment.
+
 ## Deployment idempotency check
 
 The same CI workflow performs two real deployments with pyinfra against the runner's local host (`--limit @local`). The deployment job waits until both pytest and pre-commit have completed, then runs even if either prerequisite failed. This preserves the deployment diagnostics instead of skipping them after an earlier failure; the overall workflow still reports the failed prerequisite.
