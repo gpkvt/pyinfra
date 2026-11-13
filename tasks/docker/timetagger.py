@@ -89,8 +89,12 @@ timetagger = host.data.get("docker", {}).get("timetagger", {})
 timetagger_secrets = secrets.get("docker", {}).get("timetagger", {})  # pylint: disable=undefined-variable
 credentials = timetagger_secrets.get("credentials")
 
-if not isinstance(credentials, str) or ":" not in credentials or any(
-    character in credentials for character in ("\n", "\r", "\x00")
+if (
+    not isinstance(credentials, str)
+    or ":" not in credentials
+    or not credentials.split(":", 1)[0]
+    or not credentials.split(":", 1)[1]
+    or any(character in credentials for character in ("\\n", "\\r", "\\x00", '"', "'"))
 ):
     raise ValueError(
         "secrets.docker.timetagger.credentials must be a single-line "
