@@ -78,7 +78,8 @@ if host.data.get("docker"):
     local.include("tasks/docker.py")
     # Sablier must be available before app containers are created for on-demand
     # startup. The battery saver is mutually exclusive with Sablier.
-    local.include("tasks/docker_power.py")
+    if host.data.get("docker_power_monitor", True):
+        local.include("tasks/docker_power.py")
     if host.data.get("docker_sablier", {}).get("enabled", False):
         local.include("tasks/docker_sablier.py")
     local.include("tasks/docker_container.py")
