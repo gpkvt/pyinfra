@@ -28,6 +28,18 @@ def install_pyinfra_fact_stubs(monkeypatch):
         monkeypatch.setitem(sys.modules, name, module)
 
 
+
+def test_command_output_text_normalizes_fact_lines_and_empty_values(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_command_output")
+
+    assert common.command_output_text(["first", "second"]) == "first\\nsecond"
+    assert common.command_output_text(["one"]) == "one"
+    assert common.command_output_text([]) == ""
+    assert common.command_output_text(None) == ""
+    assert common.command_output_text("already text") == "already text"
+
+
 def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_no_secrets")
