@@ -13,6 +13,7 @@ import re
 
 from common import command_output
 from pyinfra import host
+from pyinfra.facts.files import File
 
 from pyinfra.operations import apt, flatpak, server
 
@@ -104,8 +105,12 @@ if install_drive_cli:
         host,
         "cat /usr/local/bin/proton-drive.version 2>/dev/null || true",
     ).strip()
+    drive_cli_exists = host.get_fact(
+        File,
+        path="/usr/local/bin/proton-drive",
+    )
 
-    if installed_drive_cli_version != drive_cli_version:
+    if installed_drive_cli_version != drive_cli_version or not drive_cli_exists:
         server.shell(
             name="Install Proton Drive CLI",
             commands=[
