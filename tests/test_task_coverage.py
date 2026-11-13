@@ -43,7 +43,7 @@ def test_coverage_entries_use_supported_execution_kinds():
     invalid = {
         path: kind
         for path, kind in coverage.items()
-        if kind not in {"deployment", "helper", "utility"}
+        if kind not in {"deployment", "dispatcher", "helper", "utility"}
     }
 
     assert not invalid, f"Unsupported CI coverage kinds: {invalid}"
@@ -55,8 +55,12 @@ def test_coverage_entries_use_supported_execution_kinds():
         and path not in {
             "tasks/homepage_config.py",
             "tasks/docker/linkwarden_bookmarks.py",
+            "tasks/cosmic/deploy.py",
+            "tasks/docker_container.py",
         }
     )
+    assert coverage.get("tasks/cosmic/deploy.py") == "dispatcher"
+    assert coverage.get("tasks/docker_container.py") == "dispatcher"
     assert all(
         kind == "utility"
         for path, kind in coverage.items()
@@ -65,11 +69,11 @@ def test_coverage_entries_use_supported_execution_kinds():
     )
 
 
-def test_deployment_modules_import_pyinfra():
+def test_deployment_modules_and_dispatchers_import_pyinfra():
     coverage = json.loads(MANIFEST.read_text(encoding="utf-8"))
 
     for relative_path, kind in coverage.items():
-        if kind != "deployment":
+        if kind not in {"deployment", "dispatcher"}:
             continue
 
         source = (ROOT / relative_path).read_text(encoding="utf-8")
@@ -116,3 +120,28 @@ def test_shell_utilities_pass_bash_syntax_validation():
         assert result.returncode == 0, (
             f"{relative_path} failed bash -n:\\n{result.stderr}"
         )
+
+
+
+def test_dispatchers_include_child_task_modules():
+    coverage = json.loads(MANIFEST.read_text(encoding="utf-8"))
+
+    for relative_path, kind in coverage.items():
+        if kind != "dispatcher":
+            continue
+
+        tree = ast.parse(
+            (ROOT / relative_path).read_text(encoding="utf-8"),
+            filename=relative_path,
+        )
+        includes = {
+            node.args[0].value
+            for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == "include"
+            and node.args
+            and isinstance(node.args[0], ast.Constant)
+            and isinstance(node.args[0].value, str)
+        }
+        assert includes, f"{relative_path} does not include any child tasks"
