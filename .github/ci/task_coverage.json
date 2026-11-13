@@ -15,7 +15,7 @@
   "tasks/apt.py": "deployment",
   "tasks/caddy.py": "deployment",
   "tasks/cosmic/appearance.py": "deployment",
-  "tasks/cosmic/config.py": "deployment",
+  "tasks/cosmic/config.py": "helper",
   "tasks/cosmic/deploy.py": "dispatcher",
   "tasks/cosmic/dock.py": "deployment",
   "tasks/cosmic/panel.py": "deployment",
