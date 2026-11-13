@@ -82,3 +82,27 @@ def test_managed_bookmark_update_requires_markers(module, tmp_path):
     config.write_text("bookmarks = []\n", encoding="utf-8")
     with pytest.raises(RuntimeError, match="marker"):
         module.update_managed_bookmarks(config, [])
+
+
+def test_dry_run_does_not_download_icons_or_modify_config(module, monkeypatch, tmp_path):
+    config = tmp_path / "@local.py"
+    original = (
+        'bookmarks = [\\n'
+        '            # BEGIN LINKWARDEN BOOKMARKS (managed)\\n'
+        '            # END LINKWARDEN BOOKMARKS (managed)\\n'
+        '        ]\\n'
+    )
+    config.write_text(original, encoding="utf-8")
+    monkeypatch.setattr(module, "fetch_links", lambda *_args: [
+        {"type": "url", "url": "https://example.com", "name": "Example",
+         "collection": {"name": "Reading"}},
+    ])
+    monkeypatch.setattr(
+        module, "download_favicon",
+        lambda *_args: pytest.fail("dry run must not download favicons"),
+    )
+    assert module.synchronize(
+        config, tmp_path / "icons", "https://links.example", "token", dry_run=True
+    ) is False
+    assert config.read_text(encoding="utf-8") == original
+    assert not (tmp_path / "icons").exists()
