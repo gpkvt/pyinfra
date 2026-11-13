@@ -124,6 +124,8 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             if "ip -j -4 addr show scope global" in command:
                 return ["[]"]
             return []
+        if name == "Locales":
+            return host_data.get("locales", [])
         if name == "UfwActive":
             return False
         if name == "UfwRules":
@@ -220,6 +222,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     facts_server.Command = type("Command", (), {})
     facts_server.Which = type("Which", (), {})
     facts_server.Timezone = type("Timezone", (), {})
+    facts_server.Locales = type("Locales", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.api", api),
