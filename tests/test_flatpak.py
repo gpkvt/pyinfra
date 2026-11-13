@@ -2,13 +2,6 @@
 
 import pytest
 
-from conftest import ROOT
-
-
-def load_flatpak_task(pyinfra_task_harness):
-    """Load the task module under the shared mocked pyinfra environment."""
-    return pyinfra_task_harness.load("flatpak.py")
-
 
 @pytest.mark.parametrize(
     ("package", "available", "expected"),
