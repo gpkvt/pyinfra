@@ -20,8 +20,6 @@ from io import StringIO
 
 from pyinfra import host
 from pyinfra.api import FactBase
-from pyinfra.facts.server import Command
-from common import command_output_text
 from pyinfra.operations import files, server
 
 # Custom fact: retrieve current sudoers configuration
@@ -66,10 +64,6 @@ if sudoers_rules:
         group="root",
         mode="755",
         _sudo=True,
-        _if=lambda: command_output_text(host.get_fact(
-            Command,
-            "stat -c '%U:%G:%a' /etc/sudoers.d 2>/dev/null || true",
-        )).strip() != "root:root:755",
     )
 
     # Build sudoers configuration
