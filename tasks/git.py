@@ -43,13 +43,12 @@ if not hasattr(__import__('builtins'), 'homedir'):
     initialize(host)
 
 def set_immutable(path, immutable=True):
-    flag = "+i" if immutable else "-i"
-
-    print(f"    Set {flag} for {path}")
-
-    host.run_shell_command(
-        f"chattr {flag} {path}",
-        print_output=False,
+    """Ensure the immutable filesystem flag is present or absent."""
+    files.flags(
+        name=f"{'Set' if immutable else 'Clear'} immutable flag for {path}",
+        path=path,
+        flags=["i"],
+        present=immutable,
         _sudo=True,
     )
 
