@@ -222,7 +222,7 @@
   "tasks/vscodium.py:VSCodiumExtensions.process": [
     "test_vscodium_fact_quotes_user_and_normalizes_installed_ids"
   ],
-  "tasks/flatpak.py:_flatpak_ref_ids": [
+  "tasks/flatpak.py:flatpak_ref_ids": [
     "test_flatpak_ref_ids_normalizes_application_and_runtime_refs"
   ]
 }
