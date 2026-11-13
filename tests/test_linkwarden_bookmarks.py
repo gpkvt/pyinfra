@@ -59,6 +59,11 @@ def test_format_link_listing_includes_ids_categories_titles_and_urls(loaded_modu
     )
 
 
+def test_format_link_listing_rejects_malformed_link_entry(loaded_module):
+    with pytest.raises(RuntimeError, match="malformed link entry"):
+        loaded_module.format_link_listing([None])
+
+
 def test_format_link_listing_rejects_link_without_id(loaded_module):
     with pytest.raises(RuntimeError, match="without an ID"):
         loaded_module.format_link_listing([{"name": "Missing ID"}])
