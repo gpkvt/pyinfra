@@ -216,7 +216,7 @@ def test_resolve_sync_settings_supports_homepage_environment_fallback(loaded_mod
         "HOMEPAGE_VAR_LINKWARDEN_API_KEY": "homepage-token"
     }}}}
     assert loaded_module.resolve_sync_settings(config, secret_data) == (
-        "linkwarden.21x9.org", "homepage-token"
+        "linkwarden.example.com", "homepage-token"
     )
 
 
@@ -695,7 +695,7 @@ def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
 
     assert len(calls) == 1
     args, kwargs = calls[0]
-    assert args[2:] == ("linkwarden.21x9.org", "local-token")
+    assert args[2:] == ("linkwarden.example.com", "local-token")
     assert kwargs["dry_run"] is True
     assert kwargs["blacklist"] == ["blocked"]
 
