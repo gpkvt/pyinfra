@@ -10,7 +10,7 @@ APT repository configuration is managed by tasks/apt.py.
 """
 
 from pyinfra import host
-from pyinfra.facts.server import Command
+from common import command_output
 from pyinfra.operations import apt, server
 
 proton = host.data.get("proton", {})
@@ -50,10 +50,8 @@ if use_flatpak and flatpak_apps:
     )
 
     # Check configured Flatpak remotes.
-    flathub_remotes = host.get_fact(
-        Command,
-        command="flatpak remote-list --user --columns=name",
-        _sudo=False
+    flathub_remotes = command_output(
+        host, "flatpak remote-list --user --columns=name", _sudo=False
     )
 
     server.shell(
@@ -67,10 +65,8 @@ if use_flatpak and flatpak_apps:
     )
 
     # Check installed applications.
-    installed_apps = host.get_fact(
-        Command,
-        command="flatpak list --user --app --columns=application",
-        _sudo=False
+    installed_apps = command_output(
+        host, "flatpak list --user --app --columns=application", _sudo=False
     )
 
     missing_apps = [
@@ -95,7 +91,7 @@ if use_flatpak and flatpak_apps:
 install_drive_cli = proton.get("drive_cli", True)
 
 if install_drive_cli:
-    drive_cli_version = host.data.get("proton", {}).get("drive_cll_version", "0.9.0")
+    drive_cli_version = host.data.get("proton", {}).get("drive_cli_version", "0.9.0")
     drive_cli_platform = "linux-x64"
 
     drive_cli_url = (
@@ -111,9 +107,8 @@ if install_drive_cli:
         ],
     )
 
-    installed_drive_cli = host.get_fact(
-        Command,
-        command="test -x /usr/local/bin/proton-drive && echo installed || true",
+    installed_drive_cli = command_output(
+        host, "test -x /usr/local/bin/proton-drive && echo installed || true"
     )
 
     if "installed" not in (installed_drive_cli or "").splitlines():
