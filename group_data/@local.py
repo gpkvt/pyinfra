@@ -480,6 +480,8 @@ docker = {
         "image": "ghcr.io/linkwarden/linkwarden:latest",
         "port": 8021,
         "domain": "linkwarden.21x9.org",
+        # Linkwarden bookmark IDs to exclude from Homepage synchronization.
+        "blacklist": [],
         "app_services": ["linkwarden"],
         "sablier_services": ["linkwarden", "postgres", "meilisearch"],
     },
