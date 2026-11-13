@@ -1,16 +1,11 @@
 # Essential services for AppFlowy Cloud
-# From the repository root, run `cp deploy.env .env` and edit .env first.
-# Then run `docker compose up -d`.
-# Backup is disabled by default; set APPFLOWY_BACKUP_PROFILE=backup in .env to enable it.
-# See docs/docker-compose.md#backup for setup.
-# Server logs are optional; see docs/docker-compose.md#server-logs.
 
 services:
   nginx:
     restart: on-failure
     image: nginx:1.27-alpine
     ports:
-      - "127.0.0.1:${NGINX_PORT:-8026}:80"
+      - "127.0.0.1:{{ port }}:80"
     volumes:
       - "{{ homedir }}/.docker/appflowy/nginx.conf:/etc/nginx/nginx.conf:ro"
 
@@ -29,7 +24,7 @@ services:
       timeout: 20s
       retries: 3
     volumes:
-      - "{{ homedir }}/.docker/appflowy/search:/data
+      - "{{ homedir }}/.docker/appflowy/minio:/data"
 
   postgres:
     restart: on-failure
@@ -47,7 +42,7 @@ services:
       timeout: 5s
       retries: 12
     volumes:
-      - "{{ homedir }}/.docker/appflowy/postgres:/var/lib/postgresql/data
+      - "{{ homedir }}/.docker/appflowy/postgres:/var/lib/postgresql/data"
 
   redis:
     restart: on-failure
@@ -272,7 +267,7 @@ services:
       - APPFLOWY_KEYWORD_INDEX_MAP_SIZE_BYTES=${APPFLOWY_KEYWORD_INDEX_MAP_SIZE_BYTES:-2147483648}
       - APPFLOWY_GOTRUE_JWT_SECRET=${GOTRUE_JWT_SECRET}
     volumes:
-      - "{{ homedir }}/.docker/appflowy/search:/var/lib/appflowy/keyword_index
+      - "{{ homedir }}/.docker/appflowy/search:/var/lib/appflowy/keyword_index"
     healthcheck:
       # The runtime image does not ship curl or wget. Bash's /dev/tcp support
       # keeps this an HTTP-level check without adding an image dependency.
