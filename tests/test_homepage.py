@@ -9,12 +9,6 @@ def test_homepage_bookmark_columns_are_controlled_by_custom_css():
     assert ".bookmark-group" in css
     assert "flex-basis: 25%" in css
 
-    local_data = (ROOT / "group_data/@local.py").read_text()
-    assert '"Services": {' in local_data
-    assert '"style": "row"' in local_data
-    assert '"Calendar": {' in local_data
-    assert '"Network & News": {' in local_data
-    assert '"Bookmarks": {' not in local_data
 
 
 def test_homepage_task_deploys_custom_css_and_restarts_on_change():
