@@ -210,7 +210,7 @@ def test_system_locale_uses_native_idempotent_operations(pyinfra_task_harness):
     )
     default_locale = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "put"
+        if namespace == "files" and name == "line"
         and kwargs.get("name") == "Set system default locale: en_GB.UTF-8"
     )
 
