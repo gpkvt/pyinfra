@@ -10,7 +10,6 @@ This project follows a continuous development model. Changes are tracked using d
 
 - Added Docker-based Caddy and Sablier deployment. Sablier uses the Docker provider and Compose labels to start application containers on demand; Caddy uses host networking to retain loopback upstreams.
 - Added Dehydrated certificate renewal inside the Caddy container with the Hetzner DNS-01 hook. `dehydrated_domains` in `group_data/@local.py` supports multiple certificates, each defined by one list of primary name and SANs.
-
 - Added Snipe-IT asset management with MariaDB, persistent host bind mounts under `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
 - Added custom Homepage API widgets for supported services and an RSS feed widget.
 - Added on-demand Docker service startup with Sablier, including Homepage integration and dynamic loading pages.
@@ -19,7 +18,6 @@ This project follows a continuous development model. Changes are tracked using d
 
 - Configured Homepage API requests to bypass Sablier so dashboard widgets remain available without starting application containers.
 - Set Caddy's HTTP response deadline to two minutes.
-- Switched Snipe-IT persistence to direct host bind mounts under `~/.docker/snipe-it/`.
 
 ### Fixed
 
@@ -50,7 +48,6 @@ This project follows a continuous development model. Changes are tracked using d
 - Centralized Docker-to-host UFW rules in the local host configuration ([#75](https://github.com/gpkvt/pyinfra/pull/75)).
 - Updated Homepage Docker networking to support HTTPS access to host-based services ([#74](https://github.com/gpkvt/pyinfra/pull/74)).
 - Changed the Homepage weather location to Cologne, Germany ([#80](https://github.com/gpkvt/pyinfra/pull/80)).
-- Updated Homepage's OpenWeatherMap location to Cologne, Germany.
 
 ### Fixed
 
