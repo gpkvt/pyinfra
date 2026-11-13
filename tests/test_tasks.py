@@ -1057,11 +1057,12 @@ def test_proton_drive_cli_skips_install_when_requested_version_is_current(
         },
     })
 
-    assert not any(
-        namespace == "server" and name == "shell"
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
         and kwargs.get("name") == "Install Proton Drive CLI"
-        for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+    assert install["_if"]() is False
 
 
 def test_proton_drive_cli_rejects_invalid_version(pyinfra_task_harness):
@@ -1098,7 +1099,7 @@ def test_timetagger_requires_credentials_and_passes_compose_escaped_hash(
     compose = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "template"
-        and kwargs.get("name") == "Configure timetagger"
+        and "credentials" in kwargs
     )
     assert compose["credentials"] == "tester:" + "$" * 2 + "2a" + "$" * 2 + "08" + "$" * 2 + "hash"
 
