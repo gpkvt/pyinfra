@@ -125,21 +125,11 @@ from io import StringIO
 
 from pyinfra import host
 from pyinfra.api import FactBase
+from pyinfra.facts.server import Timezone
 from pyinfra.operations import apt, files, server
+from pyinfra.operations.util import any_changed
 
 # Custom fact: retrieve current system locale
-class SystemTimezone(FactBase):
-    """Return the configured system timezone."""
-
-    command = (
-        "timedatectl show --property=Timezone --value 2>/dev/null "
-        "|| cat /etc/timezone 2>/dev/null || true"
-    )
-
-    def process(self, output):
-        return "".join(output).strip() or None
-
-
 class SystemLocale(FactBase):
     """
     Return the current LANG setting from /etc/default/locale.
@@ -195,7 +185,7 @@ if timezone:
     ):
         raise ValueError(f"Invalid timezone: {timezone}")
 
-    current_timezone = host.get_fact(SystemTimezone)
+    current_timezone = host.get_fact(Timezone)
 
     if current_timezone != timezone:
         server.timezone(
