@@ -49,6 +49,7 @@ deploy_docker_service(
     service="linkwarden",
     description="Linkwarden Bookmark Manager",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["postgres","meilisearch","linkwarden"],
     username=username,
     usergroup=usergroup,
     image=linkwarden.get("image", "ghcr.io/linkwarden/linkwarden:latest"),
