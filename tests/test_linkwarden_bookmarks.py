@@ -1,4 +1,5 @@
 """Tests for the Linkwarden-to-Homepage bookmark synchronization helpers."""
+import ast
 # pylint: disable=redefined-outer-name
 import importlib.util
 import sys
@@ -75,6 +76,46 @@ def test_managed_bookmark_update_is_idempotent_and_preserves_surrounding_text(
     assert "before = True" in first and "after = True" in first
     assert loaded_module.update_managed_bookmarks(config, groups) is False
     assert config.read_text(encoding="utf-8") == first
+
+
+def test_managed_bookmark_groups_are_top_level_and_preserve_homepage_layout(
+    loaded_module, tmp_path,
+):
+    config = tmp_path / "@local.py"
+    config.write_text(
+        'bookmarks = [\\n'
+        '    {"Existing": [{"Kept": [{"href": "https://existing.example"}]}]},\\n'
+        '    # BEGIN LINKWARDEN BOOKMARKS (managed)\\n'
+        '    # END LINKWARDEN BOOKMARKS (managed)\\n'
+        ']\\n'
+        'settings = {"layout": [{"Services": {"style": "row", "columns": 3}}]}\\n',
+        encoding="utf-8",
+    )
+    groups = [
+        {"Reading": [{"Example": [{"href": "https://example.com"}]}]},
+        {"Research": [{"Docs": [{"href": "https://docs.example"}]}]},
+    ]
+
+    assert loaded_module.update_managed_bookmarks(config, groups) is True
+
+    parsed = ast.parse(config.read_text(encoding="utf-8"))
+    values = {node.targets[0].id: node.value for node in parsed.body}
+    bookmarks = values["bookmarks"]
+    assert isinstance(bookmarks, ast.List)
+    assert len(bookmarks.elts) == 3
+    assert all(isinstance(group, ast.Dict) for group in bookmarks.elts)
+    assert ast.literal_eval(bookmarks.elts[0]) == {
+        "Existing": [{"Kept": [{"href": "https://existing.example"}]}]
+    }
+    assert ast.literal_eval(bookmarks.elts[1]) == {
+        "Reading": [{"Example": [{"href": "https://example.com"}]}]
+    }
+    assert ast.literal_eval(bookmarks.elts[2]) == {
+        "Research": [{"Docs": [{"href": "https://docs.example"}]}]
+    }
+    assert ast.literal_eval(values["settings"]) == {
+        "layout": [{"Services": {"style": "row", "columns": 3}}]
+    }
 
 
 def test_managed_bookmark_update_requires_markers(loaded_module, tmp_path):
