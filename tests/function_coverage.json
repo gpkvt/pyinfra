@@ -57,9 +57,6 @@
     "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
     "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
   ],
-  "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
-    "test_cosmic_values_are_deployed_only_when_enabled"
-  ],
   "tasks/dehydrated.py:CertNeedsRenewal.process": [
     "test_dehydrated_fact_reports_expiring_certificates",
     "test_dehydrated_fact_handles_true_false_and_empty_output"
@@ -72,6 +69,12 @@
   "tasks/docker.py:ensure_numeric_directory": [
     "test_numeric_directory_skips_when_uid_gid_and_mode_match",
     "test_numeric_directory_repairs_missing_or_mismatched_metadata"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.__init__": [
+    "test_favicon_html_parser_collects_only_icon_links"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.handle_starttag": [
+    "test_favicon_html_parser_collects_only_icon_links"
   ],
   "tasks/docker/linkwarden_bookmarks.py:_download_image": [
     "test_download_image_accepts_only_nonempty_supported_images",
@@ -114,12 +117,6 @@
   "tasks/docker/linkwarden_bookmarks.py:favicon_origin": [
     "test_favicon_origin_normalizes_scheme_and_host"
   ],
-  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.__init__": [
-    "test_favicon_html_parser_collects_only_icon_links"
-  ],
-  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.handle_starttag": [
-    "test_favicon_html_parser_collects_only_icon_links"
-  ],
   "tasks/docker/linkwarden_bookmarks.py:fetch_links": [
     "test_fetch_links_follows_cursor_and_rejects_repeated_cursor",
     "test_fetch_links_rejects_incomplete_response"
@@ -159,6 +156,12 @@
   "tasks/docker/linkwarden_bookmarks.py:update_service_icon_references.dict_value": [
     "test_update_service_icon_references_is_idempotent_and_adds_missing_icon"
   ],
+  "tasks/flatpak.py:FlatpakRemotes.process": [
+    "test_flatpak_facts_ignore_blank_output_lines"
+  ],
+  "tasks/flatpak.py:FlatpakUpdates.process": [
+    "test_flatpak_facts_ignore_blank_output_lines"
+  ],
   "tasks/flatpak.py:_command_lines": [
     "test_flatpak_command_output_is_parsed_as_application_ids",
     "test_flatpak_install_resolves_ids_from_string_command_output"
@@ -168,12 +171,6 @@
   ],
   "tasks/flatpak.py:flatpak_ref_ids": [
     "test_flatpak_ref_ids_normalizes_application_and_runtime_refs"
-  ],
-  "tasks/flatpak.py:FlatpakRemotes.process": [
-    "test_flatpak_facts_ignore_blank_output_lines"
-  ],
-  "tasks/flatpak.py:FlatpakUpdates.process": [
-    "test_flatpak_facts_ignore_blank_output_lines"
   ],
   "tasks/flatpak.py:select_flatpak_remote": [
     "test_flatpak_remote_selection_prefers_flathub_or_sole_match",
@@ -201,12 +198,6 @@
   "tasks/system.py:SystemTimezone.process": [
     "test_system_timezone_fact_normalizes_output"
   ],
-  "tasks/ufw.py:ufw_custom_rule_exists": [
-    "test_ufw_custom_rule_matches_with_or_without_explicit_in_token"
-  ],
-  "tasks/ufw.py:ufw_rule_exists": [
-    "test_ufw_fact_parsers_and_rule_matching"
-  ],
   "tasks/ufw.py:UfwActive.process": [
     "test_ufw_fact_parsers_and_rule_matching"
   ],
@@ -219,10 +210,19 @@
   "tasks/ufw.py:UfwRules.process": [
     "test_ufw_fact_parsers_and_rule_matching"
   ],
+  "tasks/ufw.py:ufw_custom_rule_exists": [
+    "test_ufw_custom_rule_matches_with_or_without_explicit_in_token"
+  ],
+  "tasks/ufw.py:ufw_rule_exists": [
+    "test_ufw_fact_parsers_and_rule_matching"
+  ],
   "tasks/vscodium.py:VSCodiumExtensions.command": [
     "test_vscodium_fact_quotes_user_and_normalizes_installed_ids"
   ],
   "tasks/vscodium.py:VSCodiumExtensions.process": [
     "test_vscodium_fact_quotes_user_and_normalizes_installed_ids"
+  ],
+  "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
+    "test_cosmic_values_are_deployed_only_when_enabled"
   ]
 }
