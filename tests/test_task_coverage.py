@@ -162,6 +162,8 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
 ):
     """Evaluate every deployable module, including nested service tasks."""
     module_path = relative_path.removeprefix("tasks/")
+    calls_before = len(pyinfra_task_harness.calls)
+    includes_before = len(pyinfra_task_harness.included)
     if relative_path.startswith("tasks/docker/"):
         service = Path(relative_path).stem
         docker_config = {service: {}}
@@ -210,6 +212,10 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                 "docker_power_monitor": False,
             },
         )
-        return
+    else:
+        pyinfra_task_harness.load(module_path)
 
-    pyinfra_task_harness.load(module_path)
+    assert (
+        len(pyinfra_task_harness.calls) > calls_before
+        or len(pyinfra_task_harness.included) > includes_before
+    ), f"{relative_path} scheduled no deployment operation or child task"
