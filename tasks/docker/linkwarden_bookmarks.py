@@ -143,9 +143,13 @@ def update_managed_bookmarks(config_path, groups):
     if end < start:
         raise RuntimeError("Linkwarden bookmark markers are out of order")
     indentation = "            "
-    rendered = "\n" + "\n".join(
-        indentation + line for line in pformat(groups, width=100).splitlines()
-    ) + "\n            "
+    rendered_groups = [
+        "\n".join(
+            indentation + line for line in pformat(group, width=100).splitlines()
+        )
+        for group in groups
+    ]
+    rendered = "\n" + ",\n".join(rendered_groups) + "\n            "
     updated = source[:start] + rendered + source[end:]
     if updated != source:
         config_path.write_text(updated, encoding="utf-8")
