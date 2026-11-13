@@ -50,20 +50,20 @@ def test_coverage_entries_use_supported_execution_kinds():
 
     assert not invalid, f"Unsupported CI coverage kinds: {invalid}"
     assert coverage.get("tasks/homepage_config.py") == "helper"
-    assert coverage.get("tasks/cosmic/config.py") == "helper"
+    assert coverage.get("tasks/workstation/cosmic/config.py") == "helper"
     assert all(
         kind == "deployment"
         for path, kind in coverage.items()
         if path.startswith("tasks/")
         and path not in {
             "tasks/homepage_config.py",
-            "tasks/cosmic/config.py",
+            "tasks/workstation/cosmic/config.py",
             "tasks/docker/linkwarden_bookmarks.py",
-            "tasks/cosmic/deploy.py",
+            "tasks/workstation/cosmic/deploy.py",
             "tasks/docker_container.py",
         }
     )
-    assert coverage.get("tasks/cosmic/deploy.py") == "dispatcher"
+    assert coverage.get("tasks/workstation/cosmic/deploy.py") == "dispatcher"
     assert coverage.get("tasks/docker_container.py") == "dispatcher"
     assert all(
         kind == "utility"
@@ -231,7 +231,7 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                 "docker": {"ci-smoke": {"app_services": ["smoke"]}},
                 "docker_sablier": {"enabled": False},
             }
-        elif relative_path.startswith("tasks/cosmic/"):
+        elif relative_path.startswith("tasks/workstation/cosmic/"):
             monkeypatch.delitem(sys.modules, "tasks.cosmic.config", raising=False)
             data = {
                 "cosmic": {
