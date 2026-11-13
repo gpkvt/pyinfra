@@ -91,7 +91,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             return result
         return operation
 
-    host_data = HostData(runpy.run_path(str(ROOT / "group_data/@local.py")))
+    host_data = HostData(runpy.run_path(str(ROOT / "group_data/@local.py.example")))
     host_data.update({
         "docker": {},
         "caddy_config": {},
