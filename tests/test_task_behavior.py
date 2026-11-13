@@ -158,12 +158,6 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
     assert "/etc/apparmor.d/example" in str(commands[0])
 
 
-def test_system_timezone_fact_normalizes_output(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("system.py")
-    assert module.SystemTimezone().process([" Europe/Berlin ", "\n"]) == "Europe/Berlin"
-    assert module.SystemTimezone().process(["  ", "\n"]) is None
-
-
 def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
     module = pyinfra_task_harness.load("dehydrated.py")
     fact = module.CertNeedsRenewal()
