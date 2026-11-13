@@ -205,7 +205,7 @@ Service-specific behavior:
 - **Paperless-ngx** runs PostgreSQL 17, Valkey, Gotenberg and Tika alongside the web application. PostgreSQL and Paperless application directories are mounted directly from `~/.docker/paperless/` on the host. Set `uid` and `gid` to the numeric user/group IDs that should own Paperless data (defaults to `1000:1000`); PostgreSQL storage is owned by UID/GID `70:70`. Configure `postgres_password` (URL-safe) and `secret_key` in `secrets.docker.paperless`. The web interface binds to loopback port `8022` and the supplied local Caddy hostname is `paperless.21x9.org`.
 - **WG-Easy** stores WireGuard configuration in a Docker-managed local named volume backed by `~/.docker/wg-easy/`. Its web UI binds to `127.0.0.1:51821` by default and is published through Caddy at `vpn.21x9.org`; WireGuard listens on public UDP port `51820`. The first visit opens the WG-Easy setup wizard: configure the public endpoint as `vpn.21x9.org` and create the administrator account there. The Compose configuration sets `INSECURE=true` because Caddy terminates HTTPS and proxies to the local HTTP UI. Keep the UI behind Caddy and do not expose port `51821` publicly.
 
-Homepage configuration is managed through the `docker.homepage` dictionary in the host's `group_data/<host>.py` (for example, `group_data/@local.py`). Each configuration area is optional and is rendered into its own YAML file:
+Homepage configuration is managed through the `docker.homepage` dictionary in the host's `group_data/<host>.py` (for example, the ignored local copy `group_data/@local.py`). Each configuration area is optional and is rendered into its own YAML file:
 
 | Host-data key | Generated file | Purpose |
 | --- | --- | --- |
