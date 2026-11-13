@@ -29,7 +29,6 @@ Example inventory configuration::
 """
 
 from pyinfra.operations import apt, server, files
-from pyinfra.facts.files import Directory
 from pyinfra import host
 
 apt.packages(
@@ -131,29 +130,29 @@ if host.data.get("powerline_fonts", False):
         dest=ARCHIVE,
     )
 
-    if host.get_fact(Directory, EXTRACT_DIR):
-        # Extract archive
-        files.unarchive(
-            name="Extract Powerline fonts",
-            src=ARCHIVE,
-            dest=EXTRACT_DIR,
-            remote_src=True,
-        )
+    # creates makes extraction idempotent and avoids testing a directory
+    # before its preceding files.directory operation has executed.
+    extraction = files.unarchive(
+        name="Extract Powerline fonts",
+        src=ARCHIVE,
+        dest=EXTRACT_DIR,
+        remote_src=True,
+        creates=f"{EXTRACT_DIR}/fonts-master/fonts",
+    )
 
-        # Install all TTF and OTF fonts
-        server.shell(
-            name="Install Powerline fonts",
-            commands=[
-                f'find {EXTRACT_DIR}/fonts-master -type f '
-                r'\( -iname "*.ttf" -o -iname "*.otf" \) '
-                rf'-exec cp -n {{}} {FONT_DIR}/ \;'
-            ],
-        )
+    # Only copy fonts and rebuild the cache when a new archive was extracted.
+    install = server.shell(
+        name="Install Powerline fonts",
+        commands=[
+            f'find {EXTRACT_DIR}/fonts-master -type f '
+            r'\( -iname "*.ttf" -o -iname "*.otf" \) '
+            rf'-exec install -m 0644 {{}} {FONT_DIR}/ \;'
+        ],
+        _if=extraction.did_change,
+    )
 
-    # Refresh font cache
     server.shell(
         name="Refresh font cache",
-        commands=[
-            f"fc-cache -f {FONT_DIR}"
-        ],
+        commands=[f"fc-cache -f {FONT_DIR}"],
+        _if=install.did_change,
     )
