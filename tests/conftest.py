@@ -122,8 +122,6 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             if "remote-list" in command:
                 return []
             return []
-        if name == "SystemLocale":
-            return host_data.get("locale")
         if name == "UfwActive":
             return False
         if name == "UfwRules":
@@ -219,7 +217,6 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
     facts_server.Which = type("Which", (), {})
-    facts_server.Timezone = type("Timezone", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.api", api),
