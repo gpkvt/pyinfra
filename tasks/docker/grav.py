@@ -81,6 +81,7 @@ deploy_docker_service(
     service="grav",
     description="Grav CMS Docker Service",
     homedir=homedir, # pylint: disable=undefined-variable
+    compose_services=["grav"],
     username=username,
     usergroup=usergroup,
     image=grav.get("image", "getgrav/grav:1.7"),
