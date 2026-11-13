@@ -106,3 +106,38 @@ def test_dry_run_does_not_download_icons_or_modify_config(loaded_module, monkeyp
     ) is False
     assert config.read_text(encoding="utf-8") == original
     assert not (tmp_path / "icons").exists()
+
+
+def test_deployment_skips_bookmark_sync_on_http_502(
+    loaded_module, monkeypatch, tmp_path, capsys,
+):
+    config = tmp_path / "@local.py"
+    original = "bookmarks = ['existing']\\n"
+    config.write_text(original, encoding="utf-8")
+
+    def unavailable(*_args):
+        raise loaded_module.urllib.error.HTTPError(
+            "https://links.example/api/v1/search", 502, "Bad Gateway", {}, None
+        )
+
+    monkeypatch.setattr(loaded_module, "api_json", unavailable)
+    assert loaded_module.synchronize_for_deployment(
+        config, tmp_path / "icons", "https://links.example", "token"
+    ) is False
+
+    assert config.read_text(encoding="utf-8") == original
+    assert not (tmp_path / "icons").exists()
+    warning = capsys.readouterr().err
+    assert "synchronization skipped" in warning
+    assert "502" in warning
+
+
+def test_deployment_does_not_hide_unexpected_errors(loaded_module, monkeypatch, tmp_path):
+    def broken(*_args):
+        raise RuntimeError("unexpected programming error")
+
+    monkeypatch.setattr(loaded_module, "synchronize", broken)
+    with pytest.raises(RuntimeError, match="unexpected programming error"):
+        loaded_module.synchronize_for_deployment(
+            tmp_path / "@local.py", tmp_path / "icons", "links.example", "token"
+        )

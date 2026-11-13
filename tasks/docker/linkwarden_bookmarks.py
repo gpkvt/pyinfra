@@ -169,6 +169,18 @@ def synchronize(config_path, icon_dir, domain, token, dry_run=False):
     return update_managed_bookmarks(config_path, groups)
 
 
+def synchronize_for_deployment(config_path, icon_dir, domain, token):
+    """Skip optional bookmark synchronization when Linkwarden is unavailable."""
+    try:
+        return synchronize(config_path, icon_dir, domain, token)
+    except (urllib.error.URLError, TimeoutError, ConnectionError) as error:
+        print(
+            f"WARNING: Linkwarden bookmark synchronization skipped: {error}",
+            file=sys.stderr,
+        )
+        return False
+
+
 def main():
     """Run a manual synchronization from the repository checkout."""
     parser = argparse.ArgumentParser(description=__doc__)
@@ -213,7 +225,7 @@ else:
     api_token = homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
     if host_linkwarden and homepage and api_token:
         repository_root = Path(__file__).resolve().parents[2]
-        synchronize(
+        synchronize_for_deployment(
             repository_root / "group_data" / "@local.py",
             repository_root / "files" / "homepage" / "icons",
             host_linkwarden.get("domain", "linkwarden.21x9.org"),
