@@ -355,6 +355,7 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         _if=lambda: (
             any_changed(*restart_triggers)()
             or not service_active
+            or not sablier_labels_match
         ),
     )
 
