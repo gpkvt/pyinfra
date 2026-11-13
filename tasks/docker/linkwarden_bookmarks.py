@@ -156,8 +156,9 @@ def synchronize(config_path, icon_dir, domain, token):
 docker = host.data.get("docker", {})
 linkwarden = docker.get("linkwarden", {})
 homepage = docker.get("homepage", {})
-linkwarden_secrets = secrets.get("docker", {}).get("linkwarden", {})  # pylint: disable=undefined-variable
-api_token = linkwarden_secrets.get("api_token")
+homepage_secrets = secrets.get("docker", {}).get("homepage", {})  # pylint: disable=undefined-variable
+homepage_environment = homepage_secrets.get("environment", {})
+api_token = homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
 if linkwarden and homepage and api_token:
     repository_root = Path(__file__).resolve().parents[2]
     synchronize(
