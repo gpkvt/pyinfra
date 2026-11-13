@@ -121,9 +121,12 @@ Target:
 """
 
 import re
+import shlex
 from io import StringIO
 
+from common import command_output
 from pyinfra import host
+from pyinfra.facts.server import Timezone
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
 
@@ -164,13 +167,22 @@ if timezone:
     ):
         raise ValueError(f"Invalid timezone: {timezone}")
 
-    # Let pyinfra's operation compare the effective timezone itself. Aliases
-    # such as UTC and Etc/UTC must not trigger a change on every deployment.
-    server.timezone(
-        name=f"Set timezone to {timezone}",
-        timezone=timezone,
-        _sudo=True,
-    )
+    current_timezone = host.get_fact(Timezone)
+    if current_timezone != timezone:
+        # Compare resolved zoneinfo files as well: names such as UTC and
+        # Etc/UTC (or US/Eastern and America/New_York) can identify the same
+        # timezone. This avoids repeatedly scheduling a needless set-timezone.
+        current_zoneinfo = command_output(host, "readlink -f /etc/localtime").strip()
+        requested_zoneinfo = command_output(
+            host,
+            f"readlink -f /usr/share/zoneinfo/{shlex.quote(timezone)}",
+        ).strip()
+        if not current_zoneinfo or current_zoneinfo != requested_zoneinfo:
+            server.timezone(
+                name=f"Set timezone to {timezone}",
+                timezone=timezone,
+                _sudo=True,
+            )
 
 # Configure system locale
 if locale:
