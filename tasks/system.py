@@ -476,9 +476,6 @@ if usbguard:
             _sudo=True,
         )
 
-        # Track configuration changes
-
-
         # Configure USBGuard daemon
         daemon_config = (
             "RuleFile=/etc/usbguard/rules.conf\n"
