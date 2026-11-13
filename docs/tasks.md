@@ -41,6 +41,7 @@ These task modules are included on every full deployment.
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
 | `tasks/vscodium.py` | `vscodium` | Installs configured VSCodium extensions that are not already installed. |
 | `tasks/proton.py` | `proton` | Installs/configures selected Proton applications using the configured distribution sources. |
+| `tasks/cron.py` | Non-empty `cron_jobs` | Installs the cron package, ensures the daemon is enabled/running, and manages named user/root crontab entries. |
 
 ## Workstation role tasks
 
@@ -57,6 +58,38 @@ The modules below are included by `deploy.py` only when the matching nested sett
 | `tasks/workstation/maintenance.py` | Installs `needrestart`, `debian-goodies` and `apt-file`; does not enable unattended upgrades or schedule reboots. | `workstation.maintenance.enabled` |
 
 The supplied `group_data/workstation.py` enables backup, power, hardware and storage by default. Peripheral support, desktop utilities and maintenance utilities are disabled. Review the group data before assigning additional hosts to the workstation group.
+
+
+### Cron jobs
+
+Define jobs in the host or group data key `cron_jobs`. The list is empty by default, so hosts without configured jobs do not install or enable cron. Each entry requires a stable `name`, a single-line `command`, and at least one schedule field (`minute`, `hour`, `day_of_month`, `month`, `day_of_week`, or `special_time`). The schedule fields accept the same values as pyinfra's `crontab.crontab` operation, including lists and cron expressions such as `"*/15"`.
+
+- `scope: "user"` (default) manages the crontab of the configured `username`.
+- `scope: "root"` manages root's crontab.
+- `present: False` removes the named job; keep its `name` and `command` in the configuration while removing it.
+- The stable `name` is stored as pyinfra's `cron_name`, so changing a command or schedule updates the existing entry instead of adding a duplicate.
+- The task installs the Debian/Ubuntu `cron` package and ensures the `cron` service is enabled and running whenever the list contains jobs. Both scopes are managed through sudo, so the deployment account needs suitable sudo privileges.
+- Duplicate names within the same target user's crontab, multiline names/commands and unknown configuration fields are rejected.
+
+Example:
+
+```python
+cron_jobs = [
+    {
+        "name": "daily-cleanup",
+        "command": "/usr/local/bin/cleanup.sh",
+        "scope": "user",
+        "special_time": "@daily",
+    },
+    {
+        "name": "system-maintenance",
+        "command": "/usr/local/sbin/maintenance.sh",
+        "scope": "root",
+        "minute": 0,
+        "hour": 4,
+    },
+]
+```
 
 ## Feature notes
 
