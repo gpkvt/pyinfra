@@ -176,6 +176,8 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             def schedule(*_args, **kwargs):
                 calls.append(("operation", function.__name__, kwargs))
                 return result
+
+            schedule.__wrapped__ = function
             return schedule
         return decorate
 
