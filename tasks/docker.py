@@ -124,7 +124,7 @@ import shlex
 
 from pyinfra import host
 from pyinfra.api import deploy
-from pyinfra.facts.server import Command
+from common import command_output
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
 
@@ -150,7 +150,7 @@ def ensure_numeric_directory(path, uid, gid, mode, sudo=True):
             f"install -d -o {uid} -g {gid} -m {mode} {quoted_path}",
         ],
         _sudo=sudo,
-        _if=lambda: host.get_fact(Command, check_command) != expected,
+        _if=lambda: command_output(host, check_command).strip() != expected,
     )
 
 
@@ -211,10 +211,9 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
             sablier_services = sorted(compose_services)
         else:
             compose_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
-            sablier_services_output = host.get_fact(
-                Command,
-                f"docker compose -f {compose_path} config --services",
-            ) or ""
+            sablier_services_output = command_output(
+                host, f"docker compose -f {compose_path} config --services"
+            )
             sablier_services = sorted(sablier_services_output.split())
 
         if not sablier_services:
@@ -272,8 +271,8 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     # pyinfra does not necessarily inherit the interactive user's systemd
     # environment. Set it explicitly so an active unit is not misdetected as
     # inactive (which would restart every service on every deployment).
-    user_uid = (host.get_fact(Command, f"id -u {shlex.quote(username)}") or "").strip()
-    current_uid = (host.get_fact(Command, "id -u", _sudo=False) or "").strip()
+    user_uid = command_output(host, f"id -u {shlex.quote(username)}").strip()
+    current_uid = command_output(host, "id -u", _sudo=False).strip()
     if not user_uid.isdigit():
         raise RuntimeError(f"Unable to determine UID for systemd user {username!r}")
     if current_uid == user_uid:
@@ -294,12 +293,12 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
             f"Cannot manage systemd user {username!r} (UID {user_uid}) "
             f"from unprivileged UID {current_uid}"
         )
-    service_status = host.get_fact(
-        Command,
+    service_status = command_output(
+        host,
         f"{systemctl_user} show --property=ActiveState --value "
         f"{shlex.quote(service)}",
         _sudo=False,
-    ) or ""
+    )
     service_active = service_status.strip() == "active"
 
     # Check every container, including replicas, for the expected labels.
