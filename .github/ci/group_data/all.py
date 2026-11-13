@@ -15,7 +15,7 @@ hostnames = {}
 sudoers_rules = []
 ssh_config = {}
 ssh_keys = []
-ssh_authorized_keys = []
+ssh_authorized_keys = {}
 
 # Do not apply workstation-specific system settings on the CI runner.
 hostname = None
