@@ -1,4 +1,4 @@
-"""Portable example for the workstation group configuration.
+""""Portable example for the workstation group configuration.
 
 Copy this file to workstation.py and enable only features appropriate for
 the target workstation. Hardware-specific values must be checked locally.
@@ -37,9 +37,27 @@ workstation = {  # Top-level settings consumed by workstation deployment tasks.
     "cosmic": {  # COSMIC desktop preferences; all subfeatures are independently gated.
         "enabled": False,  # Set True to enable the COSMIC configuration task group.
         "appearance": {"enabled": False, "mode": "dark"},  # Choose dark or light mode.
+        "window_management": {
+            "enabled": False,
+            # Optional: autotile, autotile_behavior, focus_follows_cursor,
+            # cursor_follows_focus, edge_snap_threshold and active_hint.
+        },
+        "input": {
+            "enabled": False,
+            # Supply COSMIC RON strings for "default" (mouse) and/or "touchpad".
+            # No hardware-specific input defaults are assumed.
+        },
+        "shortcuts": {
+            "enabled": False,
+            # "ron": "<COSMIC custom shortcut map in RON syntax>",
+        },
         "panel": {"enabled": False},  # Set position, size and applets when enabling.
         "dock": {"enabled": False},  # Set position, size and applets when enabling.
-        "workspaces": {"enabled": False},  # Optional raw COSMIC RON workspace configuration.
+        "workspaces": {
+            "enabled": False,
+            # Optional raw COSMIC RON workspace configuration.
+        },
+        # Display/output configuration is intentionally not managed.
     },
     "limusic": {  # Limusic desktop music-player installation and launcher.
         "enabled": False,  # Set True to install Limusic and create its desktop launcher.
