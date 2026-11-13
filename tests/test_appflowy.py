@@ -33,6 +33,7 @@ def test_appflowy_services_receive_their_redis_urls():
     assert "AI_REDIS_URL=${AI_REDIS_URL}" in compose
     assert "APPFLOWY_WORKER_REDIS_URL=${APPFLOWY_WORKER_REDIS_URL}" in compose
     assert "APPFLOWY_INDEXER_REDIS_URL=${APPFLOWY_INDEXER_REDIS_URL}" in compose
+    assert "APPFLOWY_SEARCH_REDIS_URL=${APPFLOWY_INDEXER_REDIS_URL}" in compose
     assert "redis://localhost:6379" not in compose
 
 
