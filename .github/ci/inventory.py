@@ -144,9 +144,6 @@ ci = [("@local", {
             "names": ["pyinfra-ci-test"],
         },
     ],
-    "cosmic": {
-        "enabled": False,
-    },
     "mullvad_browser_enabled": False,
     "mullvad_extensions": {
         "ci-test": {
@@ -188,5 +185,6 @@ ci = [("@local", {
             "packages": ["xdg-utils", "xdg-user-dirs"],
         },
         "maintenance": {"enabled": True},
+        "cosmic": {"enabled": False},
     },
 })]
