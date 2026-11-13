@@ -1,4 +1,5 @@
 """Behavioral tests for the standalone TTML-to-SRT translator."""
+# pylint: disable=redefined-outer-name
 
 import sys
 import types

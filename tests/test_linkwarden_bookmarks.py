@@ -1,4 +1,5 @@
 """Tests for the Linkwarden-to-Homepage bookmark synchronization helpers."""
+# pylint: disable=protected-access
 import ast
 # pylint: disable=redefined-outer-name
 import importlib.util

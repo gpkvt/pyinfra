@@ -1,4 +1,5 @@
 """Direct input/output tests for task helpers and pyinfra operations."""
+# pylint: disable=protected-access
 
 from types import SimpleNamespace
 
@@ -49,7 +50,7 @@ def test_flatpak_uninstall_operation_reports_only_real_removals(
     monkeypatch.setattr(
         pyinfra_task_harness.host, "run_shell_command", lambda *_a, **_k: "UNCHANGED"
     )
-    assert list(operation()) == []
+    assert not list(operation())
 
     monkeypatch.setattr(
         pyinfra_task_harness.host, "run_shell_command", lambda *_a, **_k: "REMOVED"
@@ -85,9 +86,9 @@ def test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing(
         "profile-a": "enforce", "profile-b": "enforce"
     }
 
-    assert list(module.enforce_apparmor_profile.__wrapped__(
+    assert not list(module.enforce_apparmor_profile.__wrapped__(
         "/etc/apparmor.d/example", ["profile-a", "profile-b"]
-    )) == []
+    ))
 
 
 def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
