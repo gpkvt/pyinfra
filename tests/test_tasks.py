@@ -1083,6 +1083,7 @@ def test_proton_drive_cli_rejects_invalid_version(pyinfra_task_harness):
 def test_timetagger_requires_credentials_and_passes_compose_escaped_hash(
     pyinfra_task_harness, monkeypatch,
 ):
+    monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
     monkeypatch.setattr(
         builtins,
         "secrets",
@@ -1105,6 +1106,7 @@ def test_timetagger_requires_credentials_and_passes_compose_escaped_hash(
 
 
 def test_timetagger_rejects_missing_credentials(pyinfra_task_harness, monkeypatch):
+    monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
     monkeypatch.setattr(builtins, "secrets", {}, raising=False)
     with pytest.raises(ValueError, match="credentials must be a single-line"):
         pyinfra_task_harness.load("docker/timetagger.py", {
