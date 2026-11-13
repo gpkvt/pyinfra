@@ -122,6 +122,7 @@ Target:
 
 import re
 import shlex
+from io import StringIO
 
 from common import command_output
 from pyinfra import host
