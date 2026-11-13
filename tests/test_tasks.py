@@ -77,8 +77,8 @@ def test_tmux_plugin_commands_run_after_package_installation(pyinfra_task_harnes
     assert package_index < plugin_index
     assert callable(plugin_operation["_if"])
     command = plugin_operation["commands"][0]
-    assert "test -x /usr/share/tmux-plugin-manager/bin/install_plugins" in command
-    assert "test -x /usr/share/tmux-plugin-manager/bin/update_plugins" in command
+    assert "[ ! -x /usr/share/tmux-plugin-manager/bin/install_plugins" in command
+    assert "[ ! -x /usr/share/tmux-plugin-manager/bin/update_plugins" in command
     assert "install_plugins all" in command
     assert "update_plugins all" in command
 
