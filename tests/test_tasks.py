@@ -826,7 +826,7 @@ def test_cron_task_can_remove_job_by_stable_name(pyinfra_task_harness):
             "minute": 0,
         }]}, "Invalid cron scope"),
         ({"username": "deploy", "cron_jobs": [{
-            "name": "bad-command", "command": "/bin/true\\n/bin/false",
+            "name": "bad-command", "command": "/bin/true\n/bin/false",
             "minute": 0,
         }]}, "single-line command"),
         ({"username": "deploy", "cron_jobs": [
