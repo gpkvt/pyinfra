@@ -81,7 +81,10 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
         "hardware": {"enabled": True},
         "storage": {"enabled": True},
         "peripherals": {"enabled": False},
-        "desktop": {"enabled": True},
+        "desktop": {
+            "enabled": True,
+            "packages": ["xdg-utils", "xdg-user-dirs"],
+        },
         "maintenance": {"enabled": True},
     }
 
