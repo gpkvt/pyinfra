@@ -255,7 +255,21 @@ Mullvad extension downloads are defined by extension IDs and URLs. The supplied 
 
 ### Proton
 
-The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options.
+The Proton task supports Mail, Mail Bridge, VPN, Pass and the Proton Drive CLI. Each component can be disabled independently with `mail`, `bridge`, `vpn`, `pass` and `drive_cli`; all default to enabled. Flatpak installation for Mail, Bridge and Pass is controlled by `flatpak` (default `True`). The Drive CLI is downloaded from Proton's versioned Linux x86-64 URL; set `drive_cli_version` to override its default `0.9.0`. Example:
+
+```python
+proton = {
+    "mail": True,
+    "bridge": True,
+    "vpn": False,
+    "pass": True,
+    "flatpak": True,
+    "drive_cli": True,
+    "drive_cli_version": "0.9.0",
+}
+```
+
+The Drive CLI installer currently installs when the executable is absent; changing `drive_cli_version` does not replace an already-installed binary.
 
 ## Run an individual task
 
