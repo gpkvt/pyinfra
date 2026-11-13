@@ -24,7 +24,6 @@ from tasks.homepage_config import homepage_api_exclusions
 
 class OperationResult:
     """Small stand-in for pyinfra operation results."""
-
     changed = False
     def did_change(self):
         return False
@@ -32,7 +31,6 @@ class OperationResult:
 
 class HostData(dict):
     """Dictionary with pyinfra-style attribute access."""
-
     __getattr__ = dict.__getitem__
 
 
@@ -42,7 +40,6 @@ def pyinfra_task_harness(monkeypatch):
     calls = []
     included = []
     result = OperationResult()
-
     def make_operation(namespace, name):
         def operation(**kwargs):
             calls.append((namespace, name, kwargs))
@@ -64,7 +61,6 @@ def pyinfra_task_harness(monkeypatch):
         "flatpak_packages": [],
         "wireguard_config": {},
     })
-
     def get_fact(fact, *args, **kwargs):
         name = getattr(fact, "__name__", "")
         if name in {"Directory", "File"}:
@@ -104,7 +100,6 @@ def pyinfra_task_harness(monkeypatch):
         stdout="",
         stderr="",
     )
-
     host = types.SimpleNamespace(
         data=host_data,
         name="test-host",
@@ -112,7 +107,6 @@ def pyinfra_task_harness(monkeypatch):
         run_shell_command=lambda *args, **kwargs: (True, shell_output),
     )
     local = types.SimpleNamespace(include=included.append)
-
     pyinfra = types.ModuleType("pyinfra")
     pyinfra.host = host
     pyinfra.local = local
@@ -122,12 +116,10 @@ def pyinfra_task_harness(monkeypatch):
         warning=lambda *args, **kwargs: None,
     )
     pyinfra.facts = types.ModuleType("pyinfra.facts")
-
     api = types.ModuleType("pyinfra.api")
     api.FactBase = type("FactBase", (), {})
     api.QuoteString = lambda value: value
     api.StringCommand = lambda *args, **kwargs: (args, kwargs)
-
     def decorator_factory(*_args, **_kwargs):
         def decorate(function):
             return function
@@ -143,7 +135,6 @@ def pyinfra_task_harness(monkeypatch):
 
     api.operation = operation_decorator
     api.deploy = decorator_factory
-
     operations = types.ModuleType("pyinfra.operations")
     for namespace in ("apt", "files", "server", "systemd", "flatpak"):
         module = types.ModuleType(f"pyinfra.operations.{namespace}")
@@ -167,7 +158,6 @@ def pyinfra_task_harness(monkeypatch):
 
     util = types.ModuleType("pyinfra.operations.util")
     util.any_changed = lambda *_operations: (lambda: False)
-
     facts = types.ModuleType("pyinfra.facts")
     facts_files = types.ModuleType("pyinfra.facts.files")
     facts_files.Directory = type("Directory", (), {})
@@ -175,7 +165,6 @@ def pyinfra_task_harness(monkeypatch):
     pyinfra.facts.files = facts_files
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
-
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.api", api),
@@ -191,7 +180,6 @@ def pyinfra_task_harness(monkeypatch):
     monkeypatch.setattr(builtins, "homedir", "/home/tester", raising=False)
     monkeypatch.setattr(builtins, "secrets", {}, raising=False)
     monkeypatch.setattr(builtins, "flatpak", False, raising=False)
-
     def load_task(filename, data=None):
         if data:
             host.data.update(data)
@@ -227,7 +215,6 @@ def test_apt_update_helper_forces_update_when_repository_changed(pyinfra_task_ha
     module = pyinfra_task_harness.load("apt.py")
     changed_operation = OperationResult()
     forced, cached = module.update_apt_sources([changed_operation])
-
     assert forced is not None
     assert cached is not None
     apt_updates = [
@@ -243,7 +230,6 @@ def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
     pyinfra_task_harness.load("hosts.py", {
         "hostnames": {"192.0.2.10": "example.test alias.test"},
     })
-
     calls = [call for call in pyinfra_task_harness.calls if call[1] == "etc_hosts"]
     assert len(calls) == 1
     assert calls[0][2]["ip"] == "192.0.2.10"
@@ -254,7 +240,6 @@ def test_docker_container_includes_only_configured_services(pyinfra_task_harness
     pyinfra_task_harness.load("docker_container.py", {
         "docker": {"miniflux": {}, "grav": {}},
     })
-
     assert pyinfra_task_harness.included == [
         "tasks/docker/miniflux.py",
         "tasks/docker/grav.py",
@@ -272,7 +257,6 @@ def test_vscodium_deduplicates_extensions_and_installs_missing_ids(pyinfra_task_
     pyinfra_task_harness.load("vscodium.py", {
         "vscodium": {"extensions": ["vendor.extension", "vendor.extension"]},
     })
-
     installs = [
         call for call in pyinfra_task_harness.calls
         if call[1] == "shell" and "Install VSCodium extension" in call[2].get("name", "")
@@ -303,7 +287,6 @@ def test_flatpak_facts_ignore_blank_output_lines(pyinfra_task_harness):
 
 def test_ufw_fact_parsers_and_rule_matching(pyinfra_task_harness):
     module = pyinfra_task_harness.load("ufw.py")
-
     assert module.UfwActive().process(["Status: active"]) is True
     assert module.UfwActive().process(["Status: inactive"]) is False
     assert module.UfwRules().process([
@@ -313,7 +296,6 @@ def test_ufw_fact_parsers_and_rule_matching(pyinfra_task_harness):
     assert module.UfwDefaults().process([
         "Default: deny (incoming), allow (outgoing), disabled (routed)",
     ]) == {"incoming": "deny", "outgoing": "allow", "routed": "disabled"}
-
     pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: {
         "22/tcp ALLOW Anywhere",
     }
@@ -342,7 +324,6 @@ def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harn
     ])])
     pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (True, output)
     pyinfra_task_harness.load("vpn.py")
-
     service_calls = [
         call for call in pyinfra_task_harness.calls
         if call[0] == "server" and call[1] == "service"
@@ -384,7 +365,6 @@ def test_sablier_caddy_routes_only_wrap_configured_docker_services(pyinfra_task_
         docker,
         {"enabled": True, "default_duration": "45m"},
     )
-
     assert "route" in result["linkwarden.example:443"]
     assert "route" in result["fints.example:443"]
     assert "route" in result["custom.example:443"]
@@ -467,7 +447,6 @@ def test_homepage_is_managed_by_sablier_by_default(pyinfra_task_harness):
     local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
     homepage = local_config["docker"]["homepage"]
     assert homepage.get("sablier", {}).get("enabled", True) is True
-
     module = pyinfra_task_harness.load("caddy.py")
     result = module.build_sablier_caddy_config(
         {"homepage.example:443": {"reverse_proxy": "127.0.0.1:8020"}},
@@ -490,15 +469,12 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
             "generic": {},
         },
     })
-
     pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
         "1000" if command.startswith("id -u")
         else ("worker scheduler database" if "/custom/" in command else "generic")
     ) if "config --services" in command or command.startswith("id -u") else ""
-
     module.deploy_docker_service("custom", "Custom", "/home/tester")
     module.deploy_docker_service("generic", "Generic", "/home/tester")
-
     unit_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "template"
@@ -551,9 +527,7 @@ def test_docker_service_treats_missing_systemd_status_as_inactive(pyinfra_task_h
         "1000" if command.startswith("id -u")
         else ("custom" if "config --services" in command else None)
     )
-
     module.deploy_docker_service("custom", "Custom", "/home/tester")
-
     service_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
@@ -573,7 +547,6 @@ def test_caddy_deploys_and_enables_daily_renewal_timer(pyinfra_task_harness, mon
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
         "dehydrated_domains": [["example.org"]],
     })
-
     timer_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
@@ -605,10 +578,8 @@ def test_caddy_image_creates_dehydrated_config_include_directory():
     dockerfile = (ROOT / "files/caddy/Dockerfile").read_text()
     assert "mkdir -p /etc/dehydrated/conf.d" in dockerfile
     assert "ca-certificates setpriv" in dockerfile
-
     renewal_service = (ROOT / "templates/caddy/dehydrated-renew.service.j2").read_text()
     assert "docker exec --user {{ uid }}:{{ gid }} caddy /usr/local/bin/renew.sh" in renewal_service
-
     compose = (ROOT / "templates/docker/caddy/docker-compose.yml.j2").read_text()
     assert "    user:" not in compose
     assert "      - ALL" in compose
@@ -617,7 +588,6 @@ def test_caddy_image_creates_dehydrated_config_include_directory():
     assert "      - SETGID" in compose
     assert 'CADDY_UID: "{{ uid }}"' in compose
     assert 'CADDY_GID: "{{ gid }}"' in compose
-
     entrypoint = (ROOT / "files/caddy/entrypoint.sh").read_text()
     assert "--inh-caps=+net_bind_service" in entrypoint
     assert "--ambient-caps=+net_bind_service" in entrypoint
@@ -630,7 +600,6 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
     monkeypatch.setattr(builtins, "secrets", {
         "dehydrated": {"hetzner_api_token": "test-token"},
     })
-
     status_sudo_flags = []
     def get_fact(fact, command="", **kwargs):
         if "systemctl --user is-active caddy-renew.timer" in command:
@@ -656,7 +625,6 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
         "dehydrated_domains": [["example.org"]],
     })
-
     docker_actions = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
@@ -686,7 +654,6 @@ def test_sudo_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
         "root:root:755" if "stat -c" in command else ""
     )
     pyinfra_task_harness.load("sudo.py", {"sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"]})
-
     directory_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "directory"
@@ -706,7 +673,6 @@ def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
         "usergroup": "tester",
         "ssh_authorized_keys": {"tester": []},
     })
-
     directory_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "directory"
@@ -722,12 +688,11 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
         "username": "tester",
         "docker": {"custom": {}},
     })
-
     sudo_flags = []
     status_sudo_flags = []
     def get_fact(_fact, command="", **kwargs):
         sudo_flags.append(kwargs.get("_sudo"))
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             status_sudo_flags.append(kwargs.get("_sudo"))
         if command == "id -u":
             return "0"
@@ -735,13 +700,12 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
             return "1000"
         if "config --services" in command:
             return "custom"
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             return "active"
         return ""
 
     pyinfra_task_harness.host.get_fact = get_fact
     module.deploy_docker_service("custom", "Custom", "/home/tester", username="tester")
-
     service_call = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
@@ -759,24 +723,22 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
         "username": "tester",
         "docker": {"custom": {}},
     })
-
     sudo_flags = []
     status_sudo_flags = []
     def get_fact(_fact, command="", **kwargs):
         sudo_flags.append(kwargs.get("_sudo"))
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             status_sudo_flags.append(kwargs.get("_sudo"))
         if command in {"id -u", "id -u tester"}:
             return "1000"
         if "config --services" in command:
             return "custom"
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             return "active"
         return ""
 
     pyinfra_task_harness.host.get_fact = get_fact
     module.deploy_docker_service("custom", "Custom", "/home/tester", username="tester")
-
     service_call = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
@@ -813,14 +775,12 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
     assert exclusions["snipe.example"] == ["/api/*", "/api/v1/dashboard/companies", "/v1/*"]
     assert exclusions["time.example"] == ["/api/*", "/timetagger/api/v2/records", "/v1/*"]
     assert homepage_services == original
-
     # Widgets sharing a hostname are combined without changing Homepage config.
     homepage_services[0]["Services"].append(
         {"Second": {"widget": {"type": "customapi", "url": "https://rss.example/custom/status?x=1"}}}
     )
     combined = homepage_api_exclusions(homepage_services)
     assert combined["rss.example"] == ["/api/*", "/custom/status", "/v1/*"]
-
     config = {
         "links.example:443": {"reverse_proxy": "127.0.0.1:8021", "header": ["-Server"]},
         "other.example:443": {"reverse_proxy": "127.0.0.1:8022"},
@@ -859,7 +819,6 @@ def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_tas
 def test_snipe_it_uses_direct_bind_mounts():
     """Snipe-IT persists database and application data in host directories."""
     compose = (ROOT / "templates/docker/snipe-it/docker-compose.yml.j2").read_text()
-
     assert (
         '      - "{{ homedir }}/.docker/snipe-it/database:/var/lib/mysql"'
         in compose
@@ -885,7 +844,6 @@ def test_appflowy_caddy_route_uses_loopback_upstream(pyinfra_task_harness):
     local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
     config = local_config["caddy_config"]
     assert config["appflowy.21x9.org:443"]["reverse_proxy"] == "127.0.0.1:8026"
-
     module = pyinfra_task_harness.load("caddy.py")
     result = module.build_sablier_caddy_config(
         config,
@@ -915,7 +873,7 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     )
     pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
         "1000" if command.startswith("id -u")
-        else ("active" if "is-active custom" in command else "")
+        else ("active" if "show --property=ActiveState --value custom" in command else "")
     )
     triggers = [OperationResult(), OperationResult()]
     module.deploy_docker_service(
@@ -930,6 +888,37 @@ def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     assert observed[-2:] == triggers
 
 
+
+def test_docker_service_starts_when_systemd_unit_is_inactive(pyinfra_task_harness):
+    """Inactive systemd units are detected without a failing is-active fact."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
+    })
+    commands = []
+    def get_fact(_fact, command="", **_kwargs):
+        commands.append(command)
+        if command.startswith("id -u"):
+            return "1000"
+        if "show --property=ActiveState --value custom" in command:
+            return "inactive"
+        raise AssertionError("Unexpected fact: " + command)
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service("custom", "Custom", "/home/tester")
+    assert any(
+        "show --property=ActiveState --value custom" in command
+        for command in commands
+    )
+    assert not any("is-active custom" in command for command in commands)
+    service_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    assert service_call["commands"][-1].endswith("start custom")
+    assert service_call["_if"]() is True
+
 def test_docker_service_uses_configured_compose_services_on_first_deployment(
     pyinfra_task_harness,
 ):
@@ -943,7 +932,7 @@ def test_docker_service_uses_configured_compose_services_on_first_deployment(
         commands.append(command)
         if command.startswith("id -u"):
             return "1000"
-        if "is-active custom" in command:
+        if "show --property=ActiveState --value custom" in command:
             return "active"
         if "docker inspect" in command:
             return "match"
@@ -983,11 +972,9 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     docker_module.deploy_docker_service = lambda **_kwargs: None
     docker_module.ensure_numeric_directory = lambda *_args, **_kwargs: None
     monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
-
     pyinfra_task_harness.load("docker/appflowy.py", {
         "docker": {"appflowy": {}},
     })
-
     env_uploads = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "put"
