@@ -3,12 +3,12 @@
 
 command -v playerctl >/dev/null 2>&1 || exit 0
 
-players=$(playerctl -l 2>/dev/null) || exit 0
+players=$(LC_ALL=C.UTF-8 playerctl -l 2>/dev/null) || exit 0
 while IFS= read -r player; do
     [[ "${player,,}" == *limusic* ]] || continue
-    [[ "$(playerctl --player="$player" status 2>/dev/null)" == "Playing" ]] || exit 0
+    [[ "$(LC_ALL=C.UTF-8 playerctl --player="$player" status 2>/dev/null)" == "Playing" ]] || exit 0
 
-    playerctl --player="$player" metadata \
+    LC_ALL=C.UTF-8 playerctl --player="$player" metadata \
         --format '{{ artist }} — {{ title }}' 2>/dev/null
     exit 0
 done <<< "$players"

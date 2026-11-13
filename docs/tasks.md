@@ -28,7 +28,7 @@ These task modules are included on every full deployment.
 | `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
 | `tasks/caddy.py` | `docker` and `caddy_config` | Builds and deploys the Docker-based Caddy image with the Sablier plugin and Dehydrated/Hetzner DNS-01 certificate renewal. |
 | `tasks/syncthing.py` | `syncthing` | Installs Syncthing, enables `syncthing@<username>`, and configures its GUI listen address (loopback by default). Device and folder sharing is configured separately in Syncthing. |
-| `tasks/zsh.py` | `zsh` | Installs/configures Zsh and `playerctl`, deploys a LiMusic-specific MPRIS helper, and displays the current track in HyFetch only while LiMusic is playing. |
+| `tasks/zsh.py` | `zsh` | Installs/configures Zsh and `playerctl`, deploys a LiMusic-specific MPRIS helper, and displays the current track in HyFetch only while LiMusic is playing. The helper forces a UTF-8 locale for `playerctl` metadata so non-ASCII track names also work when Neowofetch runs with `LC_ALL=C`. |
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |

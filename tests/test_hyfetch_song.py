@@ -18,6 +18,8 @@ def run_helper(tmp_path, playerctl_source=None):
 
     env = os.environ.copy()
     env["PATH"] = f"{binary_dir}:{env.get('PATH', '')}"
+    # Neowofetch invokes its config with LC_ALL=C; reproduce that environment.
+    env["LC_ALL"] = "C"
     return subprocess.run(
         ["bash", str(HELPER)],
         check=False,
@@ -32,9 +34,9 @@ def test_helper_prints_only_the_playing_limusic_track(tmp_path):
         tmp_path,
         """#!/usr/bin/env bash
 case "$*" in
-    -l) printf '%s\n' 'spotify' 'org.mpris.MediaPlayer2.LiMusic' ;;
-    *status) printf '%s\n' 'Playing' ;;
-    *metadata*) printf '%s\n' 'Artist — Track' ;;
+    -l) printf '%s\\n' 'spotify' 'org.mpris.MediaPlayer2.LiMusic' ;;
+    *status) printf '%s\\n' 'Playing' ;;
+    *metadata*) printf '%s\\n' 'Artist — Track' ;;
 esac
 """,
     )
@@ -44,14 +46,32 @@ esac
     assert result.stderr == ""
 
 
+def test_helper_uses_utf8_locale_for_non_ascii_metadata(tmp_path):
+    result = run_helper(
+        tmp_path,
+        """#!/usr/bin/env bash
+[[ "$LC_ALL" == "C.UTF-8" ]] || exit 23
+case "$*" in
+    -l) printf '%s\\n' 'limusic' ;;
+    *status) printf '%s\\n' 'Playing' ;;
+    *metadata*) printf '%s\\n' 'Zella Day — Hypnotic' ;;
+esac
+""",
+    )
+
+    assert result.returncode == 0
+    assert result.stdout == "Zella Day — Hypnotic\n"
+    assert result.stderr == ""
+
+
 def test_helper_is_silent_when_limusic_is_not_playing(tmp_path):
     result = run_helper(
         tmp_path,
         """#!/usr/bin/env bash
 case "$*" in
-    -l) printf '%s\n' 'org.mpris.MediaPlayer2.LiMusic' ;;
-    *status) printf '%s\n' 'Paused' ;;
-    *metadata*) printf '%s\n' 'must not be printed' ;;
+    -l) printf '%s\\n' 'org.mpris.MediaPlayer2.LiMusic' ;;
+    *status) printf '%s\\n' 'Paused' ;;
+    *metadata*) printf '%s\\n' 'must not be printed' ;;
 esac
 """,
     )
@@ -65,3 +85,4 @@ def test_helper_is_silent_when_limusic_is_not_available(tmp_path):
 
     assert result.returncode == 0
     assert result.stdout == ""
+}
