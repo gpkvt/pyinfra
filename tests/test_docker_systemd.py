@@ -5,6 +5,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
     module = pyinfra_task_harness.load("docker.py", {
         "username": "tester",
         "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
     })
     sudo_flags = []
     status_sudo_flags = []
