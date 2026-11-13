@@ -6,9 +6,9 @@ import re
 import shlex
 from copy import deepcopy
 
+from common import command_output, initialize
 from pyinfra import host
 from pyinfra.api import deploy
-from common import command_output
 from pyinfra.operations import files, server
 
 from tasks.homepage_config import homepage_api_exclusions
