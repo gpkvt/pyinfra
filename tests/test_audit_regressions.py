@@ -185,3 +185,21 @@ def test_system_locale_uses_native_idempotent_operations(pyinfra_task_harness):
     assert locale["locale"] == "en_GB.UTF-8"
     assert locale["present"] is True
     assert default_locale["src"].getvalue() == 'LANG="en_GB.UTF-8"\n'
+
+
+def test_git_credentials_clear_only_an_existing_immutable_flag(pyinfra_task_harness):
+    pyinfra_task_harness.load("git.py", {
+        "git_credentials": ["https://user:secret@example.invalid"],
+    })
+    clear_flag = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Clear legacy immutable flag on Git credentials"
+    )
+
+    assert clear_flag["_if"]() is False
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, _command, **_kwargs: ["----i--------e------- /home/tester/.git-credentials"]
+    )
+    assert clear_flag["_if"]() is True
+    assert "chattr -i" in clear_flag["commands"][0]
