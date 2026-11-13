@@ -4,7 +4,6 @@ import builtins
 import re
 
 from pyinfra import host
-from pyinfra.facts.server import Command
 from pyinfra.operations import files
 from pyinfra.operations.util import any_changed
 
@@ -56,7 +55,6 @@ admin_email = appflowy.get("admin_email", "admin@appflowy.21x9.org")
 data_root = f"{homedir}/.docker/appflowy"
 for path in (
     data_root,
-    f"{data_root}/nginx",
     f"{homedir}/appflowy",
 ):
     files.directory(
