@@ -634,7 +634,7 @@ def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
     )
     monkeypatch.setattr(
         loaded_module.subprocess, "run",
-        lambda *_args, **_kwargs: types.SimpleNamespace(stdout='{"hosts": {"@local": {}}}'),
+        lambda *_args, **_kwargs: types.SimpleNamespace(stdout='{"hosts": {"@local": {"docker": {"linkwarden": {"api_key": "local-token"}}}}}'),
     )
     common = types.ModuleType("common")
     common.select_host_secrets = lambda document, host: document["hosts"][host]
@@ -649,6 +649,6 @@ def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
 
     assert len(calls) == 1
     args, kwargs = calls[0]
-    assert args[2:] == ("linkwarden.21x9.org", None)
+    assert args[2:] == ("linkwarden.21x9.org", "local-token")
     assert kwargs["dry_run"] is True
     assert kwargs["blacklist"] == ["blocked"]
