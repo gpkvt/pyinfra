@@ -256,3 +256,61 @@ def test_download_favicon_uses_detected_extension_and_is_idempotent(
         "https://links.example", "https://example.com", "token", destination
     ) == result
     assert icon_path.stat().st_mtime_ns == before
+
+
+def test_collect_service_favicons_downloads_only_missing_local_icons(
+    loaded_module, monkeypatch, tmp_path,
+):
+    (tmp_path / "existing.png").write_bytes(b"existing")
+    calls = []
+
+    def download(_base, url, _token, _destination, prefix="linkwarden"):
+        calls.append((url, prefix))
+        return f"/icons/{prefix}-new.png"
+
+    monkeypatch.setattr(loaded_module, "download_favicon", download)
+    services = [
+        {"Services": [
+            {"Existing": {"href": "https://existing.example", "icon": "/icons/existing.png"}},
+            {"Missing": {"href": "https://missing.example"}},
+            {"MissingFile": {"href": "https://missing-file.example", "icon": "/icons/not-here.png"}},
+            {"Material": {"href": "https://material.example", "icon": "mdi-database"}},
+        ]},
+    ]
+    result = loaded_module.collect_service_favicons(
+        services, "https://links.example", "token", tmp_path
+    )
+    assert result == {
+        "Missing": "/icons/homepage-new.png",
+        "MissingFile": "/icons/homepage-new.png",
+    }
+    assert calls == [
+        ("https://missing.example", "homepage"),
+        ("https://missing-file.example", "homepage"),
+    ]
+
+
+def test_update_service_icon_references_is_idempotent_and_adds_missing_icon(
+    loaded_module, tmp_path,
+):
+    config = tmp_path / "@local.py"
+    config.write_text(
+        'docker = {"homepage": {"services": [{"Services": ['
+        '{"AppFlowy": {"href": "https://appflowy.example"}}, '
+        '{"NocoDB": {"icon": "/icons/missing.png", "href": "https://nocodb.example"}}'
+        ']}]}}\\n',
+        encoding="utf-8",
+    )
+    references = {
+        "AppFlowy": "/icons/homepage-appflowy.svg",
+        "NocoDB": "/icons/homepage-nocodb.png",
+    }
+    assert loaded_module.update_service_icon_references(config, references) is True
+    result = config.read_text(encoding="utf-8")
+    parsed = ast.parse(result)
+    docker = ast.literal_eval(parsed.body[0].value)
+    services = docker["homepage"]["services"][0]["Services"]
+    assert services[0]["AppFlowy"]["icon"] == "/icons/homepage-appflowy.svg"
+    assert services[1]["NocoDB"]["icon"] == "/icons/homepage-nocodb.png"
+    assert loaded_module.update_service_icon_references(config, references) is False
+    assert config.read_text(encoding="utf-8") == result
