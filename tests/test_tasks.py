@@ -760,7 +760,7 @@ def test_cron_task_manages_user_and_root_jobs(pyinfra_task_harness):
 
     installs = [
         call for call in pyinfra_task_harness.calls
-        if call[0] == "operation" and call[1] == "crontab"
+        if call[0] == "crontab" and call[1] == "crontab"
     ]
     assert len(installs) == 2
     user_job = installs[0][2]
@@ -807,7 +807,7 @@ def test_cron_task_can_remove_job_by_stable_name(pyinfra_task_harness):
 
     removal = [
         call for call in pyinfra_task_harness.calls
-        if call[0] == "operation" and call[1] == "crontab"
+        if call[0] == "crontab" and call[1] == "crontab"
     ]
     assert len(removal) == 1
     assert removal[0][2]["cron_name"] == "obsolete-job"
