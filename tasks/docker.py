@@ -161,7 +161,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 @deploy("Deploy Docker service")
 def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     service, description, homedir, username="root", usergroup="root",
-    restart_if=None, app_services=None, **template_vars,
+    restart_if=None, app_services=None, compose_services=None, **template_vars,
 ):
     """Deploy one Compose project and prepare its containers for Sablier."""
     files.directory(
@@ -196,12 +196,27 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
 
     if sablier_enabled:
-        compose_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
-        sablier_services_output = host.get_fact(
-            Command,
-            f"docker compose -f {compose_path} config --services",
-        ) or ""
-        sablier_services = sorted(sablier_services_output.split())
+        if compose_services is None:
+            compose_services = service_options.get("sablier_services")
+
+        if compose_services is not None:
+            if (
+                not isinstance(compose_services, (list, tuple))
+                or not compose_services
+                or not all(isinstance(item, str) and item for item in compose_services)
+            ):
+                raise ValueError(
+                    f"Invalid Compose services configuration for {service!r}"
+                )
+            sablier_services = sorted(compose_services)
+        else:
+            compose_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
+            sablier_services_output = host.get_fact(
+                Command,
+                f"docker compose -f {compose_path} config --services",
+            ) or ""
+            sablier_services = sorted(sablier_services_output.split())
+
         if not sablier_services:
             raise ValueError(
                 f"Docker Compose returned no services for {service!r}; "
