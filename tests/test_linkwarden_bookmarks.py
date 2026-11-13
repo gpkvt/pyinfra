@@ -148,3 +148,19 @@ def test_resolve_sync_settings_reports_missing_api_key(loaded_module):
     config = {"docker": {"linkwarden": {}, "homepage": {"bookmarks": []}}}
     with pytest.raises(ValueError, match="secrets.docker.linkwarden.api_key"):
         loaded_module.resolve_sync_settings(config, {})
+
+
+def test_select_local_secrets_uses_inventory_target_not_system_hostname(loaded_module):
+    secret_document = {
+        "shared": {"shared_value": True},
+        "hosts": {
+            "@local": {"docker": {"linkwarden": {"api_key": "local-token"}}},
+            "chao": {"docker": {"linkwarden": {"api_key": "wrong-token"}}},
+        },
+    }
+    selected = loaded_module.select_local_secrets(
+        secret_document,
+        lambda document, host: __import__("common").select_host_secrets(document, host),
+    )
+    assert selected["docker"]["linkwarden"]["api_key"] == "local-token"
+    assert selected["shared_value"] is True
