@@ -7,7 +7,7 @@ host data directories (defaults to 1000:1000). PostgreSQL's data directory is
 owned by the postgres:alpine container user (70:70).
 """
 
-from pyinfra import builtins
+import builtins
 
 from pyinfra import host
 from pyinfra.operations import files
@@ -49,7 +49,7 @@ files.link(
 deploy_docker_service(
     service="paperless",
     description="Paperless-ngx Document Management",
-    homedir=homedir
+    homedir=homedir,
     username=username,
     usergroup=usergroup,
     image=paperless.get("image", "ghcr.io/paperless-ngx/paperless-ngx:latest"),
