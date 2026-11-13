@@ -739,7 +739,7 @@ def test_appflowy_secret_environment_is_uploaded_with_private_permissions(
     )
 
 
-def test_cron_task_manages_user_and_root_jobs_idempotently(pyinfra_task_harness):
+def test_cron_task_manages_user_and_root_jobs(pyinfra_task_harness):
     pyinfra_task_harness.load("cron.py", {
         "username": "deploy",
         "cron_jobs": [
