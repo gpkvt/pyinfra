@@ -63,13 +63,18 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
     assert hostname == "@local"
     assert data["tmux"] is True
     assert data["zsh"] is False
-    assert data["powerline"] is False
+    assert data["powerline"] is True
     assert data["docker_install"] is False
     assert data["docker"]["ci-smoke"] == {
         "image": "alpine:3.21",
         "app_services": ["smoke"],
     }
-    assert data["ssh_authorized_keys"] == {}
+    assert data["ssh_authorized_keys"] == {
+        data["username"]: [
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINLXd8InkqcQRvTK+HEKTMEkEWEYHyIcVpX+PcNzFwz2 pyinfra-ci-fixture",
+        ],
+    }
+    assert data["ssh_authorized_keys_enabled"] is False
     assert data["workstation"] == {
         "backup": {"enabled": False},
         "power": {"enabled": False},
@@ -79,6 +84,32 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
         "desktop": {"enabled": True},
         "maintenance": {"enabled": True},
     }
+
+
+
+def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
+    """An already-correct timezone does not schedule a change."""
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        "UTC" if fact.__name__ == "SystemTimezone" else None
+    )
+    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
+
+    assert not any(
+        namespace == "server" and name == "timezone"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
+    """A mismatched timezone still schedules the required correction."""
+    pyinfra_task_harness.host.get_fact = lambda _fact, **_kwargs: "Europe/Berlin"
+    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
+
+    assert any(
+        namespace == "server" and name == "timezone"
+        and kwargs["timezone"] == "UTC"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
 
 
 def test_tmux_plugin_commands_run_after_package_installation(pyinfra_task_harness):
