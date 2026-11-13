@@ -237,3 +237,47 @@ def test_git_credentials_clear_only_an_existing_immutable_flag(
     )
     assert clear_flag["_if"]() is True
     assert "chattr -i" in clear_flag["commands"][0]
+
+
+def test_vpn_network_detection_uses_command_fact_and_gates_service(
+    pyinfra_task_harness,
+):
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, _command=None, **_kwargs: [
+            '[{"addr_info":[{"family":"inet","local":"10.0.0.5"}]}]'
+        ] if fact.__name__ == "Command" else None
+    )
+    pyinfra_task_harness.load("vpn.py", {
+        "local_network_cidr": "10.0.0.0/24",
+        "wireguard_interface": "wg0",
+    })
+
+    service = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "service"
+    )
+    assert service["service"] == "wg-quick@wg0"
+    assert service["_if"]() is False
+
+
+def test_ssh_key_generation_detects_incomplete_keypair(pyinfra_task_harness):
+    def get_fact(fact, command=None, **kwargs):
+        if fact.__name__ == "Command":
+            return ["tester:tester:700"]
+        if fact.__name__ == "File":
+            return kwargs.get("path", "").endswith(".pub")
+        return None
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("ssh_keys.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "ssh_keys": [{"name": "incomplete"}],
+    })
+
+    generate = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Generate SSH keypair: incomplete"
+    )
+    assert generate["_if"]() is True
