@@ -175,7 +175,7 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `vscodium` | `tasks/vscodium.py` | Extension configuration dictionary. |
 | `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
-| `proton` | `tasks/proton.py` | Proton application selection and options. |
+| `proton` | `tasks/proton.py` | Component toggles for Mail, Bridge, VPN, Pass and Drive CLI; `drive_cli_version` selects the Drive CLI release (default `0.9.0`). |
 
 Example:
 
