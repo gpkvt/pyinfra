@@ -56,17 +56,6 @@ homepage_icons = files.sync(
     _sudo=True,
 )
 
-# Homepage loads custom.css directly from its config directory. Keep the
-# bookmark-group sizing in CSS because settings.layout does not control it.
-homepage_custom_css = files.put(
-    name="Deploy Homepage custom CSS",
-    src="files/homepage/custom.css",
-    dest=f"{homedir}/.docker/homepage/config/custom.css",  # pylint: disable=undefined-variable
-    user=username,
-    group=usergroup,
-    mode="640",
-)
-
 # Homepage reads each configuration area from its own YAML file. Only render
 # files explicitly present in host data, preserving Homepage defaults for the
 # other areas and avoiding empty files that could override built-in behavior.
@@ -88,6 +77,17 @@ files.directory(
     user=username,
     group=usergroup,
     mode="750",
+)
+
+# Homepage loads custom.css directly from its config directory. Keep the
+# bookmark-group sizing in CSS because settings.layout does not control it.
+homepage_custom_css = files.put(
+    name="Deploy Homepage custom CSS",
+    src="files/homepage/custom.css",
+    dest=f"{homedir}/.docker/homepage/config/custom.css",  # pylint: disable=undefined-variable
+    user=username,
+    group=usergroup,
+    mode="640",
 )
 
 for config_name, filename in config_files.items():
