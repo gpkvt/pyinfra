@@ -11,13 +11,14 @@ import shlex
 from io import StringIO
 
 from pyinfra import host
-from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
 
 config = host.data.get("workstation", {}).get("limusic", {})
 
 if config.get("enabled", False):
+    from pyinfra.facts.server import Command
+
     username = host.data.get("username")
     usergroup = host.data.get("usergroup", username)
     homedir = host.data.get("homedir")
