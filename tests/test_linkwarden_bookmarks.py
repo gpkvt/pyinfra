@@ -763,7 +763,7 @@ def test_synchronize_aggregates_changes_and_normalizes_domain(
         (["Private"], ["Archived", "Reading"]),
         (["Private", "Archived"], ["Reading"]),
         (["pRiVaTe"], ["Archived", "Reading"]),
-        ([], ["Archived", "Private", "Reading", "private"]),
+        ([], ["Archived", "Private", "private", "Reading"]),
     ],
 )
 def test_category_exclusions_filter_collections_case_insensitively(

@@ -124,6 +124,14 @@
     "test_fetch_links_follows_cursor_and_rejects_repeated_cursor",
     "test_fetch_links_rejects_incomplete_response"
   ],
+  "tasks/docker/linkwarden_bookmarks.py:format_link_listing": [
+    "test_format_link_listing_includes_ids_categories_titles_and_urls",
+    "test_format_link_listing_rejects_malformed_link_entry",
+    "test_format_link_listing_rejects_link_without_id"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:list_links": [
+    "test_list_links_fetches_all_links_without_sync_side_effects"
+  ],
   "tasks/docker/linkwarden_bookmarks.py:main": [
     "test_main_uses_local_secrets_and_passes_dry_run_to_sync"
   ],
