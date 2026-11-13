@@ -875,3 +875,66 @@ def test_snipe_it_uses_direct_bind_mounts():
     )
     assert "database_data:" not in compose
     assert "storage_data:" not in compose
+
+
+
+def test_appflowy_is_dispatched_when_configured(pyinfra_task_harness):
+    """AppFlowy deployment is included only when its Docker service key exists."""
+    pyinfra_task_harness.load("docker_container.py", {
+        "docker": {"appflowy": {}},
+    })
+    assert pyinfra_task_harness.included == ["tasks/docker/appflowy.py"]
+
+
+def test_appflowy_compose_uses_host_bind_mounts_and_loopback_only():
+    """AppFlowy persists data below .docker and exposes only its local Nginx port."""
+    compose = (
+        ROOT / "templates/docker/appflowy/docker-compose.yml.j2"
+    ).read_text()
+
+    assert '"127.0.0.1:{{ port }}:80"' in compose
+    assert '"{{ homedir }}/.docker/appflowy/postgres:/var/lib/postgresql/data"' in compose
+    assert '"{{ homedir }}/.docker/appflowy/minio:/data"' in compose
+    assert '"{{ homedir }}/.docker/appflowy/search:/var/lib/appflowy/keyword_index"' in compose
+    assert "postgres_data:" not in compose
+    assert "minio_data:" not in compose
+    assert "keyword_index_data:" not in compose
+    assert "appflowy_log_collector:" not in compose
+    assert "appflowy_backup:" not in compose
+
+
+def test_appflowy_homepage_entry_is_link_only():
+    """Homepage links to AppFlowy without adding an authenticated API widget."""
+    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
+    homepage_services = local_config["docker"]["homepage"]["services"]
+    appflowy_card = next(
+        card["AppFlowy"]
+        for group in homepage_services
+        for card in group.get("Services", [])
+        if "AppFlowy" in card
+    )
+    assert appflowy_card["href"] == "https://appflowy.21x9.org"
+    assert "widget" not in appflowy_card
+
+
+def test_appflowy_caddy_route_uses_loopback_upstream(pyinfra_task_harness):
+    """Caddy publishes AppFlowy through its configured loopback-only Nginx port."""
+    local_config = runpy.run_path(str(ROOT / "group_data/@local.py"))
+    config = local_config["caddy_config"]
+    assert config["appflowy.21x9.org:443"]["reverse_proxy"] == "127.0.0.1:8026"
+
+    module = pyinfra_task_harness.load("caddy.py")
+    result = module.build_sablier_caddy_config(
+        config,
+        {"appflowy": local_config["docker"]["appflowy"]},
+        {"enabled": True},
+    )
+    route = result["appflowy.21x9.org:443"]["route"]
+    assert route["sablier http://127.0.0.1:10000"]["group"] == "appflowy"
+    assert route["reverse_proxy"] == "127.0.0.1:8026"
+
+
+def test_appflowy_requires_encrypted_credentials(pyinfra_task_harness):
+    """AppFlowy refuses to deploy with missing required credentials."""
+    with pytest.raises(ValueError, match="Missing required secrets.docker.appflowy"):
+        pyinfra_task_harness.load("docker/appflowy.py")
