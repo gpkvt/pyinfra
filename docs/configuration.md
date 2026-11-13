@@ -154,7 +154,7 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The supported keys are `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it` and `wg-easy`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
+`docker` is a mapping of service names to service-specific settings. The supported keys are `appflowy`, `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it` and `wg-easy`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
 
 All current services persist application data through host bind mounts below the configured user's home directory:
 
@@ -174,11 +174,14 @@ All current services persist application data through host bind mounts below the
 | Linkwarden | `~/.docker/linkwarden/postgres/`, `data/`, `meili/` | `8021` |
 | Firefly III | `~/.docker/firefly-iii/database/`, `upload/`, `fints/` | `8023` (FinTS importer: `8024`) |
 | Snipe-IT | `~/.docker/snipe-it/database/`, `storage/` | `8025` |
+| AppFlowy | `~/.docker/appflowy/postgres/`, `minio/`, `search/` | `8026` |
 | WG-Easy | `~/.docker/wg-easy/` | UI `51821`; WireGuard UDP `51820` |
 
 The interfaces bind to `127.0.0.1` by default, except explicitly published protocol ports such as WG-Easy WireGuard UDP. All persistent service data uses direct host bind mounts below `~/.docker/`, not Docker-managed named volumes. The shared Docker helper renders Compose files under `~/<service>/` and user-level systemd units under `~/.config/systemd/user/`. A changed Compose file triggers an image pull and container preparation; unchanged Compose files do not trigger a pull. User-level systemd units manage the Compose projects, while Sablier can start labelled services on demand when enabled.
 
 Service-specific behavior:
+
+- **AppFlowy** deploys the official AppFlowy Self-Hosted Commercial Compose stack behind the existing Caddy instance. The public hostname is `appflowy.21x9.org`; Nginx publishes only `127.0.0.1:8026`. PostgreSQL, MinIO and Search persist in `~/.docker/appflowy/postgres/`, `minio/` and `search/` using host bind mounts. The task creates `~/appflowy/.env` with mode `0600` from encrypted secrets. Configure `secrets.docker.appflowy.postgres_password`, `admin_password`, `jwt_secret`, `minio_access_key` and `minio_secret_key`. Generate URL-safe values with `openssl rand -hex 32`; the MinIO access key must be at least 20 characters. The first GoTrue administrator is created from `docker.appflowy.admin_email` (default `admin@appflowy.21x9.org`) and the encrypted `admin_password`. Change the initial password after first login. SMTP and AI provider keys are optional and remain unset by default. AppFlowy is the commercial self-hosted distribution; review the upstream license before deployment. Homepage only links to AppFlowy and does not call its authenticated API.
 
 - **Miniflux** runs with a PostgreSQL companion container. Set its `postgres_version` and optional `port` in host data; credentials are supplied through `secrets.docker.miniflux`.
 - **TimeTagger** mounts its persistent directory at the container's `/root/_timetagger`.
