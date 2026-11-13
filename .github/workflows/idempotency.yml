@@ -109,7 +109,8 @@ jobs:
       - name: Verify Docker smoke container is running
         run: |
           container_id="$(
-            docker compose -f "$HOME/.docker/ci-smoke/docker-compose.yml" ps -q smoke
+            docker compose \
+              -f "$HOME/.docker/ci-smoke/docker-compose.yml" ps -q smoke
           )"
           test -n "$container_id"
           running="$(
