@@ -24,7 +24,6 @@ import shlex
 from pyinfra import host
 from pyinfra.operations import files, server
 from pyinfra.facts.files import File
-from pyinfra.facts.server import Command
 from common import command_output
 
 if not hasattr(builtins, "homedir"):
