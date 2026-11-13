@@ -1,0 +1,70 @@
+# pylint: disable=C0103
+"""Portable example for per-machine pyinfra configuration.
+
+Copy this file to @local.py and replace the placeholders before deploying.
+Keep machine-specific values, credentials, private keys and device identifiers
+in the ignored local file, never in this example.
+"""
+
+# Required identity and locale settings.
+hostname = "example-host"
+timezone = "Etc/UTC"
+locale = "en_US.UTF-8"
+username = "YOUR_USERNAME"
+usergroup = "YOUR_USERNAME"
+homedir = "/home/YOUR_USERNAME"
+
+keyboard = {
+    "layout": "us",
+    "model": "pc105",
+    "variant": "",
+    "options": "",
+}
+
+# Optional network configuration. Leave empty until adapted to the target host.
+local_network_cidr = ""
+hostnames = {}
+wireguard_interface = None
+wireguard_config = {}
+
+# User environment.
+editor = "nano"
+zsh = False
+powerline = False
+tmux = True
+powerline_fonts = False
+zplug_plugins = []
+zshrc_imports = []
+
+# System configuration examples.
+apt_packages = []
+apt_sources = {}
+flatpak_packages = []
+sysctl = {}
+udev = {}
+usbguard = {"enabled": False, "rules": []}
+sudoers_rules = []
+ssh_keys = []
+ssh_authorized_keys = {}
+ssh_config = {}
+apparmor_profiles = []
+
+# Optional workstation/desktop configuration.
+cosmic = {"enabled": False}
+cosmic_config_files = {}
+vscodium = {"extensions": []}
+proton = {}
+mullvad_extensions = {}
+mullvad_browser_dir = None
+
+# Optional services. Add only services configured for this machine.
+docker = {}
+docker_sablier = {"enabled": False}
+docker_power_save = []
+caddy_config = {}
+dehydrated_domains = []
+cron_jobs = []
+syncthing = {}
+
+# Firewall is intentionally not enabled by this example.
+ufw = {}
