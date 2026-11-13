@@ -67,12 +67,30 @@ def fetch_links(base_url, token):
         cursor = next_cursor
 
 
-def favicon_filename(url):
-    """Create a stable, filesystem-safe favicon name."""
+FAVICON_EXTENSIONS = {
+    "image/x-icon": ".ico",
+    "image/vnd.microsoft.icon": ".ico",
+    "image/ico": ".ico",
+    "image/png": ".png",
+    "image/svg+xml": ".svg",
+    "image/jpeg": ".jpg",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+}
+
+
+def favicon_extension(content_type):
+    """Return a supported filename extension for an image MIME type."""
+    media_type = content_type.split(";", maxsplit=1)[0].strip().lower()
+    return FAVICON_EXTENSIONS.get(media_type)
+
+
+def favicon_filename(url, extension):
+    """Create a stable, filesystem-safe favicon name with its real extension."""
     digest = hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
     host_name = urllib.parse.urlsplit(url).hostname or "link"
     host_name = re.sub(r"[^a-zA-Z0-9.-]", "-", host_name).lower()
-    return f"linkwarden-{host_name}-{digest}.ico"
+    return f"linkwarden-{host_name}-{digest}{extension}"
 
 
 def download_favicon(base_url, target_url, token, destination):
@@ -86,12 +104,15 @@ def download_favicon(base_url, target_url, token, destination):
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
             content_type = response.headers.get("Content-Type", "").lower()
             content = response.read(MAX_FAVICON_SIZE + 1)
-        if len(content) > MAX_FAVICON_SIZE or not content_type.startswith("image/"):
+        if len(content) > MAX_FAVICON_SIZE or not content:
             return None
-        if not content:
+        extension = favicon_extension(content_type)
+        if not extension:
             return None
     except (OSError, urllib.error.URLError, ValueError):
         return None
+
+    destination = destination.with_name(favicon_filename(target_url, extension))
     destination.parent.mkdir(parents=True, exist_ok=True)
     if not destination.exists() or destination.read_bytes() != content:
         temporary = destination.with_suffix(destination.suffix + ".tmp")
@@ -118,7 +139,7 @@ def build_bookmark_groups(links, base_url, token, icon_dir, download_icons=True)
         if not collection_name or url in seen_urls:
             continue
         seen_urls.add(url)
-        filename = favicon_filename(url)
+        filename = favicon_filename(url, ".ico")
         icon = (
             download_favicon(base_url, url, token, icon_dir / filename)
             if download_icons else None
