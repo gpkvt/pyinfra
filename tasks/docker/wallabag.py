@@ -30,6 +30,7 @@ deploy_docker_service(
     service="wallabag",
     description="Wallabag Read-it-later Service",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["wallabag"],
     username=username,
     usergroup=usergroup,
     image=wallabag.get("image", "wallabag/wallabag:latest"),
