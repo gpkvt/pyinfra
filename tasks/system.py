@@ -126,6 +126,7 @@ from io import StringIO
 from pyinfra import host
 from pyinfra.api import FactBase
 from pyinfra.operations import apt, files, server
+from pyinfra.operations.util import any_changed
 
 # Custom fact: retrieve current system locale
 class SystemTimezone(FactBase):
@@ -374,7 +375,7 @@ if sysctl:
 
 # Configure udev rules
 udev = host.data.get("udev", {})
-udev_changed = False
+udev_operations = []
 
 if udev:
     if not isinstance(udev, dict):
@@ -402,15 +403,15 @@ if udev:
             _sudo=True,
         )
 
-        if result.changed:
-            udev_changed = True
+        udev_operations.append(result)
 
-    if udev_changed:
-        server.shell(
-            name="Reload udev rules",
-            commands=["udevadm control --reload-rules"],
-            _sudo=True,
-        )
+    # did_change() is evaluated in pyinfra's execute phase, after files.put.
+    server.shell(
+        name="Reload udev rules",
+        commands=["udevadm control --reload-rules"],
+        _sudo=True,
+        _if=any_changed(*udev_operations),
+    )
 
 # Configure USBGuard
 usbguard = host.data.get("usbguard", {})
@@ -486,8 +487,8 @@ if usbguard:
             _sudo=True,
         )
 
-        # Track configuration changes
-        usbguard_changed = False
+        # Deploy both files before deciding whether the daemon needs a restart.
+        # Operation change callbacks are evaluated at execution time.
 
         # Configure USBGuard daemon
         daemon_config = (
@@ -509,8 +510,6 @@ if usbguard:
             _sudo=True,
         )
 
-        if daemon_result.changed:
-            usbguard_changed = True
 
         # Configure USBGuard rules
         rules_result = files.put(
@@ -523,24 +522,18 @@ if usbguard:
             _sudo=True,
         )
 
-        if rules_result.changed:
-            usbguard_changed = True
 
-        # Enable and restart USBGuard only when necessary
-        if usbguard_changed:
-            server.shell(
-                name="Enable and restart USBGuard",
-                commands=[
-                    "systemctl enable usbguard",
-                    "systemctl restart usbguard",
-                ],
-                _sudo=True,
-            )
-        else:
-            server.service(
-                name="Ensure USBGuard is enabled and running",
-                service="usbguard",
-                running=True,
-                enabled=True,
-                _sudo=True,
-            )
+        # Restart only when either managed configuration file changed.
+        server.shell(
+            name="Restart USBGuard after configuration changes",
+            commands=["systemctl restart usbguard"],
+            _sudo=True,
+            _if=any_changed(daemon_result, rules_result),
+        )
+        server.service(
+            name="Ensure USBGuard is enabled and running",
+            service="usbguard",
+            running=True,
+            enabled=True,
+            _sudo=True,
+        )
