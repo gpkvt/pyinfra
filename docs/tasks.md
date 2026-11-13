@@ -269,7 +269,7 @@ proton = {
 }
 ```
 
-The Drive CLI installer currently installs when the executable is absent; changing `drive_cli_version` does not replace an already-installed binary.
+The Drive CLI installer records its managed version under `/usr/local/share/proton-drive/version` and reinstalls only when the executable or version marker is missing or the requested `drive_cli_version` changes.
 
 ## Run an individual task
 
