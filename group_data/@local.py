@@ -527,34 +527,30 @@ docker = {
                 "saturate": 50,
                 "brightness": 50,
             },
-            "layout": {
-                # Keep application service cards together in the first row.
-                "Services": {
-                    "style": "row",
-                    "columns": 3,
+                        "layout": [
+                # First row: application services in three columns.
+                {
+                    "Services": {
+                        "style": "row",
+                        "columns": 3,
+                    },
                 },
-                # Place the calendar and network/news widgets as two columns
-                # in the next dashboard row.
-                "Calendar": {
-                    "style": "column",
+                # Second row: calendar and network/news each use half the width.
+                {
+                    "Calendar": {
+                        "style": "column",
+                        "columns": 2,
+                    },
                 },
-                "Network & News": {
-                    "style": "column",
+                {
+                    "Network & News": {
+                        "style": "column",
+                        "columns": 2,
+                    },
                 },
-                # Keep bookmark categories as columns in the final row.
-                "Misc": {
-                    "style": "column",
-                },
-                "Social": {
-                    "style": "column",
-                },
-                "Entertainment": {
-                    "style": "column",
-                },
-                "Proton": {
-                    "style": "column",
-                },
-            },
+                # Bookmark categories are deliberately left out: Homepage
+                # places them after service groups, one column per category.
+            ],,
             # Keep the API key in secrets.json.gpg; Homepage resolves this
             # environment placeholder through its shared provider configuration.
             "providers": {
