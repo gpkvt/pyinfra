@@ -44,7 +44,7 @@ def test_fetch_links_rejects_incomplete_response(loaded_module, monkeypatch):
 
 
 def test_bookmarks_are_grouped_and_deduplicated(loaded_module, monkeypatch, tmp_path):
-    monkeypatch.setattr(loaded_module, "download_favicon", lambda *_args: "/icons/example.ico")
+    monkeypatch.setattr(loaded_module, "download_favicon", lambda *_args, **_kwargs: "/icons/example.ico")
     links = [
         {"type": "url", "url": "https://one.example", "name": "One",
          "collection": {"name": "Reading"}},
@@ -140,7 +140,7 @@ def test_dry_run_does_not_download_icons_or_modify_config(loaded_module, monkeyp
     ])
     monkeypatch.setattr(
         loaded_module, "download_favicon",
-        lambda *_args: pytest.fail("dry run must not download favicons"),
+        lambda *_args, **_kwargs: pytest.fail("dry run must not download favicons"),
     )
     assert loaded_module.synchronize(
         config, tmp_path / "icons", "https://links.example", "token", dry_run=True
@@ -264,7 +264,7 @@ def test_collect_service_favicons_downloads_only_missing_local_icons(
     (tmp_path / "existing.png").write_bytes(b"existing")
     calls = []
 
-    def download(_base, url, _token, _destination, prefix="linkwarden"):
+    def download(_base, url, _token, _destination, prefix="linkwarden", **_kwargs):
         calls.append((url, prefix))
         return f"/icons/{prefix}-new.png"
 
