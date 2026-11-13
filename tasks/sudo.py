@@ -20,8 +20,9 @@ from io import StringIO
 
 from pyinfra import host
 from pyinfra.api import FactBase
-from common import command_output
 from pyinfra.operations import files, server
+
+from common import command_output
 
 # Custom fact: retrieve current sudoers configuration
 class SudoersFile(FactBase):
