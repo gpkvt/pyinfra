@@ -1,11 +1,10 @@
 """Deploy the official AppFlowy Self-Hosted Commercial Compose stack."""
 
 import builtins
+import json
 import re
 from io import StringIO
 from pathlib import Path
-
-from jinja2 import Environment
 
 from pyinfra import host
 from pyinfra.operations import files
@@ -82,15 +81,20 @@ ensure_numeric_directory(f"{data_root}/search", 1000, 1000, "750")
 # Upload the rendered secret-bearing environment file rather than using
 # files.template: template diffs would expose credentials in pyinfra output.
 env_template = Path("templates/docker/appflowy/.env.j2").read_text(encoding="utf-8")
-env_content = Environment().from_string(env_template).render(
-    postgres_password=appflowy_secrets["postgres_password"],
-    admin_email=admin_email,
-    domain=domain,
-    admin_password=appflowy_secrets["admin_password"],
-    jwt_secret=appflowy_secrets["jwt_secret"],
-    minio_access_key=appflowy_secrets["minio_access_key"],
-    minio_secret_key=appflowy_secrets["minio_secret_key"],
-)
+env_values = {
+    "postgres_password": appflowy_secrets["postgres_password"],
+    "admin_email": admin_email,
+    "admin_password": appflowy_secrets["admin_password"],
+    "jwt_secret": appflowy_secrets["jwt_secret"],
+    "minio_access_key": appflowy_secrets["minio_access_key"],
+    "minio_secret_key": appflowy_secrets["minio_secret_key"],
+}
+env_content = env_template.replace("{{ domain }}", domain)
+for key, value in env_values.items():
+    env_content = env_content.replace(
+        "{{ " + key + " | tojson }}",
+        json.dumps(value),
+    )
 env_file = files.put(
     name="Configure private AppFlowy environment",
     src=StringIO(env_content),
