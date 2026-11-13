@@ -74,8 +74,9 @@ def test_set_immutable_uses_requested_chattr_flag(pyinfra_task_harness, capsys):
         ("chattr +i /home/tester/.git-credentials",
          {"print_output": False, "_sudo": True}),
     ]
-    assert "Set -i" in capsys.readouterr().out
-    assert "Set +i" in capsys.readouterr().out
+    output = capsys.readouterr().out
+    assert "Set -i" in output
+    assert "Set +i" in output
 
 
 def test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing(

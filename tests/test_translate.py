@@ -95,7 +95,7 @@ def test_main_writes_numbered_srt_cues_from_ttml(translator, monkeypatch, tmp_pa
     output = tmp_path / "translated.srt"
     monkeypatch.setattr(translator, "SRC", tmp_path / "source.xml")
     monkeypatch.setattr(translator, "OUT_SRT", output)
-    monkeypatch.setattr(translator.etree, "parse", lambda _path: Tree())
+    monkeypatch.setattr(translator.etree, "parse", lambda _path: Tree(), raising=False)
 
     translator.main()
 
