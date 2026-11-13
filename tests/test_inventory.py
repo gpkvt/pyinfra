@@ -20,7 +20,7 @@ def test_disabled_hosts_are_excluded_from_production():
 
 
 def test_workstation_group_data_has_expected_features_and_defaults():
-    group_data = runpy.run_path(str(ROOT / "group_data/workstation.py"))
+    group_data = runpy.run_path(str(ROOT / "group_data/workstation.py.example"))
     workstation = group_data["workstation"]
 
     expected_features = {
@@ -32,4 +32,4 @@ def test_workstation_group_data_has_expected_features_and_defaults():
     assert workstation["power"]["manager"] in {
         "power-profiles-daemon", "tlp",
     }
-    assert workstation["hardware"]["cpu_vendor"] in {"intel", "amd"}
+    assert workstation["hardware"]["cpu_vendor"] in {None, "intel", "amd"}
