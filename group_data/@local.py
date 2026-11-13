@@ -528,9 +528,31 @@ docker = {
                 "brightness": 50,
             },
             "layout": {
+                # Keep application service cards together in the first row.
                 "Services": {
                     "style": "row",
                     "columns": 3,
+                },
+                # Place the calendar and network/news widgets as two columns
+                # in the next dashboard row.
+                "Calendar": {
+                    "style": "column",
+                },
+                "Network & News": {
+                    "style": "column",
+                },
+                # Keep bookmark categories as columns in the final row.
+                "Misc": {
+                    "style": "column",
+                },
+                "Social": {
+                    "style": "column",
+                },
+                "Entertainment": {
+                    "style": "column",
+                },
+                "Proton": {
+                    "style": "column",
                 },
             },
             # Keep the API key in secrets.json.gpg; Homepage resolves this
