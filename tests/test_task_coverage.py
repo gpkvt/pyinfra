@@ -51,12 +51,17 @@ def test_coverage_entries_use_supported_execution_kinds():
     assert all(
         kind == "deployment"
         for path, kind in coverage.items()
-        if path.startswith("tasks/") and path != "tasks/homepage_config.py"
+        if path.startswith("tasks/")
+        and path not in {
+            "tasks/homepage_config.py",
+            "tasks/docker/linkwarden_bookmarks.py",
+        }
     )
     assert all(
         kind == "utility"
         for path, kind in coverage.items()
         if path.startswith("files/scripts/")
+        or path == "tasks/docker/linkwarden_bookmarks.py"
     )
 
 
