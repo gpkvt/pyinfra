@@ -168,7 +168,8 @@
     "test_managed_bookmark_update_requires_markers"
   ],
   "tasks/docker/linkwarden_bookmarks.py:synchronize": [
-    "test_dry_run_does_not_download_icons_or_modify_config"
+    "test_dry_run_does_not_download_icons_or_modify_config",
+    "test_synchronize_aggregates_changes_and_normalizes_domain"
   ],
   "tasks/docker/linkwarden_bookmarks.py:cleanup_unused_favicons": [
     "test_cleanup_unused_favicons_removes_only_unreferenced_managed_icons",
