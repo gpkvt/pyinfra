@@ -122,7 +122,6 @@ Target:
 
 import re
 import shlex
-from io import StringIO
 
 from common import command_output
 from pyinfra import host
@@ -216,13 +215,12 @@ if locale:
             _sudo=True,
         )
 
-    files.put(
+    files.line(
         name=f"Set system default locale: {locale}",
-        src=StringIO(f'LANG="{locale}"\n'),
-        dest="/etc/default/locale",
-        user="root",
-        group="root",
-        mode="644",
+        path="/etc/default/locale",
+        line=f'LANG="{locale}"',
+        replace="^LANG=",
+        present=True,
         _sudo=True,
     )
 
