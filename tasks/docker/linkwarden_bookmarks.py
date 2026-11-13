@@ -7,6 +7,7 @@ Changes should be reviewed and committed separately from infrastructure deployme
 # pylint: disable=R0912,R0914
 import ast
 import hashlib
+import html.parser
 import json
 import argparse
 import os
@@ -86,46 +87,138 @@ def favicon_extension(content_type):
     return FAVICON_EXTENSIONS.get(media_type)
 
 
+def favicon_origin(url):
+    """Return the normalized website origin used to share one favicon per site."""
+    parsed = urllib.parse.urlsplit(url)
+    return f"{parsed.scheme.lower()}://{parsed.netloc.lower()}"
+
+
 def favicon_filename(url, extension, prefix="linkwarden"):
-    """Create a stable, filesystem-safe favicon name with its real extension."""
-    digest = hashlib.sha256(url.encode("utf-8")).hexdigest()[:16]
-    host_name = urllib.parse.urlsplit(url).hostname or "link"
+    """Create a stable favicon name based on website origin, not bookmark URL."""
+    origin = favicon_origin(url)
+    digest = hashlib.sha256(origin.encode("utf-8")).hexdigest()[:16]
+    host_name = urllib.parse.urlsplit(origin).hostname or "link"
     host_name = re.sub(r"[^a-zA-Z0-9.-]", "-", host_name).lower()
     return f"{prefix}-{host_name}-{digest}{extension}"
 
 
-def download_favicon(base_url, target_url, token, destination, prefix="linkwarden"):
-    """Download a bounded favicon and write only when its bytes changed."""
-    endpoint = f"{base_url}/api/v1/getFavicon?{urllib.parse.urlencode({'url': target_url})}"
+class FaviconHTMLParser(html.parser.HTMLParser):
+    """Collect icon links from a website's HTML head."""
+
+    def __init__(self):
+        super().__init__()
+        self.icons = []
+
+    def handle_starttag(self, tag, attrs):
+        if tag.lower() != "link":
+            return
+        attributes = dict(attrs)
+        rel = attributes.get("rel", "").lower().split()
+        href = attributes.get("href")
+        if href and any("icon" in value for value in rel):
+            self.icons.append(href)
+
+
+def discover_favicon_urls(target_url):
+    """Discover declared icon URLs, then try the conventional favicon path."""
     request = urllib.request.Request(
-        endpoint,
-        headers={"Authorization": f"Bearer {token}", "Accept": "image/*"},
+        target_url,
+        headers={"User-Agent": "pyinfra-linkwarden-favicon-sync/1.0", "Accept": "text/html"},
     )
+    candidates = []
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+            content_type = response.headers.get("Content-Type", "").lower()
+            if "html" in content_type or not content_type:
+                document = response.read(MAX_FAVICON_SIZE + 1)
+                if len(document) <= MAX_FAVICON_SIZE:
+                    parser = FaviconHTMLParser()
+                    parser.feed(document.decode("utf-8", errors="replace"))
+                    candidates = [
+                        urllib.parse.urljoin(response.geturl(), href)
+                        for href in parser.icons
+                    ]
+    except (OSError, urllib.error.URLError, ValueError):
+        pass
+    candidates.append(urllib.parse.urljoin(target_url, "/favicon.ico"))
+    return list(dict.fromkeys(
+        url for url in candidates
+        if urllib.parse.urlsplit(url).scheme in ("http", "https")
+    ))
+
+
+def _download_image(url, headers=None):
+    """Fetch a bounded image response, returning (content, extension)."""
+    request = urllib.request.Request(url, headers=headers or {"User-Agent": "pyinfra/1.0"})
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
             content_type = response.headers.get("Content-Type", "").lower()
             content = response.read(MAX_FAVICON_SIZE + 1)
-        if len(content) > MAX_FAVICON_SIZE or not content:
-            return None
         extension = favicon_extension(content_type)
-        if not extension:
+        if len(content) > MAX_FAVICON_SIZE or not content or not extension:
             return None
+        return content, extension
     except (OSError, urllib.error.URLError, ValueError):
         return None
 
-    destination = destination.with_name(favicon_filename(target_url, extension, prefix))
+
+def download_favicon(
+    base_url, target_url, token, destination, prefix="linkwarden", icon_cache=None
+):
+    """Discover, cache and download one favicon per website origin."""
+    origin = favicon_origin(target_url)
+    if icon_cache is not None and origin in icon_cache:
+        return icon_cache[origin]
+
     destination.parent.mkdir(parents=True, exist_ok=True)
+    host_digest = hashlib.sha256(origin.encode("utf-8")).hexdigest()[:16]
+    host_name = re.sub(
+        r"[^a-zA-Z0-9.-]", "-", urllib.parse.urlsplit(origin).hostname or "link"
+    ).lower()
+    existing = sorted(destination.parent.glob(f"{prefix}-{host_name}-{host_digest}.*"))
+    if existing:
+        result = f"/icons/{existing[0].name}"
+        if icon_cache is not None:
+            icon_cache[origin] = result
+        return result
+
+    downloaded = None
+    for favicon_url in discover_favicon_urls(target_url):
+        downloaded = _download_image(favicon_url)
+        if downloaded:
+            break
+
+    if not downloaded:
+        endpoint = (
+            f"{base_url}/api/v1/getFavicon?"
+            f"{urllib.parse.urlencode({'url': target_url})}"
+        )
+        downloaded = _download_image(
+            endpoint,
+            {"Authorization": f"Bearer {token}", "Accept": "image/*"},
+        )
+    if not downloaded:
+        return None
+
+    content, extension = downloaded
+    destination = destination.with_name(favicon_filename(target_url, extension, prefix))
     if not destination.exists() or destination.read_bytes() != content:
         temporary = destination.with_suffix(destination.suffix + ".tmp")
         temporary.write_bytes(content)
         os.replace(temporary, destination)
-    return f"/icons/{destination.name}"
+    result = f"/icons/{destination.name}"
+    if icon_cache is not None:
+        icon_cache[origin] = result
+    return result
 
 
-def build_bookmark_groups(links, base_url, token, icon_dir, download_icons=True):
+def build_bookmark_groups(
+    links, base_url, token, icon_dir, download_icons=True, icon_cache=None
+):
     """Build deterministic Homepage groups, de-duplicated by URL."""
     grouped = {}
     seen_urls = set()
+    icon_cache = icon_cache if icon_cache is not None else {}
     for link in links:
         if not isinstance(link, dict) or link.get("type") != "url":
             continue
@@ -142,7 +235,9 @@ def build_bookmark_groups(links, base_url, token, icon_dir, download_icons=True)
         seen_urls.add(url)
         filename = favicon_filename(url, ".ico")
         icon = (
-            download_favicon(base_url, url, token, icon_dir / filename)
+            download_favicon(
+                base_url, url, token, icon_dir / filename, icon_cache=icon_cache
+            )
             if download_icons else None
         )
         item = {"href": url}
@@ -172,9 +267,12 @@ def _service_entries(services):
                         yield name, config
 
 
-def collect_service_favicons(services, base_url, token, icon_dir, download_icons=True):
+def collect_service_favicons(
+    services, base_url, token, icon_dir, download_icons=True, icon_cache=None
+):
     """Download missing Homepage service icons and return their config references."""
     icon_references = {}
+    icon_cache = icon_cache if icon_cache is not None else {}
     for name, service in _service_entries(services):
         href = service.get("href")
         current_icon = service.get("icon")
@@ -191,7 +289,8 @@ def collect_service_favicons(services, base_url, token, icon_dir, download_icons
             continue
         filename = icon_dir / favicon_filename(href, ".ico", prefix="homepage")
         icon = download_favicon(
-            base_url, href, token, filename, prefix="homepage"
+            base_url, href, token, filename, prefix="homepage",
+            icon_cache=icon_cache,
         )
         if icon:
             icon_references[name] = icon
@@ -304,14 +403,18 @@ def synchronize(config_path, icon_dir, domain, token, services=None, dry_run=Fal
     if not base_url.startswith(("https://", "http://")):
         base_url = "https://" + base_url
     links = fetch_links(base_url, token)
+    icon_cache = {}
     groups = build_bookmark_groups(
-        links, base_url, token, icon_dir, download_icons=not dry_run
+        links, base_url, token, icon_dir, download_icons=not dry_run,
+        icon_cache=icon_cache,
     )
     if dry_run:
         print(json.dumps(groups, indent=4, ensure_ascii=False))
         print(f"Dry run: {sum(len(items) for group in groups for items in group.values())} bookmarks; no files changed.")
         return False
-    service_icons = collect_service_favicons(services or [], base_url, token, icon_dir)
+    service_icons = collect_service_favicons(
+        services or [], base_url, token, icon_dir, icon_cache=icon_cache
+    )
     bookmarks_changed = update_managed_bookmarks(config_path, groups)
     icons_changed = update_service_icon_references(config_path, service_icons)
     return bookmarks_changed or icons_changed
