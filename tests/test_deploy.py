@@ -8,11 +8,12 @@ import types
 from conftest import Data, load_module
 
 
-def run_deploy(monkeypatch, workstation, cron_jobs=None):
+def run_deploy(monkeypatch, workstation, cron_jobs=None, cosmic=None):
     included = []
     data = Data(
         ssh_config=False,
         workstation=workstation,
+        cosmic=cosmic or {},
         cron_jobs=cron_jobs or [],
     )
     host = types.SimpleNamespace(data=data)
@@ -59,6 +60,15 @@ def test_deploy_does_not_include_workstation_tasks_when_group_data_missing(monke
     included = run_deploy(monkeypatch, {})
 
     assert not any(path.startswith("tasks/workstation/") for path in included)
+
+
+def test_deploy_includes_cosmic_only_when_workstation_feature_enabled(monkeypatch):
+    disabled = run_deploy(monkeypatch, {"cosmic": {"enabled": False}})
+    assert "tasks/workstation/cosmic/deploy.py" not in disabled
+
+    enabled = run_deploy(monkeypatch, {"cosmic": {"enabled": True}})
+    assert "tasks/workstation/cosmic/deploy.py" in enabled
+    assert not any(path == "tasks/cosmic/deploy.py" for path in enabled)
 
 
 def test_deploy_keeps_core_tasks_enabled(monkeypatch):
