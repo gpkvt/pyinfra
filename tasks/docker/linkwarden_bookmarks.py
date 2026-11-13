@@ -182,9 +182,9 @@ def resolve_sync_settings(config, secret_data):
         linkwarden_secrets.get("api_key")
         or homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
     )
-    if not linkwarden:
+    if "linkwarden" not in docker_config:
         raise ValueError("docker.linkwarden is missing from group_data/@local.py")
-    if not homepage:
+    if "homepage" not in docker_config:
         raise ValueError("docker.homepage is missing from group_data/@local.py")
     if not token:
         raise ValueError(
