@@ -123,5 +123,18 @@ deploy_docker_service(
     usergroup=usergroup,
     restart_if=[env_file, nginx_config],
     app_services=appflowy.get("app_services", ["nginx"]),
+    compose_services=[
+        "nginx",
+        "minio",
+        "postgres",
+        "redis",
+        "gotrue",
+        "appflowy_cloud",
+        "admin_frontend",
+        "ai",
+        "appflowy_worker",
+        "appflowy_search",
+        "appflowy_web",
+    ],
     port=port,
 )
