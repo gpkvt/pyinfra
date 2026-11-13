@@ -42,11 +42,11 @@ class FlatpakSystemUpdates(FactBase):
         return [line for line in output if line.strip()]
 
 
-def select_flatpak_remote(package, available_by_remote):
+def select_flatpak_remote(package_id, remote_applications):
     """Prefer Flathub, otherwise require exactly one matching remote."""
     matches = sorted(
-        remote for remote, applications in available_by_remote.items()
-        if package in applications
+        remote for remote, applications in remote_applications.items()
+        if package_id in applications
     )
     if "flathub" in matches:
         return "flathub"
@@ -54,10 +54,10 @@ def select_flatpak_remote(package, available_by_remote):
         return matches[0]
     if not matches:
         raise ValueError(
-            f"Flatpak application {package!r} is unavailable from configured remotes"
+            f"Flatpak application {package_id!r} is unavailable from configured remotes"
         )
     raise ValueError(
-        f"Flatpak application {package!r} is available from multiple non-Flathub "
+        f"Flatpak application {package_id!r} is available from multiple non-Flathub "
         f"remotes: {', '.join(matches)}"
     )
 
