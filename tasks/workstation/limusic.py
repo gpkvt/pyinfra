@@ -197,7 +197,7 @@ atomic_write(version, (tag + "\n").encode(), 0o644)
             _sudo=True,
             _sudo_user=username,
             _if=lambda: (
-                host.get_fact(Command, installed_state_command)
+                command_output(host, installed_state_command)
                 or ""
             ).strip() != latest_tag,
         )
