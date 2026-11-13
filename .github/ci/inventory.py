@@ -8,7 +8,7 @@ username = getpass.getuser()
 usergroup = grp.getgrgid(os.getgid()).gr_name
 homedir = os.path.expanduser("~")
 
-ci = (["@local"], {
+ci = [("@local", {
     "_sudo": True,
     "username": username,
     "usergroup": usergroup,
@@ -61,4 +61,4 @@ ci = (["@local"], {
         "desktop": {"enabled": False},
         "maintenance": {"enabled": False},
     },
-})
+})]
