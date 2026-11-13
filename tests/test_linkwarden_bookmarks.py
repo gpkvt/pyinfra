@@ -653,3 +653,59 @@ def test_main_uses_local_secrets_and_passes_dry_run_to_sync(
     assert args[2:] == ("linkwarden.21x9.org", "local-token")
     assert kwargs["dry_run"] is True
     assert kwargs["blacklist"] == ["blocked"]
+
+
+def test_synchronize_aggregates_changes_and_normalizes_domain(
+    loaded_module, monkeypatch, tmp_path
+):
+    calls = []
+    monkeypatch.setattr(
+        loaded_module, "fetch_links",
+        lambda base, token: calls.append(("fetch", base, token)) or [],
+    )
+    monkeypatch.setattr(
+        loaded_module, "build_bookmark_groups",
+        lambda *args, **kwargs: calls.append(("groups", args, kwargs)) or [],
+    )
+    monkeypatch.setattr(
+        loaded_module, "collect_service_favicons",
+        lambda *args, **kwargs: calls.append(("services", args, kwargs)) or {},
+    )
+    monkeypatch.setattr(
+        loaded_module, "update_managed_bookmarks",
+        lambda *_args: calls.append(("bookmarks",)) or True,
+    )
+    monkeypatch.setattr(
+        loaded_module, "update_service_icon_references",
+        lambda *_args: calls.append(("service-icons",)) or False,
+    )
+    monkeypatch.setattr(
+        loaded_module, "cleanup_unused_favicons",
+        lambda *_args: calls.append(("cleanup",)) or False,
+    )
+
+    changed = loaded_module.synchronize(
+        tmp_path / "@local.py",
+        tmp_path / "icons",
+        "  links.example/ ",
+        "api-token",
+        services=[{"Services": []}],
+        blacklist=["blocked"],
+    )
+
+    assert changed is True
+    assert calls[0] == ("fetch", "https://links.example", "api-token")
+    assert calls[1][0] == "groups"
+    assert calls[1][2]["blacklist"] == ["blocked"]
+    assert calls[2][0] == "services"
+    assert [call[0] for call in calls[3:]] == [
+        "bookmarks", "service-icons", "cleanup"
+    ]
+
+    monkeypatch.setattr(
+        loaded_module, "update_managed_bookmarks", lambda *_args: False
+    )
+    assert loaded_module.synchronize(
+        tmp_path / "@local.py", tmp_path / "icons", "https://links.example",
+        "api-token",
+    ) is False
