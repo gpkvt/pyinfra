@@ -65,15 +65,20 @@ def test_function_coverage_mappings_reference_asserting_pytest_cases():
     missing = referenced - tests.keys()
     assert not missing, f"Mapped pytest tests do not exist: {sorted(missing)}"
 
-    without_assertions = [
+    without_behavior_checks = [
         name for name in sorted(referenced)
         if not any(
             isinstance(node, ast.Assert)
+            or (
+                isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == "raises"
+            )
             for test in tests[name]
             for node in ast.walk(test)
         )
     ]
-    assert not without_assertions, (
-        "Behavioral test mappings must reference tests with assertions: "
-        f"{without_assertions}"
+    assert not without_behavior_checks, (
+        "Behavioral test mappings must assert a result or an expected exception: "
+        f"{without_behavior_checks}"
     )
