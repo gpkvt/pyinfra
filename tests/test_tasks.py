@@ -273,10 +273,11 @@ def test_sudoers_fact_preserves_file_content_with_trailing_newline(pyinfra_task_
 
 
 def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harness):
-    output = types.SimpleNamespace(stdout_lines=[json.dumps([
-        {"addr_info": [{"family": "inet", "local": "192.168.42.25"}]},
-    ])])
-    pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (True, output)
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, _command=None, **_kwargs: [json.dumps([
+            {"addr_info": [{"family": "inet", "local": "192.168.42.25"}]},
+        ])] if fact.__name__ == "Command" else None
+    )
     pyinfra_task_harness.load("vpn.py", {
         "local_network_cidr": "192.168.42.0/24",
         "wireguard_interface": "home",
@@ -291,7 +292,10 @@ def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harn
 
 
 def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
-    pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (False, None)
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, _command=None, **_kwargs: []
+        if fact.__name__ == "Command" else None
+    )
     with pytest.raises(RuntimeError, match="Unable to retrieve network interfaces"):
         pyinfra_task_harness.load("vpn.py")
 
