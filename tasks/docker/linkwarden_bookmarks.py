@@ -184,19 +184,19 @@ def main():
         ["gpg", "--quiet", "--decrypt", str(root / "secrets.json.gpg")],
         check=True, capture_output=True, text=True,
     )
-    from common import select_host_secrets
+    from common import select_host_secrets  # pylint: disable=import-outside-toplevel
     secret_data = select_host_secrets(json.loads(decrypted.stdout), config["hostname"])
     token = secret_data.get("docker", {}).get("homepage", {}).get(
         "environment", {}
     ).get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
-    docker = config.get("docker", {})
-    linkwarden = docker.get("linkwarden", {})
-    if not linkwarden or not docker.get("homepage") or not token:
+    manual_docker = config.get("docker", {})
+    manual_linkwarden = manual_docker.get("linkwarden", {})
+    if not manual_linkwarden or not manual_docker.get("homepage") or not token:
         parser.error("docker.linkwarden, docker.homepage and the Homepage Linkwarden API key are required")
     synchronize(
         root / "group_data" / "@local.py",
         root / "files" / "homepage" / "icons",
-        linkwarden.get("domain", "linkwarden.21x9.org"), token,
+        manual_linkwarden.get("domain", "linkwarden.21x9.org"), token,
         dry_run=args.dry_run,
     )
 
@@ -205,17 +205,17 @@ if __name__ == "__main__":
     main()
 else:
     from pyinfra import host
-    docker = host.data.get("docker", {})
-    linkwarden = docker.get("linkwarden", {})
-    homepage = docker.get("homepage", {})
+    host_docker = host.data.get("docker", {})
+    host_linkwarden = host_docker.get("linkwarden", {})
+    homepage = host_docker.get("homepage", {})
     homepage_secrets = secrets.get("docker", {}).get("homepage", {})  # pylint: disable=undefined-variable
     homepage_environment = homepage_secrets.get("environment", {})
     api_token = homepage_environment.get("HOMEPAGE_VAR_LINKWARDEN_API_KEY")
-    if linkwarden and homepage and api_token:
+    if host_linkwarden and homepage and api_token:
         repository_root = Path(__file__).resolve().parents[2]
         synchronize(
             repository_root / "group_data" / "@local.py",
             repository_root / "files" / "homepage" / "icons",
-            linkwarden.get("domain", "linkwarden.21x9.org"),
+            host_linkwarden.get("domain", "linkwarden.21x9.org"),
             api_token,
         )
