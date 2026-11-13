@@ -151,7 +151,7 @@ def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
 def test_powerline_fonts_extract_and_refresh_only_after_archive_changes(
     pyinfra_task_harness,
 ):
-    pyinfra_task_harness.load("fonts.py")
+    pyinfra_task_harness.load("fonts.py", {"powerline_fonts": True})
     extraction = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "unarchive"
