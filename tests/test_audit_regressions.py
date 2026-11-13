@@ -144,5 +144,3 @@ def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
         and kwargs["timezone"] == "UTC"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
-
-
