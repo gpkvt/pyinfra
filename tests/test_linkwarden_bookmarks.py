@@ -389,3 +389,61 @@ def test_bookmarks_on_same_site_download_one_favicon(
         entry[next(iter(entry))][0]["icon"] == "/icons/shared.png"
         for entry in groups[0]["Reading"]
     )
+
+
+
+def test_cleanup_unused_favicons_removes_only_unreferenced_managed_icons(
+    loaded_module, tmp_path,
+):
+    config = tmp_path / "@local.py"
+    config.write_text(
+        'bookmarks = [{"Reading": [{"Kept": [{"href": "https://kept.example", '
+        '"icon": "/icons/linkwarden-kept.png"}]}]}]\\n'
+        'docker = {"homepage": {"services": [{"Services": ['
+        '{"UsedService": {"icon": "/icons/homepage-used.svg"}}]}]}}\\n',
+        encoding="utf-8",
+    )
+    icons = tmp_path / "icons"
+    icons.mkdir()
+    for name in (
+        "linkwarden-kept.png", "linkwarden-orphan.ico",
+        "homepage-used.svg", "homepage-orphan.png", "custom-icon.png",
+    ):
+        (icons / name).write_bytes(b"icon")
+
+    assert loaded_module.cleanup_unused_favicons(config, icons) is True
+    assert sorted(path.name for path in icons.iterdir()) == [
+        "custom-icon.png", "homepage-used.svg", "linkwarden-kept.png",
+    ]
+    assert loaded_module.cleanup_unused_favicons(config, icons) is False
+
+
+def test_cleanup_unused_favicons_preserves_shared_icon_until_last_reference(
+    loaded_module, tmp_path,
+):
+    config = tmp_path / "@local.py"
+    config.write_text(
+        'bookmarks = [{"A": [{"One": [{"icon": "/icons/linkwarden-shared.png"}]}, '
+        '{"Two": [{"icon": "/icons/linkwarden-shared.png"}]}]}]\\n',
+        encoding="utf-8",
+    )
+    icons = tmp_path / "icons"
+    icons.mkdir()
+    shared = icons / "linkwarden-shared.png"
+    shared.write_bytes(b"icon")
+
+    assert loaded_module.cleanup_unused_favicons(config, icons) is False
+    config.write_text(
+        'bookmarks = [{"A": [{"Two": [{"icon": "/icons/linkwarden-shared.png"}]}]}]\\n',
+        encoding="utf-8",
+    )
+    assert loaded_module.cleanup_unused_favicons(config, icons) is False
+    config.write_text("bookmarks = []\\n", encoding="utf-8")
+    assert loaded_module.cleanup_unused_favicons(config, icons) is True
+    assert not shared.exists()
+
+
+def test_cleanup_unused_favicons_handles_missing_directory(loaded_module, tmp_path):
+    config = tmp_path / "@local.py"
+    config.write_text("bookmarks = []\\n", encoding="utf-8")
+    assert loaded_module.cleanup_unused_favicons(config, tmp_path / "missing") is False
