@@ -117,6 +117,8 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
                 return "1000"
             if command.startswith("id -g "):
                 return "1000"
+            if "api.github.com/repos/SimoHypers/limusic/releases/latest" in command:
+                return "v1.3.0"
             if "remote-list" in command:
                 return ""
             return ""
@@ -134,6 +136,11 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             return []
         if name == "VSCodiumExtensions":
             return set()
+        if name == "Command":
+            command = kwargs.get("command", args[0] if args else "")
+            if "api.github.com/repos/SimoHypers/limusic/releases/latest" in command:
+                return "v1.3.0"
+            return ""
         if name == "CertNeedsRenewal":
             return False
         if name == "SudoersFile":

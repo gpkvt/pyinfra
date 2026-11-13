@@ -133,3 +133,70 @@ def test_maintenance_installs_utilities_without_scheduling_reboots(task_environm
         "needrestart", "debian-goodies", "apt-file",
     ]
     assert calls["server"] == []
+
+
+def test_limusic_does_not_schedule_operations_when_disabled(task_environment):
+    calls, load = task_environment
+    load("limusic", {"enabled": False})
+
+    assert calls["apt"] == []
+    assert calls["files"] == []
+    assert calls["server"] == []
+
+
+def test_limusic_installs_release_icon_and_cosmic_launcher(pyinfra_task_harness):
+    pyinfra_task_harness.load("workstation/limusic.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "workstation": {"limusic": {"enabled": True}},
+    })
+
+    operations = pyinfra_task_harness.calls
+    install = next(
+        kwargs for namespace, name, kwargs in operations
+        if namespace == "server" and name == "shell"
+        and kwargs["name"] == "Install Limusic AppImage v1.3.0"
+    )
+    assert install["_sudo"] is True
+    assert install["_sudo_user"] == "tester"
+    assert install["_if"]() is True
+    assert "sha256" in install["commands"][0]
+    assert "src-tauri/icons/icon.png" in install["commands"][0]
+
+    launcher = next(
+        kwargs for namespace, name, kwargs in operations
+        if namespace == "files" and name == "put"
+        and kwargs["name"] == "Create Limusic COSMIC desktop launcher"
+    )
+    desktop = launcher["src"].getvalue()
+    assert launcher["dest"] == "/home/tester/.local/share/applications/limusic.desktop"
+    assert 'Exec="/home/tester/.local/opt/limusic/limusic.AppImage" %U' in desktop
+    assert "Icon=/home/tester/.local/share/icons/limusic.png" in desktop
+    assert "Categories=AudioVideo;Audio;Player;" in desktop
+    assert launcher["mode"] == "0644"
+
+
+def test_limusic_skips_appimage_download_when_release_is_current(pyinfra_task_harness):
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, command, **_kwargs: "v1.3.0"
+        if "api.github.com/repos/SimoHypers/limusic/releases/latest" in command
+        else "v1.3.0"
+    )
+    pyinfra_task_harness.load("workstation/limusic.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "workstation": {"limusic": {"enabled": True}},
+    })
+
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs["name"].startswith("Install Limusic AppImage")
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+    assert any(
+        namespace == "files" and name == "put"
+        and kwargs["name"] == "Create Limusic COSMIC desktop launcher"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )

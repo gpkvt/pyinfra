@@ -35,4 +35,8 @@ workstation = {
         "enabled": False,
         # Installs maintenance utilities only. No unattended upgrades/reboots.
     },
+    "limusic": {
+        "enabled": False,
+        # Installs the latest stable Limusic x86_64 AppImage and COSMIC launcher.
+    },
 }

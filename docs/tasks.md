@@ -55,8 +55,9 @@ The modules below are included by `deploy.py` only when the matching nested sett
 | `tasks/workstation/peripherals.py` | Installs optional printer/scanner packages; enables CUPS when printing is selected. | `workstation.peripherals.enabled`, `printing`, `scanning` |
 | `tasks/workstation/desktop.py` | Installs common desktop integration utilities. A custom package list replaces the defaults. | `workstation.desktop.enabled`, optional `packages` list |
 | `tasks/workstation/maintenance.py` | Installs `needrestart`, `debian-goodies` and `apt-file`; does not enable unattended upgrades or schedule reboots. | `workstation.maintenance.enabled` |
+| `tasks/workstation/limusic.py` | Installs the latest stable Limusic x86-64 AppImage, verifies its published SHA-256 digest, deploys the matching upstream icon and creates a user-level desktop launcher discoverable by COSMIC. The AppImage retains its self-updater. | `workstation.limusic.enabled` |
 
-The supplied `group_data/workstation.py` enables backup, power, hardware and storage by default. Peripheral support, desktop utilities and maintenance utilities are disabled. Review the group data before assigning additional hosts to the workstation group.
+The supplied `group_data/workstation.py` enables backup, power, hardware and storage by default. Peripheral support, desktop utilities and maintenance utilities are disabled. Review the group data before assigning additional hosts to the workstation group. Limusic is also disabled by default; set `workstation.limusic.enabled = True` to install it for the configured user. The task uses the latest stable x86-64 AppImage from [Limusic releases](https://github.com/SimoHypers/limusic/releases), checks the release-published SHA-256 digest, installs the matching application icon under `~/.local/share/icons/`, and writes `~/.local/share/applications/limusic.desktop` so COSMIC can find it. The AppImage is stored in `~/.local/opt/limusic/` and keeps Limusic's built-in updater; the task downloads a new stable release only when the release tag changes.
 
 
 ### Cron jobs
