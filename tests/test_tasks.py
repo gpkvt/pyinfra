@@ -64,7 +64,11 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
     assert data["tmux"] is True
     assert data["zsh"] is False
     assert data["powerline"] is False
-    assert data["docker"] == {}
+    assert data["docker_install"] is False
+    assert data["docker"]["ci-smoke"] == {
+        "image": "alpine:3.21",
+        "app_services": ["smoke"],
+    }
     assert data["ssh_authorized_keys"] == {}
     assert all(
         not options["enabled"]
@@ -131,9 +135,10 @@ def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
 
 def test_docker_container_includes_only_configured_services(pyinfra_task_harness):
     pyinfra_task_harness.load("docker_container.py", {
-        "docker": {"miniflux": {}, "grav": {}},
+        "docker": {"ci-smoke": {}, "miniflux": {}, "grav": {}},
     })
     assert pyinfra_task_harness.included == [
+        "tasks/docker/ci-smoke.py",
         "tasks/docker/miniflux.py",
         "tasks/docker/grav.py",
     ]
