@@ -109,6 +109,7 @@ for feature, task in (
     ("maintenance", "maintenance.py"),
     ("limusic", "limusic.py"),
     ("cosmic", "cosmic/deploy.py"),
+    ("cosmic", "cosmic/deploy.py"),
 ):
     if workstation.get(feature, {}).get("enabled", False):
         local.include(f"tasks/workstation/{task}")
