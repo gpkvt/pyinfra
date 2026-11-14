@@ -80,7 +80,7 @@ def test_samba_share_security_and_lifecycle_are_explicit():
     assert "server min protocol = SMB2" in config
     start = (ROOT / "templates/samba/samba-start.j2").read_text()
     stop = (ROOT / "templates/samba/samba-stop.j2").read_text()
-    assert "systemctl unmask smbd.service" in start
+    assert "systemctl unmask --quiet smbd.service" in start
     assert "ufw show added" in start
     assert "systemctl mask smbd.service" in stop
     assert "ufw --force delete" in stop
