@@ -57,7 +57,7 @@ Deployments:
 
         2. Generate the Docker Compose configuration from
            templates/docker/<service>/docker-compose.yml.j2
-           and deploy it to ~/<service>/docker-compose.yml.
+           and deploy it to ~/.docker/<service>/docker-compose.yml.
 
         3. Generate the user-level systemd unit from
            templates/docker/systemd.service.j2
@@ -173,9 +173,25 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     compose_file = files.template(
         name=f"Configure {service}",
         src=f"templates/docker/{service}/docker-compose.yml.j2",
-        dest=f"{homedir}/{service}/docker-compose.yml",
+        dest=f"{homedir}/.docker/{service}/docker-compose.yml",
         user=username, group=usergroup, mode="640",
         homedir=homedir, **template_vars, _sudo=False,
+    )
+
+    # Remove managed Compose files from the former ~/service location after
+    # the new project directory has been prepared. Leave the directory itself
+    # intact because it may contain operator-managed files.
+    files.file(
+        name=f"Remove legacy {service} Compose file",
+        path=f"{homedir}/{service}/docker-compose.yml",
+        present=False,
+        _sudo=False,
+    )
+    files.file(
+        name=f"Remove legacy {service} Sablier override",
+        path=f"{homedir}/{service}/docker-compose.sablier.yml",
+        present=False,
+        _sudo=False,
     )
 
     sablier_options = host.data.get("docker_sablier", {})
@@ -229,14 +245,14 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         override_file = files.template(
             name=f"Configure Sablier labels for all {service} containers",
             src="templates/docker/sablier-override.yml.j2",
-            dest=f"{homedir}/{service}/docker-compose.sablier.yml",
+            dest=f"{homedir}/.docker/{service}/docker-compose.sablier.yml",
             user=username, group=usergroup, mode="640",
             sablier_services=sablier_services, sablier_group=sablier_group, _sudo=False,
         )
     else:
         override_file = files.file(
             name=f"Remove obsolete Sablier override for {service}",
-            path=f"{homedir}/{service}/docker-compose.sablier.yml",
+            path=f"{homedir}/.docker/{service}/docker-compose.sablier.yml",
             present=False, _sudo=False,
         )
 
@@ -247,7 +263,7 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
 
     server.shell(
         name=f"Pull {service} Docker images",
-        commands=[f"docker compose -f {homedir}/{service}/docker-compose.yml pull"],
+        commands=[f"docker compose -f {homedir}/.docker/{service}/docker-compose.yml pull"],
         _sudo=False, _if=compose_file.did_change,
     )
 
@@ -307,10 +323,10 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     # Compose config alone is insufficient: Docker labels are immutable after
     # container creation.
     if sablier_enabled:
-        compose_dir = shlex.quote(f"{homedir}/{service}")
-        compose_base = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
+        compose_dir = shlex.quote(f"{homedir}/.docker/{service}")
+        compose_base = shlex.quote(f"{homedir}/.docker/{service}/docker-compose.yml")
         compose_override = shlex.quote(
-            f"{homedir}/{service}/docker-compose.sablier.yml"
+            f"{homedir}/.docker/{service}/docker-compose.sablier.yml"
         )
         expected_labels = shlex.quote(f"true|{sablier_group}")
         label_checks = []
