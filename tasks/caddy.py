@@ -195,19 +195,23 @@ def build_dehydrated_certificates(  # pylint: disable=R0912,R0914,R0915,R1702
     if wildcards is None:
         wildcards = []
     wildcard_lines = build_domains_file(wildcards)
-    wildcard_names = [
+    explicit_names = [
         normalize_domain(name, "dehydrated_wildcards")
         for certificate in wildcards
         for name in certificate
     ]
-    if any(not name.startswith("*.") for name in wildcard_names):
-        raise ValueError("dehydrated_wildcards may contain wildcard names only")
+    wildcard_names = [name for name in explicit_names if name.startswith("*.")]
+    if any(
+        not any(name.startswith("*.") for name in certificate)
+        for certificate in wildcards
+    ):
+        raise ValueError("Each dehydrated_wildcards certificate must contain a wildcard name")
+    for name in explicit_names:
+        if not any(name == zone or name.endswith("." + zone) for zone in zones):
+            raise ValueError(f"Explicit certificate name {name!r} is outside the configured dehydrated_zones")
     for wildcard in wildcard_names:
-        suffix = wildcard[2:]
-        if not any(suffix == zone or suffix.endswith("." + zone) for zone in zones):
-            raise ValueError(f"Wildcard {wildcard!r} is outside the configured dehydrated_zones")
         if any(
-            blocked == wildcard or wildcard_covers(blocked, wildcard)
+            blocked in explicit_names or wildcard_covers(blocked, wildcard)
             for blocked in blocked_names
         ):
             raise ValueError(
@@ -218,7 +222,7 @@ def build_dehydrated_certificates(  # pylint: disable=R0912,R0914,R0915,R1702
     if not auto_enabled:
         return certificates
 
-    seen = set(wildcard_names)
+    seen = set(explicit_names)
     for address, names in hostnames.items():
         try:
             normalized_ip = str(ipaddress.ip_address(address))
