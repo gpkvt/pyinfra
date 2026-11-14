@@ -62,10 +62,10 @@ if sudoers_rules:
     # Retrieve current configuration
     current_content = host.get_fact(FileContents, path=sudoers_file) or []
 
-    # Only validate and install when configuration differs
+    # Validate only content changes, but always let files.put reconcile
+    # ownership and permissions as well as content. Skipping the operation
+    # based on FileContents alone would leave metadata drift unrepaired.
     if current_content != content.splitlines():
-
-        # Validate configuration before installation
         validation_command = (
             f"printf '%s' {shlex.quote(content)} "
             "| visudo -cf -"
@@ -77,13 +77,12 @@ if sudoers_rules:
             _sudo=True,
         )
 
-        # Install sudoers configuration
-        files.put(
-            name="Manage custom sudoers configuration",
-            src=StringIO(content),
-            dest=sudoers_file,
-            user="root",
-            group="root",
-            mode="440",
-            _sudo=True,
-        )
+    files.put(
+        name="Manage custom sudoers configuration",
+        src=StringIO(content),
+        dest=sudoers_file,
+        user="root",
+        group="root",
+        mode="440",
+        _sudo=True,
+    )
