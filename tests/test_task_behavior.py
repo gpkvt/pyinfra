@@ -190,7 +190,7 @@ def test_git_credentials_remain_immutable_when_rendered_content_matches(
         {"git_credentials": ["https://user:token@example.test"]},
         raising=False,
     )
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
+    pyinfra_task_harness.host.get_fact = lambda fact, *_args, **_kwargs: (
         True if fact.__name__ == "File"
         else ["https://user:token@example.test"]
         if fact.__name__ == "FileContents"
