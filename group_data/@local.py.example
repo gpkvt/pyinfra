@@ -210,7 +210,7 @@ docker_sablier = {  # Enables on-demand Docker container startup via Sablier.
     # "default_theme": "ghost",  # Theme used by Sablier's dynamic service cards.
     # "refresh_frequency": "5s",  # Polling interval for dynamic service status.
 }  # Per-service overrides live under docker.<service>.sablier.
-docker_power_save = []  # Container names stopped on battery and restored on AC power.
+docker_power_save = []  # Docker container names (not Compose service names unless they match); stopped on battery, restored on AC power.
 caddy_enabled = True  # Allow the Caddy task when Docker and caddy_config are both configured.
 apparmor_enabled = True  # Master gate for loading apparmor_profiles.
 mullvad_browser_enabled = True  # Master gate for managing mullvad_extensions.
