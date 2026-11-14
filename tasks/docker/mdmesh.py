@@ -38,7 +38,7 @@ if isinstance(port, bool) or not isinstance(port, int) or not 1 <= port <= 65535
     raise ValueError("docker.mdmesh.port must be an integer between 1 and 65535")
 
 admin_email = mdmesh.get("admin_email", f"admin@{domain}")
-if not isinstance(admin_email, str) or not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", admin_email):
+if not isinstance(admin_email, str) or not re.fullmatch(r"[A-Za-z0-9._+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}", admin_email):
     raise ValueError("docker.mdmesh.admin_email must be a valid email address")
 
 required_secrets = ("database_password", "hash_secret", "admin_password")
@@ -168,7 +168,7 @@ esac
 mdm_post_seed {shlex.quote(bootstrap + "/post_seed.sql")}
 """
 post_seed_check = (
-    f"docker compose -f {shlex.quote(root + '/docker-compose.yml')} exec -T postgres "
+    f"cd {shlex.quote(root)} && docker compose exec -T postgres "
     "psql -U mdmesh -d mdmesh -Atqc "
     "'SELECT count(*) FROM settings WHERE createnewdevices AND newdeviceconfigurationid IS NOT NULL' "
     "2>/dev/null"
