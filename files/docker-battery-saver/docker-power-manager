@@ -23,6 +23,7 @@ case "${1:-}" in
                 docker stop "$container"
             fi
         done
+        touch "$STATE_COMPLETE"
         ;;
 
     ac)
