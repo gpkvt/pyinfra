@@ -49,3 +49,32 @@ def test_samba_share_security_and_lifecycle_are_explicit():
     assert "ufw show added" in start
     assert "systemctl mask smbd.service" in stop
     assert "ufw --force delete" in stop
+    assert "samba-idle.timer" in stop
+    assert "nft delete table inet samba_idle" in stop
+    checker = (ROOT / "templates/samba/samba-idle-check.j2").read_text()
+    timer = (ROOT / "templates/samba/samba-idle.timer.j2").read_text()
+    assert "CURRENT_BYTES" in checker and "TIMEOUT" in checker
+    assert "OnUnitActiveSec=60s" in timer
+
+
+@pytest.mark.parametrize("timeout", [-1, 1.5, True])
+def test_samba_rejects_invalid_idle_timeout(pyinfra_task_harness, timeout):
+    with pytest.raises(ValueError, match="samba.idle_timeout"):
+        pyinfra_task_harness.load("samba.py", {
+            "samba": {
+                "enabled": True,
+                "allowed_networks": ["192.168.1.0/24"],
+                "idle_timeout": timeout,
+            },
+        })
+
+
+@pytest.mark.parametrize("timeout", [0, 1, 60, 1799, 1800])
+def test_samba_accepts_non_negative_integer_idle_timeout(pyinfra_task_harness, timeout):
+    pyinfra_task_harness.load("samba.py", {
+        "samba": {
+            "enabled": True,
+            "allowed_networks": ["192.168.1.0/24"],
+            "idle_timeout": timeout,
+        },
+    })

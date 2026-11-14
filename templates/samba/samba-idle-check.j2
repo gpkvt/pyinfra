@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TIMEOUT={{ idle_timeout }}
+STATE_FILE=/run/samba-idle.state
+COUNTER_OUTPUT=$(nft list counter inet samba_idle smb_traffic 2>/dev/null || true)
+CURRENT_BYTES=$(awk '{ for (i = 1; i <= NF; i++) if ($i == "bytes") { print $(i + 1); exit } }' <<<"$COUNTER_OUTPUT")
+[[ "$CURRENT_BYTES" =~ ^[0-9]+$ ]] || exit 0
+NOW=$(date +%s)
+
+if [[ ! -r "$STATE_FILE" ]]; then
+    printf '%s %s\n' "$CURRENT_BYTES" "$NOW" > "$STATE_FILE"
+    exit 0
+fi
+read -r PREVIOUS_BYTES LAST_ACTIVITY < "$STATE_FILE"
+if [[ ! "$PREVIOUS_BYTES" =~ ^[0-9]+$ || ! "$LAST_ACTIVITY" =~ ^[0-9]+$ || "$CURRENT_BYTES" -gt "$PREVIOUS_BYTES" || "$CURRENT_BYTES" -lt "$PREVIOUS_BYTES" ]]; then
+    printf '%s %s\n' "$CURRENT_BYTES" "$NOW" > "$STATE_FILE"
+    exit 0
+fi
+
+if (( NOW - LAST_ACTIVITY >= TIMEOUT )); then
+    logger -t samba-idle "No SMB traffic for $TIMEOUT seconds; stopping Samba"
+    /usr/local/sbin/samba-stop
+else
+    printf '%s %s\n' "$CURRENT_BYTES" "$LAST_ACTIVITY" > "$STATE_FILE"
+fi

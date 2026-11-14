@@ -12,5 +12,17 @@ while IFS= read -r network; do
     fi
 done < "$NETWORKS_FILE"
 
+if [[ {{ idle_timeout }} -gt 0 ]] && ! sudo systemctl is-active --quiet samba-idle.timer; then
+    if ! sudo nft list table inet samba_idle >/dev/null 2>&1; then
+        sudo nft -f /etc/samba/idle-nftables.conf
+    fi
+    bytes=$(sudo nft list counter inet samba_idle smb_traffic | awk '{ for (i = 1; i <= NF; i++) if ($i == "bytes") { print $(i + 1); exit } }')
+    printf '%s %s\n' "$bytes" "$(date +%s)" | sudo tee /run/samba-idle.state >/dev/null
+fi
+
 sudo systemctl unmask smbd.service
 sudo systemctl start smbd.service
+
+if [[ {{ idle_timeout }} -gt 0 ]] && ! sudo systemctl is-active --quiet samba-idle.timer; then
+    sudo systemctl start samba-idle.timer
+fi

@@ -1,0 +1,7 @@
+[Unit]
+Description=Check Samba traffic idle timeout
+After=smbd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/samba-idle-check
