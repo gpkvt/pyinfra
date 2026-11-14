@@ -561,8 +561,8 @@ def test_system_locale_skips_generation_when_equivalent_locale_is_installed(
         if namespace == "files" and name == "line"
         and kwargs.get("name") == "Set system default locale: C.UTF-8"
     )
-    assert default_locale["line"] == 'LANG="C.UTF-8"'
-    assert default_locale["replace"] == "^LANG="
+    assert default_locale["line"] == "^LANG="
+    assert default_locale["replace"] == 'LANG="C.UTF-8"'
 
 
 def test_system_locale_generates_missing_locale(pyinfra_task_harness):
