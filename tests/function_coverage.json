@@ -221,5 +221,28 @@
   ],
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
+  ],
+  "tasks/docker.py:deploy_docker_service.sablier_labels_match": [
+    "test_docker_sablier_container_inspection_is_deferred_until_execution"
+  ],
+  "tasks/caddy.py:configure_caddy.renewal_timer_active": [
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/caddy.py:configure_caddy.image_present": [
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/caddy.py:configure_caddy.container_running": [
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/caddy.py:configure_caddy.container_healthy": [
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/caddy.py:configure_caddy.caddyfile_loaded": [
+    "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
+    "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
   ]
 }
