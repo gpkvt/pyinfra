@@ -260,7 +260,7 @@ The Proton task supports components selected through the `proton` configuration,
 
 ## On-demand Samba file exchange
 
-`tasks/samba.py` | `samba.enabled` | Installs Samba with guest `Upload` and read-only `Download` shares, but leaves `smbd` stopped and masked. The `samba-start` and `samba-stop` scripts manage TCP 445 UFW rules and service lifecycle. See [Samba configuration and security](samba.md).
+`tasks/samba.py` | `samba.enabled` | Installs Samba with guest `Upload` and read-only `Download` shares, but leaves `smbd` stopped and masked. The `samba-start` and `samba-stop` scripts manage TCP 445 UFW rules and service lifecycle. Optional `samba.idle_timeout` enables automatic shutdown after a period without SMB traffic. See [Samba configuration and security](samba.md).
 
 ## Run an individual task
 
