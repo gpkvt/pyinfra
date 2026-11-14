@@ -277,7 +277,7 @@ def configure_caddy():  # pylint: disable=R0914
             Command,
             f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
         )).strip() == "present"
-    server.shell(
+    build_image = server.shell(
         name="Build Caddy image with Sablier plugin and Dehydrated",
         commands=[f"docker build --tag {shlex.quote(IMAGE)} {shlex.quote(build_dir)}"],
         _sudo=False, _if=lambda: build_changed() or not image_present(),
@@ -294,7 +294,7 @@ def configure_caddy():  # pylint: disable=R0914
         )).strip() == "healthy"
     def recreate():
         return (
-            compose.did_change() or build_changed()
+            compose.did_change() or build_changed() or build_image.did_change()
             or domains_file.did_change() or dehydrated_config.did_change()
             or env_file.did_change()
             or not container_running() or not container_healthy()
