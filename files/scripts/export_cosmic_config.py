@@ -13,7 +13,7 @@ from pprint import pformat
 
 COMPONENTS = {
     "appearance": {
-        "com.system76.CosmicTheme.Mode/v1/is_dark": ("mode", "dark-light"),
+        "com.system76.CosmicTheme.Mode/v1/is_dark": ("mode", "mode"),
     },
     "dock": {
         "com.system76.CosmicPanel.Dock/v1/anchor": ("position", "position"),
