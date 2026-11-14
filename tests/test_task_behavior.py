@@ -151,6 +151,20 @@ def test_git_credentials_use_conditional_chattr_operations(
 
 
 
+
+def test_git_credentials_without_secret_leave_existing_file_untouched(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(builtins, "secrets", {}, raising=False)
+    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: True
+    pyinfra_task_harness.load("git.py")
+
+    assert not any(
+        namespace == "server" and name == "shell"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+
 def test_git_credentials_are_protected_after_first_deployment(
     pyinfra_task_harness, monkeypatch,
 ):
