@@ -314,10 +314,17 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     assert "password='$admin_hash' OR NOT passwordreset" in bootstrap_arguments[2]
     assert "passwordreset=false means an administrator has changed it" in bootstrap_arguments[2]
     assert "UPDATE users SET password='$admin_hash'" in bootstrap_arguments[2]
-    assert "password='$admin_hash' OR NOT passwordreset" in release_commands[-1]
     assert bootstrap["_if"]() is True
-    check_command = release_commands[-1]
+    check_command = next(
+        command for command in release_commands
+        if "SELECT count(*) FROM settings" in command
+    )
     check_arguments = shlex.split(check_command)
+    admin_check_command = next(
+        command for command in release_commands
+        if "SELECT count(*) FROM users" in command
+    )
+    assert "password='$admin_hash' OR NOT passwordreset" in admin_check_command
     sql_argument = next(argument for argument in check_arguments if "SELECT count(*) FROM settings" in argument)
     assert "com.hmdm.emuilauncherrestarter" in sql_argument
     assert check_arguments[-2:] == ["2>/dev/null", "||"] or check_arguments[-1] == "true"
