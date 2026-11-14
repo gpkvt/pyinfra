@@ -106,12 +106,13 @@ if git_credentials is not None:
         _sudo=True,
     )
 else:
-    server.shell(
-        name="Protect existing git-credentials from modification",
-        commands=[f"chattr +i {quoted_credentials_path}"],
-        _if=lambda: (
-            bool(host.get_fact(File, path=credentials_path))
-            and not file_has_flag(host, credentials_path, "i")
-        ),
-        _sudo=True,
-    )
+    # No earlier operation creates this file in the no-secrets branch.
+    if host.get_fact(File, path=credentials_path):
+        server.shell(
+            name="Protect existing git-credentials from modification",
+            commands=[f"chattr +i {quoted_credentials_path}"],
+            _if=lambda: not file_has_flag(
+                host, credentials_path, "i", refresh=True
+            ),
+            _sudo=True,
+        )
