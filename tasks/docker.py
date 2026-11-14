@@ -127,6 +127,7 @@ Notes:
 """
 
 import re
+import re
 import shlex
 from io import StringIO
 
@@ -446,17 +447,6 @@ files.directory(
     group=host.data.get("usergroup", "root"),
     mode="750",
 )
-.
-            # files.put avoids printing credentials in template diffs.
-            private_env_file = files.put(
-                name=f"Configure private {service} environment",
-                src=StringIO("\\n".join(env_lines) + "\\n"),
-                dest=f"{homedir}/.docker/{service}/.env",
-                user=username,
-                group=usergroup,
-                mode="600",
-                _sudo=False,
-            )
     compose_file = files.template(
         name=f"Configure {service}",
         src=f"templates/docker/{service}/docker-compose.yml.j2",
