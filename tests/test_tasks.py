@@ -308,6 +308,10 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     assert "set -euo pipefail" in bootstrap_arguments[2]
     assert "mdm_seed" in bootstrap_arguments[2]
     assert "inconsistent" in bootstrap_arguments[2]
+    assert "mdm_pwhash" in bootstrap_arguments[2]
+    assert "passwordreset=true" in bootstrap_arguments[2]
+    assert "refusing to overwrite" in bootstrap_arguments[2]
+    assert "password='$admin_hash' OR NOT passwordreset" in bootstrap_arguments[2]
     assert bootstrap["_if"]() is True
     check_command = release_commands[-1]
     check_arguments = shlex.split(check_command)
