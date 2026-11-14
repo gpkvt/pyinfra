@@ -1,6 +1,7 @@
 """Direct input/output tests for task helpers and pyinfra operations."""
 # pylint: disable=protected-access
 
+import builtins
 import sys
 from types import SimpleNamespace
 
@@ -109,14 +110,18 @@ def test_flatpak_uninstall_operation_reports_only_real_removals(
 
 
 def test_git_credentials_use_native_immutable_flag_operations(
-    pyinfra_task_harness,
+    pyinfra_task_harness, monkeypatch,
 ):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"git_credentials": ["https://user:token@example.test"]},
+        raising=False,
+    )
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
         True if fact.__name__ == "File" else "old credentials"
     )
-    pyinfra_task_harness.load("git.py", {
-        "git_credentials": ["https://user:token@example.test"],
-    })
+    pyinfra_task_harness.load("git.py")
 
     flag_operations = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
