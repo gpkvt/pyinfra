@@ -876,3 +876,25 @@ def test_cosmic_panel_respects_explicit_empty_applet_configuration(
         )
     )
     assert panel_config["src"].getvalue() == "Some((\n    [],\n    [],\n))\n"
+
+
+@pytest.mark.parametrize("name", ["../cron", "nested/repository", ".", "..", "bad name"])
+def test_apt_repository_rejects_unsafe_repository_names(
+    pyinfra_task_harness, name,
+):
+    with pytest.raises(ValueError, match="Invalid APT repository name"):
+        pyinfra_task_harness.load("apt.py", {
+            "apt_sources": {name: {}},
+        })
+
+
+def test_apt_sources_must_be_a_mapping(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="apt_sources must be a mapping"):
+        pyinfra_task_harness.load("apt.py", {"apt_sources": ["example"]})
+
+
+def test_apt_repository_requires_key_and_repository_mappings(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="requires key and repository mappings"):
+        pyinfra_task_harness.load("apt.py", {
+            "apt_sources": {"example": {"key": [], "repository": {}}},
+        })
