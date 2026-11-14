@@ -1059,3 +1059,36 @@ def test_sablier_image_version_is_configurable(pyinfra_task_harness):
         and kwargs.get("name") == "Configure Sablier Docker provider"
     )
     assert compose["sablier_version"] == "1.21.0"
+
+
+
+def test_proton_drive_cli_requires_an_explicit_version(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="proton.drive_cli_version must be explicitly configured"):
+        pyinfra_task_harness.load("proton.py", {
+            "proton": {
+                "mail": False,
+                "bridge": False,
+                "vpn": False,
+                "pass": False,
+                "flatpak": False,
+                "drive_cli": True,
+            },
+        })
+
+
+def test_proton_drive_cli_can_be_disabled_without_a_version(pyinfra_task_harness):
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": False,
+        },
+    })
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install or update Proton Drive CLI"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
