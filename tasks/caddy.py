@@ -175,6 +175,23 @@ def build_dehydrated_certificates(
         except ValueError:
             blocked_names.add(normalize_domain(entry, "dehydrated_blacklist"))
 
+    if auto_enabled and not isinstance(hostnames, dict):
+        raise ValueError("hostnames must be a mapping of IP addresses to hostname lists")
+    if auto_enabled:
+        # An IP blacklist excludes every name associated with that IP, even if
+        # the same name is also listed against another address.
+        for address, names in hostnames.items():
+            try:
+                normalized_ip = str(ipaddress.ip_address(address))
+            except (ValueError, TypeError):
+                raise ValueError(f"Invalid IP address in hostnames: {address!r}") from None
+            if normalized_ip in blocked_ips:
+                if not isinstance(names, list):
+                    raise ValueError(f"hostnames[{address!r}] must be a list of hostnames")
+                for name in names:
+                    if isinstance(name, str) and _DOMAIN_PATTERN.fullmatch(name.strip().lower().rstrip(".")):
+                        blocked_names.add(name.strip().lower().rstrip("."))
+
     if wildcards is None:
         wildcards = []
     wildcard_lines = build_domains_file(wildcards)
@@ -189,12 +206,17 @@ def build_dehydrated_certificates(
         suffix = wildcard[2:]
         if not any(suffix == zone or suffix.endswith("." + zone) for zone in zones):
             raise ValueError(f"Wildcard {wildcard!r} is outside the configured dehydrated_zones")
+        if any(
+            blocked == wildcard or wildcard_covers(blocked, wildcard)
+            for blocked in blocked_names
+        ):
+            raise ValueError(
+                f"Wildcard {wildcard!r} overlaps a hostname in dehydrated_blacklist"
+            )
 
     certificates = [line.split() for line in wildcard_lines]
     if not auto_enabled:
         return certificates
-    if not isinstance(hostnames, dict):
-        raise ValueError("hostnames must be a mapping of IP addresses to hostname lists")
 
     seen = set(wildcard_names)
     for address, names in hostnames.items():
