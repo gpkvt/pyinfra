@@ -192,6 +192,22 @@ zplug_plugins = ["zsh-users/zsh-autosuggestions", "zsh-users/zsh-syntax-highligh
 
 `zshrc_imports` entries are rendered into the generated `.zshrc`; ensure referenced files exist for the configured user. Keep credentials out of these files unless they are protected separately.
 
+## On-demand Samba file exchange
+
+The optional top-level `samba` mapping enables a guest-accessible LAN/VPN file exchange server. It provides a shared writable `Upload` dropbox and a read-only `Download` share. The task installs and configures Samba but leaves `smbd` stopped and masked; use the deployed `samba-start` and `samba-stop` commands to open/close TCP 445 in UFW and start/stop the service. Configure trusted CIDRs explicitly. Upload guests share one Unix identity and can manage one another's files; this is a convenience dropbox, not private per-device storage. See [Samba documentation](samba.md) for the full configuration and security model.
+
+Example:
+
+```python
+samba = {
+    "enabled": True,
+    "interface": "enp3s0",
+    "allowed_networks": ["192.168.1.0/24"],
+    "upload": {"path": "/srv/samba/upload"},
+    "download": {"path": "/srv/samba/download"},
+}
+```
+
 ## Service configuration
 
 ### Docker
