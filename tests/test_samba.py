@@ -54,14 +54,14 @@ def test_samba_systemd_checks_use_command_fact_and_normalize_output(
         },
     })
 
-    shell_operations = [
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+    shell_operations = {
+        kwargs["name"]: kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
-    ]
+    }
     assert len(shell_operations) == 3
-    assert shell_operations[0]["_if"]() is True
-    assert shell_operations[1]["_if"]() is False
-    assert shell_operations[2]["_if"]() is False
+    assert shell_operations["Reload systemd unit definitions when needed"]["_if"]() is True
+    assert shell_operations["Protect existing Samba upload contents from deletion"]["_if"]() is False
+    assert shell_operations["Keep Samba stopped until requested"]["_if"]() is False
     assert fact_calls
     assert all(fact.__name__ == "Command" for fact, _, _ in fact_calls)
 
