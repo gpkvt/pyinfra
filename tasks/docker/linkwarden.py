@@ -55,7 +55,9 @@ deploy_docker_service(
     image=linkwarden.get("image", "ghcr.io/linkwarden/linkwarden:latest"),
     port=linkwarden.get("port", 8021),
     domain=linkwarden.get("domain", "linkwarden.21x9.org"),
-    postgres_password=linkwarden_secrets.get("postgres_password", ""),
-    nextauth_secret=linkwarden_secrets.get("nextauth_secret", ""),
-    meili_master_key=linkwarden_secrets.get("meili_master_key", ""),
+    private_env={
+        "POSTGRES_PASSWORD": linkwarden_secrets.get("postgres_password", ""),
+        "NEXTAUTH_SECRET": linkwarden_secrets.get("nextauth_secret", ""),
+        "MEILI_MASTER_KEY": linkwarden_secrets.get("meili_master_key", ""),
+    },
 )
