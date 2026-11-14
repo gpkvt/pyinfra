@@ -29,8 +29,8 @@ Notes:
 
 - Git installation uses the system package manager.
 - File contents are deployed without sudo; immutable attributes are changed with sudo only when needed.
-- The credentials file is only created when `git_credentials`
-  exists in the secrets dictionary and is not None.
+- The credentials file is managed only when `git_credentials`
+  exists in the secrets dictionary and is not None; an existing unmanaged file is left untouched.
 - The Linux immutable attribute is removed only when credentials change and restored only when absent.
 - Credentials are managed through a Jinja2 template to support
   dynamic secret values.
@@ -105,14 +105,3 @@ if git_credentials is not None:
         ),
         _sudo=True,
     )
-else:
-    # No earlier operation creates this file in the no-secrets branch.
-    if host.get_fact(File, path=credentials_path):
-        server.shell(
-            name="Protect existing git-credentials from modification",
-            commands=[f"chattr +i {quoted_credentials_path}"],
-            _if=lambda: not file_has_flag(
-                host, credentials_path, "i", refresh=True
-            ),
-            _sudo=True,
-        )
