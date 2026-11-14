@@ -16,9 +16,9 @@ if config.get("enabled", False):
     if (
         not isinstance(idle_timeout, int)
         or isinstance(idle_timeout, bool)
-        or (idle_timeout != 0 and idle_timeout < 1800)
+        or idle_timeout < 0
     ):
-        raise ValueError("samba.idle_timeout must be 0 (disabled) or at least 1800 seconds")
+        raise ValueError("samba.idle_timeout must be a non-negative integer")
     if not isinstance(interface, str) or not interface or not all(
         character.isalnum() or character in "_.:-" for character in interface
     ):
