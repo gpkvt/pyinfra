@@ -55,7 +55,7 @@ if config.get("enabled", False):
     }
 
     # Allow applet configuration to be overridden through host data.
-    applets = config.get("applets", {})
+    applets = config.get("applets", default_applets)
 
     left_applets = applets.get("left", [])
     center_applets = applets.get("center", [])
