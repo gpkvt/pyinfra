@@ -417,8 +417,8 @@ def test_ssh_keypair_validation_runs_for_incomplete_pairs_and_skips_complete_pai
     pyinfra_task_harness,
 ):
     states = {
-        "/home/tester/.ssh/id_ed25519": True,
-        "/home/tester/.ssh/id_ed25519.pub": False,
+        "/home/tester/.ssh//id_ed25519": True,
+        "/home/tester/.ssh//id_ed25519.pub": False,
     }
     pyinfra_task_harness.host.get_fact = (
         lambda _fact, *_args, **kwargs: states[kwargs["path"]]
@@ -436,7 +436,7 @@ def test_ssh_keypair_validation_runs_for_incomplete_pairs_and_skips_complete_pai
     assert generation["_if"][0]() is True
     assert "Incomplete SSH keypair" in generation["commands"][0]
 
-    states["/home/tester/.ssh/id_ed25519.pub"] = True
+    states["/home/tester/.ssh//id_ed25519.pub"] = True
     assert generation["_if"][0]() is False
 
 
