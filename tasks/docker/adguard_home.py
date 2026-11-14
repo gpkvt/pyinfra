@@ -7,8 +7,8 @@ Configuration:
         image (str): AdGuard Home image. Defaults to adguard/adguardhome:v0.107.80.
 
 Persistent data:
-    ~/.docker/adguard-home/conf/
-    ~/.docker/adguard-home/work/
+    ~/.docker/adguard_home/conf/
+    ~/.docker/adguard_home/work/
 
 The container uses host networking so DNS can listen directly on port 53.
 Restrict access to trusted LAN and WireGuard networks with the host firewall.
@@ -26,14 +26,14 @@ usergroup = host.data.get("usergroup", "root")
 for directory in ("conf", "work"):
     files.directory(
         name=f"Create AdGuard Home {directory} directory",
-        path=f"{homedir}/.docker/adguard-home/{directory}/",  # pylint: disable=undefined-variable
+        path=f"{homedir}/.docker/adguard_home/{directory}/",  # pylint: disable=undefined-variable
         user=username,
         group=usergroup,
         mode="750",
     )
 
 deploy_docker_service(
-    service="adguard-home",
+    service="adguard_home",
     description="AdGuard Home DNS",
     homedir=homedir,  # pylint: disable=undefined-variable
     compose_services=["adguard-home"],
