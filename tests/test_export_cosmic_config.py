@@ -74,3 +74,23 @@ def test_update_local_config_is_idempotent():
 def test_parse_applets_rejects_other_ron_syntax():
     with pytest.raises(ValueError):
         EXPORTER.parse_applets("Some((None, None))")
+
+
+
+def test_main_dry_run_does_not_write(tmp_path, capsys):
+    config_dir = tmp_path / "cosmic"
+    config_dir.mkdir()
+    setting = config_dir / "com.system76.CosmicTheme.Mode" / "v1" / "is_dark"
+    setting.parent.mkdir(parents=True)
+    setting.write_text("true\n", encoding="utf-8")
+    local_file = tmp_path / "@local.py"
+    original = 'workstation = {"cosmic": {"appearance": {"enabled": True}}}\n'
+    local_file.write_text(original, encoding="utf-8")
+
+    assert EXPORTER.main([
+        "--config-dir", str(config_dir),
+        "--local-file", str(local_file),
+        "--dry-run",
+    ]) == 0
+    assert local_file.read_text(encoding="utf-8") == original
+    assert "+                       'mode': 'dark'," in capsys.readouterr().out
