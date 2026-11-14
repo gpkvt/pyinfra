@@ -217,8 +217,9 @@ def main(argv=None):
         help="COSMIC configuration directory (default: ~/.config/cosmic)",
     )
     parser.add_argument(
-        "--local-file", type=Path, default=Path("group_data/@local.py"),
-        help="local pyinfra configuration to update (default: group_data/@local.py)",
+        "--workstation-file", "--local-file", dest="workstation_file",
+        type=Path, default=Path("workstation.py"),
+        help="workstation configuration file to update (default: workstation.py)",
     )
     parser.add_argument("--dry-run", action="store_true", help="print a unified diff without writing")
     args = parser.parse_args(argv)
@@ -226,9 +227,9 @@ def main(argv=None):
     try:
         if not args.config_dir.is_dir():
             raise ValueError(f"COSMIC config directory does not exist: {args.config_dir}")
-        if not args.local_file.is_file():
-            raise ValueError(f"Local configuration does not exist: {args.local_file}")
-        original = args.local_file.read_text(encoding="utf-8")
+        if not args.workstation_file.is_file():
+            raise ValueError(f"Workstation configuration does not exist: {args.workstation_file}")
+        original = args.workstation_file.read_text(encoding="utf-8")
         exported = export_supported(args.config_dir)
         if not exported:
             print("No supported COSMIC settings found; local configuration unchanged.")
@@ -240,13 +241,13 @@ def main(argv=None):
         diff = difflib.unified_diff(
             original.splitlines(keepends=True),
             updated.splitlines(keepends=True),
-            fromfile=str(args.local_file),
-            tofile=str(args.local_file) + " (updated)",
+            fromfile=str(args.workstation_file),
+            tofile=str(args.workstation_file) + " (updated)",
         )
         sys.stdout.writelines(diff)
         if not args.dry_run:
-            args.local_file.write_text(updated, encoding="utf-8")
-            print(f"Updated {args.local_file}")
+            args.workstation_file.write_text(updated, encoding="utf-8")
+            print(f"Updated {args.workstation_file}")
         return 0
     except (OSError, SyntaxError, ValueError, TypeError, KeyError) as error:
         print(f"cosmic export: {error}", file=sys.stderr)
