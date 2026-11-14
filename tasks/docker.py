@@ -187,7 +187,7 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
                 raise ValueError(f"Invalid private environment variable name: {key!r}")
             if (
                 not isinstance(value, str)
-                or any(character in value for character in ("\\n", "\\r", "\\x00", "'", "\\\\"))
+                or any(character in value for character in ("\n", "\r", "\x00", "'", "\\"))
             ):
                 raise ValueError(
                     f"Private environment value for {key} must be a single-line string "
@@ -196,7 +196,19 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
             env_lines.append(f"{key}='{value}'")
 
         if env_lines:
-            # Single-quoted Compose .env values are literal, including '    compose_file = files.template(
+            # Single-quoted values in Compose env files are literal.
+            # Upload the secret file so credentials never appear in template diffs.
+            private_env_file = files.put(
+                name=f"Configure private {service} environment",
+                src=StringIO("\n".join(env_lines) + "\n"),
+                dest=f"{homedir}/.docker/{service}/.env",
+                user=username,
+                group=usergroup,
+                mode="600",
+                _sudo=False,
+            )
+
+    compose_file = files.template(
         name=f"Configure {service}",
         src=f"templates/docker/{service}/docker-compose.yml.j2",
         dest=f"{homedir}/.docker/{service}/docker-compose.yml",
