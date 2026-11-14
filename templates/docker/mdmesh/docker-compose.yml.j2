@@ -17,7 +17,7 @@ services:
       retries: 20
 
   server:
-    image: ghcr.io/{{ image_owner }}/mdmesh-server:{{ version }}
+    image: ghcr.io/{{ image_owner }}/mdmesh-server:${SERVER_VERSION:?}
     restart: unless-stopped
     depends_on:
       postgres:
@@ -36,7 +36,7 @@ services:
       - "{{ homedir }}/.docker/mdmesh/server:/opt/mdmesh"
 
   caddy:
-    image: ghcr.io/{{ image_owner }}/mdmesh-web:{{ version }}
+    image: ghcr.io/{{ image_owner }}/mdmesh-web:${WEB_VERSION:?}
     restart: unless-stopped
     depends_on:
       - server
@@ -52,13 +52,13 @@ services:
       - "{{ homedir }}/.docker/mdmesh/caddy/config:/config"
 
   supervisor:
-    image: ghcr.io/{{ image_owner }}/mdmesh-supervisor:{{ version }}
+    image: ghcr.io/{{ image_owner }}/mdmesh-supervisor:${SUPERVISOR_VERSION:?}
     restart: unless-stopped
     environment:
       GITHUB_REPO: "{{ github_repo }}"
       UPDATE_CHANNEL: stable
       POLL_INTERVAL_HOURS: "6"
-      CURRENT_VERSION: "{{ version }}"
+      CURRENT_VERSION: ${CURRENT_VERSION:?}
       AUTO_UPDATE: "0"
       APPLY_SUPPORTED: "1"
       COMPOSE_PROJECT_NAME: mdmesh
