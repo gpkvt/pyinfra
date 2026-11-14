@@ -215,6 +215,9 @@
   "tasks/proton.py:installed_flatpak_apps": [
     "test_proton_flatpak_facts_are_deferred_until_execution"
   ],
+  "tasks/samba.py:needs_samba_apparmor_hook": [
+    "test_samba_apparmor_hook_is_enabled_only_when_supported"
+  ],
   "tasks/sudo.py:SudoersFile.process": [
     "test_sudoers_fact_preserves_file_content_with_trailing_newline"
   ],
