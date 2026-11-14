@@ -35,9 +35,6 @@ Notes:
   dynamic secret values.
 
 """
-from pathlib import Path
-
-from jinja2 import Template
 from pyinfra import host
 from pyinfra.facts.files import File, FileContents
 from pyinfra.operations import apt, files
@@ -67,10 +64,7 @@ credentials_path = f"{homedir}/.git-credentials"  # pylint: disable=undefined-va
 git_credentials = secrets.get("git_credentials")  # pylint: disable=undefined-variable
 
 if git_credentials is not None:
-    template_source = Path("templates/git/git-credentials.j2").read_text()
-    desired_content = Template(template_source).render(
-        git_credentials=git_credentials
-    )
+    desired_content = "".join(f"{credential}\\n" for credential in git_credentials)
     credentials_exists = host.get_fact(File, path=credentials_path)
     current_content = (
         host.get_fact(FileContents, path=credentials_path)
