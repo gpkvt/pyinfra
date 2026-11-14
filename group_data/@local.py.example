@@ -220,7 +220,7 @@ docker = {
     #     "ui_port": 51821,  # Web UI port; VPN UDP port is configured by the container.
     # },
     # "mdmesh": {  # Self-hosted Android MDM; Linux endpoint management is not supported.
-    #     "version": "0.5.0",  # Required MDMesh release version; keep in sync with the published GHCR images.
+    #     "version": "latest",  # Resolve the latest stable GitHub release; use a semantic version to pin.
     #     "domain": "mdm.example.com",  # Public HTTPS hostname handled by the existing Caddy proxy.
     #     "port": 8030,  # Local MDMesh web edge port; only bound to 127.0.0.1.
     #     "admin_email": "admin@example.com",  # Initial administrator account email.
