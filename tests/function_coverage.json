@@ -1,4 +1,38 @@
 {
+  "files/scripts/export_cosmic_config.py:convert_value": [
+    "test_export_supported_reads_only_managed_keys"
+  ],
+  "files/scripts/export_cosmic_config.py:export_supported": [
+    "test_export_supported_reads_only_managed_keys",
+    "test_export_supported_preserves_raw_ron_and_applet_layout"
+  ],
+  "files/scripts/export_cosmic_config.py:find_cosmic_expression": [
+    "test_update_local_config_preserves_other_sections_and_management_flags",
+    "test_update_local_config_requires_unambiguous_literal_target"
+  ],
+  "files/scripts/export_cosmic_config.py:main": [
+    "test_main_dry_run_does_not_write"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_applets": [
+    "test_export_supported_preserves_raw_ron_and_applet_layout",
+    "test_parse_applets_rejects_other_ron_syntax"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_bool": [
+    "test_export_supported_reads_only_managed_keys"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_center": [
+    "test_export_supported_preserves_raw_ron_and_applet_layout"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_string_list": [
+    "test_parse_applets_accepts_cosmic_ron_trailing_commas"
+  ],
+  "files/scripts/export_cosmic_config.py:read_value": [
+    "test_export_supported_reads_only_managed_keys"
+  ],
+  "files/scripts/export_cosmic_config.py:update_local_config": [
+    "test_update_local_config_preserves_other_sections_and_management_flags",
+    "test_update_local_config_is_idempotent"
+  ],
   "files/scripts/translate.py:is_audio_descriptor": [
     "test_is_audio_descriptor_respects_configuration"
   ],
@@ -218,6 +252,12 @@
   "tasks/samba.py:needs_samba_apparmor_hook": [
     "test_samba_apparmor_hook_is_enabled_only_when_supported"
   ],
+  "tasks/samba.py:needs_systemd_reload": [
+    "test_samba_systemd_reload_is_conditional_and_uses_command_fact"
+  ],
+  "tasks/samba.py:needs_upload_permission_migration": [
+    "test_samba_upload_permission_migration_is_conditional"
+  ],
   "tasks/sudo.py:SudoersFile.process": [
     "test_sudoers_fact_preserves_file_content_with_trailing_newline"
   ],
@@ -247,45 +287,5 @@
   ],
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
-  ],
-  "files/scripts/export_cosmic_config.py:read_value": [
-    "test_export_supported_reads_only_managed_keys"
-  ],
-  "files/scripts/export_cosmic_config.py:parse_bool": [
-    "test_export_supported_reads_only_managed_keys"
-  ],
-  "files/scripts/export_cosmic_config.py:parse_applets": [
-    "test_export_supported_preserves_raw_ron_and_applet_layout",
-    "test_parse_applets_rejects_other_ron_syntax"
-  ],
-  "files/scripts/export_cosmic_config.py:parse_center": [
-    "test_export_supported_preserves_raw_ron_and_applet_layout"
-  ],
-  "files/scripts/export_cosmic_config.py:convert_value": [
-    "test_export_supported_reads_only_managed_keys"
-  ],
-  "files/scripts/export_cosmic_config.py:export_supported": [
-    "test_export_supported_reads_only_managed_keys",
-    "test_export_supported_preserves_raw_ron_and_applet_layout"
-  ],
-  "files/scripts/export_cosmic_config.py:find_cosmic_expression": [
-    "test_update_local_config_preserves_other_sections_and_management_flags",
-    "test_update_local_config_requires_unambiguous_literal_target"
-  ],
-  "files/scripts/export_cosmic_config.py:update_local_config": [
-    "test_update_local_config_preserves_other_sections_and_management_flags",
-    "test_update_local_config_is_idempotent"
-  ],
-  "files/scripts/export_cosmic_config.py:main": [
-    "test_main_dry_run_does_not_write"
-  ],
-  "files/scripts/export_cosmic_config.py:parse_string_list": [
-    "test_parse_applets_accepts_cosmic_ron_trailing_commas"
-  ],
-  "tasks/samba.py:needs_upload_permission_migration": [
-    "test_samba_upload_permission_migration_is_conditional"
-  ],
-  "tasks/samba.py:needs_systemd_reload": [
-    "test_samba_systemd_reload_is_conditional_and_uses_command_fact"
   ]
 }
