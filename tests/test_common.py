@@ -18,6 +18,7 @@ def install_pyinfra_fact_stubs(monkeypatch):
     files = types.ModuleType("pyinfra.facts.files")
     server = types.ModuleType("pyinfra.facts.server")
     files.File = type("File", (), {})
+    server.Command = type("Command", (), {})
     server.Which = type("Which", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
@@ -26,6 +27,41 @@ def install_pyinfra_fact_stubs(monkeypatch):
         ("pyinfra.facts.server", server),
     ):
         monkeypatch.setitem(sys.modules, name, module)
+
+
+
+def test_command_output_text_normalizes_fact_lines_and_empty_values(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_command_output")
+
+    assert common.command_output_text(["first", "second"]) == "first\nsecond"
+    assert common.command_output_text(["one"]) == "one"
+    assert common.command_output_text([]) == ""
+    assert common.command_output_text(None) == ""
+    assert common.command_output_text("already text") == "already text"
+
+
+
+def test_file_has_flag_parses_linux_lsattr_output(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_file_flags")
+    calls = []
+    host = types.SimpleNamespace(
+        get_fact=lambda fact, command, **_kwargs: (
+            calls.append((fact.__name__, command)) or ["----i--------e------- /home/tester/file"]
+        )
+    )
+
+    assert common.file_has_flag(host, "/home/tester/file", "i") is True
+    assert calls[0][0] == "Command"
+    assert "lsattr -d /home/tester/file" in calls[0][1]
+    assert common.file_has_flag(host, "/home/tester/file", "i", refresh=True) is True
+    assert calls[1][1].endswith("; :")
+
+    host.get_fact = lambda *_args, **_kwargs: ["-------------e------- /home/tester/file"]
+    assert common.file_has_flag(host, "/home/tester/file", "i") is False
+    host.get_fact = lambda *_args, **_kwargs: []
+    assert common.file_has_flag(host, "/home/tester/file", "i") is False
 
 
 def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):

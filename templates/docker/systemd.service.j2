@@ -4,7 +4,7 @@ Description={{ description }}
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-WorkingDirectory={{ homedir }}/{{ service }}
+WorkingDirectory={{ homedir }}/.docker/{{ service }}
 {% if sablier_enabled %}
 ExecStart=/usr/bin/docker compose {{ compose_files }} up --no-start
 {% else %}

@@ -1,6 +1,8 @@
 """Direct input/output tests for task helpers and pyinfra operations."""
 # pylint: disable=protected-access
 
+import builtins
+import sys
 from types import SimpleNamespace
 
 
@@ -107,25 +109,117 @@ def test_flatpak_uninstall_operation_reports_only_real_removals(
     assert list(operation()) == ["true"]
 
 
-def test_set_immutable_uses_requested_chattr_flag(pyinfra_task_harness, capsys):
-    module = pyinfra_task_harness.load("git.py")
-    calls = []
-    pyinfra_task_harness.host.run_shell_command = (
-        lambda command, **kwargs: calls.append((command, kwargs))
+def test_git_credentials_use_conditional_chattr_operations(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"git_credentials": ["https://user:token@example.test"]},
+        raising=False,
+    )
+    flag_state = {"immutable": True}
+
+    def get_fact(fact, *_args, **_kwargs):
+        if fact.__name__ == "File":
+            return True
+        if fact.__name__ == "FileContents":
+            return ["old credentials"]
+        if fact.__name__ == "Command":
+            attributes = "----i--------e-------" if flag_state["immutable"] else "-------------e-------"
+            return [f"{attributes} /home/tester/.git-credentials"]
+        return None
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("git.py")
+
+    unlock = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Make git-credentials writable before updating"
+    )
+    protect = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Protect git-credentials from modification"
+    )
+    assert unlock["commands"] == ["chattr -i /home/tester/.git-credentials"]
+    assert protect["commands"] == ["chattr +i /home/tester/.git-credentials"]
+    assert unlock["_if"]() is True
+    flag_state["immutable"] = False
+    assert protect["_if"]() is True
+
+
+
+
+def test_git_credentials_without_secret_leave_existing_file_untouched(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(builtins, "secrets", {}, raising=False)
+    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: True
+    pyinfra_task_harness.load("git.py")
+
+    assert not any(
+        namespace == "server" and name == "shell"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
     )
 
-    module.set_immutable("/home/tester/.git-credentials", False)
-    module.set_immutable("/home/tester/.git-credentials", True)
 
-    assert calls == [
-        ("chattr -i /home/tester/.git-credentials",
-         {"print_output": False, "_sudo": True}),
-        ("chattr +i /home/tester/.git-credentials",
-         {"print_output": False, "_sudo": True}),
+def test_git_credentials_are_protected_after_first_deployment(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"git_credentials": ["https://user:token@example.test"]},
+        raising=False,
+    )
+    file_exists = {"value": False}
+    pyinfra_task_harness.host.get_fact = lambda fact, *_args, **_kwargs: (
+        file_exists["value"] if fact.__name__ == "File"
+        else ["-------------e------- /home/tester/.git-credentials"]
+    )
+    pyinfra_task_harness.load("git.py")
+
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Make git-credentials writable before updating"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+    protect = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Protect git-credentials from modification"
+    )
+    # The cached File fact still reports absence; protection must use a fresh lsattr check.
+    assert protect["_if"]() is True
+
+
+def test_git_credentials_remain_immutable_when_rendered_content_matches(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"git_credentials": ["https://user:token@example.test"]},
+        raising=False,
+    )
+    pyinfra_task_harness.host.get_fact = lambda fact, *_args, **_kwargs: (
+        True if fact.__name__ == "File"
+        else ["https://user:token@example.test"]
+        if fact.__name__ == "FileContents"
+        else ["----i--------e------- /home/tester/.git-credentials"]
+    )
+    pyinfra_task_harness.load("git.py")
+
+    shell_operations = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
     ]
-    output = capsys.readouterr().out
-    assert "Set -i" in output
-    assert "Set +i" in output
+    assert [operation["name"] for operation in shell_operations] == [
+        "Protect git-credentials from modification"
+    ]
+    assert shell_operations[0]["_if"]() is False
 
 
 def test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing(
@@ -158,10 +252,126 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
     assert "/etc/apparmor.d/example" in str(commands[0])
 
 
-def test_system_timezone_fact_normalizes_output(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("system.py")
-    assert module.SystemTimezone().process([" Europe/Berlin ", "\n"]) == "Europe/Berlin"
-    assert module.SystemTimezone().process(["  ", "\n"]) is None
+
+
+
+def test_proton_drive_cli_updates_when_configured_version_changes(pyinfra_task_harness):
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "0.9.1",
+        },
+    })
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install or update Proton Drive CLI"
+    )
+    assert "0.9.1/linux-x64/proton-drive" in install["commands"][0]
+    assert "proton-drive-version" in install["commands"][-1]
+    assert install["_sudo"] is True
+
+
+def test_proton_drive_cli_skips_when_configured_version_is_installed(
+    pyinfra_task_harness,
+):
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, **_kwargs: ["0.9.1"]
+    )
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "0.9.1",
+        },
+    })
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install or update Proton Drive CLI"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+
+def test_proton_flatpak_facts_are_deferred_until_execution(pyinfra_task_harness):
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": True,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": True,
+            "drive_cli": False,
+        },
+    })
+    remote = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Configure Flathub"
+    )
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Proton Flatpak application me.proton.Mail"
+    )
+    assert remote["_if"]() is True
+    assert install["_if"]() is True
+
+
+def test_udev_reload_uses_runtime_change_detection(pyinfra_task_harness, monkeypatch):
+    observed = []
+    monkeypatch.setattr(
+        sys.modules["pyinfra.operations.util"],
+        "any_changed",
+        lambda *operations: observed.extend(operations) or (lambda: True),
+    )
+    pyinfra_task_harness.load("system.py", {
+        "udev": {"99-example.rules": 'SUBSYSTEM=="example", MODE="0600"'},
+    })
+    reload_op = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload udev rules"
+    )
+    assert len(observed) == 1
+    assert reload_op["_if"]() is True
+
+
+def test_usbguard_restart_is_conditional_on_configuration_changes(
+    pyinfra_task_harness, monkeypatch,
+):
+    changed = {"value": False}
+    monkeypatch.setattr(
+        sys.modules["pyinfra.operations.util"],
+        "any_changed",
+        lambda *_ops: lambda: changed["value"],
+    )
+    pyinfra_task_harness.load("system.py", {
+        "usbguard": {"enabled": True, "rules": ["allow id 1234:5678"]},
+    })
+    restart = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Enable and restart USBGuard"
+    )
+    ensure = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "service"
+        and kwargs.get("name") == "Ensure USBGuard is enabled and running"
+    )
+    assert restart["_if"]() is False
+    assert ensure["_if"]() is True
+    changed["value"] = True
+    assert restart["_if"]() is True
+    assert ensure["_if"]() is False
 
 
 def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
@@ -253,7 +463,7 @@ def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harnes
     observed = []
     pyinfra_task_harness.host.get_fact = (
         lambda _fact, command, **_kwargs: observed.append(command)
-        or "1000:1000:750"
+        or ["1000:1000:750"]
     )
 
     module.ensure_numeric_directory(
@@ -331,3 +541,114 @@ def test_zsh_task_installs_playerctl_for_hyfetch(pyinfra_task_harness):
     assert helper["src"] == "files/hyfetch-song"
     assert helper["dest"].endswith("/.local/bin/hyfetch-song")
     assert helper["mode"] == "750"
+
+
+
+def test_system_locale_replaces_the_matching_lang_line(pyinfra_task_harness):
+    """The locale value replaces LANG rather than writing the regex as content."""
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        ["C.UTF-8"] if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"locale": "C.UTF-8"})
+
+    locale_operation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "line"
+        and kwargs.get("name") == "Set system default locale: C.UTF-8"
+    )
+    assert locale_operation["path"] == "/etc/default/locale"
+    assert locale_operation["line"] == "^LANG="
+    assert locale_operation["replace"] == 'LANG="C.UTF-8"'
+    assert locale_operation["present"] is True
+
+def test_system_locale_skips_generation_when_equivalent_locale_is_installed(
+    pyinfra_task_harness,
+):
+    """Installed locale aliases are normalized before scheduling generation."""
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, **_kwargs: ["C.utf8"] if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"locale": "C.UTF-8"})
+
+    assert not any(
+        namespace == "server" and name == "locale"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+    default_locale = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "line"
+        and kwargs.get("name") == "Set system default locale: C.UTF-8"
+    )
+    assert default_locale["line"] == "^LANG="
+    assert default_locale["replace"] == 'LANG="C.UTF-8"'
+
+
+def test_system_locale_generates_missing_locale(pyinfra_task_harness):
+    """A locale not present in the installed locale fact is generated."""
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, **_kwargs: [] if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"locale": "en_GB.UTF-8"})
+
+    assert any(
+        namespace == "server" and name == "locale"
+        and kwargs.get("locale") == "en_GB.UTF-8"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+def test_powerline_fonts_install_and_refresh_only_when_required(
+    pyinfra_task_harness, monkeypatch,
+):
+    """Powerline font copies and cache refresh are gated by actual changes."""
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, _command=None, **_kwargs: ["missing"] if fact.__name__ == "Command" else None
+    )
+    changed = {"value": False}
+    util = sys.modules["pyinfra.operations.util"]
+    monkeypatch.setattr(
+        util,
+        "any_changed",
+        lambda *operations: lambda: any(operation.did_change() for operation in operations),
+    )
+    monkeypatch.setattr(
+        pyinfra_task_harness.result,
+        "did_change",
+        lambda: changed["value"],
+    )
+    pyinfra_task_harness.load("fonts.py", {"powerline_fonts": True})
+
+    extraction = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "unarchive"
+        and kwargs.get("name") == "Extract Powerline fonts"
+    )
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install missing Powerline fonts"
+    )
+    refresh = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Refresh font cache"
+    )
+
+    assert extraction["creates"] == "/tmp/powerline-fonts/fonts-master"
+    assert install["_if"]() is True
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, _command=None, **_kwargs: ["current"] if fact.__name__ == "Command" else None
+    )
+    assert install["_if"]() is False
+    assert refresh["_if"]() is False
+    changed["value"] = True
+    assert refresh["_if"]() is True
+
+
+def test_powerline_fonts_are_not_downloaded_when_disabled(pyinfra_task_harness):
+    """The optional Powerline archive is untouched when the feature is disabled."""
+    pyinfra_task_harness.load("fonts.py", {"powerline_fonts": False})
+
+    assert not any(
+        namespace == "files" and name in {"download", "unarchive"}
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )

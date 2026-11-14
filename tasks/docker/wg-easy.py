@@ -39,6 +39,7 @@ deploy_docker_service(
     service="wg-easy",
     description="WG-Easy WireGuard VPN",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["wg-easy"],
     username=username,
     usergroup=usergroup,
     image=wg_easy.get("image", "ghcr.io/wg-easy/wg-easy:15"),

@@ -1,6 +1,8 @@
 # pylint: disable=E0401
 """
+
 Deploy and manage the Miniflux Docker service using pyinfra.
+
 
 This module configures and deploys Miniflux using the shared
 deploy_docker_service deployment defined in tasks/docker.py.
@@ -26,14 +28,9 @@ Configuration:
         the deployment secrets configuration.
 
         Supported options:
-            postgres_password (str): PostgreSQL database password.
-                Defaults to an empty string.
-
-            admin_username (str): Miniflux administrator username.
-                Defaults to an empty string.
-
-            admin_password (str): Miniflux administrator password.
-                Defaults to an empty string.
+            postgres_password (str): Required PostgreSQL database password.
+            admin_username (str): Required Miniflux administrator username.
+            admin_password (str): Required Miniflux administrator password.
 
     homedir (str): Home directory of the configured user.
         Defined globally in the main deployment configuration.
@@ -54,11 +51,13 @@ Operations:
         description:
             Miniflux Docker Service
 
-        Template variables:
-            postgres_password
+        Private environment:
+            POSTGRES_PASSWORD
+            ADMIN_PASSWORD
+
+        Non-secret template variables:
             postgres_version
             admin_username
-            admin_password
             port
             homedir
 
@@ -67,7 +66,7 @@ File locations:
         ~/.docker/miniflux/
 
     Docker Compose configuration:
-        ~/miniflux/docker-compose.yml
+        ~/.docker/miniflux/docker-compose.yml
 
     systemd service unit:
         ~/.config/systemd/user/miniflux.service
@@ -75,6 +74,7 @@ File locations:
 File permissions:
     - Docker configuration directory: 0750.
     - Docker Compose configuration: 0640.
+    - Private environment file: 0600.
     - systemd service unit: 0644.
 
 Service:
@@ -89,8 +89,9 @@ Service:
 Notes:
     - Docker Compose and systemd configurations are generated using
       shared Jinja2 templates and deployment logic.
-    - Database and administrator credentials are supplied through
-      the deployment secrets configuration.
+    - Database and administrator passwords are written to a mode-0600
+      project .env file and interpolated by Docker Compose. The administrator
+      username remains a non-secret Compose setting.
     - File deployment and service management run without sudo.
     - The systemd daemon is reloaded and the service enabled when
       the systemd unit file changes.
@@ -98,22 +99,37 @@ Notes:
       configuration or systemd unit file changes.
     - Docker image updates are not automatically pulled.
 """
+import re
 
 from pyinfra import host
 from tasks.docker import deploy_docker_service
 
 miniflux = host.data.get("docker", {}).get("miniflux", {})
-miniflux_secrets = secrets.get("docker", {}).get("miniflux", {}) # pylint: disable=undefined-variable
+miniflux_secrets = (
+    secrets.get("docker", {}).get("miniflux", {})  # pylint: disable=undefined-variable
+)
+required_secrets = ("postgres_password", "admin_username", "admin_password")
+missing_secrets = [key for key in required_secrets if not miniflux_secrets.get(key)]
+if missing_secrets:
+    raise ValueError(
+        "Miniflux requires these encrypted secrets under docker.miniflux: "
+        + ", ".join(missing_secrets)
+    )
+if not re.fullmatch(r"[A-Za-z0-9_-]+", miniflux_secrets["postgres_password"]):
+    raise ValueError("Miniflux PostgreSQL password must be URL-safe")
 
 deploy_docker_service(
     service="miniflux",
     description="Miniflux Docker Service",
     homedir=homedir, # pylint: disable=undefined-variable
+    compose_services=["miniflux","db"],
     username=host.data.get("username", "root"),
     usergroup=host.data.get("usergroup", "root"),
-    postgres_password=miniflux_secrets.get("postgres_password", ""),
+    private_env={
+        "POSTGRES_PASSWORD": miniflux_secrets.get("postgres_password", ""),
+        "ADMIN_PASSWORD": miniflux_secrets.get("admin_password", ""),
+    },
     postgres_version=miniflux.get("postgres_version", 12),
     admin_username=miniflux_secrets.get("admin_username", ""),
-    admin_password=miniflux_secrets.get("admin_password", ""),
     port=miniflux.get("port", 8080),
 )

@@ -1,5 +1,6 @@
 # pylint: disable=E0401
 """
+
 Deploy and manage Linkwarden using Docker Compose.
 
 Configuration:
@@ -20,6 +21,7 @@ Persistent data:
         ~/.docker/linkwarden/data/
         ~/.docker/linkwarden/meili/
 """
+import re
 
 from pyinfra import host
 from pyinfra.operations import files
@@ -27,7 +29,18 @@ from pyinfra.operations import files
 from tasks.docker import deploy_docker_service, ensure_numeric_directory
 
 linkwarden = host.data.get("docker", {}).get("linkwarden", {})
-linkwarden_secrets = secrets.get("docker", {}).get("linkwarden", {})  # pylint: disable=undefined-variable
+linkwarden_secrets = (
+    secrets.get("docker", {}).get("linkwarden", {})  # pylint: disable=undefined-variable
+)
+required_secrets = ("postgres_password", "nextauth_secret", "meili_master_key")
+missing_secrets = [key for key in required_secrets if not linkwarden_secrets.get(key)]
+if missing_secrets:
+    raise ValueError(
+        "Linkwarden requires these encrypted secrets under docker.linkwarden: "
+        + ", ".join(missing_secrets)
+    )
+if not re.fullmatch(r"[A-Za-z0-9_-]+", linkwarden_secrets["postgres_password"]):
+    raise ValueError("Linkwarden PostgreSQL password must be URL-safe")
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
@@ -49,12 +62,15 @@ deploy_docker_service(
     service="linkwarden",
     description="Linkwarden Bookmark Manager",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["postgres","meilisearch","linkwarden"],
     username=username,
     usergroup=usergroup,
     image=linkwarden.get("image", "ghcr.io/linkwarden/linkwarden:latest"),
     port=linkwarden.get("port", 8021),
     domain=linkwarden.get("domain", "linkwarden.21x9.org"),
-    postgres_password=linkwarden_secrets.get("postgres_password", ""),
-    nextauth_secret=linkwarden_secrets.get("nextauth_secret", ""),
-    meili_master_key=linkwarden_secrets.get("meili_master_key", ""),
+    private_env={
+        "POSTGRES_PASSWORD": linkwarden_secrets.get("postgres_password", ""),
+        "NEXTAUTH_SECRET": linkwarden_secrets.get("nextauth_secret", ""),
+        "MEILI_MASTER_KEY": linkwarden_secrets.get("meili_master_key", ""),
+    },
 )

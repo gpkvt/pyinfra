@@ -159,11 +159,13 @@ deploy_docker_service(
     service="homepage",
     description="Homepage Dashboard",
     homedir=homedir,  # pylint: disable=undefined-variable
+    compose_services=["homepage"],
     username=username,
     usergroup=usergroup,
     restart_if=[homepage_icons, homepage_custom_css],
     image=homepage.get("image", "ghcr.io/gethomepage/homepage:latest"),
     port=homepage.get("port", 8020),
     domain=homepage.get("domain", "homepage.21x9.org"),
-    environment=homepage_environment,
+    private_env=homepage_environment,
+    environment_keys=sorted(homepage_environment),
 )

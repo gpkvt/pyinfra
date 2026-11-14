@@ -122,41 +122,10 @@ Target:
 
 import re
 from io import StringIO
-
 from pyinfra import host
-from pyinfra.api import FactBase
+from pyinfra.facts.server import Locales, Timezone
 from pyinfra.operations import apt, files, server
-
-# Custom fact: retrieve current system locale
-class SystemTimezone(FactBase):
-    """Return the configured system timezone."""
-
-    command = (
-        "timedatectl show --property=Timezone --value 2>/dev/null "
-        "|| cat /etc/timezone 2>/dev/null || true"
-    )
-
-    def process(self, output):
-        return "".join(output).strip() or None
-
-
-class SystemLocale(FactBase):
-    """
-    Return the current LANG setting from /etc/default/locale.
-    """
-
-    command = "cat /etc/default/locale 2>/dev/null || true"
-
-    def process(self, output):
-        for line in output:
-            match = re.match(
-                r'^\s*LANG\s*=\s*["\']?([^"\']+)["\']?\s*$',
-                line,
-            )
-            if match:
-                return match.group(1)
-
-        return None
+from pyinfra.operations.util import any_changed
 
 # Load configuration
 hostname = host.data.get("hostname")
@@ -195,9 +164,18 @@ if timezone:
     ):
         raise ValueError(f"Invalid timezone: {timezone}")
 
-    current_timezone = host.get_fact(SystemTimezone)
+    current_timezone = host.get_fact(Timezone)
+    timezone_aliases = {
+        "Etc/UTC": "UTC",
+        "Etc/GMT": "UTC",
+        "GMT": "UTC",
+        "UCT": "UTC",
+        "Universal": "UTC",
+    }
 
-    if current_timezone != timezone:
+    if timezone_aliases.get(current_timezone, current_timezone) != timezone_aliases.get(
+        timezone, timezone
+    ):
         server.timezone(
             name=f"Set timezone to {timezone}",
             timezone=timezone,
@@ -217,9 +195,14 @@ if locale:
             f"System locale must use UTF-8 encoding: {locale}"
         )
 
-    current_locale = host.get_fact(SystemLocale)
-
-    if current_locale != locale:
+    # Locale aliases such as C.utf8 and C.UTF-8 are equivalent. Avoid
+    # scheduling locale generation when an equivalent locale is installed.
+    normalized_locale = re.sub(r"[^a-z0-9]", "", locale.lower())
+    installed_locales = host.get_fact(Locales)
+    if not any(
+        re.sub(r"[^a-z0-9]", "", installed.lower()) == normalized_locale
+        for installed in installed_locales
+    ):
         server.locale(
             name=f"Enable locale: {locale}",
             locale=locale,
@@ -227,15 +210,14 @@ if locale:
             _sudo=True,
         )
 
-        files.put(
-            name=f"Set system default locale: {locale}",
-            src=StringIO(f'LANG="{locale}"\n'),
-            dest="/etc/default/locale",
-            user="root",
-            group="root",
-            mode="644",
-            _sudo=True,
-        )
+    files.line(
+        name=f"Set system default locale: {locale}",
+        path="/etc/default/locale",
+        line="^LANG=",
+        replace=f'LANG="{locale}"',
+        present=True,
+        _sudo=True,
+    )
 
 # Configure default CLI editors
 for variable, value in {
@@ -374,7 +356,7 @@ if sysctl:
 
 # Configure udev rules
 udev = host.data.get("udev", {})
-udev_changed = False
+udev_operations = []
 
 if udev:
     if not isinstance(udev, dict):
@@ -402,14 +384,14 @@ if udev:
             _sudo=True,
         )
 
-        if result.changed:
-            udev_changed = True
+        udev_operations.append(result)
 
-    if udev_changed:
+    if udev_operations:
         server.shell(
             name="Reload udev rules",
             commands=["udevadm control --reload-rules"],
             _sudo=True,
+            _if=any_changed(*udev_operations),
         )
 
 # Configure USBGuard
@@ -486,9 +468,6 @@ if usbguard:
             _sudo=True,
         )
 
-        # Track configuration changes
-        usbguard_changed = False
-
         # Configure USBGuard daemon
         daemon_config = (
             "RuleFile=/etc/usbguard/rules.conf\n"
@@ -509,9 +488,6 @@ if usbguard:
             _sudo=True,
         )
 
-        if daemon_result.changed:
-            usbguard_changed = True
-
         # Configure USBGuard rules
         rules_result = files.put(
             name="Configure USBGuard rules",
@@ -523,24 +499,23 @@ if usbguard:
             _sudo=True,
         )
 
-        if rules_result.changed:
-            usbguard_changed = True
-
-        # Enable and restart USBGuard only when necessary
-        if usbguard_changed:
-            server.shell(
-                name="Enable and restart USBGuard",
-                commands=[
-                    "systemctl enable usbguard",
-                    "systemctl restart usbguard",
-                ],
-                _sudo=True,
-            )
-        else:
-            server.service(
-                name="Ensure USBGuard is enabled and running",
-                service="usbguard",
-                running=True,
-                enabled=True,
-                _sudo=True,
-            )
+        # Operation metadata is finalized after execution. Use callbacks so
+        # restart decisions reflect actual changes, not prepare-time state.
+        configuration_operations = [daemon_result, rules_result]
+        server.shell(
+            name="Enable and restart USBGuard",
+            commands=[
+                "systemctl enable usbguard",
+                "systemctl restart usbguard",
+            ],
+            _sudo=True,
+            _if=any_changed(*configuration_operations),
+        )
+        server.service(
+            name="Ensure USBGuard is enabled and running",
+            service="usbguard",
+            running=True,
+            enabled=True,
+            _sudo=True,
+            _if=lambda: not any_changed(*configuration_operations)(),
+        )

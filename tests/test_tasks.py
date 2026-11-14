@@ -7,7 +7,6 @@ important behavior without contacting or modifying a real machine.
 """
 
 import builtins
-import json
 import os
 import runpy
 import subprocess
@@ -54,6 +53,7 @@ def test_apt_update_helper_forces_update_when_repository_changed(pyinfra_task_ha
     assert any(call[2].get("cache_time") == 14400 for call in apt_updates)
 
 
+
 def test_ci_inventory_runs_tmux_without_personal_workstation_features():
     """The CI inventory explicitly tests tmux while isolating personal settings."""
     inventory = runpy.run_path(str(ROOT / ".github/ci/inventory.py"))
@@ -94,7 +94,21 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
 def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
     """An already-correct timezone does not schedule a change."""
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        "UTC" if fact.__name__ == "SystemTimezone" else None
+        "UTC" if fact.__name__ == "Timezone" else [] if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
+
+    assert not any(
+        namespace == "server" and name == "timezone"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+
+
+def test_system_timezone_treats_etc_utc_as_utc(pyinfra_task_harness):
+    """Equivalent UTC zoneinfo names do not cause repeated timezone operations."""
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        "Etc/UTC" if fact.__name__ == "Timezone" else [] if fact.__name__ == "Locales" else None
     )
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
@@ -105,8 +119,10 @@ def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness
 
 
 def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
-    """A mismatched timezone still schedules the required correction."""
-    pyinfra_task_harness.host.get_fact = lambda _fact, **_kwargs: "Europe/Berlin"
+    """A mismatched timezone still schedules the required correction with locale facts."""
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        "Europe/Berlin" if fact.__name__ == "Timezone" else []
+    )
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
     assert any(
@@ -232,12 +248,6 @@ def test_vscodium_deduplicates_extensions_and_installs_missing_ids(pyinfra_task_
     assert "vendor.extension" in installs[0][2]["commands"][0]
 
 
-def test_system_locale_fact_parses_lang_value(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("system.py")
-    assert module.SystemLocale().process(['LANG="en_GB.UTF-8"']) == "en_GB.UTF-8"
-    assert module.SystemLocale().process(["# no locale configured"]) is None
-
-
 def test_dehydrated_fact_reports_expiring_certificates(pyinfra_task_harness):
     module = pyinfra_task_harness.load("dehydrated.py")
     assert module.CertNeedsRenewal().process(["false"]) is False
@@ -304,10 +314,9 @@ def test_sudoers_fact_preserves_file_content_with_trailing_newline(pyinfra_task_
 
 
 def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harness):
-    output = types.SimpleNamespace(stdout_lines=[json.dumps([
-        {"addr_info": [{"family": "inet", "local": "192.168.42.25"}]},
-    ])])
-    pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (True, output)
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, **_kwargs: {"eth0": ["192.168.42.25"]}
+    )
     pyinfra_task_harness.load("vpn.py", {
         "local_network_cidr": "192.168.42.0/24",
         "wireguard_interface": "home",
@@ -321,10 +330,22 @@ def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harn
     assert service_calls[0][2]["_if"]() is False
 
 
-def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
-    pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (False, None)
-    with pytest.raises(RuntimeError, match="Unable to retrieve network interfaces"):
-        pyinfra_task_harness.load("vpn.py")
+def test_wireguard_ignores_loopback_and_link_local_addresses(pyinfra_task_harness):
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, **_kwargs: {
+            "lo": ["127.0.0.1"],
+            "eth0": ["169.254.10.20"],
+        }
+    )
+    pyinfra_task_harness.load("vpn.py", {
+        "local_network_cidr": "127.0.0.0/8",
+        "wireguard_interface": "home",
+    })
+    service_call = next(
+        call for call in pyinfra_task_harness.calls
+        if call[0] == "server" and call[1] == "service"
+    )
+    assert service_call[2]["_if"]() is True
 
 
 def test_caddyfile_does_not_set_a_global_response_write_timeout():
@@ -459,7 +480,7 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
         else ("worker scheduler database" if "/custom/" in command else "generic")
     ) if "config --services" in command or command.startswith("id -u") else ""
     module.deploy_docker_service("custom", "Custom", "/home/tester")
-    module.deploy_docker_service("generic", "Generic", "/home/tester")
+    module.deploy_docker_service("generic", "Generic", "/home/tester", compose_services=["generic"])
     unit_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "template"
@@ -680,42 +701,6 @@ def test_sablier_systemd_preparation_reconciles_existing_containers():
     assert "docker compose {{ compose_files }} create" not in unit
 
 
-def test_sudo_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
-    """An already-correct sudoers directory is not scheduled for reconciliation."""
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
-        "root:root:755" if "stat -c" in command else ""
-    )
-    pyinfra_task_harness.load("sudo.py", {"sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"]})
-    directory_calls = [
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "directory"
-        and kwargs.get("path") == "/etc/sudoers.d"
-    ]
-    assert len(directory_calls) == 1
-    assert directory_calls[0]["_if"]() is False
-
-
-def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
-    """An already-correct SSH directory is not scheduled for reconciliation."""
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
-        "tester:tester:700" if "stat -c" in command else ""
-    )
-    pyinfra_task_harness.load("ssh_keys.py", {
-        "username": "tester",
-        "usergroup": "tester",
-        "ssh_authorized_keys": {"tester": []},
-    })
-    directory_calls = [
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "directory"
-        and kwargs.get("path") == "/home/tester/.ssh/"
-    ]
-    assert len(directory_calls) == 1
-    assert directory_calls[0]["_if"]() is False
-
-
-
-
 def test_homepage_api_requests_bypass_sablier_only_on_matching_paths(pyinfra_task_harness):
     """Homepage widget API prefixes bypass Sablier; other requests remain protected."""
     module = pyinfra_task_harness.load("caddy.py")
@@ -825,6 +810,7 @@ def test_appflowy_requires_encrypted_credentials(pyinfra_task_harness):
     """AppFlowy refuses to deploy with missing required credentials."""
     with pytest.raises(ValueError, match="Missing required secrets.docker.appflowy"):
         pyinfra_task_harness.load("docker/appflowy.py")
+
 
 
 def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):

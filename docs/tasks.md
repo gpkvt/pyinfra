@@ -117,7 +117,7 @@ The SSH client task writes a global `Host *` baseline before the configured `ssh
 
 ### WireGuard and VPN activation
 
-The WireGuard task installs the package and renders one file per configured interface. The VPN task is separate: it inspects globally scoped IPv4 addresses using `ip -j -4 addr show scope global`, compares them with `local_network_cidr`, and enables/runs the configured `wg-quick@...` service when outside that network. IPv6 is not considered by the network-detection check.
+The WireGuard task installs the package and renders one file per configured interface. The VPN task is separate: it uses pyinfra's `hardware.Ipv4Addrs` fact, excludes loopback, link-local and unspecified addresses to match globally scoped IPv4 detection, compares the remaining addresses with `local_network_cidr`, and enables/runs the configured `wg-quick@...` service when outside that network. IPv6 is not considered by the network-detection check.
 
 ### Docker services
 
@@ -125,11 +125,12 @@ When `host.data.docker` is truthy, `deploy.py` includes `tasks/docker.py` and `t
 
 **Deployment behavior**
 
-- Compose files are rendered to `~/<service>/docker-compose.yml`.
+- Compose files are rendered to `~/.docker/<service>/docker-compose.yml`.
 - User-level systemd units are rendered to `~/.config/systemd/user/<service>.service`.
 - Persistent data and per-service Docker directories live under the configured user's `~/.docker/` directory.
 - A changed Compose file triggers `docker compose pull`; a changed Compose file, Sablier override, systemd unit or registered asset trigger causes the user-level systemd service to start or restart. With Sablier enabled, the unit prepares the project using `docker compose up --no-start`; without Sablier it starts the project with `docker compose up -d`. The unit stops either the complete Compose project (`down`) or only configured `app_services`, depending on `stop_dependencies`. Service tasks can also register additional restart triggers for generated assets; Homepage's container is recreated when its synchronized public icons change.
 - An unchanged Compose file does not trigger an image pull. Image updates therefore require a configuration change or a separate manual pull.
+- When Sablier is enabled, each service task declares its Compose service names explicitly. This avoids querying `docker compose config --services` during pyinfra's prepare phase, when a first-deployment Compose file has not yet been written. Override the list with `docker.<service>.sablier_services` when a customized Compose configuration changes those names.
 
 **Available services**
 
@@ -155,7 +156,7 @@ Persistent service data is stored below `~/.docker/`. All listed services use di
 
 **Service-specific notes**
 
-- **AppFlowy** deploys the current AppFlowy Self-Hosted Commercial Compose stack (Cloud, GoTrue, PostgreSQL/pgvector, Redis, MinIO, AI, Worker, Search, Web, Admin and Nginx). Nginx binds only to `127.0.0.1:8026` and Caddy publishes `appflowy.21x9.org`. PostgreSQL, MinIO and Search data use direct bind mounts under `~/.docker/appflowy/`; no Docker-managed named volumes are used. The task renders a private `~/appflowy/.env` (mode `0600`) from encrypted `secrets.docker.appflowy` values. Set `postgres_password`, `admin_password`, `jwt_secret`, `minio_access_key` and `minio_secret_key`; URL-interpolated secrets must use the documented URL-safe formats. Change the initial administrator password after first login. Cloud uses `APPFLOWY_REDIS_URI`, AI uses `AI_REDIS_URL`, Worker uses `APPFLOWY_WORKER_REDIS_URL`, and Search receives both `APPFLOWY_INDEXER_REDIS_URL` and `APPFLOWY_SEARCH_REDIS_URL`, mapped to the same Compose `redis` service endpoint rather than container-local `localhost`. Redis follows the upstream ephemeral configuration and has no persistent data mount or AOF; pending queue state may not survive Redis replacement. AppFlowy Self-Hosted Commercial is distributed under AppFlowy's commercial self-hosted license; review its terms before deployment. Homepage receives only a normal link, not an API widget or authenticated exporter.
+- **AppFlowy** deploys the current AppFlowy Self-Hosted Commercial Compose stack (Cloud, GoTrue, PostgreSQL/pgvector, Redis, MinIO, AI, Worker, Search, Web, Admin and Nginx). Nginx binds only to `127.0.0.1:8026` and Caddy publishes `appflowy.21x9.org`. PostgreSQL, MinIO and Search data use direct bind mounts under `~/.docker/appflowy/`; no Docker-managed named volumes are used. The task renders a private `~/.docker/appflowy/.env` (mode `0600`) from encrypted `secrets.docker.appflowy` values. Set `postgres_password`, `admin_password`, `jwt_secret`, `minio_access_key` and `minio_secret_key`; URL-interpolated secrets must use the documented URL-safe formats. Change the initial administrator password after first login. Cloud uses `APPFLOWY_REDIS_URI`, AI uses `AI_REDIS_URL`, Worker uses `APPFLOWY_WORKER_REDIS_URL`, and Search receives both `APPFLOWY_INDEXER_REDIS_URL` and `APPFLOWY_SEARCH_REDIS_URL`, mapped to the same Compose `redis` service endpoint rather than container-local `localhost`. Redis follows the upstream ephemeral configuration and has no persistent data mount or AOF; pending queue state may not survive Redis replacement. AppFlowy Self-Hosted Commercial is distributed under AppFlowy's commercial self-hosted license; review its terms before deployment. Homepage receives only a normal link, not an API widget or authenticated exporter.
 
 - **Paperless-ngx** runs with PostgreSQL 17, Valkey, Gotenberg and Tika. PostgreSQL data and Paperless data, media, consume and export directories are host bind mounts under `~/.docker/paperless/`; no Docker named volumes are used. The directories are created idempotently with PostgreSQL ownership `70:70` and Paperless ownership controlled by `docker.paperless.uid` / `gid` (defaults to `1000:1000`). Its web interface binds to `127.0.0.1:8022` and the supplied local Caddy configuration publishes `paperless.21x9.org`. Store `postgres_password` (URL-safe) and `secret_key` under `secrets.docker.paperless` in the encrypted secrets file. Generate a strong secret key and do not leave the example placeholders in place. The host import directory `~/Paperless` is a symlink to `~/.docker/paperless/consume`; place documents there to import them.
 
@@ -255,7 +256,7 @@ Mullvad extension downloads are defined by extension IDs and URLs. The supplied 
 
 ### Proton
 
-The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options.
+The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options. Proton Drive CLI uses `proton.drive_cli_version` (default `0.9.0`) and updates the binary when that version changes. The misspelled `proton.drive_cll_version` setting remains a deprecated compatibility fallback; use `drive_cli_version` for new configuration.
 
 ## Run an individual task
 
