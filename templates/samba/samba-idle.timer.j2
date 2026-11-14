@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodically check Samba traffic idle timeout
+
+[Timer]
+OnBootSec=60s
+OnUnitActiveSec=60s
+Unit=samba-idle.service
+
+[Install]
+WantedBy=timers.target
