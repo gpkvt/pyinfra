@@ -320,13 +320,27 @@ def test_paperless_exposes_consume_directory_in_home(pyinfra_task_harness, monke
 
 def test_docker_container_includes_only_configured_services(pyinfra_task_harness):
     pyinfra_task_harness.load("docker_container.py", {
-        "docker": {"ci-smoke": {}, "miniflux": {}, "grav": {}},
+        "docker": {
+            "ci-smoke": {},
+            "miniflux": {},
+            "grav": {},
+            "mdmesh": {"domain": "mdm.example.com"},
+        },
     })
     assert pyinfra_task_harness.included == [
         "tasks/docker/ci-smoke.py",
         "tasks/docker/miniflux.py",
         "tasks/docker/grav.py",
+        "tasks/docker/mdmesh.py",
     ]
+
+
+def test_docker_container_skips_mdmesh_without_domain(pyinfra_task_harness):
+    """MDMesh is not deployed unless its required public hostname is configured."""
+    pyinfra_task_harness.load("docker_container.py", {
+        "docker": {"mdmesh": {"version": "0.5.0"}},
+    })
+    assert "tasks/docker/mdmesh.py" not in pyinfra_task_harness.included
 
 
 def test_vscodium_rejects_invalid_extension_configuration(pyinfra_task_harness):
