@@ -47,6 +47,7 @@
   "tasks/mullvad_extensions.py": "deployment",
   "tasks/powerline.py": "deployment",
   "tasks/proton.py": "deployment",
+  "tasks/samba.py": "deployment",
   "tasks/scripts.py": "deployment",
   "tasks/ssh_config.py": "deployment",
   "tasks/ssh_keys.py": "deployment",
