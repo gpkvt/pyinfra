@@ -55,6 +55,8 @@ def test_file_has_flag_parses_linux_lsattr_output(monkeypatch):
     assert common.file_has_flag(host, "/home/tester/file", "i") is True
     assert calls[0][0] == "Command"
     assert "lsattr -d /home/tester/file" in calls[0][1]
+    assert common.file_has_flag(host, "/home/tester/file", "i", refresh=True) is True
+    assert calls[1][1].endswith("; :")
 
     host.get_fact = lambda *_args, **_kwargs: ["-------------e------- /home/tester/file"]
     assert common.file_has_flag(host, "/home/tester/file", "i") is False
