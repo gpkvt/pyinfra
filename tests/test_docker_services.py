@@ -312,3 +312,28 @@ def test_docker_private_environment_rejects_unsafe_keys_and_values(
             "custom", "Custom", "/home/tester",
             private_env={"API_TOKEN": "line1\nline2"},
         )
+
+def test_secret_bearing_compose_templates_use_private_environment_variables():
+    """Secret values are interpolated from private project env files, not Jinja."""
+    templates = {
+        "firefly-iii": ("DATABASE_PASSWORD", "MYSQL_ROOT_PASSWORD", "APP_KEY", "STATIC_CRON_TOKEN"),
+        "linkwarden": ("POSTGRES_PASSWORD", "NEXTAUTH_SECRET", "MEILI_MASTER_KEY"),
+        "miniflux": ("POSTGRES_PASSWORD", "ADMIN_PASSWORD"),
+        "paperless": ("POSTGRES_PASSWORD", "PAPERLESS_SECRET_KEY"),
+        "snipe-it": ("DATABASE_PASSWORD", "MYSQL_ROOT_PASSWORD", "APP_KEY"),
+        "vaultwarden": ("ADMIN_TOKEN",),
+        "timetagger": ("TIMETAGGER_CREDENTIALS",),
+    }
+
+    for service, variables in templates.items():
+        content = (
+            ROOT / f"templates/docker/{service}/docker-compose.yml.j2"
+        ).read_text()
+        assert not re.search(r"{{[^}]*?(password|secret|token|key)[^}]*}}", content, re.I)
+        for variable in variables:
+            assert "${" + variable in content, f"{service} does not interpolate {variable}"
+
+    homepage = (
+        ROOT / "templates/docker/homepage/docker-compose.yml.j2"
+    ).read_text()
+    assert "environment_keys" in homepage
