@@ -124,6 +124,7 @@ import re
 from io import StringIO
 
 from pyinfra import host
+from pyinfra.facts.server import Timezone
 from pyinfra.api import FactBase
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
@@ -183,13 +184,19 @@ if timezone:
     ):
         raise ValueError(f"Invalid timezone: {timezone}")
 
-    # The built-in operation uses pyinfra's server.Timezone fact and only
-    # changes the host when the requested timezone differs.
-    server.timezone(
-        name=f"Set timezone to {timezone}",
-        timezone=timezone,
-        _sudo=True,
-    )
+    # systemd commonly reports the UTC zone as Etc/UTC, while portable
+    # configuration uses UTC. Treat these aliases as equivalent to prevent
+    # server.timezone from resetting the same zone on every deployment.
+    current_timezone = host.get_fact(Timezone)
+    utc_aliases = {"UTC", "Etc/UTC", "Etc/GMT", "GMT", "UCT", "Universal", "Zulu"}
+    if current_timezone != timezone and not (
+        current_timezone in utc_aliases and timezone in utc_aliases
+    ):
+        server.timezone(
+            name=f"Set timezone to {timezone}",
+            timezone=timezone,
+            _sudo=True,
+        )
 
 # Configure system locale
 if locale:
