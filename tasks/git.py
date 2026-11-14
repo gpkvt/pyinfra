@@ -28,17 +28,21 @@ File permissions:
 Notes:
 
 - Git installation uses the system package manager.
-- File contents are deployed without sudo; immutable attributes are managed declaratively with sudo.
+- File contents are deployed without sudo; Linux immutable attributes
+  are managed with `chattr` and inspected with `lsattr`.
 - The credentials file is managed only when `git_credentials`
   exists in the secrets dictionary and is not None; an existing unmanaged file is left untouched.
-- The Linux immutable attribute is cleared only when credentials change and is always ensured afterwards.
+- The immutable attribute is cleared only when existing credentials
+  need updating, and is restored only when missing or after an update.
 - Credentials are managed through a Jinja2 template to support
   dynamic secret values.
-
 """
+import shlex
+
 from pyinfra import host
 from pyinfra.facts.files import File, FileContents
-from pyinfra.operations import apt, files
+from pyinfra.facts.server import Command
+from pyinfra.operations import apt, files, server
 
 from common import initialize
 
@@ -72,15 +76,27 @@ if git_credentials is not None:
         host.get_fact(FileContents, path=credentials_path, _sudo=False)
         if credentials_exists else None
     )
+    content_needs_update = credentials_exists and current_content != desired_lines
 
-    # Clear the immutable flag only when an existing file needs new content.
-    files.flags(
+    # Inspect the Linux immutable bit directly. pyinfra's files.flags operation
+    # relies on the Flags fact, which invokes the BSD/macOS-only chflags utility.
+    immutable = False
+    if credentials_exists:
+        attributes = host.get_fact(
+            Command,
+            command=f"lsattr -d -- {shlex.quote(credentials_path)}",
+        ) or []
+        immutable = any(
+            fields and "i" in fields[0]
+            for fields in (line.split(maxsplit=1) for line in attributes)
+        )
+
+    # Only unlock a file when its content must actually change.
+    server.shell(
         name="Make git-credentials writable before updating",
-        path=credentials_path,
-        flags=["i"],
-        present=False,
+        commands=[f"chattr -i -- {shlex.quote(credentials_path)}"],
         _sudo=True,
-        _if=lambda: credentials_exists and current_content != desired_lines,
+        _if=lambda: bool(content_needs_update and immutable),
     )
 
     files.template(
@@ -92,12 +108,11 @@ if git_credentials is not None:
         _sudo=False,
     )
 
-    # The built-in operation checks the post-template state and is a no-op
-    # when the immutable flag is already set.
-    files.flags(
+    # Newly-created files and files that were updated need the immutable bit.
+    # An already-correct immutable file is left completely untouched.
+    server.shell(
         name="Protect git-credentials from modification",
-        path=credentials_path,
-        flags=["i"],
-        present=True,
+        commands=[f"chattr +i -- {shlex.quote(credentials_path)}"],
         _sudo=True,
+        _if=lambda: bool(not immutable or content_needs_update),
     )
