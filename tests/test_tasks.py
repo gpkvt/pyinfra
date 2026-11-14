@@ -708,7 +708,8 @@ def test_dehydrated_hostname_certificates_apply_zone_boundaries_and_blacklist(py
     assert module.build_dehydrated_certificates(
         {
             "192.168.1.10": ["web.example.com", "private.example.com"],
-            "192.168.1.20": ["nas.example.com", "web.example.com"],
+            "192.168.1.20": ["nas.example.com", "shared.example.com"],
+            "192.168.1.21": ["shared.example.com"],
             "192.168.1.30": ["example.com.attacker.test", "other.test"],
         },
         ["example.com"],
