@@ -577,3 +577,48 @@ def test_system_locale_generates_missing_locale(pyinfra_task_harness):
         and kwargs.get("locale") == "en_GB.UTF-8"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+def test_powerline_fonts_install_and_refresh_only_when_required(
+    pyinfra_task_harness,
+):
+    """Powerline font copies and cache refresh are gated by actual changes."""
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, **_kwargs: ["missing"] if fact.__name__ == "Command" else None
+    )
+    pyinfra_task_harness.load("fonts.py", {"powerline_fonts": True})
+
+    extraction = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "unarchive"
+        and kwargs.get("name") == "Extract Powerline fonts"
+    )
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install missing Powerline fonts"
+    )
+    refresh = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Refresh font cache"
+    )
+
+    assert extraction["creates"] == "/tmp/powerline-fonts/fonts-master"
+    assert install["_if"]() is True
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, **_kwargs: ["current"] if fact.__name__ == "Command" else None
+    )
+    assert install["_if"]() is False
+    assert refresh["_if"]() is False
+    pyinfra_task_harness.result.changed = True
+    assert refresh["_if"]() is True
+
+
+def test_powerline_fonts_are_not_downloaded_when_disabled(pyinfra_task_harness):
+    """The optional Powerline archive is untouched when the feature is disabled."""
+    pyinfra_task_harness.load("fonts.py", {"powerline_fonts": False})
+
+    assert not any(
+        namespace == "files" and name in {"download", "unarchive"}
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
