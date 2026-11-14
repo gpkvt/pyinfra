@@ -1040,3 +1040,21 @@ def test_sablier_rejects_invalid_docker_provider_strategy(pyinfra_task_harness):
                 "provider_strategy": "suspend",
             },
         })
+
+
+
+def test_sablier_image_version_is_configurable(pyinfra_task_harness):
+    """Sablier Compose uses the inventory version rather than a task constant."""
+    pyinfra_task_harness.load("docker_sablier.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "docker_sablier": {"enabled": True, "version": "1.21.0"},
+    })
+
+    compose = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("name") == "Configure Sablier Docker provider"
+    )
+    assert compose["sablier_version"] == "1.21.0"
