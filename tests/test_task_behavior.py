@@ -6,6 +6,49 @@ import sys
 from types import SimpleNamespace
 
 
+def test_apt_repository_accepts_ascii_armored_signing_keys(pyinfra_task_harness):
+    pyinfra_task_harness.load("apt.py", {
+        "apt_sources": {
+            "docker": {
+                "key": {
+                    "url": "https://download.docker.com/linux/debian/gpg",
+                    "path": "/etc/apt/keyrings/docker.asc",
+                },
+                "repository": {
+                    "url": "https://download.docker.com/linux/debian",
+                    "distribution": "bookworm",
+                    "components": ["stable"],
+                },
+            },
+        },
+    })
+
+    key = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "apt" and name == "key"
+    )
+    assert key["dest"] == "/etc/apt/keyrings/docker.asc"
+
+
+def test_apt_repository_rejects_unsupported_keyring_suffix(pyinfra_task_harness):
+    try:
+        pyinfra_task_harness.load("apt.py", {
+            "apt_sources": {
+                "example": {
+                    "key": {"url": "https://example.test/key", "path": "/etc/apt/keyrings/key.pem"},
+                    "repository": {
+                        "url": "https://example.test/debian",
+                        "distribution": "stable",
+                    },
+                },
+            },
+        })
+    except ValueError as error:
+        assert "must end in .gpg or .asc" in str(error)
+    else:
+        raise AssertionError("Unsupported APT keyring suffix was accepted")
+
+
 def test_upgrade_apt_packages_runs_only_after_an_index_change(
     pyinfra_task_harness, monkeypatch
 ):
