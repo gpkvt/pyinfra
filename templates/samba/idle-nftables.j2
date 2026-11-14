@@ -1,0 +1,10 @@
+table inet samba_idle {
+    counter smb_traffic { }
+    chain input {
+        type filter hook input priority -10; policy accept;
+{% for network in networks %}
+{% if ':' in network %}        iifname "{{ interface }}" ip6 saddr {{ network }} tcp dport 445 counter name smb_traffic
+{% else %}        iifname "{{ interface }}" ip saddr {{ network }} tcp dport 445 counter name smb_traffic
+{% endif %}{% endfor %}
+    }
+}
