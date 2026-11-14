@@ -35,23 +35,17 @@ Notes:
   dynamic secret values.
 
 """
+from pathlib import Path
+
+from jinja2 import Template
 from pyinfra import host
+from pyinfra.facts.files import File, FileContents
 from pyinfra.operations import apt, files
 
 if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
     initialize(host)
 
-def set_immutable(path, immutable=True):
-    flag = "+i" if immutable else "-i"
-
-    print(f"    Set {flag} for {path}")
-
-    host.run_shell_command(
-        f"chattr {flag} {path}",
-        print_output=False,
-        _sudo=True,
-    )
 
 # Install git
 apt.packages(
@@ -69,16 +63,51 @@ files.put(
 )
 
 # Create git-credentials
-set_immutable(f"{homedir}/.git-credentials", False) # pylint: disable=undefined-variable
+credentials_path = f"{homedir}/.git-credentials"  # pylint: disable=undefined-variable
+git_credentials = secrets.get("git_credentials")  # pylint: disable=undefined-variable
 
-if secrets.get("git_credentials") is not None: # pylint: disable=undefined-variable
+if git_credentials is not None:
+    template_source = Path("templates/git/git-credentials.j2").read_text()
+    desired_content = Template(template_source).render(
+        git_credentials=git_credentials
+    )
+    credentials_exists = host.get_fact(File, path=credentials_path)
+    current_content = (
+        host.get_fact(FileContents, path=credentials_path)
+        if credentials_exists else None
+    )
+
+    # Immutable files must only be unlocked when the rendered content differs.
+    if credentials_exists and current_content != desired_content:
+        files.flags(
+            name="Make git-credentials writable before updating",
+            path=credentials_path,
+            flags=["i"],
+            present=False,
+            _sudo=True,
+        )
+
     files.template(
         name="Create git-credentials",
         src="templates/git/git-credentials.j2",
-        dest=f"{homedir}/.git-credentials", # pylint: disable=undefined-variable
+        dest=credentials_path,
         mode="600",
-        git_credentials=secrets.get("git_credentials", []), # pylint: disable=undefined-variable
+        git_credentials=git_credentials,
         _sudo=False,
     )
-
-set_immutable(f"{homedir}/.git-credentials", True) # pylint: disable=undefined-variable
+    files.flags(
+        name="Protect git-credentials from modification",
+        path=credentials_path,
+        flags=["i"],
+        present=True,
+        _sudo=True,
+    )
+else:
+    files.flags(
+        name="Protect existing git-credentials from modification",
+        path=credentials_path,
+        flags=["i"],
+        present=True,
+        _sudo=True,
+        _if=lambda: bool(host.get_fact(File, path=credentials_path)),
+    )
