@@ -106,7 +106,9 @@ from pyinfra import host
 from tasks.docker import deploy_docker_service
 
 miniflux = host.data.get("docker", {}).get("miniflux", {})
-miniflux_secrets = secrets.get("docker", {}).get("miniflux", {}) # pylint: disable=undefined-variable
+miniflux_secrets = (
+    secrets.get("docker", {}).get("miniflux", {})  # pylint: disable=undefined-variable
+)
 required_secrets = ("postgres_password", "admin_username", "admin_password")
 missing_secrets = [key for key in required_secrets if not miniflux_secrets.get(key)]
 if missing_secrets:
