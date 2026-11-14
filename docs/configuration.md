@@ -203,6 +203,7 @@ samba = {
     "enabled": True,
     "interface": "enp3s0",
     "allowed_networks": ["192.168.1.0/24"],
+    "idle_timeout": 3600,  # 0 disables automatic shutdown
     "upload": {"path": "/srv/samba/upload"},
     "download": {"path": "/srv/samba/download"},
 }
