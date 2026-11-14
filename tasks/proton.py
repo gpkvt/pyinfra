@@ -11,7 +11,8 @@ APT repository configuration is managed by tasks/apt.py.
 
 from pyinfra import host
 from pyinfra.facts.server import Command
-from pyinfra.operations import apt, server
+from pyinfra.operations import apt, files, server
+import shlex
 from common import command_output_text
 
 proton = host.data.get("proton", {})
@@ -88,8 +89,15 @@ if use_flatpak and flatpak_apps:
 install_drive_cli = proton.get("drive_cli", True)
 
 if install_drive_cli:
-    drive_cli_version = proton.get("drive_cli_version", proton.get("drive_cll_version", "0.9.0"))
+    drive_cli_version = proton.get(
+        "drive_cli_version",
+        proton.get("drive_cll_version", "0.9.0"),
+    )
     drive_cli_platform = "linux-x64"
+    version_marker = "/usr/local/share/pyinfra/proton-drive-version"
+
+    if not isinstance(drive_cli_version, str) or not drive_cli_version:
+        raise ValueError("proton.drive_cli_version must be a non-empty string")
 
     drive_cli_url = (
         f"https://proton.me/download/drive/cli/"
@@ -98,23 +106,34 @@ if install_drive_cli:
 
     apt.packages(
         name="Install Proton Drive CLI dependencies",
-        packages=[
-            "curl",
-            "libsecret-1-0",
-        ],
+        packages=["curl", "libsecret-1-0"],
+    )
+    files.directory(
+        name="Create Proton Drive version marker directory",
+        path="/usr/local/share/pyinfra",
+        user="root",
+        group="root",
+        mode="755",
+        _sudo=True,
     )
 
-    installed_drive_cli = host.get_fact(
+    # The marker tracks the selected release, not just binary existence.
+    installed_drive_cli_version = command_output_text(host.get_fact(
         Command,
-        command="test -x /usr/local/bin/proton-drive && echo installed || true",
-    )
+        command=(
+            "test -x /usr/local/bin/proton-drive "
+            f"&& cat {version_marker} 2>/dev/null || true"
+        ),
+    )).strip()
 
-    if "installed" not in command_output_text(installed_drive_cli).splitlines():
+    if installed_drive_cli_version != drive_cli_version:
         server.shell(
-            name="Install Proton Drive CLI",
+            name="Install or update Proton Drive CLI",
             commands=[
-                f"curl -fsSL '{drive_cli_url}' -o /tmp/proton-drive",
+                f"curl -fsSL {shlex.quote(drive_cli_url)} -o /tmp/proton-drive",
                 "install -m 0755 /tmp/proton-drive /usr/local/bin/proton-drive",
                 "rm -f /tmp/proton-drive",
+                f"printf '%s\\n' {shlex.quote(drive_cli_version)} > {version_marker}",
             ],
+            _sudo=True,
         )
