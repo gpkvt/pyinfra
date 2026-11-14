@@ -222,7 +222,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             "apt": ("packages", "update", "upgrade"),
             "files": (
                 "directory", "download", "template", "put", "sync",
-                "line", "file", "link", "unarchive",
+                "line", "file", "link", "unarchive", "flags",
             ),
             "server": (
                 "shell", "service", "hostname", "timezone", "locale",
