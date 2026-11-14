@@ -52,7 +52,9 @@ apparmor_profiles = []
 # Optional workstation/desktop configuration.
 # COSMIC settings belong exclusively in workstation.cosmic in group_data/workstation.py.
 vscodium = {"extensions": []}
-proton = {}
+proton = {
+    # "drive_cli_version": "0.9.0",  # Changing this updates the installed Drive CLI.
+}
 mullvad_extensions = {}
 mullvad_browser_dir = None
 
