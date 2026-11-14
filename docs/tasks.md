@@ -117,7 +117,7 @@ The SSH client task writes a global `Host *` baseline before the configured `ssh
 
 ### WireGuard and VPN activation
 
-The WireGuard task installs the package and renders one file per configured interface. The VPN task is separate: it inspects globally scoped IPv4 addresses using `ip -j -4 addr show scope global`, compares them with `local_network_cidr`, and enables/runs the configured `wg-quick@...` service when outside that network. IPv6 is not considered by the network-detection check.
+The WireGuard task installs the package and renders one file per configured interface. The VPN task is separate: it uses pyinfra's `hardware.Ipv4Addrs` fact, excludes loopback, link-local and unspecified addresses to match globally scoped IPv4 detection, compares the remaining addresses with `local_network_cidr`, and enables/runs the configured `wg-quick@...` service when outside that network. IPv6 is not considered by the network-detection check.
 
 ### Docker services
 
