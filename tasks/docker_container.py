@@ -56,3 +56,6 @@ if "snipe-it" in container:
 
 if "wg-easy" in container:
     local.include("tasks/docker/wg-easy.py")
+
+if "mdmesh" in container and container["mdmesh"].get("domain"):
+    local.include("tasks/docker/mdmesh.py")
