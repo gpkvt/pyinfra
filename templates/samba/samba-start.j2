@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NETWORKS_FILE=/etc/samba/allowed-networks
+[[ -r "$NETWORKS_FILE" ]] || { echo "Missing $NETWORKS_FILE" >&2; exit 1; }
+
+while IFS= read -r network; do
+    [[ -n "$network" ]] || continue
+    rule="ufw allow from $network to any port 445 proto tcp"
+    if ! sudo ufw show added | grep -Fqx "$rule"; then
+        sudo ufw allow from "$network" to any port 445 proto tcp
+    fi
+done < "$NETWORKS_FILE"
+
+sudo systemctl unmask smbd.service
+sudo systemctl start smbd.service
