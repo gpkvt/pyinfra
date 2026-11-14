@@ -258,6 +258,10 @@ Mullvad extension downloads are defined by extension IDs and URLs. The supplied 
 
 The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options. Proton Drive CLI uses `proton.drive_cli_version` (default `0.9.0`) and updates the binary when that version changes. The misspelled `proton.drive_cll_version` setting remains a deprecated compatibility fallback; use `drive_cli_version` for new configuration.
 
+## On-demand Samba file exchange
+
+`tasks/samba.py` | `samba.enabled` | Installs Samba with guest `Upload` and read-only `Download` shares, but leaves `smbd` stopped and masked. The `samba-start` and `samba-stop` scripts manage TCP 445 UFW rules and service lifecycle. See [Samba configuration and security](samba.md).
+
 ## Run an individual task
 
 For diagnosis or focused testing, pyinfra can run a task file directly. Example:

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NETWORKS_FILE=/etc/samba/allowed-networks
+sudo systemctl stop smbd.service
+sudo systemctl mask smbd.service
+
+if [[ -r "$NETWORKS_FILE" ]]; then
+    while IFS= read -r network; do
+        [[ -n "$network" ]] || continue
+        rule="ufw allow from $network to any port 445 proto tcp"
+        if sudo ufw show added | grep -Fqx "$rule"; then
+            sudo ufw --force delete allow from "$network" to any port 445 proto tcp
+        fi
+    done < "$NETWORKS_FILE"
+fi
