@@ -28,6 +28,13 @@ from tasks.docker import deploy_docker_service, ensure_numeric_directory
 
 linkwarden = host.data.get("docker", {}).get("linkwarden", {})
 linkwarden_secrets = secrets.get("docker", {}).get("linkwarden", {})  # pylint: disable=undefined-variable
+required_secrets = ("postgres_password", "nextauth_secret", "meili_master_key")
+missing_secrets = [key for key in required_secrets if not linkwarden_secrets.get(key)]
+if missing_secrets:
+    raise ValueError(
+        "Linkwarden requires these encrypted secrets under docker.linkwarden: "
+        + ", ".join(missing_secrets)
+    )
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
