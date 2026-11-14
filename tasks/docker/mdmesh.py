@@ -174,7 +174,14 @@ mdm_post_seed {shlex.quote(bootstrap + "/post_seed.sql")}
 post_seed_check = (
     f"cd {shlex.quote(root)} && docker compose exec -T postgres "
     "psql -U mdmesh -d mdmesh -Atqc "
-    "'SELECT count(*) FROM settings WHERE createnewdevices AND newdeviceconfigurationid IS NOT NULL' "
+    "'SELECT count(*) FROM settings "
+    "WHERE createnewdevices AND newdeviceconfigurationid IS NOT NULL "
+    "AND NOT EXISTS (SELECT 1 FROM configurations WHERE qrcodekey IN "
+    "('6fb9c8dc81483173a0c0e9f8b2e46be1','8e6ca072ddb926a1af61578dfa9fc334',"
+    "'350e0fb7fc3f4b7fe61cac75fd43818f')) "
+    "AND NOT EXISTS (SELECT 1 FROM applications WHERE pkg IN "
+    "('com.hmdm.launcher','com.hmdm.pager','com.hmdm.phoneproxy',"
+    "'com.hmdm.emuilauncherrestarter'))' "
     "2>/dev/null"
 )
 server.shell(
