@@ -203,9 +203,17 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
         }}},
         raising=False,
     )
-    pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
-        "v0.5.0" if "api.github.com/repos/MDMesh-app/MDMesh/releases/latest" in command else ""
-    )
+    release_commands = []
+
+    def get_fact(_fact, command="", **_kwargs):
+        release_commands.append(command)
+        return (
+            "v0.5.0"
+            if "api.github.com/repos/MDMesh-app/MDMesh/releases/latest" in command
+            else ""
+        )
+
+    pyinfra_task_harness.host.get_fact = get_fact
     pyinfra_task_harness.load("docker/mdmesh.py", {
         "docker": {"mdmesh": {
             "version": "latest",
@@ -216,6 +224,12 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
         "usergroup": "tester",
         "homedir": "/home/tester",
     })
+
+    release_request = next(
+        command for command in release_commands if "releases/latest" in command
+    )
+    assert "headers=" in release_request
+    assert "pyinfra-mdmesh-task" in release_request
 
     compose = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls

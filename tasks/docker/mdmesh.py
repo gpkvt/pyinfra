@@ -32,7 +32,7 @@ if version == "latest":
         + shlex.quote(
             "import json, urllib.request; "
             f"request = urllib.request.Request({release_url!r}, "
-            "{'User-Agent': 'pyinfra-mdmesh-task'}); "
+            "headers={'User-Agent': 'pyinfra-mdmesh-task'}); "
             "print(json.load(urllib.request.urlopen(request, timeout=15))['tag_name'])"
         )
     )
