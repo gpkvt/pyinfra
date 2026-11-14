@@ -58,6 +58,33 @@ This project follows a continuous development model. Changes are tracked using d
 
 ### Added
 
+- Added Docker-based Caddy and Sablier deployment. Sablier uses the Docker provider and Compose labels to start application containers on demand; Caddy uses host networking to retain loopback upstreams.
+- Added Dehydrated certificate renewal inside the Caddy container with the Hetzner DNS-01 hook. `dehydrated_domains` in `group_data/@local.py` supports multiple certificates, each defined by one list of primary name and SANs.
+- Added Snipe-IT asset management with MariaDB, persistent host bind mounts under `~/.docker/snipe-it/`, encrypted application/database credentials, loopback publishing, Caddy reverse proxy and Homepage integration.
+- Added custom Homepage API widgets for supported services and an RSS feed widget.
+- Added on-demand Docker service startup with Sablier, including Homepage integration and dynamic loading pages.
+
+### Changed
+
+- Configured Homepage API requests to bypass Sablier so dashboard widgets remain available without starting application containers.
+- Set Caddy's HTTP response deadline to two minutes.
+
+### Fixed
+
+- Made Sablier Compose service ordering deterministic.
+- Corrected Caddy/Sablier route handler ordering and preserved response headers.
+- Improved Docker and Caddy systemd execution under the configured user, including no-op detection to avoid unnecessary operations.
+- Fixed Docker deployment and repository-check regressions.
+- Added Sablier labels for configured Compose dependencies so they start with applications and can stop with the same session group.
+- Removed overlapping certificate renewal during deployment, added Caddy container health checks, and kept Caddy state in explicit host bind mounts below `~/.docker/caddy/`.
+- Replaced the broken in-container cron setup with an idempotently deployed user systemd timer that runs Dehydrated daily at 03:00.
+- Created Dehydrated's configured `conf.d` directory in the Caddy image and fixed the Hetzner hook's handling of textual exit-hook arguments.
+- Fixed Caddy deployment change detection so unchanged renewal, image-build, container-start and health-check operations are skipped.
+
+## [11.11.2026]
+
+### Added
+
 - Added Firefly III with MariaDB, scheduled maintenance, and the FinTS importer; application, database and importer configuration persist under `~/.docker/firefly-iii/` with Caddy routes for both web interfaces.
 - Added Paperless-ngx with PostgreSQL, Valkey, Gotenberg and Tika, persistent host-directory mounts under `~/.docker/paperless/`, and the `paperless.21x9.org` Caddy reverse-proxy route.
 - Added the WG-Easy Docker service with persistent WireGuard configuration under `~/.docker/wg-easy/`, loopback-only administration UI publishing and Caddy reverse proxy integration.
@@ -133,6 +160,7 @@ This project follows a continuous development model. Changes are tracked using d
 - Added usage instructions for udev and USBGuard.
 - Added contribution guidelines and a security policy.
 - Improved the README and deployment documentation.
+- Reworked the README and expanded the task, system, and template documentation ([#1](https://github.com/gpkvt/pyinfra/pull/1), [#3](https://github.com/gpkvt/pyinfra/pull/3)).
 
 ### Fixed
 
@@ -174,3 +202,8 @@ This project follows a continuous development model. Changes are tracked using d
 ### Removed
 
 - Removed automatic APT unused-package cleanup because it could report changes on every run due to the lack of dry-run support.
+
+### Documentation
+
+- Added deployment and system configuration documentation.
+- Added information about secrets and SSH keys.
