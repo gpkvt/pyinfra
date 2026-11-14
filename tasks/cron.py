@@ -113,7 +113,10 @@ if validated_jobs:
     )
 
 
-if any(present for _name, _command, _target_user, present, _schedule in validated_jobs):
+if any(
+    present
+    for _name, _command, _target_user, present, _schedule in validated_jobs
+):
     server.service(
         name="Ensure cron daemon is enabled and running",
         service="cron",
