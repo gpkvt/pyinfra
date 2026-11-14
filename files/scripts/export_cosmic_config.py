@@ -67,8 +67,21 @@ def parse_bool(value):
     return value == "true"
 
 
+def parse_string_list(value):
+    """Parse a RON list containing strings, including RON trailing commas."""
+    # COSMIC writes valid RON, which permits trailing commas that JSON rejects.
+    normalized = re.sub(r",\s*(?=])", "", value)
+    try:
+        items = json.loads(normalized)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"Unsupported COSMIC applet list: {error}") from error
+    if not isinstance(items, list) or not all(isinstance(item, str) for item in items):
+        raise ValueError("Applet lists must contain strings")
+    return items
+
+
 def parse_applets(value):
-    """Parse only the JSON-compatible RON tuple/list form emitted by our tasks."""
+    """Parse the string-list tuple used by COSMIC panel and dock applets."""
     match = re.fullmatch(
         r"\s*Some\s*\(\s*\(\s*(\[.*?\])\s*,\s*(\[.*?\])\s*,?\s*\)\s*\)\s*",
         value,
@@ -76,10 +89,7 @@ def parse_applets(value):
     )
     if not match:
         raise ValueError("Unsupported COSMIC plugins_wings RON representation")
-    left, right = (json.loads(item) for item in match.groups())
-    if not all(isinstance(items, list) and all(isinstance(x, str) for x in items)
-               for items in (left, right)):
-        raise ValueError("Applet lists must contain strings")
+    left, right = (parse_string_list(item) for item in match.groups())
     return {"left": left, "right": right}
 
 
@@ -88,10 +98,7 @@ def parse_center(value):
     match = re.fullmatch(r"\s*Some\s*\(\s*(\[.*\])\s*\)\s*", value, re.DOTALL)
     if not match:
         raise ValueError("Unsupported COSMIC plugins_center RON representation")
-    items = json.loads(match.group(1))
-    if not isinstance(items, list) or not all(isinstance(x, str) for x in items):
-        raise ValueError("Applet list must contain strings")
-    return items
+    return parse_string_list(match.group(1))
 
 
 def convert_value(value, kind):

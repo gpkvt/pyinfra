@@ -71,6 +71,15 @@ def test_update_local_config_is_idempotent():
     assert EXPORTER.update_local_config(first, {"appearance": {"mode": "dark"}}) == first
 
 
+def test_parse_applets_accepts_cosmic_ron_trailing_commas():
+    assert EXPORTER.parse_applets(
+        'Some(([\n    "left.app",\n], [\n    "right.app",\n]))'
+    ) == {"left": ["left.app"], "right": ["right.app"]}
+    assert EXPORTER.parse_center(
+        'Some([\n    "center.app",\n])'
+    ) == ["center.app"]
+
+
 def test_parse_applets_rejects_other_ron_syntax():
     with pytest.raises(ValueError):
         EXPORTER.parse_applets("Some((None, None))")
