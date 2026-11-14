@@ -11,7 +11,7 @@ from pyinfra.api import deploy
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
-from common import command_output_text
+from common import command_output_text, initialize
 from tasks.homepage_config import homepage_api_exclusions
 
 CADDY_VERSION = "2.11.2"
