@@ -10,6 +10,7 @@ It is deliberately excluded from the Compose template so pyinfra diffs
 never print the credential hash.
 """
 
+import builtins
 from io import StringIO
 
 from pyinfra import host
@@ -33,7 +34,7 @@ if (
         "username:bcrypt-hash value without quotes or backslashes"
     )
 
-homedir = homedir  # pylint: disable=undefined-variable
+homedir = host.data.get("homedir", getattr(builtins, "homedir", "/root"))
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 service_dir = f"{homedir}/.docker/timetagger"
