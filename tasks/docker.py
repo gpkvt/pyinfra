@@ -320,7 +320,10 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
 
     server.shell(
         name=f"Pull {service} Docker images",
-        commands=[f"docker compose -f {homedir}/.docker/{service}/docker-compose.yml pull"],
+        commands=[
+            "docker compose -f "
+            f"{shlex.quote(f'{homedir}/.docker/{service}/docker-compose.yml')} pull"
+        ],
         _sudo=False, _if=compose_file.did_change,
     )
 
