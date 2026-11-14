@@ -28,12 +28,11 @@ Example inventory configuration::
     powerline_fonts = True
 """
 
+from pyinfra.operations import apt, server, files
+from pyinfra.facts.files import Directory
 from pyinfra import host
-from pyinfra.facts.server import Command
-from pyinfra.operations import apt, files, server
-from pyinfra.operations.util import any_changed
 
-font_packages = apt.packages(
+apt.packages(
     name="Installing font packages",
     packages=[
         "fontconfig",
@@ -132,37 +131,29 @@ if host.data.get("powerline_fonts", False):
         dest=ARCHIVE,
     )
 
-    # The destination directory is created above, so use an explicit marker
-    # rather than branching on a fact collected before that operation runs.
-    files.unarchive(
-        name="Extract Powerline fonts",
-        src=ARCHIVE,
-        dest=EXTRACT_DIR,
-        remote_src=True,
-        creates=f"{EXTRACT_DIR}/fonts-master",
-    )
+    if host.get_fact(Directory, EXTRACT_DIR):
+        # Extract archive
+        files.unarchive(
+            name="Extract Powerline fonts",
+            src=ARCHIVE,
+            dest=EXTRACT_DIR,
+            remote_src=True,
+        )
 
-    missing_fonts_command = (
-        f"missing=$(find {EXTRACT_DIR}/fonts-master -type f "
-        r"\( -iname '*.ttf' -o -iname '*.otf' \) -printf '%f\n' "
-        f"| while IFS= read -r name; do "
-        f"[ -e {FONT_DIR}/\"$name\" ] || printf '%s\\n' \"$name\"; "
-        "done); "
-        "[ -n \"$missing\" ] && printf missing || printf current"
-    )
-    install_fonts = server.shell(
-        name="Install missing Powerline fonts",
-        commands=[
-            f'find {EXTRACT_DIR}/fonts-master -type f '
-            r'\( -iname "*.ttf" -o -iname "*.otf" \) '
-            rf'-exec cp -n {{}} {FONT_DIR}/ \;'
-        ],
-        _if=lambda: "missing" in (host.get_fact(Command, missing_fonts_command) or []),
-    )
+        # Install all TTF and OTF fonts
+        server.shell(
+            name="Install Powerline fonts",
+            commands=[
+                f'find {EXTRACT_DIR}/fonts-master -type f '
+                r'\( -iname "*.ttf" -o -iname "*.otf" \) '
+                rf'-exec cp -n {{}} {FONT_DIR}/ \;'
+            ],
+        )
 
-    # Refresh only after APT installs font packages or additional fonts change.
+    # Refresh font cache
     server.shell(
         name="Refresh font cache",
-        commands=[f"fc-cache -f {FONT_DIR}"],
-        _if=any_changed(font_packages, install_fonts),
+        commands=[
+            f"fc-cache -f {FONT_DIR}"
+        ],
     )

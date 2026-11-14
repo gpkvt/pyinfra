@@ -195,16 +195,6 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                         "app_key": "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
                         "cron_token": "f" * 32,
                     },
-                    "linkwarden": {
-                        "postgres_password": "ci-linkwarden-db",
-                        "nextauth_secret": "ci-linkwarden-nextauth",
-                        "meili_master_key": "ci-linkwarden-meili",
-                    },
-                    "miniflux": {
-                        "postgres_password": "ci-miniflux-db",
-                        "admin_username": "ci-admin",
-                        "admin_password": "ci-miniflux-admin",
-                    },
                     "paperless": {
                         "postgres_password": "ci-postgres",
                         "secret_key": "ci-paperless-secret",
@@ -214,7 +204,6 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                         "mysql_root_password": "ci-mysql-root",
                         "app_key": "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
                     },
-                    "timetagger": {"credentials": "ci:$2a$08$fake-hash"},
                 }
             },
             raising=False,

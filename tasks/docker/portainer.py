@@ -37,7 +37,6 @@ deploy_docker_service(
     service="portainer",
     description="Portainer Docker Management",
     homedir=homedir,  # pylint: disable=undefined-variable
-    compose_services=["portainer"],
     username=username,
     usergroup=usergroup,
     image=portainer.get("image", "portainer/portainer-ce:lts"),

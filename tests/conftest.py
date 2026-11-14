@@ -2,7 +2,6 @@
 """Shared test helpers for pyinfra deployment tests."""
 
 import builtins
-import importlib.machinery
 import importlib.util
 import json
 import runpy
@@ -11,10 +10,6 @@ import types
 from pathlib import Path
 
 import pytest
-
-
-PYINFRA_SPEC = importlib.machinery.ModuleSpec("pyinfra", loader=None, is_package=True)
-PYINFRA_SPEC.submodule_search_locations = [str(Path(__file__).parent)]
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -62,25 +57,7 @@ def task_environment(monkeypatch):
         return record
 
     pyinfra = types.ModuleType("pyinfra")
-    pyinfra.__spec__ = PYINFRA_SPEC
     pyinfra.host = types.SimpleNamespace(data=Data())
-    facts = types.ModuleType("pyinfra.facts")
-    facts_files = types.ModuleType("pyinfra.facts.files")
-    facts_files.File = type("File", (), {})
-    facts_files.FileContents = type("FileContents", (), {})
-    facts_server = types.ModuleType("pyinfra.facts.server")
-    facts_server.Command = type("Command", (), {})
-    facts_server.Which = type("Which", (), {})
-    facts_hardware = types.ModuleType("pyinfra.facts.hardware")
-    facts_hardware.Ipv4Addrs = type("Ipv4Addrs", (), {})
-    facts.files = facts_files
-    facts.server = facts_server
-    facts.hardware = facts_hardware
-    pyinfra.facts = facts
-    monkeypatch.setitem(sys.modules, "pyinfra.facts", facts)
-    monkeypatch.setitem(sys.modules, "pyinfra.facts.files", facts_files)
-    monkeypatch.setitem(sys.modules, "pyinfra.facts.server", facts_server)
-    monkeypatch.setitem(sys.modules, "pyinfra.facts.hardware", facts_hardware)
     operations = types.ModuleType("pyinfra.operations")
     for name in ("apt", "files", "server"):
         module = types.ModuleType(f"pyinfra.operations.{name}")
@@ -145,6 +122,8 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             if "remote-list" in command:
                 return ""
             return ""
+        if name == "SystemLocale":
+            return host_data.get("locale")
         if name == "UfwActive":
             return False
         if name == "UfwRules":
@@ -153,12 +132,15 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             return {"incoming": "deny", "outgoing": "allow"}
         if name == "AppArmorStatus":
             return {}
-        if name == "Locales":
-            return []
         if name in {"FlatpakUpdates", "FlatpakSystemUpdates"}:
             return []
         if name == "VSCodiumExtensions":
             return set()
+        if name == "Command":
+            command = kwargs.get("command", args[0] if args else "")
+            if "api.github.com/repos/SimoHypers/limusic/releases/latest" in command:
+                return "v1.3.0"
+            return ""
         if name == "CertNeedsRenewal":
             return False
         if name == "SudoersFile":
@@ -212,7 +194,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     for namespace in ("apt", "files", "server", "systemd", "flatpak", "crontab"):
         module = types.ModuleType(f"pyinfra.operations.{namespace}")
         names = {
-            "apt": ("packages", "update", "upgrade", "key"),
+            "apt": ("packages", "update", "upgrade"),
             "files": (
                 "directory", "download", "template", "put", "sync",
                 "line", "file", "link", "unarchive",
@@ -233,20 +215,12 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     util = types.ModuleType("pyinfra.operations.util")
     util.any_changed = lambda *_operations: (lambda: False)
     facts = types.ModuleType("pyinfra.facts")
-    pyinfra.facts = facts
     facts_files = types.ModuleType("pyinfra.facts.files")
     facts_files.Directory = type("Directory", (), {})
     facts_files.File = type("File", (), {})
-    facts_files.FileContents = type("FileContents", (), {})
     pyinfra.facts.files = facts_files
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
-    facts_server.Which = type("Which", (), {})
-    facts_hardware = types.ModuleType("pyinfra.facts.hardware")
-    facts_hardware.Ipv4Addrs = type("Ipv4Addrs", (), {})
-    facts.hardware = facts_hardware
-    facts_server.Timezone = type("Timezone", (), {})
-    facts_server.Locales = type("Locales", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.api", api),
@@ -255,7 +229,6 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
         ("pyinfra.facts", facts),
         ("pyinfra.facts.files", facts_files),
         ("pyinfra.facts.server", facts_server),
-        ("pyinfra.facts.hardware", facts_hardware),
     ):
         monkeypatch.setitem(sys.modules, name, module)
 

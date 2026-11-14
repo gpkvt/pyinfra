@@ -28,25 +28,30 @@ File permissions:
 Notes:
 
 - Git installation uses the system package manager.
-- File contents are deployed without sudo; immutable attributes are changed with sudo only when needed.
-- The credentials file is managed only when `git_credentials`
-  exists in the secrets dictionary and is not None; an existing unmanaged file is left untouched.
-- The Linux immutable attribute is removed only when credentials change and restored only when absent.
+- Configuration files are deployed without sudo.
+- The credentials file is only created when `git_credentials`
+  exists in the secrets dictionary and is not None.
 - Credentials are managed through a Jinja2 template to support
   dynamic secret values.
 
 """
-import shlex
-
 from pyinfra import host
-from pyinfra.facts.files import File, FileContents
-from pyinfra.operations import apt, files, server
-
-from common import file_has_flag, initialize
+from pyinfra.operations import apt, files
 
 if not hasattr(__import__('builtins'), 'homedir'):
+    from common import initialize
     initialize(host)
 
+def set_immutable(path, immutable=True):
+    flag = "+i" if immutable else "-i"
+
+    print(f"    Set {flag} for {path}")
+
+    host.run_shell_command(
+        f"chattr {flag} {path}",
+        print_output=False,
+        _sudo=True,
+    )
 
 # Install git
 apt.packages(
@@ -64,44 +69,16 @@ files.put(
 )
 
 # Create git-credentials
-credentials_path = f"{homedir}/.git-credentials"  # pylint: disable=undefined-variable
-git_credentials = secrets.get("git_credentials")  # pylint: disable=undefined-variable
-quoted_credentials_path = shlex.quote(credentials_path)
+set_immutable(f"{homedir}/.git-credentials", False) # pylint: disable=undefined-variable
 
-if git_credentials is not None:
-    desired_content = "".join(f"{credential}\n" for credential in git_credentials)
-    desired_lines = desired_content.splitlines()
-    credentials_exists = host.get_fact(File, path=credentials_path, _sudo=False)
-    current_content = (
-        host.get_fact(FileContents, path=credentials_path, _sudo=False)
-        if credentials_exists else None
-    )
-
-    # Unlock only when the rendered credentials actually need updating.
-    if credentials_exists and current_content != desired_lines:
-        server.shell(
-            name="Make git-credentials writable before updating",
-            commands=[f"chattr -i {quoted_credentials_path}"],
-            _if=lambda: file_has_flag(host, credentials_path, "i"),
-            _sudo=True,
-        )
-
+if secrets.get("git_credentials") is not None: # pylint: disable=undefined-variable
     files.template(
         name="Create git-credentials",
         src="templates/git/git-credentials.j2",
-        dest=credentials_path,
+        dest=f"{homedir}/.git-credentials", # pylint: disable=undefined-variable
         mode="600",
-        git_credentials=git_credentials,
+        git_credentials=secrets.get("git_credentials", []), # pylint: disable=undefined-variable
         _sudo=False,
     )
 
-    server.shell(
-        name="Protect git-credentials from modification",
-        commands=[f"chattr +i {quoted_credentials_path}"],
-        # File existence was checked before template deployment; avoid reusing
-        # that cached fact after the template creates or updates the file.
-        _if=lambda: not file_has_flag(
-            host, credentials_path, "i", refresh=True
-        ),
-        _sudo=True,
-    )
+set_immutable(f"{homedir}/.git-credentials", True) # pylint: disable=undefined-variable

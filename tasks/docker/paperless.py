@@ -50,7 +50,6 @@ deploy_docker_service(
     service="paperless",
     description="Paperless-ngx Document Management",
     homedir=homedir,
-    compose_services=["broker","db","gotenberg","tika","webserver"],
     username=username,
     usergroup=usergroup,
     image=paperless.get("image", "ghcr.io/paperless-ngx/paperless-ngx:latest"),
@@ -59,8 +58,6 @@ deploy_docker_service(
     uid=uid,
     gid=gid,
     timezone=host.data.get("timezone", "UTC"),
-    private_env={
-        "POSTGRES_PASSWORD": paperless_secrets["postgres_password"],
-        "PAPERLESS_SECRET_KEY": paperless_secrets["secret_key"],
-    },
+    postgres_password=paperless_secrets.get("postgres_password", ""),
+    secret_key=paperless_secrets.get("secret_key", ""),
 )

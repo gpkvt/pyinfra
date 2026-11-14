@@ -9,8 +9,8 @@ services:
 
     environment:
       HOMEPAGE_ALLOWED_HOSTS: "{{ domain }}"
-{% for key in environment_keys %}
-      {{ key }}: "${{ key }}"
+{% for key, value in environment.items() %}
+      {{ key }}: {{ value | tojson }}
 {% endfor %}
 
     extra_hosts:

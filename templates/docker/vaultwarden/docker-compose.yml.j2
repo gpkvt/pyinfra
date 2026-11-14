@@ -8,6 +8,6 @@ services:
       DOMAIN: "{{ domain }}"
       SIGNUPS_ALLOWED: "false"
       INVITATIONS_ALLOWED: "false"
-      ADMIN_TOKEN: "${ADMIN_TOKEN:-}"
+      ADMIN_TOKEN: "{{ admin_token | replace('$', '$$') }}"
     volumes:
       - {{ homedir }}/.docker/vaultwarden:/data

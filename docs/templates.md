@@ -25,7 +25,7 @@ Templates may receive host data, runtime values initialized by `common.py`, and 
 
 ## Docker Compose templates and persistent data
 
-Each service has a Compose template under `templates/docker/<service>/docker-compose.yml.j2`; the shared systemd unit is `templates/docker/systemd.service.j2`. Compose files are deployed to `~/.docker/<service>/docker-compose.yml`. Persistent data is stored in host directories under `~/.docker/` and mounted into the containers:
+Each service has a Compose template under `templates/docker/<service>/docker-compose.yml.j2`; the shared systemd unit is `templates/docker/systemd.service.j2`. Compose files are deployed to `~/<service>/docker-compose.yml`. Persistent data is stored in host directories under `~/.docker/` and mounted into the containers:
 
 | Service | Host path | Container path |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Some older service templates used Docker-managed named volumes. Switching an exi
 | dehydrated config | `/etc/dehydrated/config`, root-owned with mode `0600`. |
 | Borgmatic config | `/etc/borgmatic/config.yaml`, root-owned with mode `0600`; review and complete its repository/source settings before relying on it. The current template also contains the literal fallback passphrase `B0rgm4t1C!`—do not use that default for real backups. |
 | dehydrated hook | `/etc/dehydrated/hook.sh`, root-owned with executable permissions. |
-| Docker Compose | `~/.docker/<service>/` under the configured user's home. |
+| Docker Compose | Service-specific directory under the configured user's home. |
 | Docker systemd unit | `~/.config/systemd/user/<service>.service`. |
 | Git credentials | `~/.git-credentials`, mode `0600`, only when matching secrets exist. |
 | User scripts | `~/scripts/`; symlinks are created in `/usr/local/bin/`. |

@@ -40,7 +40,6 @@ deploy_docker_service(
     service="forgejo",
     description="Forgejo Git Service",
     homedir=homedir,  # pylint: disable=undefined-variable
-    compose_services=["forgejo"],
     username=username,
     usergroup=usergroup,
     image=forgejo.get("image", "codeberg.org/forgejo/forgejo:17"),

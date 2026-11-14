@@ -37,7 +37,7 @@ common.py ────────── shared runtime values and decrypted sec
 2. **Initialization.** `deploy.py` calls `common.initialize(host, check_flatpak=True)`. The function checks for `secrets.json.gpg`; when present, it runs `gpg --decrypt`, parses JSON, and assigns the result to `builtins.secrets`. If absent, it assigns an empty dictionary. It also sets `builtins.homedir` and, when requested, `builtins.flatpak` from the `Which` fact.
 3. **Task selection.** Core task modules are included unconditionally. Optional modules are included when the relevant `host.data` value, secret entry, or detected executable is truthy. The workstation role is an inventory group: `workstation = ["@local"]` assigns the local target to that group, and pyinfra loads `group_data/workstation.py` alongside the host's own data. `deploy.py` then includes each `tasks/workstation/*.py` module only when its matching `workstation.<feature>.enabled` setting is true. The exact gates are listed in [Deployment workflow](deployment.md).
 4. **Local secret maintenance.** `files/scripts/gpg-vault` is synchronized to the configured user's scripts directory by `tasks/scripts.py` and linked into `/usr/local/bin/`. It is an operator-facing tool; `common.initialize()` continues to decrypt `secrets.json.gpg` itself during deployment.
-5. **Operation execution.** pyinfra prepares operations by reading facts and determining the required changes, then executes them in order. Facts read directly in deploy code describe the pre-deployment state; use operation callbacks such as `did_change` and `any_changed` through `_if` when a later operation depends on an earlier operation's result. Never branch on an operation's change result with an ordinary Python `if` during preparation.
+5. **Operation execution.** pyinfra evaluates the included operations against the selected hosts and reports changed and unchanged operations. Operations may use facts and conditional callbacks to decide whether a change is required.
 
 ## Configuration namespaces
 
@@ -66,18 +66,6 @@ Tasks are grouped by responsibility rather than by host. General tasks live dire
 - Keep file ownership and permissions explicit.
 - Avoid overwriting user-generated material unless that behavior is intentional and documented.
 - Be safe to run repeatedly and use pyinfra facts/conditions to minimize unnecessary changes.
-
-## Docker lifecycle
-
-Docker Compose projects, generated environment files and persistent host data live below
-\`~/.docker/<service>/\`. Each project is managed by a user-level systemd unit whose
-working directory is that service directory. Persistent data uses explicit host bind
-mounts; Docker-managed named volumes are not used.
-
-Keep Compose lifecycle commands behind the shared systemd helper. Replacing this flow
-with pyinfra's stateless \`docker.compose\` operation would bypass the user-level unit
-and Sablier preparation/restart rules. The helper instead gates image pulls,
-container reconciliation and systemd restarts on actual configuration changes.
 
 ## Templates and static assets
 

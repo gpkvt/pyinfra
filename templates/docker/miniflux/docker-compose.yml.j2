@@ -7,10 +7,10 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://miniflux:${POSTGRES_PASSWORD:?}@db/miniflux?sslmode=disable
+      - DATABASE_URL=postgres://miniflux:{{ postgres_password }}@db/miniflux?sslmode=disable
       - RUN_MIGRATIONS=True
       - ADMIN_USERNAME={{ admin_username }}
-      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?}
+      - ADMIN_PASSWORD={{ admin_password }}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - LISTEN_ADDR=0.0.0.0:8080
       - POLLING_SCHEDULER=entry_frequency
@@ -23,7 +23,7 @@ services:
     image: postgres:{{ postgres_version }}
     environment:
       - POSTGRES_USER=miniflux
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?}
+      - POSTGRES_PASSWORD={{ postgres_password }}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/12/bin
       - GOSU_VERSION=1.14
       - LANG=en_US.utf8

@@ -32,7 +32,6 @@ deploy_docker_service(
     service="tasmoadmin",
     description="TasmoAdmin Tasmota Management",
     homedir=homedir,  # pylint: disable=undefined-variable
-    compose_services=["tasmoadmin"],
     username=username,
     usergroup=usergroup,
     image=tasmoadmin.get("image", "ghcr.io/tasmoadmin/tasmoadmin:latest"),

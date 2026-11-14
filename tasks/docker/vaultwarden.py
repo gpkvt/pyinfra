@@ -14,7 +14,7 @@ Secrets:
         upstream container's /vaultwarden hash command.
 
 Persistent data:
-    A host bind mount at ~/.docker/vaultwarden/ stores the Vaultwarden data.
+    Docker-managed named volume stores the Vaultwarden data directory.
 
 Security:
     Public signups and invitations are disabled by default. The HTTP
@@ -35,15 +35,10 @@ deploy_docker_service(
     service="vaultwarden",
     description="Vaultwarden Password Manager",
     homedir=homedir,  # pylint: disable=undefined-variable
-    compose_services=["vaultwarden"],
     username=username,
     usergroup=usergroup,
     image=vaultwarden.get("image", "vaultwarden/server:latest"),
     port=vaultwarden.get("port", 8018),
     domain=vaultwarden.get("domain", "https://vaultwarden.21x9.org"),
-    private_env=(
-        {"ADMIN_TOKEN": vaultwarden_secrets["admin_token"]}
-        if vaultwarden_secrets.get("admin_token")
-        else {}
-    ),
+    admin_token=vaultwarden_secrets.get("admin_token", ""),
 )
