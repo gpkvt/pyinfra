@@ -129,6 +129,6 @@ def compose_configuration_matches(host, compose_command):
     # A no-op reports existing containers as Running/Healthy. Any planned
     # lifecycle or image action means the deployed project needs reconciliation.
     return not re.search(
-        r"\\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\\b",
+        r"\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\\b",
         output,
     )
