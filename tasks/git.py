@@ -71,9 +71,9 @@ quoted_credentials_path = shlex.quote(credentials_path)
 if git_credentials is not None:
     desired_content = "".join(f"{credential}\n" for credential in git_credentials)
     desired_lines = desired_content.splitlines()
-    credentials_exists = host.get_fact(File, path=credentials_path)
+    credentials_exists = host.get_fact(File, path=credentials_path, _sudo=False)
     current_content = (
-        host.get_fact(FileContents, path=credentials_path)
+        host.get_fact(FileContents, path=credentials_path, _sudo=False)
         if credentials_exists else None
     )
 
