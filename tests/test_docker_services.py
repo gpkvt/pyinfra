@@ -227,10 +227,10 @@ def test_all_compose_data_uses_host_bind_mounts_under_docker_directory():
 
     for template in templates:
         lines = template.read_text().splitlines()
-        assert not any(re.match(r"^volumes:\\s*$", line) for line in lines), template
+        assert not any(re.match(r"^volumes:\s*$", line) for line in lines), template
 
         for index, line in enumerate(lines):
-            if not re.match(r"^    volumes:\\s*$", line):
+            if not re.match(r"^    volumes:\s*$", line):
                 continue
 
             mount_index = index + 1
