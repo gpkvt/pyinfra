@@ -142,7 +142,7 @@ def build_domains_file(certificates):
     return lines
 
 
-def build_dehydrated_certificates(
+def build_dehydrated_certificates(  # pylint: disable=R0912,R0914,R0915,R1702
     hostnames, eligible_zones, blacklist=None, wildcards=None, auto_enabled=True,
 ):
     """Build wildcard and allowlisted hostname-derived certificate definitions.
