@@ -86,7 +86,7 @@ def task_environment(monkeypatch):
     operations = types.ModuleType("pyinfra.operations")
     for name in ("apt", "files", "server"):
         module = types.ModuleType(f"pyinfra.operations.{name}")
-        for function in ("packages", "template", "service"):
+        for function in ("packages", "template", "service", "flags"):
             setattr(module, function, operation(name))
         setattr(operations, name, module)
         monkeypatch.setitem(sys.modules, f"pyinfra.operations.{name}", module)
