@@ -1,7 +1,6 @@
 # pylint: disable=E0401
 """
 
-import re
 Deploy and manage Linkwarden using Docker Compose.
 
 Configuration:
@@ -22,6 +21,7 @@ Persistent data:
         ~/.docker/linkwarden/data/
         ~/.docker/linkwarden/meili/
 """
+import re
 
 from pyinfra import host
 from pyinfra.operations import files
