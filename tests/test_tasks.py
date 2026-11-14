@@ -566,6 +566,11 @@ def test_caddy_deploys_and_enables_daily_renewal_timer(pyinfra_task_harness, mon
         "docker": {"custom": {"port": 8080}},
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
         "dehydrated_domains": [["example.org"]],
+        "caddy_versions": {
+            "version": "2.11.2",
+            "sablier_plugin": "v1.0.2",
+            "dehydrated": "0.7.2",
+        },
     })
     timer_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
@@ -649,6 +654,11 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
         "docker": {"custom": {"port": 8080}},
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
         "dehydrated_domains": [["example.org"]],
+        "caddy_versions": {
+            "version": "2.11.2",
+            "sablier_plugin": "v1.0.2",
+            "dehydrated": "0.7.2",
+        },
     })
     docker_actions = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
@@ -696,6 +706,11 @@ def test_caddy_retries_reload_when_deployed_config_is_not_acknowledged(
         "docker": {"custom": {"port": 8080}},
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
         "dehydrated_domains": [["example.org"]],
+        "caddy_versions": {
+            "version": "2.11.2",
+            "sablier_plugin": "v1.0.2",
+            "dehydrated": "0.7.2",
+        },
     })
     reload_call = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
@@ -1009,7 +1024,15 @@ def test_caddy_versions_must_be_explicitly_configured(pyinfra_task_harness):
     with pytest.raises(ValueError, match="caddy_versions.version"):
         module.required_version({}, "version", "caddy_versions.version")
     with pytest.raises(ValueError, match="caddy_versions.sablier_plugin"):
-        module.required_version({"version": "2.12.0"}, "sablier_plugin", "caddy_versions.sablier_plugin")
+        module.required_version(
+            {"version": "2.12.0"},
+            "sablier_plugin",
+            "caddy_versions.sablier_plugin",
+        )
     with pytest.raises(ValueError, match="caddy_versions.dehydrated"):
-        module.required_version({"version": "2.12.0"}, "dehydrated", "caddy_versions.dehydrated")
+        module.required_version(
+            {"version": "2.12.0"},
+            "dehydrated",
+            "caddy_versions.dehydrated",
+        )
     assert module.required_version({"version": "2.12.0"}, "version", "caddy_versions.version") == "2.12.0"
