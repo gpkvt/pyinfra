@@ -28,14 +28,9 @@ Configuration:
         the deployment secrets configuration.
 
         Supported options:
-            postgres_password (str): PostgreSQL database password.
-                Defaults to an empty string.
-
-            admin_username (str): Miniflux administrator username.
-                Defaults to an empty string.
-
-            admin_password (str): Miniflux administrator password.
-                Defaults to an empty string.
+            postgres_password (str): Required PostgreSQL database password.
+            admin_username (str): Required Miniflux administrator username.
+            admin_password (str): Required Miniflux administrator password.
 
     homedir (str): Home directory of the configured user.
         Defined globally in the main deployment configuration.
@@ -56,11 +51,13 @@ Operations:
         description:
             Miniflux Docker Service
 
-        Template variables:
-            postgres_password
+        Private environment:
+            POSTGRES_PASSWORD
+            ADMIN_PASSWORD
+
+        Non-secret template variables:
             postgres_version
             admin_username
-            admin_password
             port
             homedir
 
@@ -77,6 +74,7 @@ File locations:
 File permissions:
     - Docker configuration directory: 0750.
     - Docker Compose configuration: 0640.
+    - Private environment file: 0600.
     - systemd service unit: 0644.
 
 Service:
@@ -91,8 +89,9 @@ Service:
 Notes:
     - Docker Compose and systemd configurations are generated using
       shared Jinja2 templates and deployment logic.
-    - Database and administrator credentials are supplied through
-      the deployment secrets configuration.
+    - Database and administrator passwords are written to a mode-0600
+      project .env file and interpolated by Docker Compose. The administrator
+      username remains a non-secret Compose setting.
     - File deployment and service management run without sudo.
     - The systemd daemon is reloaded and the service enabled when
       the systemd unit file changes.
