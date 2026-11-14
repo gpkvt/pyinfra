@@ -201,3 +201,24 @@ def test_sablier_shell_arguments_quote_user_and_compose_paths(pyinfra_task_harne
     assert start["commands"] == [
         "docker compose -f '/home/test user/.docker/sablier/docker-compose.yml' up -d"
     ]
+
+
+def test_docker_image_pull_quotes_compose_path_with_spaces(pyinfra_task_harness):
+    """The image-pull command must treat the Compose path as one argument."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": False},
+    })
+    module.deploy_docker_service(
+        "custom", "Custom", "/home/test user", username="tester"
+    )
+
+    pull = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Pull Custom Docker images"
+    )
+    assert pull["commands"] == [
+        "docker compose -f '/home/test user/.docker/custom/docker-compose.yml' pull"
+    ]
