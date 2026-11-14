@@ -171,6 +171,8 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
         monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
         service = Path(relative_path).stem
         docker_config = {service: {}}
+        if service == "miniflux":
+            docker_config[service] = {"postgres_version": 12}
         if service == "ci-smoke":
             docker_config[service] = {
                 "image": "alpine:3.21",
@@ -289,10 +291,11 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                     "pass": False,
                     "flatpak": False,
                     "drive_cli": True,
+                    "drive_cli_version": "0.9.0",
                 }
             }
         elif relative_path == "tasks/docker_sablier.py":
-            data = {"docker_sablier": {"enabled": True}}
+            data = {"docker_sablier": {"enabled": True, "version": "1.20.0"}}
         elif relative_path == "tasks/samba.py":
             data = {"samba": {"enabled": True, "allowed_networks": ["192.168.1.0/24"]}}
         elif relative_path == "tasks/hosts.py":
