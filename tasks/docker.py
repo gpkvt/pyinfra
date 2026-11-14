@@ -304,6 +304,8 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     )
     service_active = command_output_text(service_status).strip() == "active"
 
+    label_recreation = None
+
     # Check every container, including replicas, for the expected labels.
     # Compose config alone is insufficient: Docker labels are immutable after
     # container creation.
@@ -329,11 +331,13 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
                 f'!= {expected_labels} ]; then printf drift; exit 0; fi;'
             )
         label_check_command = " ".join(label_checks) + " printf match"
-        sablier_labels_match = command_output_text(
-            host.get_fact(Command, label_check_command)
-        ).strip() == "match"
+        def sablier_labels_match():
+            # Evaluate after Docker and the Compose file have been deployed.
+            return command_output_text(
+                host.get_fact(Command, label_check_command)
+            ).strip() == "match"
 
-        server.shell(
+        label_recreation = server.shell(
             name=f"Recreate {service} containers with Sablier labels",
             commands=[
                 f"cd {compose_dir} && /usr/bin/docker compose "
@@ -341,11 +345,8 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
                 "up --no-start --force-recreate"
             ],
             _sudo=False,
-            _if=lambda: not sablier_labels_match,
+            _if=lambda: not sablier_labels_match(),
         )
-    else:
-        sablier_labels_match = True
-
     server.shell(
         name=f"Reload systemd and ensure {service} is prepared",
         commands=[
@@ -357,7 +358,10 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         _if=lambda: (
             any_changed(*restart_triggers)()
             or not service_active
-            or not sablier_labels_match
+            or (
+                label_recreation is not None
+                and label_recreation.did_change()
+            )
         ),
     )
 
