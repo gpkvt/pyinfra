@@ -166,10 +166,10 @@ def test_docker_compose_projects_use_managed_directory_and_remove_legacy_files(
     assert len(legacy) == 2
     assert all(operation["present"] is False for operation in legacy)
 
-def test_timetagger_requires_encrypted_credentials_and_escapes_compose_dollars(
+def test_timetagger_stores_credentials_in_private_env_file(
     pyinfra_task_harness, monkeypatch,
 ):
-    """TimeTagger credentials come from secrets and Compose interpolation is escaped."""
+    """TimeTagger credentials are written literally outside the Compose template."""
     captured = {}
     docker_module = types.ModuleType("tasks.docker")
     docker_module.deploy_docker_service = lambda **kwargs: captured.update(kwargs)
@@ -197,7 +197,7 @@ def test_timetagger_requires_encrypted_credentials_and_escapes_compose_dollars(
     assert len(captured["restart_if"]) == 1
     assert credentials_file["mode"] == "600"
     assert credentials_file["dest"] == "/home/tester/.docker/timetagger/.env"
-    assert credentials_file["src"].getvalue() == "TIMETAGGER_CREDENTIALS='tester:$2a$08$hash'\\n"
+    assert credentials_file["src"].getvalue() == "TIMETAGGER_CREDENTIALS='tester:$2a$08$hash'\n"
 
     template = (ROOT / "templates/docker/timetagger/docker-compose.yml.j2").read_text()
     assert "{{ homedir }}/.docker/timetagger/.env" in template
