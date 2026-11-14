@@ -161,7 +161,7 @@ def test_git_credentials_are_protected_after_first_deployment(
         raising=False,
     )
     file_exists = {"value": False}
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
+    pyinfra_task_harness.host.get_fact = lambda fact, *_args, **_kwargs: (
         file_exists["value"] if fact.__name__ == "File"
         else ["-------------e------- /home/tester/.git-credentials"]
     )
