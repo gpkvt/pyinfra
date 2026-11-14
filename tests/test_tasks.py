@@ -867,6 +867,49 @@ def test_appflowy_requires_encrypted_credentials(pyinfra_task_harness):
         pyinfra_task_harness.load("docker/appflowy.py")
 
 
+
+def test_docker_sablier_container_inspection_is_deferred_until_execution(
+    pyinfra_task_harness,
+):
+    """The Docker daemon is queried only after its Compose project is deployed."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "docker": {"custom": {"sablier": {"enabled": True}}},
+        "docker_sablier": {"enabled": True},
+    })
+    observed = []
+
+    def get_fact(_fact, command="", **_kwargs):
+        observed.append(command)
+        if command.startswith("id -u"):
+            return "1000"
+        if "show --property=ActiveState --value custom" in command:
+            return "active"
+        if "docker compose" in command:
+            return "match"
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service(
+        "custom",
+        "Custom",
+        "/home/tester",
+        username="tester",
+        usergroup="tester",
+        compose_services=["app"],
+    )
+    assert not any("docker compose" in command for command in observed)
+
+    label_operation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Recreate custom containers with Sablier labels"
+    )
+    assert label_operation["_if"]() is False
+    assert any("docker compose" in command for command in observed)
+
+
 def test_docker_service_accepts_multiple_restart_triggers(pyinfra_task_harness):
     """A list of changed assets can restart a Compose service without nested triggers."""
     module = pyinfra_task_harness.load("docker.py", {
