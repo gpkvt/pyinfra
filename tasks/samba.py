@@ -97,28 +97,15 @@ if config.get("enabled", False):
             "command", command="systemctl show samba-idle.timer --property=NeedDaemonReload --value"
         ).strip() == "yes",
     )
-    if not idle_timeout:
-        server.shell(
-            name="Remove Samba idle monitor when disabled",
-            commands=[
-                "systemctl stop samba-idle.timer 2>/dev/null || true",
-                "nft delete table inet samba_idle 2>/dev/null || true",
-                "rm -f /run/samba-idle.state",
-            ],
-            _sudo=True,
-            _if=lambda: (
-                host.get_fact(
-                    "command", command="systemctl is-active samba-idle.timer 2>/dev/null || true"
-                ).strip() == "active"
-                or bool(host.get_fact(
-                    "command", command="nft list table inet samba_idle 2>/dev/null || true"
-                ).strip())
-            ),
-        )
-
     server.shell(
         name="Keep Samba stopped until requested",
-        commands=["systemctl stop smbd.service", "systemctl mask smbd.service"],
+        commands=[
+            "systemctl stop samba-idle.timer 2>/dev/null || true",
+            "nft delete table inet samba_idle 2>/dev/null || true",
+            "rm -f /run/samba-idle.state",
+            "systemctl stop smbd.service",
+            "systemctl mask smbd.service",
+        ],
         _sudo=True,
         _if=lambda: (
             host.get_fact(
@@ -127,5 +114,14 @@ if config.get("enabled", False):
             or host.get_fact(
                 "command", command="systemctl is-enabled smbd.service 2>/dev/null || true"
             ).strip() != "masked"
+            or host.get_fact(
+                "command", command="systemctl is-active samba-idle.timer 2>/dev/null || true"
+            ).strip() == "active"
+            or bool(host.get_fact(
+                "command", command="nft list table inet samba_idle 2>/dev/null || true"
+            ).strip())
+            or host.get_fact(
+                "command", command="test -e /run/samba-idle.state && echo present || true"
+            ).strip() == "present"
         ),
     )
