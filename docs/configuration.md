@@ -112,11 +112,16 @@ The tracked workstation example disables all features by default. Review each fe
 
 ```python
 hostnames = {
-    "127.0.0.1": "localhost",
-    "::1": "localhost",
-    "192.0.2.10": "app.example.test app",
+    "127.0.0.1": ["localhost"],
+    "::1": ["localhost"],
+    "192.0.2.10": ["app.example.test", "app"],
 }
 ```
+
+Each IP address must map to a list; space-separated strings are no longer
+accepted. Convert an old value such as `"app.example.test app"` to
+`["app.example.test", "app"]`. An empty list removes all entries for that IP
+address from `/etc/hosts`.
 
 VPN-related settings:
 

@@ -181,14 +181,45 @@ def test_mc_skin_line_replaces_existing_skin_setting(pyinfra_task_harness):
     assert "flags" not in skin_call[2]
 
 
-def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
+def test_hosts_task_schedules_list_based_hostname_mappings(pyinfra_task_harness):
     pyinfra_task_harness.load("hosts.py", {
-        "hostnames": {"192.0.2.10": "example.test alias.test"},
+        "hostnames": {
+            "192.0.2.10": ["example.test", "alias.test"],
+            "192.0.2.11": ["single.test"],
+        },
+    })
+    calls = [call for call in pyinfra_task_harness.calls if call[1] == "etc_hosts"]
+    assert len(calls) == 2
+    assert calls[0][2]["ip"] == "192.0.2.10"
+    assert calls[0][2]["hostnames"] == ["example.test", "alias.test"]
+    assert calls[1][2]["ip"] == "192.0.2.11"
+    assert calls[1][2]["hostnames"] == ["single.test"]
+
+
+def test_hosts_task_removes_ip_when_hostname_list_is_empty(pyinfra_task_harness):
+    pyinfra_task_harness.load("hosts.py", {
+        "hostnames": {"192.0.2.10": []},
     })
     calls = [call for call in pyinfra_task_harness.calls if call[1] == "etc_hosts"]
     assert len(calls) == 1
     assert calls[0][2]["ip"] == "192.0.2.10"
-    assert calls[0][2]["hostnames"] == "example.test alias.test"
+    assert calls[0][2]["present"] is False
+    assert "hostnames" not in calls[0][2]
+
+
+@pytest.mark.parametrize(
+    "hostnames",
+    [
+        {"192.0.2.10": "example.test alias.test"},
+        {"192.0.2.10": ("example.test",)},
+        {"192.0.2.10": ["example.test", ""]},
+    ],
+)
+def test_hosts_task_rejects_non_list_or_empty_hostname_values(
+    pyinfra_task_harness, hostnames,
+):
+    with pytest.raises(ValueError, match="list of non-empty strings"):
+        pyinfra_task_harness.load("hosts.py", {"hostnames": hostnames})
 
 
 def test_mdmesh_is_skipped_without_a_configured_domain(pyinfra_task_harness):
