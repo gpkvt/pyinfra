@@ -64,8 +64,8 @@
     "test_upgrade_apt_packages_runs_only_after_an_index_change"
   ],
   "tasks/caddy.py:build_domains_file": [
-    "test_dehydrated_domains_support_multiple_certificates_and_sans",
-    "test_dehydrated_domains_reject_empty_or_duplicate_definitions"
+    "test_dehydrated_certificate_lines_support_multiple_certificates_and_sans",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
   ],
   "tasks/caddy.py:build_sablier_caddy_config": [
     "test_sablier_caddy_routes_only_wrap_configured_docker_services",
@@ -293,5 +293,21 @@
   ],
   "tasks/docker/mdmesh.py:deploy_mdmesh": [
     "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
+  "tasks/caddy.py:normalize_domain": [
+    "test_dehydrated_certificate_lines_support_multiple_certificates_and_sans",
+    "test_dehydrated_hostname_certificates_group_names_and_keep_private_ips",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
+  ],
+  "tasks/caddy.py:wildcard_covers": [
+    "test_dehydrated_wildcards_suppress_only_one_label_hostname_matches",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
+  ],
+  "tasks/caddy.py:build_dehydrated_certificates": [
+    "test_dehydrated_hostname_certificates_group_names_and_keep_private_ips",
+    "test_dehydrated_hostname_certificates_apply_zone_boundaries_and_blacklist",
+    "test_dehydrated_wildcards_suppress_only_one_label_hostname_matches",
+    "test_dehydrated_wildcard_certificate_can_include_apex_san",
+    "test_dehydrated_auto_hostname_discovery_can_be_disabled",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
   ]
 }

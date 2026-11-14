@@ -265,8 +265,10 @@ vscodium_enabled = True  # Master gate for installing configured VSCodium extens
 caddy_config = {}  # Caddy sites keyed by hostname; each value is a mapping of Caddy directives.
 # Example: {"example.com": {"encode": "gzip", "reverse_proxy": "127.0.0.1:8080"}}.
 # Add only sites not already generated from configured Docker services.
-dehydrated_domains = []  # Each item is a list of DNS names covered by one certificate; Hetzner token belongs in secrets.
-# Example: [["example.com", "*.example.com"], ["other.example.net"]].
+dehydrated_auto_domains = True  # Set False to disable automatic certificate discovery from hostnames.
+dehydrated_zones = []  # Explicit DNS-zone allowlist; only names within these zones are auto-enrolled.
+dehydrated_blacklist = []  # Exclude individual hostnames or all names assigned to an IP address.
+dehydrated_wildcards = []  # Explicit wildcard certificates, e.g. [["example.com", "*.example.com"]]; each item is one certificate.
 cron_jobs = []  # Named cron jobs; each needs name, command and at least one schedule field.
 syncthing = {}  # Syncthing settings; an empty mapping keeps the GUI on its safe loopback default.
 # Example: {"gui_address": "127.0.0.1:8384"}; avoid exposing the GUI without authentication.

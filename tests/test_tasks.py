@@ -679,26 +679,111 @@ def test_docker_service_rejects_empty_app_services(pyinfra_task_harness):
         )
 
 
-def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
+def test_dehydrated_certificate_lines_support_multiple_certificates_and_sans(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
-        ["example.com", "*.example.com"],
+        ["*.example.com"],
         ["other.example.com", "www.other.example.com", "api.other.example.com"],
     ]) == [
-        "example.com *.example.com",
+        "*.example.com",
         "other.example.com www.other.example.com api.other.example.com",
+    ]
+    assert module.build_domains_file([]) == []
+
+
+def test_dehydrated_hostname_certificates_group_names_and_keep_private_ips(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    assert module.build_dehydrated_certificates(
+        {
+            "192.168.1.10": ["server.example.com", "files.example.com", "localhost"],
+            "10.0.0.5": ["nas.example.com"],
+        },
+        ["example.com"],
+    ) == [
+        ["server.example.com", "files.example.com"],
+        ["nas.example.com"],
     ]
 
 
-def test_dehydrated_domains_reject_empty_or_duplicate_definitions(pyinfra_task_harness):
+def test_dehydrated_hostname_certificates_apply_zone_boundaries_and_blacklist(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
-    with pytest.raises(ValueError, match="at least one certificate"):
-        module.build_domains_file([])
+    assert module.build_dehydrated_certificates(
+        {
+            "192.168.1.10": ["web.example.com", "private.example.com"],
+            "192.168.1.20": ["nas.example.com", "shared.example.com"],
+            "192.168.1.21": ["shared.example.com"],
+            "192.168.1.30": ["example.com.attacker.test", "other.test"],
+        },
+        ["example.com"],
+        blacklist=["192.168.1.20", "private.example.com"],
+    ) == [["web.example.com"]]
+
+
+def test_dehydrated_wildcards_suppress_only_one_label_hostname_matches(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    assert module.build_dehydrated_certificates(
+        {
+            "192.168.1.10": [
+                "web.example.com",
+                "nested.api.example.com",
+                "example.com",
+                "other.example.net",
+            ],
+        },
+        ["example.com", "example.net"],
+        wildcards=[["*.example.com"]],
+    ) == [
+        ["*.example.com"],
+        ["nested.api.example.com", "example.com", "other.example.net"],
+    ]
+
+
+def test_dehydrated_wildcard_certificate_can_include_apex_san(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    assert module.build_dehydrated_certificates(
+        {"192.168.1.10": ["www.example.com", "example.com"]},
+        ["example.com"],
+        wildcards=[["example.com", "*.example.com"]],
+    ) == [["example.com", "*.example.com"]]
+
+
+def test_dehydrated_auto_hostname_discovery_can_be_disabled(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    assert module.build_dehydrated_certificates(
+        {"192.168.1.10": ["web.example.com"]},
+        ["example.com"],
+        wildcards=[["*.example.com"]],
+        auto_enabled=False,
+    ) == [["*.example.com"]]
+    assert module.build_dehydrated_certificates(
+        {"192.168.1.10": ["web.example.com"]},
+        ["example.com"],
+        auto_enabled=False,
+    ) == []
+
+
+def test_dehydrated_certificate_configuration_rejects_unsafe_inputs(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    with pytest.raises(ValueError, match="outside the configured"):
+        module.build_dehydrated_certificates(
+            {}, ["example.com"], wildcards=[["*.attacker.test"]]
+        )
+    with pytest.raises(ValueError, match="duplicate zones"):
+        module.build_dehydrated_certificates({}, ["example.com", "example.com"])
+    with pytest.raises(ValueError, match="must be a boolean"):
+        module.build_dehydrated_certificates({}, ["example.com"], auto_enabled="yes")
     with pytest.raises(ValueError, match="more than one certificate"):
         module.build_domains_file([
             ["example.com", "www.example.com"],
             ["example.net", "www.example.com"],
         ])
+    with pytest.raises(ValueError, match="overlaps a hostname"):
+        module.build_dehydrated_certificates(
+            {"192.168.1.20": ["internal.example.com"]},
+            ["example.com"],
+            blacklist=["internal.example.com"],
+            wildcards=[["*.example.com"]],
+        )
     with pytest.raises(ValueError, match="Invalid domain"):
         module.build_domains_file([["not a domain"]])
 
@@ -729,7 +814,8 @@ def test_caddy_deploys_and_enables_daily_renewal_timer(pyinfra_task_harness, mon
     pyinfra_task_harness.load("caddy.py", {
         "docker": {"custom": {"port": 8080}},
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
-        "dehydrated_domains": [["example.org"]],
+        "hostnames": {"192.0.2.10": ["example.org"]},
+        "dehydrated_zones": ["example.org"],
         "caddy_versions": {
             "version": "2.11.2",
             "sablier_plugin": "v1.0.2",
@@ -819,7 +905,8 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
         "homedir": "/home/tester",
         "docker": {"custom": {"port": 8080}},
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
-        "dehydrated_domains": [["example.org"]],
+        "hostnames": {"192.0.2.10": ["example.org"]},
+        "dehydrated_zones": ["example.org"],
         "caddy_versions": {
             "version": "2.11.2",
             "sablier_plugin": "v1.0.2",
@@ -838,7 +925,9 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
         }
     ]
     assert len(docker_actions) == 5
-    assert all(call["_if"]() is False for call in docker_actions)
+    assert all(call["_if"]() is False for call in docker_actions), [
+        (call["name"], call["_if"]()) for call in docker_actions
+    ]
     assert status_sudo_flags == [False]
 
 
@@ -871,7 +960,8 @@ def test_caddy_retries_reload_when_deployed_config_is_not_acknowledged(
         "homedir": "/home/tester",
         "docker": {"custom": {"port": 8080}},
         "caddy_config": {"example.org:443": {"reverse_proxy": "127.0.0.1:8080"}},
-        "dehydrated_domains": [["example.org"]],
+        "hostnames": {"192.0.2.10": ["example.org"]},
+        "dehydrated_zones": ["example.org"],
         "caddy_versions": {
             "version": "2.11.2",
             "sablier_plugin": "v1.0.2",
