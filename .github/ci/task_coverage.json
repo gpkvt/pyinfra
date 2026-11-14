@@ -77,5 +77,6 @@
   "tasks/workstation/peripherals.py": "deployment",
   "tasks/workstation/power.py": "deployment",
   "tasks/workstation/storage.py": "deployment",
-  "tasks/zsh.py": "deployment"
+  "tasks/zsh.py": "deployment",
+  "files/scripts/export_cosmic_config.py": "utility"
 }

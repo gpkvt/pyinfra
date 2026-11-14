@@ -37,6 +37,8 @@ These task modules are included on every full deployment.
 | `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Deploys Sablier as a Docker container using the Docker provider and enables on-demand startup through Compose labels. It is mutually exclusive with the Docker battery monitor. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
 | `tasks/workstation/cosmic/deploy.py` | `cosmic` | Deploys explicitly enabled COSMIC appearance, window-management, input, custom-shortcut, panel, dock and workspace settings. Display/output configuration is intentionally excluded. |
+
+Use `python files/scripts/export_cosmic_config.py --dry-run` to preview supported live COSMIC settings before updating `group_data/@local.py`; omit `--dry-run` to apply the update. The exporter reads only settings managed by the COSMIC tasks, preserves management flags and unrelated host data, and leaves settings it cannot reliably reconstruct unchanged (including the numeric `anchor_gap` value).
 | `tasks/mullvad_extensions.py` | `mullvad_extensions` | Downloads configured browser extensions and deploys `user.js`. |
 | `tasks/vscodium.py` | `vscodium` | Installs configured VSCodium extensions that are not already installed. |
 | `tasks/proton.py` | `proton` | Installs/configures selected Proton applications using the configured distribution sources. |
