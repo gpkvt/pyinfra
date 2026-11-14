@@ -65,6 +65,37 @@ def test_samba_systemd_checks_use_command_fact_and_normalize_output(
     assert all(fact.__name__ == "Command" for fact, _, _ in fact_calls)
 
 
+
+def test_samba_deployment_preserves_explicitly_started_session(pyinfra_task_harness):
+    def get_fact(fact, *args, **kwargs):
+        command = kwargs["command"]
+        if "samba-started" in command:
+            return ["yes"]
+        if "NeedDaemonReload" in command:
+            return []
+        if "is-active smbd.service" in command:
+            return ["active"]
+        if "is-enabled smbd.service" in command:
+            return ["enabled"]
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("samba.py", {
+        "samba": {
+            "enabled": True,
+            "allowed_networks": ["192.168.1.0/24"],
+        },
+    })
+
+    keep_stopped = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Keep Samba stopped until requested"
+    )
+    assert keep_stopped["_if"]() is False
+
+
+
 @pytest.mark.parametrize("network", ["not-a-network", "192.168.1.1/99"])
 def test_samba_rejects_invalid_networks(pyinfra_task_harness, network):
     with pytest.raises(ValueError, match="Invalid samba.allowed_networks"):
@@ -81,8 +112,10 @@ def test_samba_share_security_and_lifecycle_are_explicit():
     start = (ROOT / "templates/samba/samba-start.j2").read_text()
     stop = (ROOT / "templates/samba/samba-stop.j2").read_text()
     assert "systemctl unmask --quiet smbd.service" in start
+    assert "touch /run/samba-started" in start
     assert "ufw show added" in start
     assert "systemctl mask smbd.service" in stop
+    assert "rm -f /run/samba-started" in stop
     assert "ufw --force delete" in stop
     assert "samba-idle.timer" in stop
     assert "nft delete table inet samba_idle" in stop
