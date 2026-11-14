@@ -2,6 +2,7 @@
 
 import ast
 import builtins
+import json
 import re
 import sys
 import types
@@ -248,3 +249,11 @@ def test_all_compose_data_uses_host_bind_mounts_under_docker_directory():
                     or host_path == "/var/run/docker.sock"
                 ), f"{template}: unexpected volume source {host_path!r}"
                 mount_index += 1
+
+def test_secrets_example_is_valid_json_and_documents_timetagger_credentials():
+    """The tracked encrypted-secrets example remains parseable and complete."""
+    example = json.loads((ROOT / "secrets.json.gpg.example").read_text())
+
+    assert example["docker"]["timetagger"]["credentials"] == (
+        "REPLACE_USERNAME:REPLACE_WITH_BCRYPT_HASH"
+    )
