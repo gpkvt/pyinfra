@@ -59,6 +59,8 @@ deploy_docker_service(
     uid=uid,
     gid=gid,
     timezone=host.data.get("timezone", "UTC"),
-    postgres_password=paperless_secrets.get("postgres_password", ""),
-    secret_key=paperless_secrets.get("secret_key", ""),
+    private_env={
+        "POSTGRES_PASSWORD": paperless_secrets["postgres_password"],
+        "PAPERLESS_SECRET_KEY": paperless_secrets["secret_key"],
+    },
 )
