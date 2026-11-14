@@ -49,11 +49,13 @@ def test_samba_systemd_reload_ignores_only_intentional_smbd_mask(
         fact_calls.append((fact, args, kwargs))
         command = kwargs["command"]
         if "NeedDaemonReload" in command:
-            if "for unit in samba-idle.service samba-idle.timer" in command:
-                return ["yes"] if idle_reload_required else []
-            return ["yes"] if smbd_reload_required else []
+            return ["yes"] if (
+                idle_reload_required or (smbd_reload_required and not smbd_masked)
+            ) else []
+        if "samba-started" in command:
+            return ["yes"]
         if "systemctl is-enabled smbd.service" in command:
-            return ["masked"] if smbd_masked else ["enabled"]
+            return ["masked"]
         if "is-active" in command:
             return ["inactive"]
         return []
@@ -72,7 +74,11 @@ def test_samba_systemd_reload_ignores_only_intentional_smbd_mask(
     }
     reload_operation = shell_operations["Reload systemd unit definitions when needed"]
     assert reload_operation["_if"]() is expected
-    assert "is-enabled smbd.service" in fact_calls[0][2]["command"]
+    assert any(
+        "is-enabled smbd.service" in kwargs["command"]
+        and "NeedDaemonReload" in kwargs["command"]
+        for _, _, kwargs in fact_calls
+    )
     assert shell_operations["Protect existing Samba upload contents from deletion"]["_if"]() is False
     assert shell_operations["Keep Samba stopped until requested"]["_if"]() is False
     assert fact_calls
