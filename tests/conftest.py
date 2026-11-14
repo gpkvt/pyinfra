@@ -237,6 +237,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     facts_files = types.ModuleType("pyinfra.facts.files")
     facts_files.Directory = type("Directory", (), {})
     facts_files.File = type("File", (), {})
+    facts_files.FileContents = type("FileContents", (), {})
     pyinfra.facts.files = facts_files
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
