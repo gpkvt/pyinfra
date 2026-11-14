@@ -200,7 +200,7 @@ def test_timetagger_stores_credentials_in_private_env_file(
     assert credentials_file["src"].getvalue() == "TIMETAGGER_CREDENTIALS='tester:$2a$08$hash'\n"
 
     template = (ROOT / "templates/docker/timetagger/docker-compose.yml.j2").read_text()
-    assert "{{ homedir }}/.docker/timetagger/.env" in template
+    assert "      - .env" in template
     assert "TIMETAGGER_CREDENTIALS" not in template
     assert "test:test" not in template
 
