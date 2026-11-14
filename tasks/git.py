@@ -37,7 +37,10 @@ Notes:
 """
 from pyinfra import host
 from pyinfra.facts.files import File, FileContents
-from pyinfra.operations import apt, files
+from pyinfra.facts.server import Command
+from pyinfra.operations import apt, files, server
+
+from common import command_output_text, file_has_flag, initialize
 
 if not hasattr(__import__('builtins'), 'homedir'):
     from common import initialize
@@ -62,23 +65,23 @@ files.put(
 # Create git-credentials
 credentials_path = f"{homedir}/.git-credentials"  # pylint: disable=undefined-variable
 git_credentials = secrets.get("git_credentials")  # pylint: disable=undefined-variable
+quoted_credentials_path = shlex.quote(credentials_path)
 
 if git_credentials is not None:
     desired_content = "".join(f"{credential}\n" for credential in git_credentials)
+    desired_lines = desired_content.splitlines()
     credentials_exists = host.get_fact(File, path=credentials_path)
     current_content = (
         host.get_fact(FileContents, path=credentials_path)
         if credentials_exists else None
     )
-    desired_lines = desired_content.splitlines()
 
-    # Immutable files must only be unlocked when the rendered content differs.
+    # Unlock only when the rendered credentials actually need updating.
     if credentials_exists and current_content != desired_lines:
-        files.flags(
+        server.shell(
             name="Make git-credentials writable before updating",
-            path=credentials_path,
-            flags=["i"],
-            present=False,
+            commands=[f"chattr -i {quoted_credentials_path}"],
+            _if=lambda: file_has_flag(host, credentials_path, "i"),
             _sudo=True,
         )
 
@@ -90,19 +93,23 @@ if git_credentials is not None:
         git_credentials=git_credentials,
         _sudo=False,
     )
-    files.flags(
+
+    server.shell(
         name="Protect git-credentials from modification",
-        path=credentials_path,
-        flags=["i"],
-        present=True,
+        commands=[f"chattr +i {quoted_credentials_path}"],
+        _if=lambda: (
+            bool(host.get_fact(File, path=credentials_path))
+            and not file_has_flag(host, credentials_path, "i")
+        ),
         _sudo=True,
     )
 else:
-    files.flags(
+    server.shell(
         name="Protect existing git-credentials from modification",
-        path=credentials_path,
-        flags=["i"],
-        present=True,
+        commands=[f"chattr +i {quoted_credentials_path}"],
+        _if=lambda: (
+            bool(host.get_fact(File, path=credentials_path))
+            and not file_has_flag(host, credentials_path, "i")
+        ),
         _sudo=True,
-        _if=lambda: bool(host.get_fact(File, path=credentials_path)),
     )
