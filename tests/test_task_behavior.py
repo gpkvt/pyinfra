@@ -722,9 +722,12 @@ def test_proton_drive_cli_reinstalls_when_binary_is_missing(pyinfra_task_harness
 
 def test_system_timezone_skips_equivalent_utc_alias(pyinfra_task_harness):
     """Etc/UTC and UTC represent the same zone and must not cause a change."""
-    pyinfra_task_harness.host.get_fact = lambda fact, *_args, **_kwargs: (
-        "Etc/UTC" if getattr(fact, "__name__", "") == "Timezone" else []
-    )
+    def get_fact(fact, *_args, **_kwargs):
+        if getattr(fact, "__name__", "") == "Timezone":
+            return "Etc/UTC"
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
     pyinfra_task_harness.load("system.py", {
         "locale": "",
         "timezone": "UTC",
