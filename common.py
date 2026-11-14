@@ -24,6 +24,11 @@ def command_output_text(output: str | list[str] | None) -> str:
     return "\n".join(str(line) for line in output)
 
 
+def command_output(host, command: str, **kwargs) -> str:
+    """Run a Command fact and normalize its output to text."""
+    return command_output_text(host.get_fact(Command, command, **kwargs))
+
+
 def file_has_flag(host, path: str, flag: str, refresh: bool = False) -> bool:
     """Return whether a Linux file attribute is set, without shell side effects."""
     command = f"lsattr -d {shlex.quote(path)} 2>/dev/null || true"
