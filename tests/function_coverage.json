@@ -29,6 +29,9 @@
   "tasks/apt.py:upgrade_apt_packages": [
     "test_upgrade_apt_packages_runs_only_after_an_index_change"
   ],
+  "tasks/caddy.py:required_version": [
+    "test_caddy_versions_must_be_explicitly_configured"
+  ],
   "tasks/caddy.py:build_domains_file": [
     "test_dehydrated_domains_support_multiple_certificates_and_sans",
     "test_dehydrated_domains_reject_empty_or_duplicate_definitions"
