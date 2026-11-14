@@ -14,8 +14,10 @@ from pyinfra.operations import files, server
 from common import command_output_text, initialize
 from tasks.homepage_config import homepage_api_exclusions
 
-CADDY_VERSION = "2.11.2"
-PLUGIN_VERSION = "v1.0.2"
+caddy_versions = host.data.get("caddy_versions", {})
+CADDY_VERSION = caddy_versions.get("version", "2.11.2")
+PLUGIN_VERSION = caddy_versions.get("sablier_plugin", "v1.0.2")
+DEHYDRATED_VERSION = caddy_versions.get("dehydrated", "0.7.2")
 IMAGE = f"pyinfra/caddy-sablier:{CADDY_VERSION}"
 
 
@@ -182,11 +184,15 @@ def configure_caddy():  # pylint: disable=R0914
         user=username, group=usergroup, mode="600",
         api_token=api_token, _sudo=False,
     )
-    dockerfile = files.put(
+    dockerfile = files.template(
         name="Deploy Caddy Dockerfile",
-        src="files/caddy/Dockerfile",
+        src="templates/caddy/Dockerfile.j2",
         dest=f"{build_dir}/Dockerfile",
-        user=username, group=usergroup, mode="640", _sudo=False,
+        user=username, group=usergroup, mode="640",
+        caddy_version=CADDY_VERSION,
+        sablier_plugin_version=PLUGIN_VERSION,
+        dehydrated_version=DEHYDRATED_VERSION,
+        _sudo=False,
     )
     entrypoint = files.put(
         name="Deploy Caddy container entrypoint",
