@@ -2,6 +2,8 @@
 """
 Deploy and manage the Miniflux Docker service using pyinfra.
 
+import re
+
 This module configures and deploys Miniflux using the shared
 deploy_docker_service deployment defined in tasks/docker.py.
 
@@ -111,6 +113,8 @@ if missing_secrets:
         "Miniflux requires these encrypted secrets under docker.miniflux: "
         + ", ".join(missing_secrets)
     )
+if not re.fullmatch(r"[A-Za-z0-9_-]+", miniflux_secrets["postgres_password"]):
+    raise ValueError("Miniflux PostgreSQL password must be URL-safe")
 
 deploy_docker_service(
     service="miniflux",
