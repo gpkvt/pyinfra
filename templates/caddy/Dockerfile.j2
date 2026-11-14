@@ -1,0 +1,16 @@
+FROM caddy:{{ caddy_version }}-builder AS builder
+RUN xcaddy build v{{ caddy_version }} --with github.com/sablierapp/sablier-caddy-plugin@{{ sablier_plugin_version }}
+
+FROM caddy:{{ caddy_version }}
+USER root
+RUN apk add --no-cache bash curl jq bind-tools openssl coreutils ca-certificates setpriv \
+    && mkdir -p /etc/dehydrated/conf.d \
+    && curl -fsSL https://raw.githubusercontent.com/dehydrated-io/dehydrated/v{{ dehydrated_version }}/dehydrated \
+       -o /usr/local/bin/dehydrated \
+    && chmod 0755 /usr/local/bin/dehydrated
+COPY --from=builder /usr/bin/caddy /usr/bin/caddy
+COPY hook.sh /etc/dehydrated/hook.sh
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY renew.sh /usr/local/bin/renew.sh
+RUN chmod 0755 /etc/dehydrated/hook.sh /usr/local/bin/entrypoint.sh /usr/local/bin/renew.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
