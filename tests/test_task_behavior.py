@@ -120,7 +120,7 @@ def test_git_credentials_use_conditional_chattr_operations(
     )
     flag_state = {"immutable": True}
 
-    def get_fact(fact, command="", **_kwargs):
+    def get_fact(fact, *_args, **_kwargs):
         if fact.__name__ == "File":
             return True
         if fact.__name__ == "FileContents":
