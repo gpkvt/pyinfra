@@ -250,6 +250,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     facts_server.Which = type("Which", (), {})
     facts_hardware = types.ModuleType("pyinfra.facts.hardware")
     facts_hardware.Ipv4Addrs = type("Ipv4Addrs", (), {})
+    facts.hardware = facts_hardware
     facts_server.Timezone = type("Timezone", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
@@ -259,6 +260,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
         ("pyinfra.facts", facts),
         ("pyinfra.facts.files", facts_files),
         ("pyinfra.facts.server", facts_server),
+        ("pyinfra.facts.hardware", facts_hardware),
     ):
         monkeypatch.setitem(sys.modules, name, module)
 
