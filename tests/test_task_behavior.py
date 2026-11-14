@@ -815,3 +815,64 @@ def test_powerline_fonts_are_not_downloaded_when_disabled(pyinfra_task_harness):
         namespace == "files" and name in {"download", "unarchive"}
         for namespace, name, _kwargs in pyinfra_task_harness.calls
     )
+
+
+def test_cosmic_panel_uses_default_applets_when_not_configured(
+    pyinfra_task_harness, monkeypatch,
+):
+    """Enabling the panel without an applet override preserves COSMIC defaults."""
+    monkeypatch.delitem(sys.modules, "tasks.workstation.cosmic.config", raising=False)
+    pyinfra_task_harness.load("workstation/cosmic/panel.py", {
+        "username": "tester",
+        "homedir": "/home/tester",
+        "workstation": {
+            "cosmic": {
+                "enabled": True,
+                "panel": {"enabled": True},
+            },
+        },
+    })
+
+    panel_config = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == (
+            "Configure COSMIC panel: "
+            "com.system76.CosmicPanel.Panel/v1/plugins_wings"
+        )
+    )
+    panel_values = panel_config["src"].getvalue()
+    assert "com.system76.CosmicAppletQuickSettings" in panel_values
+    assert "com.system76.CosmicAppletNotifications" in panel_values
+    assert "com.system76.CosmicAppletTime" in panel_values
+    assert "com.system76.CosmicAppletUserSession" in panel_values
+
+
+def test_cosmic_panel_respects_explicit_empty_applet_configuration(
+    pyinfra_task_harness, monkeypatch,
+):
+    """An explicit empty applet mapping removes all default panel applets."""
+    monkeypatch.delitem(sys.modules, "tasks.workstation.cosmic.config", raising=False)
+    pyinfra_task_harness.load("workstation/cosmic/panel.py", {
+        "username": "tester",
+        "homedir": "/home/tester",
+        "workstation": {
+            "cosmic": {
+                "enabled": True,
+                "panel": {
+                    "enabled": True,
+                    "applets": {"left": [], "center": [], "right": []},
+                },
+            },
+        },
+    })
+
+    panel_config = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == (
+            "Configure COSMIC panel: "
+            "com.system76.CosmicPanel.Panel/v1/plugins_wings"
+        )
+    )
+    assert panel_config["src"].getvalue() == "Some((\n    [],\n    [],\n))\n"
