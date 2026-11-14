@@ -109,7 +109,7 @@ def test_flatpak_uninstall_operation_reports_only_real_removals(
     assert list(operation()) == ["true"]
 
 
-def test_git_credentials_use_native_immutable_flag_operations(
+def test_git_credentials_use_conditional_chattr_operations(
     pyinfra_task_harness, monkeypatch,
 ):
     monkeypatch.setattr(
@@ -118,19 +118,36 @@ def test_git_credentials_use_native_immutable_flag_operations(
         {"git_credentials": ["https://user:token@example.test"]},
         raising=False,
     )
-    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        True if fact.__name__ == "File" else ["old credentials"]
-    )
+    flag_state = {"immutable": True}
+
+    def get_fact(fact, command="", **_kwargs):
+        if fact.__name__ == "File":
+            return True
+        if fact.__name__ == "FileContents":
+            return ["old credentials"]
+        if fact.__name__ == "Command":
+            attributes = "----i--------e-------" if flag_state["immutable"] else "-------------e-------"
+            return [f"{attributes} /home/tester/.git-credentials"]
+        return None
+
+    pyinfra_task_harness.host.get_fact = get_fact
     pyinfra_task_harness.load("git.py")
 
-    flag_operations = [
+    unlock = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "flags"
-    ]
-    assert [operation["present"] for operation in flag_operations] == [False, True]
-    assert all(operation["flags"] == ["i"] for operation in flag_operations)
-    assert all(operation["_sudo"] is True for operation in flag_operations)
-
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Make git-credentials writable before updating"
+    )
+    protect = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Protect git-credentials from modification"
+    )
+    assert unlock["commands"] == ["chattr -i /home/tester/.git-credentials"]
+    assert protect["commands"] == ["chattr +i /home/tester/.git-credentials"]
+    assert unlock["_if"]() is True
+    flag_state["immutable"] = False
+    assert protect["_if"]() is True
 
 
 def test_git_credentials_remain_immutable_when_rendered_content_matches(
@@ -142,17 +159,22 @@ def test_git_credentials_remain_immutable_when_rendered_content_matches(
         {"git_credentials": ["https://user:token@example.test"]},
         raising=False,
     )
-    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
         True if fact.__name__ == "File"
         else ["https://user:token@example.test"]
+        if fact.__name__ == "FileContents"
+        else ["----i--------e------- /home/tester/.git-credentials"]
     )
     pyinfra_task_harness.load("git.py")
 
-    flag_operations = [
+    shell_operations = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "flags"
+        if namespace == "server" and name == "shell"
     ]
-    assert [operation["present"] for operation in flag_operations] == [True]
+    assert [operation["name"] for operation in shell_operations] == [
+        "Protect git-credentials from modification"
+    ]
+    assert shell_operations[0]["_if"]() is False
 
 
 def test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing(
