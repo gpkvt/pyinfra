@@ -45,9 +45,12 @@ if config.get("enabled", False):
                 "test -x /usr/share/samba/update-apparmor-samba-profile && "
                 "grep -Fq 'include if exists <samba/smbd-shares>' "
                 "/etc/apparmor.d/usr.sbin.smbd && "
-                "! systemctl cat smbd.service 2>/dev/null | "
-                "grep -Fq 'ExecStartPre=/usr/share/samba/"
-                "update-apparmor-samba-profile' && echo yes || true"
+                "! grep -Fq 'ExecStartPre=/usr/share/samba/"
+                "update-apparmor-samba-profile' "
+                "/usr/lib/systemd/system/smbd.service "
+                "/lib/systemd/system/smbd.service "
+                "/etc/systemd/system/smbd.service.d/*.conf "
+                "2>/dev/null && echo yes || true"
             ),
         )).strip() == "yes"
 
