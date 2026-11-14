@@ -293,6 +293,8 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
             }
         elif relative_path == "tasks/docker_sablier.py":
             data = {"docker_sablier": {"enabled": True}}
+        elif relative_path == "tasks/samba.py":
+            data = {"samba": {"enabled": True, "allowed_networks": ["192.168.1.0/24"]}}
         elif relative_path == "tasks/hosts.py":
             data = {"hostnames": {"127.0.0.1": ["localhost"]}}
         elif relative_path == "tasks/ssh_keys.py":
