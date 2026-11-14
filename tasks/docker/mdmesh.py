@@ -255,9 +255,10 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     . {shlex.quote(bootstrap)}/db.sh
     PSQL=(docker compose exec -T postgres psql -U mdmesh -d mdmesh)
     admin_hash=$(mdm_pwhash "$ADMIN_PASSWORD")
-    mdm_psql -c "SELECT count(*) FROM users WHERE login='admin' AND email={shlex.quote(admin_email)} AND (password='$admin_hash' OR NOT passwordreset)"
+    mdm_psql -c "SELECT count(*) FROM users WHERE login='admin' AND email={shlex.quote(admin_email)} AND (password='$admin_hash' OR NOT passwordreset)" || true
     """
     admin_check = f"bash -c {shlex.quote(admin_check_script)}"
+
     def mdmesh_needs_initialization():
         enrollment_ready = command_output_text(
             host.get_fact(Command, post_seed_check, _sudo=False)
