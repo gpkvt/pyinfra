@@ -10,6 +10,7 @@ important behavior without contacting or modifying a real machine.
 import builtins
 import os
 import runpy
+import shlex
 import subprocess
 import sys
 import types
@@ -270,6 +271,13 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     assert callable(bootstrap["_if"])
     assert "mdm_seed" in bootstrap["commands"][0]
     assert "inconsistent" in bootstrap["commands"][0]
+    assert bootstrap["_if"]() is True
+    check_command = release_commands[-1]
+    check_arguments = shlex.split(check_command)
+    sql_argument = next(argument for argument in check_arguments if "SELECT count(*) FROM settings" in argument)
+    assert "com.hmdm.emuilauncherrestarter" in sql_argument
+    assert check_arguments[-2:] == ["2>/dev/null", "||"] or check_arguments[-1] == "true"
+    assert "|| true" in check_command
 
     mdmesh_config = pyinfra_task_harness.host.data.get("docker", {}).get("mdmesh", {})
     assert mdmesh_config["sablier"] == {"enabled": False}
