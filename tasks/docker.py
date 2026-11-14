@@ -331,11 +331,10 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
                 f'!= {expected_labels} ]; then printf drift; exit 0; fi;'
             )
         label_check_command = " ".join(label_checks) + " printf match"
-        def sablier_labels_match():
-            # Evaluate after Docker and the Compose file have been deployed.
-            return command_output_text(
-                host.get_fact(Command, label_check_command)
-            ).strip() == "match"
+        # Evaluate after Docker and the Compose file have been deployed.
+        sablier_labels_match = lambda: command_output_text(
+            host.get_fact(Command, label_check_command)
+        ).strip() == "match"
 
         label_recreation = server.shell(
             name=f"Recreate {service} containers with Sablier labels",
