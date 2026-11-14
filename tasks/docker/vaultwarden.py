@@ -41,5 +41,9 @@ deploy_docker_service(
     image=vaultwarden.get("image", "vaultwarden/server:latest"),
     port=vaultwarden.get("port", 8018),
     domain=vaultwarden.get("domain", "https://vaultwarden.21x9.org"),
-    admin_token=vaultwarden_secrets.get("admin_token", ""),
+    private_env=(
+        {"ADMIN_TOKEN": vaultwarden_secrets["admin_token"]}
+        if vaultwarden_secrets.get("admin_token")
+        else {}
+    ),
 )
