@@ -1,10 +1,10 @@
 """Deploy Sablier as a Docker service using the Docker provider."""
 
+import shlex
+
 from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
-
-import shlex
 
 from common import command_output_text
 
