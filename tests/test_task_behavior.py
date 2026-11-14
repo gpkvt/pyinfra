@@ -177,7 +177,7 @@ def test_git_credentials_are_protected_after_first_deployment(
         if namespace == "server" and name == "shell"
         and kwargs.get("name") == "Protect git-credentials from modification"
     )
-    file_exists["value"] = True
+    # The cached File fact still reports absence; protection must use a fresh lsattr check.
     assert protect["_if"]() is True
 
 
