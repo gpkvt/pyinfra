@@ -40,6 +40,7 @@ import hashlib
 import re
 import shlex
 from io import StringIO
+from urllib.parse import urlsplit
 
 from common import command_output, initialize
 from pyinfra import host
@@ -78,10 +79,26 @@ for name, extension in extensions.items():
     url = extension.get("url")
     if (
         not isinstance(extension_id, str)
-        or not re.fullmatch(r"[A-Za-z0-9._@+-]+", extension_id)
+        or not re.fullmatch(
+            r"(?:[A-Za-z0-9._@+-]+|\\{[0-9A-Fa-f-]{36}\\})",
+            extension_id,
+        )
     ):
         raise ValueError(f"Invalid Mullvad extension ID: {extension_id!r}")
-    if not isinstance(url, str) or not url.startswith("https://"):
+
+    try:
+        parsed_url = urlsplit(url) if isinstance(url, str) else None
+        valid_url = (
+            parsed_url is not None
+            and parsed_url.scheme == "https"
+            and bool(parsed_url.hostname)
+            and not parsed_url.username
+            and not parsed_url.password
+        )
+    except ValueError:
+        valid_url = False
+
+    if not valid_url:
         raise ValueError(f"Invalid Mullvad extension URL for {name!r}")
 
     extension_path = f"{extensions_dir}/{extension_id}.xpi"
