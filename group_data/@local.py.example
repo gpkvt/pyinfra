@@ -29,7 +29,11 @@ keyboard = {  # XKB keyboard settings applied to the system.
 
 # Network and name resolution.
 local_network_cidr = ""  # Local IPv4 CIDR used by the VPN task to detect LAN presence.
-hostnames = {}  # /etc/hosts mappings: {"192.0.2.10": ["host.example", "host"]}.
+# /etc/hosts mappings: each IP maps to a list of hostnames; [] removes that IP entry.
+hostnames = {
+    # "127.0.0.1": ["localhost"],
+    # "192.0.2.10": ["host.example", "host"],
+}
 wireguard_interface = None  # Interface used by wg-quick, e.g. "home"; None disables VPN startup.
 wireguard_enabled = True  # Master gate for deploying configured WireGuard interfaces.
 vpn_enabled = True  # Master gate for automatic VPN activation outside local_network_cidr.
