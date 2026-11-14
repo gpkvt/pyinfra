@@ -5,8 +5,8 @@ services:
     environment:
       MYSQL_DATABASE: snipeit
       MYSQL_USER: snipeit
-      MYSQL_PASSWORD: "{{ database_password | replace('$', '$$') }}"
-      MYSQL_ROOT_PASSWORD: "{{ mysql_root_password | replace('$', '$$') }}"
+      MYSQL_PASSWORD: "${DATABASE_PASSWORD:?}"
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:?}"
     volumes:
       - "{{ homedir }}/.docker/snipe-it/database:/var/lib/mysql"
     healthcheck:
@@ -27,7 +27,7 @@ services:
     environment:
       APP_ENV: production
       APP_DEBUG: "false"
-      APP_KEY: "{{ app_key | replace('$', '$$') }}"
+      APP_KEY: "${APP_KEY:?}"
       APP_URL: "https://{{ domain }}"
       APP_TIMEZONE: "{{ timezone }}"
       APP_LOCALE: en-US
