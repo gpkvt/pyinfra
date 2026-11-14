@@ -413,6 +413,33 @@ def test_usbguard_service_restart_is_conditional_on_configuration_changes(
     assert ensure["_if"]() is False
 
 
+def test_ssh_keypair_validation_runs_for_incomplete_pairs_and_skips_complete_pairs(
+    pyinfra_task_harness,
+):
+    states = {
+        "/home/tester/.ssh/id_ed25519": True,
+        "/home/tester/.ssh/id_ed25519.pub": False,
+    }
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, *_args, **kwargs: states[kwargs["path"]]
+    )
+    pyinfra_task_harness.load("ssh_keys.py", {
+        "ssh_keys": [{"name": "id_ed25519"}],
+        "username": "tester",
+        "usergroup": "tester",
+    })
+    generation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Generate SSH keypair: id_ed25519"
+    )
+    assert generation["_if"][0]() is True
+    assert "Incomplete SSH keypair" in generation["commands"][0]
+
+    states["/home/tester/.ssh/id_ed25519.pub"] = True
+    assert generation["_if"][0]() is False
+
+
 def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
     module = pyinfra_task_harness.load("dehydrated.py")
     fact = module.CertNeedsRenewal()
