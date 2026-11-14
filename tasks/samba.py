@@ -3,7 +3,10 @@ import ipaddress
 import os
 
 from pyinfra import host
+from pyinfra.facts.server import Command
 from pyinfra.operations import apt, files, server
+
+from common import command_output_text
 
 config = host.data.get("samba", {})
 if config.get("enabled", False):
@@ -97,9 +100,10 @@ if config.get("enabled", False):
     server.shell(
         name="Reload systemd unit definitions when needed",
         commands=["systemctl daemon-reload"], _sudo=True,
-        _if=lambda: host.get_fact(
-            "command", command="systemctl show samba-idle.timer --property=NeedDaemonReload --value"
-        ).strip() == "yes",
+        _if=lambda: command_output_text(host.get_fact(
+            Command,
+            command="systemctl show samba-idle.timer --property=NeedDaemonReload --value",
+        )).strip() == "yes",
     )
     server.shell(
         name="Keep Samba stopped until requested",
@@ -112,20 +116,25 @@ if config.get("enabled", False):
         ],
         _sudo=True,
         _if=lambda: (
-            host.get_fact(
-                "command", command="systemctl is-active smbd.service 2>/dev/null || true"
-            ).strip() == "active"
-            or host.get_fact(
-                "command", command="systemctl is-enabled smbd.service 2>/dev/null || true"
-            ).strip() != "masked"
-            or host.get_fact(
-                "command", command="systemctl is-active samba-idle.timer 2>/dev/null || true"
-            ).strip() == "active"
-            or bool(host.get_fact(
-                "command", command="nft list table inet samba_idle 2>/dev/null || true"
-            ).strip())
-            or host.get_fact(
-                "command", command="test -e /run/samba-idle.state && echo present || true"
-            ).strip() == "present"
+            command_output_text(host.get_fact(
+                Command,
+                command="systemctl is-active smbd.service 2>/dev/null || true",
+            )).strip() == "active"
+            or command_output_text(host.get_fact(
+                Command,
+                command="systemctl is-enabled smbd.service 2>/dev/null || true",
+            )).strip() != "masked"
+            or command_output_text(host.get_fact(
+                Command,
+                command="systemctl is-active samba-idle.timer 2>/dev/null || true",
+            )).strip() == "active"
+            or bool(command_output_text(host.get_fact(
+                Command,
+                command="nft list table inet samba_idle 2>/dev/null || true",
+            )).strip())
+            or command_output_text(host.get_fact(
+                Command,
+                command="test -e /run/samba-idle.state && echo present || true",
+            )).strip() == "present"
         ),
     )
