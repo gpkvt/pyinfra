@@ -1,9 +1,10 @@
 # pylint: disable=E0401, C0301
 """Deploy MDMesh, the self-hosted Android device-management server.
 
-MDMesh is Android-only. Its official release assets are pinned by
-`docker.mdmesh.version`; database credentials and the initial administrator
-password are read from encrypted deployment secrets.
+MDMesh is Android-only. Its official release assets are pinned to the configured
+`docker.mdmesh.version`, or resolved from the latest stable GitHub release when
+set to `"latest"`; database credentials and the initial administrator password
+are read from encrypted deployment secrets.
 """
 
 import re
@@ -22,9 +23,30 @@ username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 homedir = host.data.get("homedir", f"/home/{username}")
 
-version = mdmesh.get("version")
-if not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
-    raise ValueError("docker.mdmesh.version must be a pinned release version (for example '0.5.0')")
+version = mdmesh.get("version", "latest")
+if version == "latest":
+    release_repo = mdmesh.get("github_repo", "MDMesh-app/MDMesh")
+    release_url = f"https://api.github.com/repos/{release_repo}/releases/latest"
+    release_query = (
+        "python3 -c "
+        + shlex.quote(
+            "import json, urllib.request; "
+            f"request = urllib.request.Request({release_url!r}, "
+            "{'User-Agent': 'pyinfra-mdmesh-task'}); "
+            "print(json.load(urllib.request.urlopen(request, timeout=15))['tag_name'])"
+        )
+    )
+    release_tag = command_output_text(host.get_fact(Command, release_query, _sudo=False)).strip()
+    match = re.fullmatch(r"v?(\d+\.\d+\.\d+)", release_tag)
+    if not match:
+        raise ValueError(
+            f"Unable to resolve a stable MDMesh release from {release_url}: {release_tag!r}"
+        )
+    version = match.group(1)
+elif not isinstance(version, str) or not re.fullmatch(r"\d+\.\d+\.\d+", version):
+    raise ValueError(
+        "docker.mdmesh.version must be 'latest' or a pinned semantic version (for example '0.5.0')"
+    )
 
 domain = mdmesh.get("domain")
 if not isinstance(domain, str) or not re.fullmatch(
