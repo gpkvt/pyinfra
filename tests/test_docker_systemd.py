@@ -1,5 +1,7 @@
 """Docker systemd and Sablier reconciliation task tests."""
 
+from common import compose_configuration_matches
+
 def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_harness):
     """Root-driven deployments must execute user-systemd commands as the owner."""
     module = pyinfra_task_harness.load("docker.py", {
@@ -17,7 +19,7 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
             return "0"
         if command == "id -u tester":
             return "1000"
-        if "--dry-run up -d" in command:
+        if "--dry-run up --no-deps -d" in command:
             return "Container custom Running"
         if "show --property=ActiveState --value custom" in command:
             return "active"
@@ -51,7 +53,7 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
             status_sudo_flags.append(kwargs.get("_sudo"))
         if command in {"id -u", "id -u tester"}:
             return "1000"
-        if "--dry-run up -d" in command:
+        if "--dry-run up --no-deps -d" in command:
             return "Container custom Running"
         if "show --property=ActiveState --value custom" in command:
             return "active"
@@ -228,11 +230,10 @@ def test_docker_image_pull_quotes_compose_path_with_spaces(pyinfra_task_harness)
 
 def test_compose_configuration_matches_when_dry_run_is_a_noop():
     """Compose reports Running for containers that already match."""
-    from common import compose_configuration_matches
 
     class FakeHost:
         def get_fact(self, _fact, command, **_kwargs):
-            assert "--dry-run up -d" in command
+            assert "--dry-run up --no-deps -d" in command
             return "Container web-1 Running"
 
     assert compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
@@ -240,11 +241,10 @@ def test_compose_configuration_matches_when_dry_run_is_a_noop():
 
 def test_compose_configuration_detects_recreation_in_dry_run():
     """Compose's own planner identifies stale service configuration."""
-    from common import compose_configuration_matches
 
     class FakeHost:
         def get_fact(self, _fact, command, **_kwargs):
-            assert "--dry-run up -d" in command
+            assert "--dry-run up --no-deps -d" in command
             return "Container web-1 Recreated"
 
     assert not compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
@@ -252,13 +252,12 @@ def test_compose_configuration_detects_recreation_in_dry_run():
 
 def test_compose_configuration_detects_missing_or_stopped_services():
     """A planned create or start is a required deployment change."""
-    from common import compose_configuration_matches
 
     for action in ("Container web-1 Created", "Container web-1 Started"):
         class FakeHost:
-            def get_fact(self, _fact, command, **_kwargs):
-                assert "--dry-run up -d" in command
-                return action
+            def get_fact(self, _fact, command, expected=action, **_kwargs):
+                assert "--dry-run up --no-deps -d" in command
+                return expected
 
         assert not compose_configuration_matches(
             FakeHost(), "docker compose -f compose.yml"
@@ -268,7 +267,6 @@ def test_compose_configuration_detects_missing_or_stopped_services():
 
 def test_compose_configuration_ignores_dependency_health_during_dry_run():
     """The planner must not wait for dependency health to inspect this service."""
-    from common import compose_configuration_matches
 
     class FakeHost:
         def get_fact(self, _fact, command, **_kwargs):
@@ -281,7 +279,6 @@ def test_compose_configuration_ignores_dependency_health_during_dry_run():
 
 def test_compose_configuration_treats_dry_run_errors_as_drift():
     """A failed planner check must request reconciliation, not abort pyinfra."""
-    from common import compose_configuration_matches
 
     class FakeHost:
         def get_fact(self, _fact, command, **_kwargs):
@@ -293,10 +290,9 @@ def test_compose_configuration_treats_dry_run_errors_as_drift():
 
 def test_compose_configuration_treats_empty_dry_run_as_drift():
     """Missing planner output is inconclusive and must not be considered current."""
-    from common import compose_configuration_matches
 
     class FakeHost:
-        def get_fact(self, _fact, command, **_kwargs):
+        def get_fact(self, _fact, _command, **_kwargs):
             return ""
 
     assert not compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
