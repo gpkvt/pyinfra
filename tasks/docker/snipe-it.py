@@ -40,7 +40,9 @@ deploy_docker_service(
     port=snipe.get("port", 8025),
     domain=snipe.get("domain", "snipeit.21x9.org"),
     timezone=host.data.get("timezone", "UTC"),
-    database_password=snipe_secrets["database_password"],
-    mysql_root_password=snipe_secrets["mysql_root_password"],
-    app_key=snipe_secrets["app_key"],
+    private_env={
+        "DATABASE_PASSWORD": snipe_secrets["database_password"],
+        "MYSQL_ROOT_PASSWORD": snipe_secrets["mysql_root_password"],
+        "APP_KEY": snipe_secrets["app_key"],
+    },
 )
