@@ -20,6 +20,8 @@ Execution:
     4. Install all configured packages in a single operation.
 """
 
+import re
+
 from pyinfra import host
 from pyinfra.operations import apt, files
 from pyinfra.operations.util import any_changed
@@ -52,21 +54,40 @@ def upgrade_apt_packages(update_operations):
     )
 
 
+apt_sources = host.data.get("apt_sources", {})
+if not isinstance(apt_sources, dict):
+    raise ValueError("apt_sources must be a mapping")
+
+# Repository names become filenames under /etc/apt/sources.list.d. Reject
+# path separators and traversal components before scheduling any operations.
+for name, repo in apt_sources.items():
+    if (
+        not isinstance(name, str)
+        or not re.fullmatch(r"[A-Za-z0-9_.-]+", name)
+        or name in {".", ".."}
+    ):
+        raise ValueError(f"Invalid APT repository name: {name!r}")
+    if not isinstance(repo, dict):
+        raise ValueError(f"APT repository {name!r} configuration must be a mapping")
+
 files.directory(
     name="Ensure APT keyrings directory exists",
     path="/etc/apt/keyrings",
     mode="0755",
 )
 
-apt_sources = host.data.get("apt_sources", {})
 apt_repository_operations = []
 
 for name, repo in apt_sources.items():
     if repo.get("enabled", True) is False:
         continue
 
-    key = repo["key"]
-    repository = repo["repository"]
+    key = repo.get("key")
+    repository = repo.get("repository")
+    if not isinstance(key, dict) or not isinstance(repository, dict):
+        raise ValueError(
+            f"APT repository {name!r} requires key and repository mappings"
+        )
     key_path = key["path"]
     if not isinstance(key_path, str) or not key_path.endswith((".gpg", ".asc", ".key")):
         raise ValueError(
