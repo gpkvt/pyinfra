@@ -19,7 +19,7 @@ Configuration:
 
         Supported options:
             postgres_version (int): PostgreSQL version used by Miniflux.
-                Defaults to 12 (configurable in docker.miniflux.postgres_version).
+                Required: set docker.miniflux.postgres_version explicitly.
 
             port (int): Host port exposed by Miniflux.
                 Defaults to 8080.
@@ -108,6 +108,10 @@ miniflux = host.data.get("docker", {}).get("miniflux", {})
 miniflux_secrets = (
     secrets.get("docker", {}).get("miniflux", {})  # pylint: disable=undefined-variable
 )
+postgres_version = miniflux.get("postgres_version")
+if isinstance(postgres_version, bool) or not isinstance(postgres_version, int) or postgres_version < 1:
+    raise ValueError("docker.miniflux.postgres_version must be explicitly configured as a positive integer")
+
 required_secrets = ("postgres_password", "admin_username", "admin_password")
 missing_secrets = [key for key in required_secrets if not miniflux_secrets.get(key)]
 if missing_secrets:
@@ -129,7 +133,7 @@ deploy_docker_service(
         "POSTGRES_PASSWORD": miniflux_secrets.get("postgres_password", ""),
         "ADMIN_PASSWORD": miniflux_secrets.get("admin_password", ""),
     },
-    postgres_version=miniflux.get("postgres_version", 12),
+    postgres_version=postgres_version,
     admin_username=miniflux_secrets.get("admin_username", ""),
     port=miniflux.get("port", 8080),
 )

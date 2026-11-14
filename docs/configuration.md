@@ -177,7 +177,7 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
 | `proton` | `tasks/proton.py` | Proton application selection and options. |
 
-Set `proton.drive_cli_version` to select the Proton Drive CLI release; it defaults to `0.9.0` and must be a numeric dotted version.
+When Proton Drive CLI installation is enabled, set `proton.drive_cli_version` explicitly to the release to install. There is no fallback version.
 
 Example:
 
@@ -242,7 +242,7 @@ Service-specific behavior:
 
 - **AppFlowy** deploys the official AppFlowy Self-Hosted Commercial Compose stack behind the existing Caddy instance. The public hostname is `appflowy.21x9.org`; Nginx publishes only `127.0.0.1:8026`. PostgreSQL, MinIO and Search persist in `~/.docker/appflowy/postgres/`, `minio/` and `search/` using host bind mounts. The task creates `~/.docker/appflowy/.env` with mode `0600` from encrypted secrets. Configure `secrets.docker.appflowy.postgres_password`, `admin_password`, `jwt_secret`, `minio_access_key` and `minio_secret_key`. The initial administrator password must be at least 16 URL-safe characters. Generate the PostgreSQL password, JWT secret and MinIO secret key with `openssl rand -hex 32`; generate the exactly 20-character MinIO access key with `openssl rand -hex 10`. The first GoTrue administrator is created from `docker.appflowy.admin_email` (default `admin@appflowy.21x9.org`) and the encrypted `admin_password`. Change the initial password after first login. Cloud, AI, Worker and Search receive their respective Redis connection URLs from the generated environment file and connect to the Compose `redis` service, never container-local `localhost`. Redis follows the upstream ephemeral configuration and has no persistent data mount or AOF; pending queue state may not survive Redis replacement. SMTP and AI provider keys are optional and remain unset by default. AppFlowy is the commercial self-hosted distribution; review the upstream license before deployment. Homepage only links to AppFlowy and does not call its authenticated API.
 
-- **Miniflux** runs with a PostgreSQL companion container. Set its `postgres_version` and optional `port` in host data; credentials are supplied through `secrets.docker.miniflux`.
+- **Miniflux** runs with a PostgreSQL companion container. Set `docker.miniflux.postgres_version` explicitly and optionally configure `port`; credentials are supplied through `secrets.docker.miniflux`. Deployment fails if the PostgreSQL version is missing or invalid.
 - **TimeTagger** mounts its persistent directory at the container's `/root/_timetagger`.
 - **Grav** supports `image`, `port`, `channel`, `setup`, `scheduler` and `fix_permissions` options.
 - **Forgejo** supports `image`, `port`, `ssh_port`, `ssh_server` and `domain`. HTTP and SSH bind to loopback by default.
@@ -316,10 +316,11 @@ Software release pins are configurable in the local host data. Set
 `caddy_versions.version`, `caddy_versions.sablier_plugin`, and
 `caddy_versions.dehydrated` to select the Caddy image, Sablier Caddy plugin,
 and Dehydrated release used to build the custom Caddy image. The Sablier
-server image is selected with `docker_sablier.version`. Defaults are
-`2.11.2`, `v1.0.2`, `0.7.2`, and `1.20.0`, respectively. Keep these
-pins in `group_data/@local.py` (or the appropriate host/group inventory data)
-rather than editing task or Dockerfile sources.
+server image is selected with `docker_sablier.version`. All four values are
+required when their corresponding feature is enabled; no software-version
+fallbacks are used. Keep these pins in `group_data/@local.py` (or the
+appropriate host/group inventory data) rather than editing task or Dockerfile
+sources.
 
 `caddy_config` maps site addresses to Caddy directives consumed by `tasks/caddy.py`. Caddy is deployed inside the Docker feature gate when both `docker` and `caddy_config` are truthy; it uses the Sablier Caddy plugin and Dehydrated with Hetzner DNS-01 credentials. Ensure upstream services are reachable and `secrets.dehydrated.hetzner_api_token` is present.
 

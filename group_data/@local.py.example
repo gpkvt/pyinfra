@@ -108,7 +108,7 @@ proton = {  # Proton application configuration; defining this mapping enables th
     # "pass": False,  # Install Proton Pass; defaults to True.
     # "flatpak": True,  # Install Mail/Bridge/Pass through Flathub; defaults to True.
     # "drive_cli": True,  # Install Proton Drive CLI; defaults to True.
-    # "drive_cli_version": "0.9.0",  # Pin Proton Drive CLI version; defaults to 0.9.0.
+    "drive_cli_version": "0.9.0",  # Required release pin when drive_cli is enabled.
 }
 mullvad_extensions = {}  # Browser extensions keyed by name; each entry requires an add-on id and HTTPS XPI URL.
 # Example: {"uBlock Origin": {"id": "uBlock0@raymondhill.net", "url": "https://addons.mozilla.org/...xpi"}}.
@@ -134,7 +134,7 @@ docker = {
     #     "blacklist": [],  # Linkwarden bookmark IDs omitted from Homepage bookmark synchronization.
     # },
     # "miniflux": {  # RSS reader; administrator/database passwords belong in secrets.
-    #     "postgres_version": 12,  # PostgreSQL major version used by the database container.
+    #     "postgres_version": 12,  # Required PostgreSQL major version used by the database container.
     #     "port": 8080,  # Web interface port published on the host.
     # },
     # "paperless": {  # Document management; database password and secret key belong in secrets.

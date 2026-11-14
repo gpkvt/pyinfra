@@ -90,15 +90,15 @@ if use_flatpak and flatpak_apps:
 install_drive_cli = proton.get("drive_cli", True)
 
 if install_drive_cli:
-    drive_cli_version = proton.get(
-        "drive_cli_version",
-        proton.get("drive_cll_version", "0.9.0"),
-    )
+    drive_cli_version = proton.get("drive_cli_version")
     drive_cli_platform = "linux-x64"
     version_marker = "/usr/local/share/pyinfra/proton-drive-version"
 
-    if not isinstance(drive_cli_version, str) or not drive_cli_version:
-        raise ValueError("proton.drive_cli_version must be a non-empty string")
+    if not isinstance(drive_cli_version, str) or not drive_cli_version.strip():
+        raise ValueError(
+            "proton.drive_cli_version must be explicitly configured as a non-empty string"
+        )
+    drive_cli_version = drive_cli_version.strip()
 
     drive_cli_url = (
         f"https://proton.me/download/drive/cli/"

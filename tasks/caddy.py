@@ -14,11 +14,12 @@ from pyinfra.operations import files, server
 from common import command_output_text, initialize
 from tasks.homepage_config import homepage_api_exclusions
 
-caddy_versions = host.data.get("caddy_versions", {})
-CADDY_VERSION = caddy_versions.get("version", "2.11.2")
-PLUGIN_VERSION = caddy_versions.get("sablier_plugin", "v1.0.2")
-DEHYDRATED_VERSION = caddy_versions.get("dehydrated", "0.7.2")
-IMAGE = f"pyinfra/caddy-sablier:{CADDY_VERSION}"
+def required_version(config, key, setting):
+    """Return an explicitly configured software version or fail clearly."""
+    value = config.get(key)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{setting} must be explicitly configured as a non-empty string")
+    return value.strip()
 
 
 
@@ -136,6 +137,15 @@ def configure_caddy():  # pylint: disable=R0914
         raise ValueError("secrets.dehydrated.hetzner_api_token is required for DNS-01 certificates")
 
     domain_lines = build_domains_file(host.data.get("dehydrated_domains"))
+    caddy_versions = host.data.get("caddy_versions", {})
+    caddy_version = required_version(caddy_versions, "version", "caddy_versions.version")
+    plugin_version = required_version(
+        caddy_versions, "sablier_plugin", "caddy_versions.sablier_plugin"
+    )
+    dehydrated_version = required_version(
+        caddy_versions, "dehydrated", "caddy_versions.dehydrated"
+    )
+    image = f"pyinfra/caddy-sablier:{caddy_version}"
     sablier_options = host.data.get("docker_sablier", {})
     username = host.data.get("username", "root")
     usergroup = host.data.get("usergroup", "root")
@@ -189,9 +199,9 @@ def configure_caddy():  # pylint: disable=R0914
         src="templates/caddy/Dockerfile.j2",
         dest=f"{build_dir}/Dockerfile",
         user=username, group=usergroup, mode="640",
-        caddy_version=CADDY_VERSION,
-        sablier_plugin_version=PLUGIN_VERSION,
-        dehydrated_version=DEHYDRATED_VERSION,
+        caddy_version=caddy_version,
+        sablier_plugin_version=plugin_version,
+        dehydrated_version=dehydrated_version,
         _sudo=False,
     )
     entrypoint = files.put(
@@ -217,7 +227,7 @@ def configure_caddy():  # pylint: disable=R0914
         src="templates/docker/caddy/docker-compose.yml.j2",
         dest=f"{root}/docker-compose.yml",
         user=username, group=usergroup, mode="640",
-        homedir=homedir, uid=uid, gid=gid, image=IMAGE, _sudo=False,
+        homedir=homedir, uid=uid, gid=gid, image=image, _sudo=False,
     )
 
     renewal_service = files.template(
@@ -280,11 +290,11 @@ def configure_caddy():  # pylint: disable=R0914
     def image_present():
         return command_output_text(host.get_fact(
             Command,
-            f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
+            f"docker image inspect {shlex.quote(image)} >/dev/null 2>&1 && echo present || echo absent",
         )).strip() == "present"
     build_image = server.shell(
         name="Build Caddy image with Sablier plugin and Dehydrated",
-        commands=[f"docker build --tag {shlex.quote(IMAGE)} {shlex.quote(build_dir)}"],
+        commands=[f"docker build --tag {shlex.quote(image)} {shlex.quote(build_dir)}"],
         _sudo=False, _if=lambda: build_changed() or not image_present(),
     )
 
