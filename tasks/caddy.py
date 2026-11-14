@@ -2,6 +2,7 @@
 """Deploy Caddy, its Sablier module and Dehydrated in Docker."""
 
 import builtins
+import ipaddress
 import re
 import shlex
 from copy import deepcopy
@@ -95,14 +96,36 @@ def build_sablier_caddy_config(caddy_config, docker_config, options):
     return result
 
 
+_DOMAIN_PATTERN = re.compile(
+    r"^(?:\*\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
+    r"(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
+)
+
+
+def normalize_domain(name, setting, allow_wildcard=True):
+    """Normalize and validate a DNS name used by certificate configuration."""
+    if not isinstance(name, str):
+        raise ValueError(f"{setting} entries must be strings")
+    normalized = name.strip().lower().rstrip(".")
+    if not _DOMAIN_PATTERN.fullmatch(normalized):
+        raise ValueError(f"Invalid domain in {setting}: {name!r}")
+    if not allow_wildcard and normalized.startswith("*."):
+        raise ValueError(f"Wildcard domains are not allowed in {setting}: {name!r}")
+    return normalized
+
+
+def wildcard_covers(hostname, wildcard):
+    """Return whether a wildcard certificate covers exactly one DNS label."""
+    if not wildcard.startswith("*."):
+        return False
+    suffix = wildcard[2:]
+    return hostname.endswith("." + suffix) and hostname.count(".") == suffix.count(".") + 1
+
+
 def build_domains_file(certificates):
     """Validate certificate definitions and return one domains.txt line per certificate."""
-    if not isinstance(certificates, list) or not certificates:
-        raise ValueError("dehydrated_domains must contain at least one certificate definition")
-    pattern = re.compile(
-        r"^(?:\*\.)?[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?"
-        r"(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+$"
-    )
+    if not isinstance(certificates, list):
+        raise ValueError("Certificate definitions must be a list")
     seen = set()
     lines = []
     for index, names in enumerate(certificates, start=1):
@@ -110,11 +133,7 @@ def build_domains_file(certificates):
             raise ValueError(f"Certificate definition {index} must be a non-empty list of domain names")
         normalized = []
         for name in names:
-            if not isinstance(name, str):
-                raise ValueError(f"Certificate definition {index} contains a non-string domain")
-            name = name.strip().lower()
-            if not pattern.fullmatch(name):
-                raise ValueError(f"Invalid domain name in dehydrated_domains: {name!r}")
+            name = normalize_domain(name, "certificate definitions")
             if name in seen:
                 raise ValueError(f"Domain appears in more than one certificate definition: {name}")
             seen.add(name)
@@ -122,6 +141,119 @@ def build_domains_file(certificates):
         lines.append(" ".join(normalized))
     return lines
 
+
+def build_dehydrated_certificates(  # pylint: disable=R0912,R0914,R0915,R1702
+    hostnames, eligible_zones, blacklist=None, wildcards=None, auto_enabled=True,
+):
+    """Build wildcard and allowlisted hostname-derived certificate definitions.
+
+    IP addresses are only grouping and blacklist keys. Their address classes and
+    DNS resolution do not affect eligibility, supporting NAT and split-horizon DNS.
+    """
+    if not isinstance(auto_enabled, bool):
+        raise ValueError("dehydrated_auto_domains must be a boolean")
+    if not isinstance(eligible_zones, list):
+        raise ValueError("dehydrated_zones must be a list of DNS zones")
+    zones = [
+        normalize_domain(zone, "dehydrated_zones", allow_wildcard=False)
+        for zone in eligible_zones
+    ]
+    if len(set(zones)) != len(zones):
+        raise ValueError("dehydrated_zones contains duplicate zones")
+
+    blocked_ips = set()
+    blocked_names = set()
+    if blacklist is None:
+        blacklist = []
+    if not isinstance(blacklist, list):
+        raise ValueError("dehydrated_blacklist must be a list")
+    for entry in blacklist:
+        if not isinstance(entry, str) or not entry.strip():
+            raise ValueError("dehydrated_blacklist entries must be non-empty strings")
+        try:
+            blocked_ips.add(str(ipaddress.ip_address(entry.strip())))
+        except ValueError:
+            blocked_names.add(normalize_domain(entry, "dehydrated_blacklist"))
+
+    if auto_enabled and not isinstance(hostnames, dict):
+        raise ValueError("hostnames must be a mapping of IP addresses to hostname lists")
+    if auto_enabled:
+        # An IP blacklist excludes every name associated with that IP, even if
+        # the same name is also listed against another address.
+        for address, names in hostnames.items():
+            try:
+                normalized_ip = str(ipaddress.ip_address(address))
+            except (ValueError, TypeError):
+                raise ValueError(f"Invalid IP address in hostnames: {address!r}") from None
+            if normalized_ip in blocked_ips:
+                if not isinstance(names, list):
+                    raise ValueError(f"hostnames[{address!r}] must be a list of hostnames")
+                for name in names:
+                    if isinstance(name, str) and _DOMAIN_PATTERN.fullmatch(name.strip().lower().rstrip(".")):
+                        blocked_names.add(name.strip().lower().rstrip("."))
+
+    if wildcards is None:
+        wildcards = []
+    wildcard_lines = build_domains_file(wildcards)
+    explicit_names = [
+        normalize_domain(name, "dehydrated_wildcards")
+        for certificate in wildcards
+        for name in certificate
+    ]
+    wildcard_names = [name for name in explicit_names if name.startswith("*.")]
+    if any(
+        not any(name.startswith("*.") for name in certificate)
+        for certificate in wildcards
+    ):
+        raise ValueError("Each dehydrated_wildcards certificate must contain a wildcard name")
+    for name in explicit_names:
+        if not any(name == zone or name.endswith("." + zone) for zone in zones):
+            raise ValueError(f"Explicit certificate name {name!r} is outside the configured dehydrated_zones")
+    for wildcard in wildcard_names:
+        if any(
+            blocked in explicit_names or wildcard_covers(blocked, wildcard)
+            for blocked in blocked_names
+        ):
+            raise ValueError(
+                f"Wildcard {wildcard!r} overlaps a hostname in dehydrated_blacklist"
+            )
+
+    certificates = [line.split() for line in wildcard_lines]
+    if not auto_enabled:
+        return certificates
+
+    seen = set(explicit_names)
+    for address, names in hostnames.items():
+        try:
+            normalized_ip = str(ipaddress.ip_address(address))
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid IP address in hostnames: {address!r}") from None
+        if normalized_ip in blocked_ips:
+            continue
+        if not isinstance(names, list):
+            raise ValueError(f"hostnames[{address!r}] must be a list of hostnames")
+
+        certificate_names = []
+        for raw_name in names:
+            if not isinstance(raw_name, str) or not raw_name.strip():
+                raise ValueError(f"hostnames[{address!r}] contains an invalid hostname")
+            name = raw_name.strip().lower().rstrip(".")
+            # Short aliases and localhost are valid /etc/hosts entries, not certificate names.
+            if not _DOMAIN_PATTERN.fullmatch(name) or name.startswith("*."):
+                continue
+            if not any(name == zone or name.endswith("." + zone) for zone in zones):
+                continue
+            if name in blocked_names or any(wildcard_covers(name, item) for item in blocked_names):
+                continue
+            if any(wildcard_covers(name, wildcard) for wildcard in wildcard_names):
+                continue
+            if name in seen:
+                continue
+            seen.add(name)
+            certificate_names.append(name)
+        if certificate_names:
+            certificates.append(certificate_names)
+    return certificates
 
 if not hasattr(__import__("builtins"), "homedir"):
     initialize(host)
@@ -133,10 +265,16 @@ def configure_caddy():  # pylint: disable=R0914
     if not docker_config:
         raise ValueError("Caddy Docker deployment requires Docker to be configured")
     api_token = builtins.secrets.get("dehydrated", {}).get("hetzner_api_token")
-    if not api_token:
+    certificates = build_dehydrated_certificates(
+        host.data.get("hostnames", {}),
+        host.data.get("dehydrated_zones", []),
+        blacklist=host.data.get("dehydrated_blacklist", []),
+        wildcards=host.data.get("dehydrated_wildcards", []),
+        auto_enabled=host.data.get("dehydrated_auto_domains", True),
+    )
+    domain_lines = build_domains_file(certificates)
+    if domain_lines and not api_token:
         raise ValueError("secrets.dehydrated.hetzner_api_token is required for DNS-01 certificates")
-
-    domain_lines = build_domains_file(host.data.get("dehydrated_domains"))
     caddy_versions = host.data.get("caddy_versions", {})
     caddy_version = required_version(caddy_versions, "version", "caddy_versions.version")
     plugin_version = required_version(
@@ -192,7 +330,7 @@ def configure_caddy():  # pylint: disable=R0914
         src="templates/caddy/hetzner.env.j2",
         dest=f"{root}/hetzner.env",
         user=username, group=usergroup, mode="600",
-        api_token=api_token, _sudo=False,
+        api_token=api_token or "", _sudo=False,
     )
     dockerfile = files.template(
         name="Deploy Caddy Dockerfile",
