@@ -461,10 +461,13 @@ def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
 def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harness):
     module = pyinfra_task_harness.load("docker.py")
     observed = []
-    pyinfra_task_harness.host.get_fact = (
-        lambda _fact, command, **_kwargs: observed.append(command)
-        or ["1000:1000:750"]
-    )
+    observed_sudo = []
+    def get_fact(_fact, command, **kwargs):
+        observed.append(command)
+        observed_sudo.append(kwargs.get("_sudo"))
+        return ["1000:1000:750"]
+
+    pyinfra_task_harness.host.get_fact = get_fact
 
     module.ensure_numeric_directory(
         "/home/tester/.docker/data", "1000", "1000", "750", sudo=False
@@ -482,6 +485,7 @@ def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harnes
         "stat -c '%u:%g:%a' -- /home/tester/.docker/data; "
         "else printf 'missing\\n'; fi"
     ]
+    assert observed_sudo == [False]
 
 
 def test_numeric_directory_repairs_missing_or_mismatched_metadata(
@@ -489,9 +493,13 @@ def test_numeric_directory_repairs_missing_or_mismatched_metadata(
 ):
     module = pyinfra_task_harness.load("docker.py")
     current = {"metadata": "missing"}
-    pyinfra_task_harness.host.get_fact = (
-        lambda *_args, **_kwargs: current["metadata"]
-    )
+    observed_sudo = []
+
+    def get_fact(*_args, **kwargs):
+        observed_sudo.append(kwargs.get("_sudo"))
+        return current["metadata"]
+
+    pyinfra_task_harness.host.get_fact = get_fact
 
     module.ensure_numeric_directory(
         "/home/tester/.docker/data", "1000", "1000", "750"
@@ -505,6 +513,7 @@ def test_numeric_directory_repairs_missing_or_mismatched_metadata(
     assert operation["_if"]() is True
     current["metadata"] = "1000:1000:700"
     assert operation["_if"]() is True
+    assert observed_sudo == [True, True]
     assert "install -d -o 1000 -g 1000 -m 750" in operation["commands"][0]
 
 def test_zsh_task_installs_playerctl_for_hyfetch(pyinfra_task_harness):
