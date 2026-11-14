@@ -1,0 +1,71 @@
+# MDMesh release stack adapted for the pyinfra Caddy reverse proxy.
+# All persistent paths are host directories below ~/.docker/mdmesh/.
+services:
+  postgres:
+    image: postgres:14
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mdmesh
+      POSTGRES_USER: mdmesh
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+    volumes:
+      - "{{ homedir }}/.docker/mdmesh/postgres:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mdmesh -d mdmesh"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  server:
+    image: ghcr.io/{{ image_owner }}/mdmesh-server:${SERVER_VERSION:?}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: mdmesh
+      DB_USER: mdmesh
+      DB_PASSWORD: ${DB_PASSWORD:?}
+      BASE_URL: https://{{ domain }}
+      HASH_SECRET: ${HASH_SECRET:?}
+      SECURE_ENROLLMENT: "0"
+      LEGACY_DEVICE_API: "0"
+    volumes:
+      - "{{ homedir }}/.docker/mdmesh/server:/opt/mdmesh"
+
+  caddy:
+    image: ghcr.io/{{ image_owner }}/mdmesh-web:${WEB_VERSION:?}
+    restart: unless-stopped
+    depends_on:
+      - server
+      - supervisor
+    environment:
+      SITE_ADDRESS: ":80"
+      ACME_EMAIL: ""
+      TRUSTED_PROXIES: "{{ trusted_proxies | join(' ') }}"
+    ports:
+      - "127.0.0.1:{{ port }}:80"
+    volumes:
+      - "{{ homedir }}/.docker/mdmesh/caddy/data:/data"
+      - "{{ homedir }}/.docker/mdmesh/caddy/config:/config"
+
+  supervisor:
+    image: ghcr.io/{{ image_owner }}/mdmesh-supervisor:${SUPERVISOR_VERSION:?}
+    restart: unless-stopped
+    environment:
+      GITHUB_REPO: "{{ github_repo }}"
+      UPDATE_CHANNEL: stable
+      POLL_INTERVAL_HOURS: "6"
+      CURRENT_VERSION: ${CURRENT_VERSION:?}
+      AUTO_UPDATE: "0"
+      APPLY_SUPPORTED: "1"
+      COMPOSE_PROJECT_NAME: mdmesh
+      COMPOSE_FILE: docker-compose.yml
+      DB_USER: mdmesh
+      DB_NAME: mdmesh
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - "{{ homedir }}/.docker/mdmesh:/project"
+      - "{{ homedir }}/.docker/mdmesh/backups:/backups"

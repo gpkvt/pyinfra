@@ -162,7 +162,7 @@ def test_dispatchers_include_child_task_modules():
 )
 def test_every_task_module_evaluates_in_a_pyinfra_context(
     pyinfra_task_harness, monkeypatch, relative_path
-):  # pylint: disable=R0912
+):  # pylint: disable=R0912,R0915
     """Evaluate every deployable module, including nested service tasks."""
     module_path = relative_path.removeprefix("tasks/")
     calls_before = len(pyinfra_task_harness.calls)
@@ -173,6 +173,11 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
         docker_config = {service: {}}
         if service == "miniflux":
             docker_config[service] = {"postgres_version": 12}
+        if service == "mdmesh":
+            docker_config[service] = {
+                "version": "0.5.0",
+                "domain": "mdm.example.com",
+            }
         if service == "ci-smoke":
             docker_config[service] = {
                 "image": "alpine:3.21",
@@ -206,6 +211,11 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                         "postgres_password": "ci-miniflux-db",
                         "admin_username": "ci-admin",
                         "admin_password": "ci-miniflux-admin",
+                    },
+                    "mdmesh": {
+                        "database_password": "m" * 40,
+                        "hash_secret": "h" * 40,
+                        "admin_password": "a" * 40,
                     },
                     "paperless": {
                         "postgres_password": "ci-postgres",
