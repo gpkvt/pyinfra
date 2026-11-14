@@ -1,5 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+if (($# == 0)); then
+    echo "Usage: $(basename "$0") COMMAND [ARG ...]" >&2
+    exit 64
+fi
+
+if ! command -v xhost >/dev/null 2>&1; then
+    echo "Error: xhost is not installed." >&2
+    exit 69
+fi
 
 xhost +SI:localuser:root
-$@
-xhost -SI:localuser:root
+
+cleanup() {
+    xhost -SI:localuser:root >/dev/null || true
+}
+trap cleanup EXIT
+
+"$@"
