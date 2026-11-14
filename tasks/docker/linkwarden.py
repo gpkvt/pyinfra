@@ -1,8 +1,8 @@
 # pylint: disable=E0401
 """
-Deploy and manage Linkwarden using Docker Compose.
 
 import re
+Deploy and manage Linkwarden using Docker Compose.
 
 Configuration:
     docker.linkwarden (dict):
