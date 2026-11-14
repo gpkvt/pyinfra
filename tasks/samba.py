@@ -1,6 +1,7 @@
 """Deploy an opt-in, on-demand Samba file drop."""
 import ipaddress
 import os
+import shlex
 
 from pyinfra import host
 from pyinfra.facts.server import Command
@@ -61,7 +62,30 @@ if config.get("enabled", False):
     )
     files.directory(
         name="Create Samba upload directory", path=upload_path,
-        user="nobody", group="nogroup", mode="0770", present=True, _sudo=True,
+        user="root", group="nogroup", mode="1770", present=True, _sudo=True,
+    )
+    quoted_upload_path = shlex.quote(upload_path)
+
+    def needs_upload_permission_migration():
+        return command_output_text(host.get_fact(
+            Command,
+            command=(
+                f"find {quoted_upload_path} -xdev "
+                "\\( ! -user root -o ! -group nogroup "
+                "-o \\( -type d ! -perm -1000 \\) \\) "
+                "-print -quit | grep -q . && echo yes || true"
+            ),
+        )).strip() == "yes"
+
+    server.shell(
+        name="Protect existing Samba upload contents from deletion",
+        commands=[
+            f"chown -R root:nogroup -- {quoted_upload_path}",
+            f"find {quoted_upload_path} -xdev -type d ! -perm -1000 "
+            "-exec chmod +t {} +",
+        ],
+        _sudo=True,
+        _if=needs_upload_permission_migration,
     )
     files.directory(
         name="Create Samba download directory", path=download_path,

@@ -22,8 +22,10 @@
    guest only = yes
    force user = nobody
    force group = nogroup
+   inherit owner = yes
    create mask = 0660
    directory mask = 0770
+   force directory mode = 1000
    comment = Shared guest upload dropbox
 
 [Download]
