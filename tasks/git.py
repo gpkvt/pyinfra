@@ -28,22 +28,23 @@ File permissions:
 Notes:
 
 - Git installation uses the system package manager.
-- Configuration files are deployed without sudo.
+- File contents are deployed without sudo; immutable attributes are changed with sudo only when needed.
 - The credentials file is only created when `git_credentials`
   exists in the secrets dictionary and is not None.
+- The Linux immutable attribute is removed only when credentials change and restored only when absent.
 - Credentials are managed through a Jinja2 template to support
   dynamic secret values.
 
 """
+import shlex
+
 from pyinfra import host
 from pyinfra.facts.files import File, FileContents
-from pyinfra.facts.server import Command
 from pyinfra.operations import apt, files, server
 
-from common import command_output_text, file_has_flag, initialize
+from common import file_has_flag, initialize
 
 if not hasattr(__import__('builtins'), 'homedir'):
-    from common import initialize
     initialize(host)
 
 
