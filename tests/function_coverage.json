@@ -304,5 +304,27 @@
   ],
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
+  ],
+  "tasks/docker.py:deploy_docker_service.compose_configuration_is_current": [
+    "test_docker_service_accepts_multiple_restart_triggers"
+  ],
+  "tasks/docker/mdmesh.py:deploy_mdmesh": [
+    "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
+  "tasks/caddy.py:normalize_domain": [
+    "test_dehydrated_certificate_lines_support_multiple_certificates_and_sans",
+    "test_dehydrated_hostname_certificates_group_names_and_keep_private_ips",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
+  ],
+  "tasks/caddy.py:wildcard_covers": [
+    "test_dehydrated_wildcards_suppress_only_one_label_hostname_matches",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
+  ],
+  "tasks/caddy.py:build_dehydrated_certificates": [
+    "test_dehydrated_hostname_certificates_group_names_and_keep_private_ips",
+    "test_dehydrated_hostname_certificates_apply_zone_boundaries_and_blacklist",
+    "test_dehydrated_wildcards_suppress_only_one_label_hostname_matches",
+    "test_dehydrated_wildcard_certificate_can_include_apex_san",
+    "test_dehydrated_auto_hostname_discovery_can_be_disabled",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
   ]
 }
