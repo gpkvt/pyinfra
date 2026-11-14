@@ -213,8 +213,8 @@ if locale:
     files.line(
         name=f"Set system default locale: {locale}",
         path="/etc/default/locale",
-        line=f'LANG="{locale}"',
-        replace="^LANG=",
+        line="^LANG=",
+        replace=f'LANG="{locale}"',
         present=True,
         _sudo=True,
     )
