@@ -1,6 +1,6 @@
 # pylint: disable=E0401
 """
-Configure COSMIC panel position, size, margins, autohide behavior, and applets.
+Configure COSMIC panel position, size, edge-gap behavior, autohide, and applets.
 """
 
 import json
@@ -90,6 +90,7 @@ if config.get("enabled", False):
         "com.system76.CosmicPanel.Panel/v1/size":
             sizes[size],
 
+        # COSMIC exposes this as a boolean; any positive configured value enables it.
         "com.system76.CosmicPanel.Panel/v1/anchor_gap":
             str(config.get("anchor_gap", 0) > 0).lower(),
 
