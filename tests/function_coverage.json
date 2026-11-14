@@ -288,6 +288,11 @@
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
   ],
+  "tasks/docker.py:deploy_docker_service.compose_configuration_is_current": [
+    "test_docker_service_accepts_multiple_restart_triggers"
+  ],
+  "tasks/docker/mdmesh.py:deploy_mdmesh": [
+    "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
   "tasks/caddy.py:normalize_domain": [
     "test_dehydrated_certificate_lines_support_multiple_certificates_and_sans",
     "test_dehydrated_hostname_certificates_group_names_and_keep_private_ips",

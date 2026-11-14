@@ -17,7 +17,7 @@ from pyinfra.operations import files, server
 from tasks.docker import deploy_docker_service, ensure_numeric_directory
 from common import command_output_text
 
-def deploy_mdmesh():
+def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     """Schedule MDMesh deployment when its required public domain is configured."""
     mdmesh = host.data.get("docker", {}).get("mdmesh", {})
     mdmesh_secrets = secrets.get("docker", {}).get("mdmesh", {})  # pylint: disable=undefined-variable

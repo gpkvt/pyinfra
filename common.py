@@ -129,7 +129,7 @@ def compose_configuration_matches(host, compose_command):
         f"{compose_command} --dry-run up --no-deps -d 2>&1 || true",
     )
     if not output or re.search(
-        r"\\b(?:error|failed|failure)\\b",
+        r"\b(?:error|failed|failure)\b",
         output,
         re.IGNORECASE,
     ):
@@ -138,6 +138,6 @@ def compose_configuration_matches(host, compose_command):
     # A no-op reports existing containers as Running/Healthy. Any planned
     # lifecycle or image action means the deployed project needs reconciliation.
     return not re.search(
-        r"\\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\\b",
+        r"\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\b",
         output,
     )
