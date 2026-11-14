@@ -48,6 +48,25 @@ wireguard_config = {}  # WireGuard interfaces keyed by name; private/peer keys b
 # privatekey (interface private key) and peers (list of peer dictionaries containing PublicKey,
 # AllowedIPs, and optional PresharedKey, Endpoint and PersistentKeepalive).
 
+# On-demand Samba file exchange. Disabled until explicitly enabled.
+samba = {
+    "enabled": False,  # Install and configure Samba; it remains stopped until samba-start.
+    "interface": "lo",  # Network interface Samba listens on, in addition to loopback; e.g. "enp3s0".
+    "allowed_networks": [
+        # "192.168.1.0/24",  # Trusted LAN CIDR.
+        # "10.20.0.0/24",  # Trusted VPN CIDR.
+    ],  # Required, non-empty IPv4/IPv6 CIDR list when enabled.
+    "idle_timeout": 1800,  # Seconds without SMB traffic before automatic shutdown; 0 disables the monitor.
+    "workgroup": "WORKGROUP",  # SMB workgroup name.
+    "server_string": "On-demand file exchange",  # Description displayed by SMB clients.
+    "upload": {
+        "path": "/srv/samba/upload",  # Shared writable guest upload directory.
+    },
+    "download": {
+        "path": "/srv/samba/download",  # Guest-readable, read-only download directory.
+    },
+}
+
 # User shell and terminal tools.
 zsh = False  # Installs/configures Zsh and the LiMusic-aware HyFetch music helper.
 zshrc_imports = []  # Extra Zsh files sourced from the user's ~/.zshrc.
