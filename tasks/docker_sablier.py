@@ -2,8 +2,9 @@
 
 from pyinfra import host
 from pyinfra.facts.server import Command
-from common import command_output_text
 from pyinfra.operations import files, server
+
+from common import command_output_text
 
 SABLIER_VERSION = "1.20.0"
 options = host.data.get("docker_sablier", {})
