@@ -471,7 +471,7 @@ def test_mullvad_extension_forces_download_when_source_changes(
     old_hash = hashlib.sha256(old_url.encode()).hexdigest()
     new_hash = hashlib.sha256(new_url.encode()).hexdigest()
 
-    def get_fact(fact, *_args, **kwargs):
+    def get_fact(fact, *_args):
         if getattr(fact, "__name__", "") == "Command":
             return [old_hash]
         if getattr(fact, "__name__", "") == "File":
