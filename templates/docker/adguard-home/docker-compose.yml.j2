@@ -1,0 +1,10 @@
+services:
+  adguard-home:
+    image: {{ image }}
+    container_name: adguard-home
+    restart: unless-stopped
+    network_mode: host
+
+    volumes:
+      - {{ homedir }}/.docker/adguard-home/work:/opt/adguardhome/work
+      - {{ homedir }}/.docker/adguard-home/conf:/opt/adguardhome/conf
