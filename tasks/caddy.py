@@ -314,9 +314,7 @@ def configure_caddy():  # pylint: disable=R0914
             or env_file.did_change()
             or not container_running() or not container_healthy()
             or not compose_configuration_matches(
-                host,
-                f"docker compose -f {shlex.quote(root + '/docker-compose.yml')}",
-                ["caddy"],
+                host, f"docker compose -f {shlex.quote(root + '/docker-compose.yml')}"
             )
         )
     start_caddy = server.shell(

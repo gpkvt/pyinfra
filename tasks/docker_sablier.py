@@ -76,7 +76,7 @@ if options.get("enabled", False):
                 "docker inspect -f '{{.State.Running}}' sablier 2>/dev/null || true",
             )).strip() != "true"
             or not compose_configuration_matches(
-                host, f"docker compose -f {compose_file}", ["sablier"]
+                host, f"docker compose -f {compose_file}"
             )
         ),
     )
