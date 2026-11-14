@@ -39,8 +39,8 @@ if config.get("enabled", False):
         raise ValueError(f"Invalid samba.allowed_networks entry: {error}") from error
 
     apt.packages(
-        name="Install Samba server and idle-monitor dependencies",
-        packages=["samba"] + (["nftables"] if idle_timeout else []),
+        name="Install Samba server, client and idle-monitor dependencies",
+        packages=["samba", "smbclient"] + (["nftables"] if idle_timeout else []),
         present=True, _sudo=True,
     )
     files.directory(
