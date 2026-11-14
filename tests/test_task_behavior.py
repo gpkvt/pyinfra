@@ -420,6 +420,9 @@ def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harnes
     assert fact.process(["true"]) is True
     assert fact.process([]) is False
 
+    # Keep the wildcard unquoted so the remote shell expands certificate paths.
+    assert 'for cert in /var/lib/dehydrated/certs/*/fullchain.pem; do' in fact.command
+    assert 'for cert in "/var/lib/dehydrated/certs/*/fullchain.pem"; do' not in fact.command
 
 def test_ufw_added_rules_normalizes_only_added_rule_commands(pyinfra_task_harness):
     module = pyinfra_task_harness.load("ufw.py", {"ufw": {}})
