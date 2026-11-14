@@ -173,6 +173,11 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
         docker_config = {service: {}}
         if service == "miniflux":
             docker_config[service] = {"postgres_version": 12}
+        if service == "mdmesh":
+            docker_config[service] = {
+                "version": "0.5.0",
+                "domain": "mdm.example.com",
+            }
         if service == "ci-smoke":
             docker_config[service] = {
                 "image": "alpine:3.21",
@@ -206,6 +211,11 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                         "postgres_password": "ci-miniflux-db",
                         "admin_username": "ci-admin",
                         "admin_password": "ci-miniflux-admin",
+                    },
+                    "mdmesh": {
+                        "database_password": "m" * 40,
+                        "hash_secret": "h" * 40,
+                        "admin_password": "a" * 40,
                     },
                     "paperless": {
                         "postgres_password": "ci-postgres",
