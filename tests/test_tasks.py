@@ -245,11 +245,13 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
 
     def get_fact(_fact, command="", **_kwargs):
         release_commands.append(command)
-        return (
-            "v0.5.0"
-            if "api.github.com/repos/MDMesh-app/MDMesh/releases/latest" in command
-            else ""
-        )
+        if "api.github.com/repos/MDMesh-app/MDMesh/releases/latest" in command:
+            return "v0.5.0"
+        if command == "id -u":
+            return "0"
+        if command == "id -u tester":
+            return "1000"
+        return ""
 
     pyinfra_task_harness.host.get_fact = get_fact
     pyinfra_task_harness.load("docker/mdmesh.py", {
@@ -796,6 +798,8 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
             status_sudo_flags.append(kwargs.get("_sudo"))
         if "id -u" in command or "id -g" in command:
             return "1000"
+        if "--dry-run up --no-deps -d" in command:
+            return "Container caddy Running"
         if "docker image inspect" in command:
             return "present"
         if "docker inspect -f '{{.State.Running}}'" in command:
