@@ -80,7 +80,7 @@ for name, extension in extensions.items():
     if (
         not isinstance(extension_id, str)
         or not re.fullmatch(
-            r"(?:[A-Za-z0-9._@+-]+|\\{[0-9A-Fa-f-]{36}\\})",
+            r"(?:[A-Za-z0-9._@+-]+|\{[0-9A-Fa-f-]{36}\})",
             extension_id,
         )
     ):
