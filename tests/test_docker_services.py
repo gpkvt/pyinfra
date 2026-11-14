@@ -86,8 +86,9 @@ def test_docker_sablier_container_inspection_is_deferred_until_execution(
 
 def test_sudo_directory_uses_declarative_metadata_reconciliation(pyinfra_task_harness):
     """files.directory handles sudoers directory ownership and mode idempotently."""
-    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: (
-        pytest.fail("Sudo directory setup must not need a separate stat fact")
+    fact_commands = []
+    pyinfra_task_harness.host.get_fact = lambda _fact, *args, **kwargs: (
+        fact_commands.append(kwargs.get("command", args[0] if args else "")) or ""
     )
     pyinfra_task_harness.load("sudo.py", {"sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"]})
     directory_calls = [
@@ -100,11 +101,13 @@ def test_sudo_directory_uses_declarative_metadata_reconciliation(pyinfra_task_ha
     assert directory_calls[0]["group"] == "root"
     assert directory_calls[0]["mode"] == "755"
     assert "_if" not in directory_calls[0]
+    assert not any("stat -c" in command for command in fact_commands)
 
 def test_ssh_directory_uses_declarative_metadata_reconciliation(pyinfra_task_harness):
     """files.directory handles SSH directory ownership and mode idempotently."""
-    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: (
-        pytest.fail("SSH directory setup must not need a separate stat fact")
+    fact_commands = []
+    pyinfra_task_harness.host.get_fact = lambda _fact, *args, **kwargs: (
+        fact_commands.append(kwargs.get("command", args[0] if args else "")) or ""
     )
     pyinfra_task_harness.load("ssh_keys.py", {
         "username": "tester",
@@ -121,3 +124,4 @@ def test_ssh_directory_uses_declarative_metadata_reconciliation(pyinfra_task_har
     assert directory_calls[0]["group"] == "tester"
     assert directory_calls[0]["mode"] == "700"
     assert "_if" not in directory_calls[0]
+    assert not any("stat -c" in command for command in fact_commands)
