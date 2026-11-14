@@ -9,10 +9,10 @@ import sys
 import types
 from pathlib import Path
 
+import pytest
+
 
 PYINFRA_SPEC = importlib.util.find_spec("pyinfra")
-
-import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
