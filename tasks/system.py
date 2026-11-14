@@ -121,32 +121,10 @@ Target:
 """
 
 import re
-from io import StringIO
-
 from pyinfra import host
-from pyinfra.api import FactBase
-from pyinfra.facts.server import Timezone
+from pyinfra.facts.server import Locales, Timezone
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
-
-# Custom fact: retrieve current system locale
-class SystemLocale(FactBase):
-    """
-    Return the current LANG setting from /etc/default/locale.
-    """
-
-    command = "cat /etc/default/locale 2>/dev/null || true"
-
-    def process(self, output):
-        for line in output:
-            match = re.match(
-                r'^\s*LANG\s*=\s*["\']?([^"\']+)["\']?\s*$',
-                line,
-            )
-            if match:
-                return match.group(1)
-
-        return None
 
 # Load configuration
 hostname = host.data.get("hostname")
@@ -216,9 +194,14 @@ if locale:
             f"System locale must use UTF-8 encoding: {locale}"
         )
 
-    current_locale = host.get_fact(SystemLocale)
-
-    if current_locale != locale:
+    # Locale aliases such as C.utf8 and C.UTF-8 are equivalent. Avoid
+    # scheduling locale generation when an equivalent locale is installed.
+    normalized_locale = re.sub(r"[^a-z0-9]", "", locale.lower())
+    installed_locales = host.get_fact(Locales)
+    if not any(
+        re.sub(r"[^a-z0-9]", "", installed.lower()) == normalized_locale
+        for installed in installed_locales
+    ):
         server.locale(
             name=f"Enable locale: {locale}",
             locale=locale,
@@ -226,15 +209,14 @@ if locale:
             _sudo=True,
         )
 
-        files.put(
-            name=f"Set system default locale: {locale}",
-            src=StringIO(f'LANG="{locale}"\n'),
-            dest="/etc/default/locale",
-            user="root",
-            group="root",
-            mode="644",
-            _sudo=True,
-        )
+    files.line(
+        name=f"Set system default locale: {locale}",
+        path="/etc/default/locale",
+        line=f'LANG="{locale}"',
+        replace="^LANG=",
+        present=True,
+        _sudo=True,
+    )
 
 # Configure default CLI editors
 for variable, value in {
