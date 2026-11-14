@@ -197,7 +197,7 @@ def test_timetagger_stores_credentials_in_private_env_file(
     )
     assert credentials_file["mode"] == "600"
     assert credentials_file["dest"] == "/home/tester/.docker/timetagger/.env"
-    assert credentials_file["src"].getvalue() == "TIMETAGGER_CREDENTIALS='tester:$2a$08$hash'\\n"
+    assert credentials_file["src"].getvalue() == "TIMETAGGER_CREDENTIALS='tester:$2a$08$hash'\n"
 
     template = (ROOT / "templates/docker/timetagger/docker-compose.yml.j2").read_text()
     assert 'TIMETAGGER_CREDENTIALS: "${TIMETAGGER_CREDENTIALS:?}"' in template
@@ -288,7 +288,7 @@ def test_docker_private_environment_is_literal_and_excluded_from_compose(
 
     assert env_file["dest"] == "/home/tester/.docker/custom/.env"
     assert env_file["mode"] == "600"
-    assert env_file["src"].getvalue() == "API_TOKEN='token-with-$-characters'\\n"
+    assert env_file["src"].getvalue() == "API_TOKEN='token-with-$-characters'\n"
     assert "private_env" not in compose
     assert "token-with-$-characters" not in repr(compose)
 
@@ -310,5 +310,5 @@ def test_docker_private_environment_rejects_unsafe_keys_and_values(
     with pytest.raises(ValueError, match="single-line string"):
         module.deploy_docker_service(
             "custom", "Custom", "/home/tester",
-            private_env={"API_TOKEN": "line1\\nline2"},
+            private_env={"API_TOKEN": "line1\nline2"},
         )
