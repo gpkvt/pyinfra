@@ -29,7 +29,7 @@ Notes:
 - VPN activation is skipped when an address belongs to the configured
   local network.
 - Network detection considers globally scoped IPv4 interfaces only.
-- If network interface discovery fails, a RuntimeError is raised.
+- If no eligible IPv4 address is found, the host is treated as outside the local network.
 - IPv6 addresses are not considered.
 - The VPN service is managed through systemd.
 - The network membership check is performed before the service
@@ -46,7 +46,7 @@ from common import initialize
 if not hasattr(__import__("builtins"), "homedir"):
     initialize(host)
 
-ipv4_addresses = host.get_fact(Ipv4Addrs)
+ipv4_addresses = host.get_fact(Ipv4Addrs) or {}
 local_network_cidr = host.data.get("local_network_cidr") or "10.0.0.0/24"
 wireguard_interface = host.data.get("wireguard_interface", False)
 network = ipaddress.ip_network(local_network_cidr) # pylint: disable=undefined-variable
