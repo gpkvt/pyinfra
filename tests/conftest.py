@@ -155,6 +155,8 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             return {"incoming": "deny", "outgoing": "allow"}
         if name == "AppArmorStatus":
             return {}
+        if name == "Locales":
+            return []
         if name in {"FlatpakUpdates", "FlatpakSystemUpdates"}:
             return []
         if name == "VSCodiumExtensions":
@@ -251,6 +253,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     facts_hardware.Ipv4Addrs = type("Ipv4Addrs", (), {})
     facts.hardware = facts_hardware
     facts_server.Timezone = type("Timezone", (), {})
+    facts_server.Locales = type("Locales", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
         ("pyinfra.api", api),
