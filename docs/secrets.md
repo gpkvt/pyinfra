@@ -36,7 +36,7 @@ The example file documents the current data shape:
 | `hosts.<hostname>.docker.linkwarden` | Linkwarden deployment and Homepage bookmark sync | PostgreSQL password, NextAuth secret and Meilisearch master key. |
 | `hosts.<hostname>.docker.appflowy` | `tasks/docker/appflowy.py` | PostgreSQL password, initial GoTrue administrator password, JWT secret, and MinIO access/secret keys. |
 | `hosts.<hostname>.docker.homepage.environment` | `tasks/docker/homepage.py`, `tasks/docker/linkwarden_bookmarks.py` | Homepage widget API keys/environment values, including the Linkwarden bearer API key reused by the bookmark synchronizer; encrypted values override host-data defaults. |
-| `hosts.<hostname>.docker.timetagger` | `tasks/docker/timetagger.py` | Required TimeTagger `credentials` value in `username:bcrypt-hash` format. |
+| `hosts.<hostname>.docker.timetagger` | `tasks/docker/timetagger.py` | Required TimeTagger `credentials` value in `username:bcrypt-hash` format; written to `~/.docker/timetagger/.env` with mode `0600` and excluded from Compose diffs. |
 | `hosts.<hostname>.docker.vaultwarden` | `tasks/docker/vaultwarden.py` | Optional Argon2 PHC hash for the Vaultwarden admin token (`admin_token`). |
 | `hosts.<hostname>.ssh` | `tasks/ssh_keys.py` | Default and per-key passphrases. |
 
