@@ -11,8 +11,8 @@ from pyinfra.api import deploy
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
-from tasks.homepage_config import homepage_api_exclusions
 from common import command_output_text
+from tasks.homepage_config import homepage_api_exclusions
 
 CADDY_VERSION = "2.11.2"
 PLUGIN_VERSION = "v1.0.2"
