@@ -190,6 +190,76 @@ def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
     assert calls[0][2]["hostnames"] == "example.test alias.test"
 
 
+def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_harness, monkeypatch):
+    """MDMesh uses the shared Compose helper and keeps all persistent data on host paths."""
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"docker": {"mdmesh": {
+            "database_password": "db-password-" + "x" * 32,
+            "hash_secret": "hash-secret-" + "x" * 32,
+            "admin_password": "admin-password-" + "x" * 32,
+        }}},
+        raising=False,
+    )
+    pyinfra_task_harness.load("docker/mdmesh.py", {
+        "docker": {"mdmesh": {
+            "version": "0.5.0",
+            "domain": "mdm.example.com",
+            "port": 8030,
+        }},
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+    })
+
+    compose = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs["name"] == "Configure mdmesh"
+    )
+    assert compose["dest"] == "/home/tester/.docker/mdmesh/docker-compose.yml"
+    assert compose["version"] == "0.5.0"
+    assert compose["domain"] == "mdm.example.com"
+    assert compose["port"] == 8030
+
+    env_file = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs["name"] == "Configure private mdmesh environment"
+    )
+    assert env_file["dest"] == "/home/tester/.docker/mdmesh/.env"
+    assert env_file["mode"] == "600"
+
+    downloads = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "download"
+    ]
+    assert len(downloads) == 3
+    assert all("/refs/tags/v0.5.0/" in item["src"] for item in downloads)
+
+    bootstrap = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs["name"] == "Initialize MDMesh database and enrollment defaults"
+    )
+    assert callable(bootstrap["_if"])
+    assert "mdm_seed" in bootstrap["commands"][0]
+    assert "inconsistent" in bootstrap["commands"][0]
+
+
+def test_mdmesh_requires_encrypted_secrets(pyinfra_task_harness, monkeypatch):
+    """An incomplete MDMesh secret set fails before any deployment operations are scheduled."""
+    monkeypatch.setattr(builtins, "secrets", {"docker": {"mdmesh": {}}}, raising=False)
+    with pytest.raises(ValueError, match="database_password, hash_secret, admin_password"):
+        pyinfra_task_harness.load("docker/mdmesh.py", {
+            "docker": {"mdmesh": {
+                "version": "0.5.0",
+                "domain": "mdm.example.com",
+            }},
+        })
+
+
 def test_paperless_exposes_consume_directory_in_home(pyinfra_task_harness, monkeypatch):
     """Paperless imports files placed in the user's visible ~/Paperless folder."""
     monkeypatch.setattr(
