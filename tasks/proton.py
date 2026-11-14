@@ -50,46 +50,38 @@ if use_flatpak and flatpak_apps:
         packages=["flatpak"],
     )
 
-    # Check configured Flatpak remotes.
-    flathub_remotes = host.get_fact(
-        Command,
-        command="flatpak remote-list --user --columns=name",
-        _sudo=False
-    )
+    # Facts are evaluated inside _if callbacks, after the preceding APT
+    # operation has installed Flatpak on a first deployment.
+    def installed_flatpak_apps():
+        return command_output_text(host.get_fact(
+            Command,
+            command="flatpak list --user --app --columns=application",
+            _sudo=False,
+        )).splitlines()
 
     server.shell(
         name="Configure Flathub",
         commands=[
-            "flatpak remote-add --user flathub "
+            "flatpak remote-add --user --if-not-exists flathub "
             "https://flathub.org/repo/flathub.flatpakrepo",
         ],
-        _if=lambda: "flathub" not in command_output_text(flathub_remotes).splitlines(),
-        _sudo=False
+        _if=lambda: "flathub" not in command_output_text(host.get_fact(
+            Command,
+            command="flatpak remote-list --user --columns=name",
+            _sudo=False,
+        )).splitlines(),
+        _sudo=False,
     )
 
-    # Check installed applications.
-    installed_apps = host.get_fact(
-        Command,
-        command="flatpak list --user --app --columns=application",
-        _sudo=False
-    )
-
-    missing_apps = [
-        app
-        for app in flatpak_apps
-        if app not in command_output_text(installed_apps).splitlines()
-    ]
-
-    if missing_apps:
+    for app in flatpak_apps:
         server.shell(
-            name="Install Proton Flatpak applications",
+            name=f"Install Proton Flatpak application {app}",
             commands=[
-                "flatpak install --user "
-                "--noninteractive --assumeyes "
-                "flathub "
-                + " ".join(missing_apps),
+                "flatpak install --user --noninteractive --assumeyes "
+                f"flathub {app}",
             ],
-            _sudo=False
+            _if=lambda app=app: app not in installed_flatpak_apps(),
+            _sudo=False,
         )
 
 # Proton Drive CLI
