@@ -423,6 +423,92 @@ def test_mullvad_extensions_use_declarative_downloads(pyinfra_task_harness):
     assert "_if" not in download
 
 
+@pytest.mark.parametrize("url", [
+    "https://",
+    "https:///extension.xpi",
+    "http://example.test/extension.xpi",
+    "https://user:password@example.test/extension.xpi",
+    "not-a-url",
+])
+def test_mullvad_extension_rejects_invalid_urls(pyinfra_task_harness, url):
+    with pytest.raises(ValueError, match="Invalid Mullvad extension URL"):
+        pyinfra_task_harness.load("mullvad_extensions.py", {
+            "mullvad_browser_dir": "/opt/mullvad-browser/distribution",
+            "mullvad_extensions": {
+                "invalid": {
+                    "id": "privacy@example.test",
+                    "url": url,
+                },
+            },
+        })
+
+
+def test_mullvad_extension_accepts_brace_wrapped_uuid(pyinfra_task_harness):
+    pyinfra_task_harness.load("mullvad_extensions.py", {
+        "mullvad_browser_dir": "/opt/mullvad-browser/distribution",
+        "mullvad_extensions": {
+            "uuid-addon": {
+                "id": "{12345678-1234-1234-1234-123456789abc}",
+                "url": "https://example.test/extension.xpi",
+            },
+        },
+    })
+
+    download = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "download"
+    )
+    assert download["dest"].endswith(
+        "/{12345678-1234-1234-1234-123456789abc}.xpi"
+    )
+
+
+def test_mullvad_extension_forces_download_when_source_changes(
+    pyinfra_task_harness
+):
+    old_url = "https://old.example.test/extension.xpi"
+    new_url = "https://new.example.test/extension.xpi"
+    old_hash = hashlib.sha256(old_url.encode()).hexdigest()
+    new_hash = hashlib.sha256(new_url.encode()).hexdigest()
+
+    def get_fact(fact, *_args, **kwargs):
+        if getattr(fact, "__name__", "") == "Command":
+            return [old_hash]
+        if getattr(fact, "__name__", "") == "File":
+            return True
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("mullvad_extensions.py", {
+        "mullvad_browser_dir": "/opt/mullvad-browser/distribution",
+        "mullvad_extensions": {
+            "privacy-addon": {
+                "id": "privacy@example.test",
+                "url": new_url,
+            },
+        },
+    })
+
+    calls = pyinfra_task_harness.calls
+    download_index = next(
+        i for i, (namespace, name, _kwargs) in enumerate(calls)
+        if namespace == "files" and name == "download"
+    )
+    marker_index = next(
+        i for i, (namespace, name, kwargs) in enumerate(calls)
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Record privacy-addon source URL"
+    )
+
+    download = calls[download_index][2]
+    marker = calls[marker_index][2]
+
+    assert download["force"] is True
+    assert download["src"] == new_url
+    assert marker["src"].getvalue() == f"{new_hash}\\n"
+    assert marker_index > download_index
+
+
 def test_mullvad_extension_rejects_path_traversal_ids(pyinfra_task_harness):
     """Extension IDs cannot escape the managed extensions directory."""
     with pytest.raises(ValueError, match="Invalid Mullvad extension ID"):
