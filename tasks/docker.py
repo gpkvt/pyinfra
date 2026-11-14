@@ -29,6 +29,7 @@ Deployments:
         username="root",
         usergroup="root",
         restart_if=None,
+        private_env=None,
         **template_vars,
     )
 
