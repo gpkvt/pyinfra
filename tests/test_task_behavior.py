@@ -2,10 +2,10 @@
 # pylint: disable=protected-access
 
 import builtins
-
-import pytest
 import sys
 from types import SimpleNamespace
+
+import pytest
 
 
 def test_apt_repository_accepts_supported_signing_key_extensions(pyinfra_task_harness):
