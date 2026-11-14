@@ -4,68 +4,216 @@
 Copy this file to @local.py and replace every placeholder before deploying.
 Keep machine-specific values, credentials, private keys and device identifiers
 in the ignored local file, never in this tracked example.
+
+Every setting below is read by one or more tasks. Empty collections disable
+optional features unless noted otherwise. Uncomment service examples only
+when you intend to deploy that service.
 """
 
-# Required identity and locale settings.
-hostname = "example-host"  # The system hostname to configure on this machine.
-timezone = "Etc/UTC"  # A valid timezone database name, such as Europe/Berlin.
-locale = "en_US.UTF-8"  # The system locale; generate/install it on the target first.
-username = "YOUR_USERNAME"  # The primary account name used by user-level tasks.
-usergroup = "YOUR_USERNAME"  # The primary group for the configured user.
-homedir = "/home/YOUR_USERNAME"  # Absolute home directory of the configured user.
+# Identity and operating-system settings.
+hostname = "example-host"  # Sets /etc/hostname and the system hostname.
+timezone = "Etc/UTC"  # Timezone database name used by the OS and services.
+locale = "en_US.UTF-8"  # System locale; the locale must be available on the target.
+username = "YOUR_USERNAME"  # Primary non-root account used by user-level tasks.
+usergroup = "YOUR_USERNAME"  # Primary group used for ownership of user files.
+homedir = "/home/YOUR_USERNAME"  # Absolute home directory; also roots user data mounts.
+editor = "nano"  # Default command-line editor exported to the user's environment.
+visual_editor = "nano"  # GUI/editor command; falls back to editor when omitted.
 
-keyboard = {  # XKB keyboard settings used by the desktop configuration.
-    "layout": "us",
-    "model": "pc105",
-    "variant": "",
-    "options": "",
+keyboard = {  # XKB keyboard settings applied to the system.
+    "layout": "us",  # Keyboard layout code, e.g. "us" or "de".
+    "model": "pc105",  # XKB keyboard model; "pc105" is common for full keyboards.
+    "variant": "",  # Optional layout variant, e.g. "intl"; empty uses the default.
+    "options": "",  # Optional XKB options, e.g. "grp:alt_shift_toggle".
 }
 
-# Optional network configuration.
-local_network_cidr = ""
-hostnames = {}
-wireguard_interface = None
-wireguard_config = {}
+# Network and name resolution.
+local_network_cidr = ""  # Local IPv4 CIDR used by the VPN task to detect LAN presence.
+hostnames = {}  # /etc/hosts mappings: {"192.0.2.10": ["host.example", "host"]}.
+wireguard_interface = None  # Interface used by wg-quick, e.g. "home"; None disables VPN startup.
+wireguard_config = {}  # WireGuard interfaces keyed by name; private/peer keys belong in secrets.
+# Example interface settings (the matching privatekey and peers go in encrypted secrets):
+# wireguard_config = {
+#     "home": {
+#         "interface": {
+#             "Address": ["10.10.0.2/32"],  # Tunnel address assigned to this host.
+#             "DNS": "10.10.0.1",  # DNS resolver used while this interface is active.
+#             "MTU": 1420,  # Optional interface MTU.
+#         },
+#     },
+# }
+# secrets.json.gpg must contain hosts["@local"]["wireguard"]["home"] with:
+# privatekey (interface private key) and peers (list of peer dictionaries containing PublicKey,
+# AllowedIPs, and optional PresharedKey, Endpoint and PersistentKeepalive).
 
-# User environment.
-editor = "nano"
-zsh = False
-powerline = False
-tmux = True
-powerline_fonts = False
-zplug_plugins = []
-zshrc_imports = []
+# User shell and terminal tools.
+zsh = False  # Installs/configures Zsh and the LiMusic-aware HyFetch music helper.
+zshrc_imports = []  # Extra Zsh files sourced from the user's ~/.zshrc.
+zplug_plugins = []  # Zplug plugin identifiers loaded by the Zsh configuration.
+powerline = False  # Deploys the Powerline shell prompt configuration.
+powerline_fonts = False  # Downloads/installs Powerline-patched fonts when enabled.
+tmux = True  # Deploys the user's tmux configuration.
 
-# System configuration examples.
-apt_packages = []
-apt_sources = {}
-flatpak_packages = []
-sysctl = {}
-udev = {}
-usbguard = {"enabled": False, "rules": []}
-sudoers_rules = []
-ssh_keys = []
-ssh_authorized_keys = {}
-ssh_config = {}
-apparmor_profiles = []
-
-# Optional workstation/desktop configuration.
-# COSMIC settings belong exclusively in workstation.cosmic in group_data/workstation.py.
-vscodium = {"extensions": []}
-proton = {
-    # "drive_cli_version": "0.9.0",  # Changing this updates the installed Drive CLI.
+# Core packages and operating-system policy.
+apt_packages = []  # Additional APT package names to install.
+apt_sources = {}  # Third-party APT repositories; signing keys must use .gpg, .asc or .key paths.
+# Example (leave enabled=False until the repository is trusted and verified):
+# apt_sources = {
+#     "example": {
+#         "enabled": False,  # Set True to download the key and configure this repository.
+#         "key": {
+#             "url": "https://packages.example.org/repo-signing-key.asc",  # HTTPS URL of the repository signing key.
+#             "path": "/etc/apt/keyrings/example.asc",  # Absolute keyring destination; extension must match key format.
+#             # "keyid": "0123456789ABCDEF",  # Optional key fingerprint/key ID for verification.
+#         },
+#         "repository": {
+#             "url": "https://packages.example.org/debian",  # APT repository base URL.
+#             "distribution": "stable",  # Distribution or suite name.
+#             "components": ["main"],  # Repository components; may be empty for repositories without components.
+#             "architectures": ["amd64"],  # Optional architecture filter; omit to use APT defaults.
+#             "types": ["deb"],  # APT source types, normally ["deb"] or ["deb", "deb-src"].
+#         },
+#     },
+# }
+flatpak_packages = []  # Flatpak application IDs installed for the configured user from Flathub when possible.
+sysctl = {}  # Kernel sysctl settings, e.g. {"net.ipv4.ip_forward": 1}.
+udev = {}  # udev rules keyed by rule filename, with rule contents as values.
+usbguard = {  # USBGuard daemon configuration; disabled unless explicitly enabled.
+    "enabled": False,  # Installs/enables USBGuard when True.
+    "rules": [],  # USBGuard policy rules; review carefully to avoid locking out devices.
 }
-mullvad_extensions = {}
-mullvad_browser_dir = None
+sudoers_rules = []  # Additional sudoers lines; validated with visudo before deployment.
+apparmor_profiles = []  # AppArmor profile paths/names to load and enforce.
 
-# Optional services.
-docker = {}
-docker_sablier = {"enabled": False}
-docker_power_save = []
-caddy_config = {}
-dehydrated_domains = []
-cron_jobs = []
-syncthing = {}
+# SSH configuration. Private-key passphrases are read from encrypted secrets.
+ssh_keys = []  # SSH keypairs to generate; existing private keys are never overwritten.
+# Example: {"name": "id_ed25519", "type": "ed25519", "comment": "user@host"}.
+# RSA entries may also set "bits" (minimum 3072); passphrases belong in secrets.json.gpg.
+ssh_authorized_keys = {}  # Authorized keys keyed by target user, e.g. {"YOUR_USERNAME": ["ssh-ed25519 AAAA..."]}.
+# Example: {"YOUR_USERNAME": ["ssh-ed25519 AAAAC3... workstation"]}; keys are reconciled exactly.
+ssh_authorized_keys_enabled = True  # Set False to skip authorized_keys management entirely.
+ssh_config = {}  # SSH client Host entries: {"git.example.com": "    User git\\n    IdentityFile ~/.ssh/id_ed25519"}.
 
-# Firewall is intentionally not enabled by this example.
-ufw = {}
+# Optional desktop applications and browser customization.
+vscodium = {  # VSCodium extension configuration.
+    "extensions": [],  # Marketplace extension IDs to install for the configured user.
+}
+proton = {  # Proton application configuration.
+    # "drive_cli_version": "0.9.0",  # Optional pinned Proton Drive CLI version.
+}
+mullvad_extensions = {}  # Browser extensions keyed by name; each entry requires an add-on id and HTTPS XPI URL.
+# Example: {"uBlock Origin": {"id": "uBlock0@raymondhill.net", "url": "https://addons.mozilla.org/...xpi"}}.
+mullvad_browser_dir = None  # Optional Mullvad Browser profile directory; None uses task defaults.
+
+# Docker services. Keep this empty to deploy no application containers.
+# Each service is enabled by adding its own dictionary. All persistent service
+# data is stored in host directories below homedir/.docker/ (never named volumes).
+docker_install = True  # Install Docker itself; set False only when Docker is managed elsewhere.
+docker = {
+    # "forgejo": {  # Self-hosted Git service; secrets are not stored here.
+    #     "image": "codeberg.org/forgejo/forgejo:17",  # Container image/tag.
+    #     "port": 3000,  # Web interface port published on the host.
+    #     "ssh_port": 2222,  # SSH clone port published on the host.
+    #     "ssh_server": False,  # Expose the container's SSH server when True.
+    #     "domain": "git.example.com",  # Public URL used by the service/reverse proxy.
+    # },
+    # "linkwarden": {  # Bookmark manager; credentials and encryption keys belong in secrets.
+    #     "image": "ghcr.io/linkwarden/linkwarden:latest",  # Container image/tag.
+    #     "port": 8021,  # Web interface port published on the host.
+    #     "domain": "links.example.com",  # Public URL used for authentication callbacks.
+    #     "blacklist": [],  # Linkwarden bookmark IDs omitted from Homepage bookmark synchronization.
+    # },
+    # "miniflux": {  # RSS reader; administrator/database passwords belong in secrets.
+    #     "postgres_version": 12,  # PostgreSQL major version used by the database container.
+    #     "port": 8080,  # Web interface port published on the host.
+    # },
+    # "paperless": {  # Document management; database password and secret key belong in secrets.
+    #     "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",  # Container image/tag.
+    #     "port": 8022,  # Web interface port published on the host.
+    #     "domain": "docs.example.com",  # Public URL used by the service.
+    #     "uid": 1000,  # UID used by the Paperless container for file access.
+    #     "gid": 1000,  # GID used by the Paperless container for file access.
+    # },
+    # "firefly-iii": {  # Personal finance manager; database/app secrets belong in secrets.
+    #     "image": "fireflyiii/core:latest",  # Application image/tag.
+    #     "port": 8023,  # Main web interface port.
+    #     "domain": "finance.example.com",  # Public application hostname.
+    #     "fints_port": 8024,  # Optional Firefly III FINTS importer port.
+    #     "fints_domain": "fints.example.com",  # Optional FINTS importer hostname.
+    # },
+    # "appflowy": {  # AppFlowy workspace; all required credentials belong in secrets.
+    #     "port": 8026,  # Web interface port published on the host.
+    #     "domain": "appflowy.example.com",  # Public application hostname.
+    #     "admin_email": "admin@example.com",  # Initial administrator email.
+    #     "app_services": ["nginx"],  # Compose services to start for this deployment.
+    # },
+    # "snipe-it": {  # IT asset management; database/app secrets belong in secrets.
+    #     "image": "snipe/snipe-it:latest",  # Application image/tag.
+    #     "port": 8025,  # Web interface port published on the host.
+    #     "domain": "assets.example.com",  # Public application hostname.
+    # },
+    # "grav": {  # Grav CMS.
+    #     "image": "getgrav/grav:1.7",  # Container image/tag.
+    #     "port": 8080,  # Web interface port published on the host.
+    #     "channel": "stable",  # Release channel used by the image entrypoint.
+    #     "setup": True,  # Run the initial setup behavior.
+    #     "scheduler": True,  # Enable Grav's scheduler.
+    #     "fix_permissions": True,  # Let the container repair content permissions.
+    # },
+    # "nocodb": {  # No-code database frontend.
+    #     "image": "nocodb/nocodb:latest",  # Container image/tag.
+    #     "port": 8019,  # Web interface port published on the host.
+    #     "domain": "https://db.example.com",  # Public URL, including scheme.
+    # },
+    # "portainer": {  # Docker management UI.
+    #     "image": "portainer/portainer-ce:lts",  # Container image/tag.
+    #     "port": 9000,  # HTTP interface port published on the host.
+    # },
+    # "tasmoadmin": {  # TasmoAdmin for managing Tasmota devices.
+    #     "image": "ghcr.io/tasmoadmin/tasmoadmin:latest",  # Container image/tag.
+    #     "port": 8016,  # Web interface port published on the host.
+    # },
+    # "timetagger": {  # TimeTagger time tracking; username:bcrypt-hash belongs in secrets.
+    #     "port": 8080,  # Web interface port published on the host.
+    # },
+    # "vaultwarden": {  # Bitwarden-compatible password manager; admin token belongs in secrets.
+    #     "image": "vaultwarden/server:latest",  # Container image/tag.
+    #     "port": 8018,  # Web interface port published on the host.
+    #     "domain": "https://vault.example.com",  # Public URL, including scheme.
+    # },
+    # "wallabag": {  # Read-it-later service.
+    #     "image": "wallabag/wallabag:latest",  # Container image/tag.
+    #     "port": 8017,  # Web interface port published on the host.
+    #     "domain": "https://read.example.com",  # Public URL, including scheme.
+    # },
+    # "wg-easy": {  # WireGuard web management UI; peer/private keys are managed separately.
+    #     "image": "ghcr.io/wg-easy/wg-easy:15",  # Container image/tag.
+    #     "ui_port": 51821,  # Web UI port; VPN UDP port is configured by the container.
+    # },
+}
+
+docker_sablier = {  # Enables on-demand Docker container startup via Sablier.
+    "enabled": False,  # Sablier and the Docker battery monitor are mutually exclusive.
+    "default_duration": "15m",  # Default container session duration (e.g. 15m or 1h).
+    # "strategy": "dynamic",  # Default Caddy integration strategy: "dynamic" or "blocking".
+    # "blocking_timeout": "15m",  # Maximum wait for a blocking start request.
+    # "default_theme": "ghost",  # Theme used by Sablier's dynamic service cards.
+    # "refresh_frequency": "5s",  # Polling interval for dynamic service status.
+}  # Per-service overrides live under docker.<service>.sablier.
+docker_power_save = []  # Container names managed by the battery power-save service when on battery.
+
+# Reverse proxy, certificates and background services.
+caddy_config = {}  # Caddy sites keyed by hostname; each value is a mapping of Caddy directives.
+# Example: {"example.com": {"encode": "gzip", "reverse_proxy": "127.0.0.1:8080"}}.
+# Add only sites not already generated from configured Docker services.
+dehydrated_domains = []  # Each item is a list of DNS names covered by one certificate; Hetzner token belongs in secrets.
+# Example: [["example.com", "*.example.com"], ["other.example.net"]].
+cron_jobs = []  # Named cron jobs; each needs name, command and at least one schedule field.
+syncthing = {}  # Syncthing settings; an empty mapping keeps the GUI on its safe loopback default.
+# Example: {"gui_address": "127.0.0.1:8384"}; avoid exposing the GUI without authentication.
+
+# Firewall is deliberately disabled in this example.
+ufw = {}  # UFW rules; only populate after verifying remote access and SSH allowances.
+# Supported keys: "ssh", "kdeconnect", "localsend", "chromecast-dlna".
+# Example: {"ssh": "Allow", "localsend": "Allow"}; values may be "Allow" or "Deny".
+# Custom rules may use {"action": "Allow", "rule": "443/tcp"} after careful review.
