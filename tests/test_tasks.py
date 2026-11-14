@@ -203,9 +203,12 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
         }}},
         raising=False,
     )
+    pyinfra_task_harness.host.get_fact = lambda _fact, command="", **_kwargs: (
+        "v0.5.0" if "api.github.com/repos/MDMesh-app/MDMesh/releases/latest" in command else ""
+    )
     pyinfra_task_harness.load("docker/mdmesh.py", {
         "docker": {"mdmesh": {
-            "version": "0.5.0",
+            "version": "latest",
             "domain": "mdm.example.com",
             "port": 8030,
         }},
