@@ -96,8 +96,8 @@
     # nix_shell               # nix shell (https://nixos.org/nixos/nix-pills/developing-with-nix-shell.html)
     # vi_mode               # vi mode (you don't need this if you've enabled prompt_char)
     vpn_ip                # virtual private network indicator
-    timewarrior             # timewarrior tracking status (https://timewarrior.net/)
-    timetagger               # example user-defined segment (see prompt_example function below)
+    #timewarrior             # timewarrior tracking status (https://timewarrior.net/)
+    #timetagger               # example user-defined segment (see prompt_example function below)
     #taskwarrior             # taskwarrior task count (https://taskwarrior.org/)
     ip                    # ip address and bandwidth usage for a specified network interface
     public_ip             # public IP address

@@ -87,6 +87,7 @@ if host.data.get("docker"):
     local.include("tasks/docker_container.py")
     if host.data.get("caddy_config") and host.data.get("caddy_enabled", True):
         local.include("tasks/caddy.py")
+        local.include("tasks/dehydrated.py")
 
 if host.data.get("apparmor_profiles") and host.data.get("apparmor_enabled", True):
     local.include("tasks/apparmor.py")
