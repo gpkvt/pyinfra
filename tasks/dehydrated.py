@@ -48,7 +48,7 @@ if not hasattr(__import__('builtins'), 'homedir'):
 
 class CertNeedsRenewal(FactBase):
     command = """
-        for cert in "/var/lib/dehydrated/certs/*/fullchain.pem"; do
+        for cert in /var/lib/dehydrated/certs/*/fullchain.pem; do
             [ -f "$cert" ] || continue
 
             if ! openssl x509 -checkend 2592000 -noout -in "$cert" >/dev/null 2>&1; then
