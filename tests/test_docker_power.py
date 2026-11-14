@@ -1,6 +1,11 @@
 """Tests for Docker battery-saver configuration validation."""
 
+import os
+import subprocess
+
 import pytest
+
+from conftest import ROOT
 
 
 def test_docker_power_save_accepts_valid_container_names(pyinfra_task_harness):
@@ -43,11 +48,6 @@ def test_docker_power_save_rejects_duplicate_container_names(pyinfra_task_harnes
 
 def test_docker_power_manager_retries_after_partial_stop_failure(tmp_path):
     """A failed stop must not leave a state file that blocks later retries."""
-    import os
-    import subprocess
-
-    from conftest import ROOT
-
     config = tmp_path / "battery-containers.conf"
     config.write_text('BATTERY_CONTAINERS=("first" "second")\n', encoding="utf-8")
 
