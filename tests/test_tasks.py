@@ -269,8 +269,12 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
         and kwargs["name"] == "Initialize MDMesh database and enrollment defaults"
     )
     assert callable(bootstrap["_if"])
-    assert "mdm_seed" in bootstrap["commands"][0]
-    assert "inconsistent" in bootstrap["commands"][0]
+    bootstrap_command = bootstrap["commands"][0]
+    bootstrap_arguments = shlex.split(bootstrap_command)
+    assert bootstrap_arguments[:2] == ["bash", "-c"]
+    assert "set -euo pipefail" in bootstrap_arguments[2]
+    assert "mdm_seed" in bootstrap_arguments[2]
+    assert "inconsistent" in bootstrap_arguments[2]
     assert bootstrap["_if"]() is True
     check_command = release_commands[-1]
     check_arguments = shlex.split(check_command)
