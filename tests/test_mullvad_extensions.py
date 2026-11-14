@@ -47,7 +47,7 @@ def test_mullvad_extension_skips_download_when_source_is_unchanged(
     url = "https://addons.example.invalid/example.xpi"
     source_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
 
-    def get_fact(fact, command=None, **_kwargs):
+    def get_fact(fact, _command=None, **_kwargs):
         if fact.__name__ == "Command":
             return source_hash
         if fact.__name__ == "File":
