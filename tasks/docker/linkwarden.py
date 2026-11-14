@@ -2,6 +2,8 @@
 """
 Deploy and manage Linkwarden using Docker Compose.
 
+import re
+
 Configuration:
     docker.linkwarden (dict):
         image (str): Linkwarden image. Defaults to ghcr.io/linkwarden/linkwarden:latest.
@@ -35,6 +37,8 @@ if missing_secrets:
         "Linkwarden requires these encrypted secrets under docker.linkwarden: "
         + ", ".join(missing_secrets)
     )
+if not re.fullmatch(r"[A-Za-z0-9_-]+", linkwarden_secrets["postgres_password"]):
+    raise ValueError("Linkwarden PostgreSQL password must be URL-safe")
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
 
