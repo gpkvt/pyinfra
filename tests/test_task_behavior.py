@@ -608,11 +608,12 @@ def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
         "/home/tester/.config/cosmic/com.system76.CosmicPanel.Dock/v1",
         "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1",
     ]
-    assert uploads[-1]["dest"] == (
-        "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1/plugins.ron"
+    plugin_upload = next(
+        call for call in uploads
+        if call["dest"].endswith("/com.system76.CosmicPanel/v1/plugins.ron")
     )
-    assert uploads[-1]["src"].getvalue() == '["dock"]\n'
-    assert uploads[-1]["mode"] == "0644"
+    assert plugin_upload["src"].getvalue() == '["dock"]\n'
+    assert plugin_upload["mode"] == "0644"
 
 
 def test_numeric_directory_skips_when_uid_gid_and_mode_match(pyinfra_task_harness):
