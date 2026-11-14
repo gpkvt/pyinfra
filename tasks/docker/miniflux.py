@@ -112,9 +112,11 @@ deploy_docker_service(
     compose_services=["miniflux","db"],
     username=host.data.get("username", "root"),
     usergroup=host.data.get("usergroup", "root"),
-    postgres_password=miniflux_secrets.get("postgres_password", ""),
+    private_env={
+        "POSTGRES_PASSWORD": miniflux_secrets.get("postgres_password", ""),
+        "ADMIN_PASSWORD": miniflux_secrets.get("admin_password", ""),
+    },
     postgres_version=miniflux.get("postgres_version", 12),
     admin_username=miniflux_secrets.get("admin_username", ""),
-    admin_password=miniflux_secrets.get("admin_password", ""),
     port=miniflux.get("port", 8080),
 )
