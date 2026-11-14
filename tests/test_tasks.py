@@ -190,6 +190,12 @@ def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
     assert calls[0][2]["hostnames"] == "example.test alias.test"
 
 
+def test_mdmesh_is_skipped_without_a_configured_domain(pyinfra_task_harness):
+    """An absent or empty MDMesh domain leaves the optional service untouched."""
+    pyinfra_task_harness.load("docker/mdmesh.py", {"docker": {"mdmesh": {}}})
+    assert pyinfra_task_harness.calls == []
+
+
 def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_harness, monkeypatch):
     """MDMesh uses the shared Compose helper and keeps all persistent data on host paths."""
     monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
