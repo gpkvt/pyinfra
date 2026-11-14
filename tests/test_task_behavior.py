@@ -2,6 +2,8 @@
 # pylint: disable=protected-access
 
 import builtins
+
+import pytest
 import sys
 from types import SimpleNamespace
 
