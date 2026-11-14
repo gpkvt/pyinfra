@@ -29,10 +29,8 @@ File permissions:
 Notes:
 
 - Script deployment runs without sudo.
-- Symbolic links preserve the relative directory structure
-  of the source scripts directory.
+- System-wide symbolic links are created with sudo.
 - Symlink names use the original filename.
-- Scripts are accessible system-wide through `/usr/local/bin/`.
 - Existing destination files are not automatically deleted.
 
 """
@@ -64,4 +62,5 @@ for file in src.rglob("*"):
             name=f"Symlink {file.name}",
             path=f"/usr/local/bin/{file.name}",
             target=f"{homedir}/scripts/{file.relative_to(src)}", # pylint: disable=undefined-variable
+            _sudo=True,
         )
