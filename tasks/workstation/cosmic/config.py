@@ -49,7 +49,7 @@ def deploy_cosmic_values(component, values):
         relative_path = destination.removeprefix(f"{config_root}/")
         files.put(
             name=f"Configure COSMIC {component}: {relative_path}",
-            src=StringIO(f"{value}\\n"),
+            src=StringIO(f"{value}\n"),
             dest=destination,
             user=user,
             mode="0644",
