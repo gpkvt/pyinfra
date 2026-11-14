@@ -125,7 +125,7 @@ When `host.data.docker` is truthy, `deploy.py` includes `tasks/docker.py` and `t
 
 **Deployment behavior**
 
-- Compose files are rendered to `~/<service>/docker-compose.yml`.
+- Compose files are rendered to `~/.docker/<service>/docker-compose.yml`.
 - User-level systemd units are rendered to `~/.config/systemd/user/<service>.service`.
 - Persistent data and per-service Docker directories live under the configured user's `~/.docker/` directory.
 - A changed Compose file triggers `docker compose pull`; a changed Compose file, Sablier override, systemd unit or registered asset trigger causes the user-level systemd service to start or restart. With Sablier enabled, the unit prepares the project using `docker compose up --no-start`; without Sablier it starts the project with `docker compose up -d`. The unit stops either the complete Compose project (`down`) or only configured `app_services`, depending on `stop_dependencies`. Service tasks can also register additional restart triggers for generated assets; Homepage's container is recreated when its synchronized public icons change.
