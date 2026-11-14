@@ -15,8 +15,9 @@ import shlex
 
 from pyinfra import host
 from pyinfra.facts.server import Command
-from common import command_output_text
 from pyinfra.operations import apt, server, systemd
+
+from common import command_output_text
 
 if not hasattr(__import__("builtins"), "homedir"):
     from common import initialize
