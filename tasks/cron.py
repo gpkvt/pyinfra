@@ -104,6 +104,7 @@ for job in jobs:
     validated_jobs.append((name, command, target_user, present, schedule))
 
 if validated_jobs:
+    # The crontab executable is required for both installs and removals.
     apt.packages(
         name="Install cron",
         packages=["cron"],
@@ -111,6 +112,8 @@ if validated_jobs:
         _sudo=True,
     )
 
+
+if any(present for _name, _command, _target_user, present, _schedule in validated_jobs):
     server.service(
         name="Ensure cron daemon is enabled and running",
         service="cron",
