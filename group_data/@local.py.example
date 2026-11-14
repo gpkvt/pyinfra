@@ -205,6 +205,7 @@ docker = {
 docker_sablier = {  # Enables on-demand Docker container startup via Sablier.
     "enabled": False,  # Sablier and the Docker battery monitor are mutually exclusive.
     "default_duration": "15m",  # Default container session duration (e.g. 15m or 1h).
+    "provider_strategy": "pause",  # Idle Docker behaviour: "pause" retains RAM; "stop" frees it.
     # "strategy": "dynamic",  # Default Caddy integration strategy: "dynamic" or "blocking".
     # "blocking_timeout": "15m",  # Maximum wait for a blocking start request.
     # "default_theme": "ghost",  # Theme used by Sablier's dynamic service cards.
