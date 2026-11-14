@@ -736,6 +736,15 @@ def test_dehydrated_wildcards_suppress_only_one_label_hostname_matches(pyinfra_t
     ]
 
 
+def test_dehydrated_wildcard_certificate_can_include_apex_san(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    assert module.build_dehydrated_certificates(
+        {"192.168.1.10": ["www.example.com", "example.com"]},
+        ["example.com"],
+        wildcards=[["example.com", "*.example.com"]],
+    ) == [["example.com", "*.example.com"]]
+
+
 def test_dehydrated_auto_hostname_discovery_can_be_disabled(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_dehydrated_certificates(
