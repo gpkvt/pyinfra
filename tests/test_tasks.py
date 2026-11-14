@@ -720,10 +720,10 @@ def test_sablier_systemd_preparation_reconciles_existing_containers():
     assert "docker compose {{ compose_files }} create" not in unit
 
 
-def test_sudo_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
-    """An already-correct sudoers directory is not scheduled for reconciliation."""
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
-        "root:root:755" if "stat -c" in command else ""
+def test_sudo_directory_uses_declarative_metadata_reconciliation(pyinfra_task_harness):
+    """files.directory handles sudoers directory ownership and mode idempotently."""
+    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: (
+        pytest.fail("Sudo directory setup must not need a separate stat fact")
     )
     pyinfra_task_harness.load("sudo.py", {"sudoers_rules": ["%sudo ALL=(ALL:ALL) ALL"]})
     directory_calls = [
@@ -732,13 +732,16 @@ def test_sudo_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
         and kwargs.get("path") == "/etc/sudoers.d"
     ]
     assert len(directory_calls) == 1
-    assert directory_calls[0]["_if"]() is False
+    assert directory_calls[0]["user"] == "root"
+    assert directory_calls[0]["group"] == "root"
+    assert directory_calls[0]["mode"] == "755"
+    assert "_if" not in directory_calls[0]
 
 
-def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
-    """An already-correct SSH directory is not scheduled for reconciliation."""
-    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
-        "tester:tester:700" if "stat -c" in command else ""
+def test_ssh_directory_uses_declarative_metadata_reconciliation(pyinfra_task_harness):
+    """files.directory handles SSH directory ownership and mode idempotently."""
+    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: (
+        pytest.fail("SSH directory setup must not need a separate stat fact")
     )
     pyinfra_task_harness.load("ssh_keys.py", {
         "username": "tester",
@@ -751,7 +754,10 @@ def test_ssh_directory_is_skipped_when_metadata_matches(pyinfra_task_harness):
         and kwargs.get("path") == "/home/tester/.ssh/"
     ]
     assert len(directory_calls) == 1
-    assert directory_calls[0]["_if"]() is False
+    assert directory_calls[0]["user"] == "tester"
+    assert directory_calls[0]["group"] == "tester"
+    assert directory_calls[0]["mode"] == "700"
+    assert "_if" not in directory_calls[0]
 
 
 
