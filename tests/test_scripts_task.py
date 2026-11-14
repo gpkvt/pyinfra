@@ -5,7 +5,7 @@ from conftest import ROOT
 
 def test_scripts_are_synced_without_sudo_and_links_use_sudo(pyinfra_task_harness):
     """User-owned scripts stay in home while /usr/local/bin links use privilege."""
-    module = pyinfra_task_harness.load("scripts.py", {
+    pyinfra_task_harness.load("scripts.py", {
         "username": "tester",
         "usergroup": "users",
     })
