@@ -2,6 +2,7 @@
 
 import ast
 import builtins
+import pytest
 import re
 import sys
 import types
@@ -201,8 +202,6 @@ def test_timetagger_rejects_missing_encrypted_credentials(
     docker_module.deploy_docker_service = lambda **_kwargs: None
     monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
     monkeypatch.setattr(builtins, "secrets", {}, raising=False)
-
-    import pytest
 
     with pytest.raises(ValueError, match="credentials must be a single-line"):
         pyinfra_task_harness.load("docker/timetagger.py", {
