@@ -11,7 +11,7 @@ from pyinfra.api import deploy
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
-from common import command_output_text, initialize
+from common import command_output_text, compose_configuration_matches, initialize
 from tasks.homepage_config import homepage_api_exclusions
 
 def required_version(config, key, setting):
@@ -313,6 +313,11 @@ def configure_caddy():  # pylint: disable=R0914
             or domains_file.did_change() or dehydrated_config.did_change()
             or env_file.did_change()
             or not container_running() or not container_healthy()
+            or not compose_configuration_matches(
+                host,
+                f"docker compose -f {shlex.quote(root + '/docker-compose.yml')}",
+                ["caddy"],
+            )
         )
     start_caddy = server.shell(
         name="Start Caddy and Dehydrated containers",

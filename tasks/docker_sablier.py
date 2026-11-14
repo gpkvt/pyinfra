@@ -6,7 +6,7 @@ from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
 
-from common import command_output_text
+from common import command_output_text, compose_configuration_matches
 
 options = host.data.get("docker_sablier", {})
 
@@ -75,5 +75,8 @@ if options.get("enabled", False):
                 Command,
                 "docker inspect -f '{{.State.Running}}' sablier 2>/dev/null || true",
             )).strip() != "true"
+            or not compose_configuration_matches(
+                host, f"docker compose -f {compose_file}", ["sablier"]
+            )
         ),
     )
