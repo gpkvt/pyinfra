@@ -209,3 +209,33 @@ def test_timetagger_rejects_missing_encrypted_credentials(
             "docker": {"timetagger": {}},
             "homedir": "/home/tester",
         })
+
+def test_all_compose_data_uses_host_bind_mounts_under_docker_directory():
+    """Compose projects never use Docker-managed named volumes."""
+    templates = sorted((ROOT / "templates/docker").glob("*/docker-compose.yml.j2"))
+    assert templates
+
+    for template in templates:
+        lines = template.read_text().splitlines()
+        assert not any(re.match(r"^volumes:\\s*$", line) for line in lines), template
+
+        for index, line in enumerate(lines):
+            if not re.match(r"^    volumes:\\s*$", line):
+                continue
+
+            mount_index = index + 1
+            while mount_index < len(lines):
+                mount_line = lines[mount_index]
+                if not mount_line.strip():
+                    mount_index += 1
+                    continue
+                if not mount_line.startswith("      - "):
+                    break
+
+                mount = mount_line.strip()[2:].strip().strip('"')
+                host_path = mount.split(":", 1)[0]
+                assert (
+                    host_path.startswith("{{ homedir }}/.docker/")
+                    or host_path == "/var/run/docker.sock"
+                ), f"{template}: unexpected volume source {host_path!r}"
+                mount_index += 1
