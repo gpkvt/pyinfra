@@ -4,13 +4,30 @@ Deploy and configure the Docker battery monitor.
 The battery saver and Sablier are mutually exclusive.
 """
 
+import re
+
 from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server, systemd
 
 from common import command_output_text
 
-battery_container = host.data.get("docker_power_save", {})
+battery_container = host.data.get("docker_power_save", [])
+if not isinstance(battery_container, list):
+    raise ValueError("docker_power_save must be a list of container names")
+if any(
+    not isinstance(container, str)
+    or len(container) > 255
+    or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]*", container)
+    for container in battery_container
+):
+    raise ValueError(
+        "docker_power_save entries must be valid Docker container names "
+        "(letters, digits, '.', '_' and '-' only; maximum 255 characters)"
+    )
+if len(battery_container) != len(set(battery_container)):
+    raise ValueError("docker_power_save must not contain duplicate container names")
+
 sablier_enabled = host.data.get("docker_sablier", {}).get("enabled", False)
 
 for script in ("docker-power-manager", "docker-power-monitor"):
