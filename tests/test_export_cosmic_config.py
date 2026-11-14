@@ -116,7 +116,7 @@ def test_main_defaults_to_workstation_py(tmp_path, monkeypatch, capsys):
     setting = config_dir / "com.system76.CosmicTheme.Mode" / "v1" / "is_dark"
     setting.parent.mkdir(parents=True)
     setting.write_text("true\n", encoding="utf-8")
-    workstation_file = tmp_path / "workstation.py"
+    workstation_file = tmp_path / "groups_data" / "workstation.py"
     original = 'workstation = {"cosmic": {"appearance": {"enabled": True}}}\n'
     workstation_file.write_text(original, encoding="utf-8")
     monkeypatch.chdir(tmp_path)
