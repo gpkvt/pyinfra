@@ -101,6 +101,7 @@ def test_docker_service_restarts_when_sablier_labels_drift(pyinfra_task_harness)
         and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
     )
     assert reconcile_call["_if"]() is True
+    pyinfra_task_harness.result.did_change = lambda: True
     assert restart_call["_if"]() is True
 
 
