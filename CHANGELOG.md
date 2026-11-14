@@ -4,11 +4,54 @@ All notable changes to this project are documented in this file.
 
 This project follows a continuous development model. Changes are tracked using date-based entries until formal releases are introduced.
 
+## [14.11.2026]
+
+### Added
+
+- Added a Paperless consume-directory link at `~/Paperless` ([#214](https://github.com/gpkvt/pyinfra/pull/214)).
+- Added LiMusic AppImage deployment with checksum verification, an application icon and a COSMIC launcher ([#196](https://github.com/gpkvt/pyinfra/pull/196), [#197](https://github.com/gpkvt/pyinfra/pull/197)).
+- Added LiMusic now-playing metadata integration for HyFetch ([#209](https://github.com/gpkvt/pyinfra/pull/209), [#210](https://github.com/gpkvt/pyinfra/pull/210), [#211](https://github.com/gpkvt/pyinfra/pull/211)).
+- Added configurable cron jobs ([#187](https://github.com/gpkvt/pyinfra/pull/187)).
+
+### Changed
+
+- Changed Sablier's default idle strategy to pause containers ([#256](https://github.com/gpkvt/pyinfra/pull/256)).
+- Changed cron deployment so removal-only changes do not start or restart the cron daemon ([#255](https://github.com/gpkvt/pyinfra/pull/255)).
+- Expanded COSMIC applet configuration and adjusted configuration-directory handling; expanded Docker application-service configuration ([#241](https://github.com/gpkvt/pyinfra/pull/241), [#251](https://github.com/gpkvt/pyinfra/pull/251), [#253](https://github.com/gpkvt/pyinfra/pull/253), [#254](https://github.com/gpkvt/pyinfra/pull/254)).
+
+### Fixed
+
+- Fixed fact-output handling and deployment idempotency across multiple tasks, including Docker, Caddy, Proton, LiMusic, Sablier and Syncthing ([#219](https://github.com/gpkvt/pyinfra/pull/219)).
+- Corrected `runas` shell argument handling, X11 cleanup, Mullvad Browser configuration and privileged script links ([#223](https://github.com/gpkvt/pyinfra/pull/223), [#224](https://github.com/gpkvt/pyinfra/pull/224), [#225](https://github.com/gpkvt/pyinfra/pull/225)).
+- Added validation for APT signing keys and sources, WireGuard, UFW, Docker power-save configuration and SSH key pairs ([#226](https://github.com/gpkvt/pyinfra/pull/226), [#227](https://github.com/gpkvt/pyinfra/pull/227), [#230](https://github.com/gpkvt/pyinfra/pull/230), [#231](https://github.com/gpkvt/pyinfra/pull/231), [#235](https://github.com/gpkvt/pyinfra/pull/235), [#242](https://github.com/gpkvt/pyinfra/pull/242), [#243](https://github.com/gpkvt/pyinfra/pull/243), [#249](https://github.com/gpkvt/pyinfra/pull/249), [#250](https://github.com/gpkvt/pyinfra/pull/250)).
+- Corrected Git credential file attributes, sudoers metadata, Flatpak update error handling, USBGuard restart behavior and Dehydrated certificate-expiry handling ([#228](https://github.com/gpkvt/pyinfra/pull/228), [#229](https://github.com/gpkvt/pyinfra/pull/229), [#232](https://github.com/gpkvt/pyinfra/pull/232), [#233](https://github.com/gpkvt/pyinfra/pull/233), [#252](https://github.com/gpkvt/pyinfra/pull/252)).
+- Fixed COSMIC applet configuration formatting and newline handling, Docker battery-stop retry behavior and configuration-directory creation ([#241](https://github.com/gpkvt/pyinfra/pull/241), [#251](https://github.com/gpkvt/pyinfra/pull/251)).
+
+### Documentation
+
+- Updated group-data examples and deployment documentation, including COSMIC, SSH, UFW and Sablier guidance ([#221](https://github.com/gpkvt/pyinfra/pull/221), [#236](https://github.com/gpkvt/pyinfra/pull/236), [#238](https://github.com/gpkvt/pyinfra/pull/238), [#239](https://github.com/gpkvt/pyinfra/pull/239), [#247](https://github.com/gpkvt/pyinfra/pull/247)).
 ## [13.11.2026]
 
 ### Added
 
 - Added the AppFlowy Self-Hosted Commercial Docker Compose deployment with PostgreSQL, MinIO and Search host bind mounts, encrypted credentials, loopback-only Nginx publishing, Caddy/Sablier integration and a basic Homepage link.
+
+### Changed
+
+- Changed COSMIC workstation settings to use the nested configuration structure and expanded configurable appearance, input and keyboard-shortcut settings ([#207](https://github.com/gpkvt/pyinfra/pull/207), [#208](https://github.com/gpkvt/pyinfra/pull/208), [#212](https://github.com/gpkvt/pyinfra/pull/212)).
+- Changed Flatpak installation to use the user scope, prefer Flathub and manage required runtimes ([#198](https://github.com/gpkvt/pyinfra/pull/198), [#199](https://github.com/gpkvt/pyinfra/pull/199), [#200](https://github.com/gpkvt/pyinfra/pull/200), [#201](https://github.com/gpkvt/pyinfra/pull/201), [#202](https://github.com/gpkvt/pyinfra/pull/202), [#203](https://github.com/gpkvt/pyinfra/pull/203)).
+- Increased the default Sablier inactivity duration from 10 to 30 minutes ([#188](https://github.com/gpkvt/pyinfra/pull/188)).
+
+### Fixed
+
+- Improved AppFlowy first-deployment handling and corrected Docker, Redis, Sablier and Caddy integration issues ([#159](https://github.com/gpkvt/pyinfra/pull/159), [#160](https://github.com/gpkvt/pyinfra/pull/160), [#161](https://github.com/gpkvt/pyinfra/pull/161), [#181](https://github.com/gpkvt/pyinfra/pull/181), [#182](https://github.com/gpkvt/pyinfra/pull/182), [#183](https://github.com/gpkvt/pyinfra/pull/183)).
+- Corrected Linkwarden API handling and improved manual synchronization, collection grouping, filtering and favicon handling ([#162](https://github.com/gpkvt/pyinfra/pull/162), [#164](https://github.com/gpkvt/pyinfra/pull/164), [#165](https://github.com/gpkvt/pyinfra/pull/165), [#175](https://github.com/gpkvt/pyinfra/pull/175), [#178](https://github.com/gpkvt/pyinfra/pull/178), [#186](https://github.com/gpkvt/pyinfra/pull/186), [#193](https://github.com/gpkvt/pyinfra/pull/193), [#194](https://github.com/gpkvt/pyinfra/pull/194)).
+- Corrected Docker systemd handling, LiMusic locale metadata and Homepage integration; added no-op detection to avoid unnecessary deployment operations ([#166](https://github.com/gpkvt/pyinfra/pull/166), [#180](https://github.com/gpkvt/pyinfra/pull/180)).
+
+### Tests
+
+- Expanded automated checks and behavioral coverage for the recent deployment changes ([#189](https://github.com/gpkvt/pyinfra/pull/189), [#190](https://github.com/gpkvt/pyinfra/pull/190), [#191](https://github.com/gpkvt/pyinfra/pull/191), [#192](https://github.com/gpkvt/pyinfra/pull/192)).
+
 
 ## [12.11.2026]
 
