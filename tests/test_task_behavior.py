@@ -461,6 +461,8 @@ def test_sudoers_metadata_is_reconciled_when_content_matches(
         and kwargs.get("name") == "Validate custom sudoers configuration"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+
 def test_ssh_keypair_validation_runs_for_incomplete_pairs_and_skips_complete_pairs(
     pyinfra_task_harness,
 ):
