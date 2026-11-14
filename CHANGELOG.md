@@ -15,6 +15,7 @@ This project follows a continuous development model. Changes are tracked using d
 
 ### Changed
 
+- Replaced duplicated Dehydrated domain definitions with hostname-derived certificates, an explicit DNS-zone allowlist, manual hostname/IP exclusions, wildcard overrides and an automatic-discovery opt-out.
 - Changed Sablier's default idle strategy to pause containers ([#256](https://github.com/gpkvt/pyinfra/pull/256)).
 - Changed cron deployment so removal-only changes do not start or restart the cron daemon ([#255](https://github.com/gpkvt/pyinfra/pull/255)).
 - Changed `hostnames` configuration to use lists; an empty list removes that IP's `/etc/hosts` entries ([#298](https://github.com/gpkvt/pyinfra/pull/298)).
