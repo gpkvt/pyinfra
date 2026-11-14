@@ -58,8 +58,10 @@ deploy_docker_service(
     fints_port=firefly.get("fints_port", 8024),
     fints_domain=firefly.get("fints_domain", "fints.21x9.org"),
     timezone=host.data.get("timezone", "UTC"),
-    database_password=firefly_secrets["database_password"],
-    mysql_root_password=firefly_secrets["mysql_root_password"],
-    app_key=firefly_secrets["app_key"],
-    cron_token=firefly_secrets["cron_token"],
+    private_env={
+        "DATABASE_PASSWORD": firefly_secrets["database_password"],
+        "MYSQL_ROOT_PASSWORD": firefly_secrets["mysql_root_password"],
+        "APP_KEY": firefly_secrets["app_key"],
+        "STATIC_CRON_TOKEN": firefly_secrets["cron_token"],
+    },
 )
