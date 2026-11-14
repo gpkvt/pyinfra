@@ -68,6 +68,10 @@ if host.data.get("tmux"):
 if host.data.get("powerline"):
     local.include("tasks/powerline.py")
 
+samba_config = host.data.get("samba", {})
+if samba_config and samba_config.get("enabled", False):
+    local.include("tasks/samba.py")
+
 ufw_config = host.data.get("ufw", {})
 if ufw_config and ufw_config.get("enabled", True):
     local.include("tasks/ufw.py")
