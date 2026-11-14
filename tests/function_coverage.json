@@ -215,9 +215,6 @@
   "tasks/sudo.py:SudoersFile.process": [
     "test_sudoers_fact_preserves_file_content_with_trailing_newline"
   ],
-  "tasks/system.py:SystemLocale.process": [
-    "test_system_locale_fact_parses_lang_value"
-  ],
   "tasks/ufw.py:UfwActive.process": [
     "test_ufw_fact_parsers_and_rule_matching"
   ],
