@@ -132,6 +132,29 @@ def test_git_credentials_use_native_immutable_flag_operations(
     assert all(operation["_sudo"] is True for operation in flag_operations)
 
 
+
+def test_git_credentials_remain_immutable_when_rendered_content_matches(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"git_credentials": ["https://user:token@example.test"]},
+        raising=False,
+    )
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        True if fact.__name__ == "File"
+        else "https://user:token@example.test\n"
+    )
+    pyinfra_task_harness.load("git.py")
+
+    flag_operations = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "flags"
+    ]
+    assert [operation["present"] for operation in flag_operations] == [True]
+
+
 def test_apparmor_enforcement_is_skipped_when_profiles_are_enforcing(
     pyinfra_task_harness
 ):
