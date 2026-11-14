@@ -201,23 +201,20 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         if configured_compose_services is not None:
             compose_services = configured_compose_services
 
-        if compose_services is not None:
-            if (
-                not isinstance(compose_services, (list, tuple))
-                or not compose_services
-                or not all(isinstance(item, str) and item for item in compose_services)
-            ):
-                raise ValueError(
-                    f"Invalid Compose services configuration for {service!r}"
-                )
-            sablier_services = sorted(compose_services)
-        else:
-            compose_path = shlex.quote(f"{homedir}/{service}/docker-compose.yml")
-            sablier_services_output = command_output_text(host.get_fact(
-                Command,
-                f"docker compose -f {compose_path} config --services",
-            ))
-            sablier_services = sorted(sablier_services_output.split())
+        if compose_services is None:
+            raise ValueError(
+                f"Compose service names must be declared for Sablier service {service!r} "
+                "or configured with docker.<service>.sablier_services"
+            )
+        if (
+            not isinstance(compose_services, (list, tuple))
+            or not compose_services
+            or not all(isinstance(item, str) and item for item in compose_services)
+        ):
+            raise ValueError(
+                f"Invalid Compose services configuration for {service!r}"
+            )
+        sablier_services = sorted(compose_services)
 
         if not sablier_services:
             raise ValueError(
