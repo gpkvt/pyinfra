@@ -304,7 +304,7 @@ def configure_caddy():  # pylint: disable=R0914
         commands=[
             f"docker compose -f {shlex.quote(root + '/docker-compose.yml')} up -d --force-recreate"
         ],
-        _sudo=False, _if=start_caddy.did_change,
+        _sudo=False, _if=recreate,
     )
     server.shell(
         name="Wait for Caddy container health",
@@ -317,7 +317,7 @@ def configure_caddy():  # pylint: disable=R0914
             "docker logs caddy; "
             "echo 'Caddy did not become healthy within 5 minutes' >&2; exit 1"
         ],
-        _sudo=False, _if=recreate,
+        _sudo=False, _if=start_caddy.did_change,
     )
     # Track the last Caddyfile that was successfully validated and reloaded.
     # This survives pyinfra runs, so a skipped/failed reload is retried even
