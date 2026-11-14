@@ -162,7 +162,7 @@ def test_dispatchers_include_child_task_modules():
 )
 def test_every_task_module_evaluates_in_a_pyinfra_context(
     pyinfra_task_harness, monkeypatch, relative_path
-):  # pylint: disable=R0912
+):  # pylint: disable=R0912,R0915
     """Evaluate every deployable module, including nested service tasks."""
     module_path = relative_path.removeprefix("tasks/")
     calls_before = len(pyinfra_task_harness.calls)
