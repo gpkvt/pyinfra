@@ -117,14 +117,6 @@ docker = {
     #     "ssh_server": False,  # Expose the container's SSH server when True.
     #     "domain": "git.example.com",  # Public URL used by the service/reverse proxy.
     # },
-    # "homepage": {  # Homepage dashboard.
-    #     "image": "ghcr.io/gethomepage/homepage:latest",  # Container image/tag.
-    #     "port": 8020,  # Dashboard port published on the host.
-    #     "domain": "home.example.com",  # Public dashboard hostname.
-    #     "glances": {"bind_address": "172.17.0.1", "port": 61208},  # Glances endpoint shown by Homepage.
-    #     "services": [],  # Homepage service groups/widgets; see Homepage configuration docs.
-    #     "environment": {},  # Non-secret Homepage environment values; put API keys in secrets.
-    # },
     # "linkwarden": {  # Bookmark manager; credentials and encryption keys belong in secrets.
     #     "image": "ghcr.io/linkwarden/linkwarden:latest",  # Container image/tag.
     #     "port": 8021,  # Web interface port published on the host.
