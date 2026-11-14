@@ -305,10 +305,9 @@ def test_sudoers_fact_preserves_file_content_with_trailing_newline(pyinfra_task_
 
 
 def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harness):
-    output = types.SimpleNamespace(stdout_lines=[json.dumps([
-        {"addr_info": [{"family": "inet", "local": "192.168.42.25"}]},
-    ])])
-    pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (True, output)
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, **_kwargs: {"eth0": ["192.168.42.25"]}
+    )
     pyinfra_task_harness.load("vpn.py", {
         "local_network_cidr": "192.168.42.0/24",
         "wireguard_interface": "home",
@@ -322,10 +321,22 @@ def test_wireguard_skips_service_when_host_is_on_local_network(pyinfra_task_harn
     assert service_calls[0][2]["_if"]() is False
 
 
-def test_wireguard_raises_when_interface_discovery_fails(pyinfra_task_harness):
-    pyinfra_task_harness.host.run_shell_command = lambda *args, **kwargs: (False, None)
-    with pytest.raises(RuntimeError, match="Unable to retrieve network interfaces"):
-        pyinfra_task_harness.load("vpn.py")
+def test_wireguard_ignores_loopback_and_link_local_addresses(pyinfra_task_harness):
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, **_kwargs: {
+            "lo": ["127.0.0.1"],
+            "eth0": ["169.254.10.20"],
+        }
+    )
+    pyinfra_task_harness.load("vpn.py", {
+        "local_network_cidr": "127.0.0.0/8",
+        "wireguard_interface": "home",
+    })
+    service_call = next(
+        call for call in pyinfra_task_harness.calls
+        if call[0] == "server" and call[1] == "service"
+    )
+    assert service_call[2]["_if"]() is True
 
 
 def test_caddyfile_does_not_set_a_global_response_write_timeout():
