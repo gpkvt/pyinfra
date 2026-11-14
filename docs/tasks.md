@@ -256,7 +256,7 @@ Mullvad extension downloads are defined by extension IDs and URLs. The supplied 
 
 ### Proton
 
-The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options. Proton Drive CLI uses `proton.drive_cli_version` (default `0.9.0`) and updates the binary when that version changes. The misspelled `proton.drive_cll_version` setting remains a deprecated compatibility fallback; use `drive_cli_version` for new configuration.
+The Proton task supports components selected through the `proton` configuration, including Mail, Mail Bridge, VPN, Pass and Drive CLI. Installation source varies by component and configuration; consult `tasks/proton.py` for the exact current options. When Drive CLI installation is enabled, set `proton.drive_cli_version` explicitly; deployment fails if it is missing or empty. The deprecated misspelled `proton.drive_cll_version` setting is no longer accepted.
 
 ## On-demand Samba file exchange
 
