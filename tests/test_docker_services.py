@@ -257,3 +257,58 @@ def test_secrets_example_is_valid_json_and_documents_timetagger_credentials():
     assert example["docker"]["timetagger"]["credentials"] == (
         "REPLACE_USERNAME:REPLACE_WITH_BCRYPT_HASH"
     )
+
+def test_docker_private_environment_is_literal_and_excluded_from_compose(
+    pyinfra_task_harness,
+):
+    """Private environment values are uploaded separately with restrictive mode."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "usergroup": "tester",
+    })
+    module.deploy_docker_service(
+        "custom",
+        "Custom",
+        "/home/tester",
+        username="tester",
+        usergroup="tester",
+        private_env={"API_TOKEN": "token-with-$-characters"},
+    )
+
+    env_file = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Configure private custom environment"
+    )
+    compose = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("name") == "Configure custom"
+    )
+
+    assert env_file["dest"] == "/home/tester/.docker/custom/.env"
+    assert env_file["mode"] == "600"
+    assert env_file["src"].getvalue() == "API_TOKEN='token-with-$-characters'\\n"
+    assert "private_env" not in compose
+    assert "token-with-$-characters" not in repr(compose)
+
+
+def test_docker_private_environment_rejects_unsafe_keys_and_values(
+    pyinfra_task_harness,
+):
+    """Private env files reject names and values that could alter parsing."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "usergroup": "tester",
+    })
+    with pytest.raises(ValueError, match="Invalid private environment variable"):
+        module.deploy_docker_service(
+            "custom", "Custom", "/home/tester",
+            private_env={"BAD-KEY": "value"},
+        )
+
+    with pytest.raises(ValueError, match="single-line string"):
+        module.deploy_docker_service(
+            "custom", "Custom", "/home/tester",
+            private_env={"API_TOKEN": "line1\\nline2"},
+        )
