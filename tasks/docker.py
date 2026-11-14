@@ -48,26 +48,31 @@ Deployments:
         usergroup (str): Group ownership of deployed files and directories.
             Defaults to "root".
 
-        **template_vars: Additional variables passed to the Docker Compose
+        private_env (dict): Optional secret environment variables written to
+            a mode-0600 project .env file and included in restart detection.
+        **template_vars: Non-secret variables passed to the Docker Compose
             Jinja2 template. The homedir variable is passed automatically.
 
     Operations:
         1. Create the service-specific Docker configuration directory at
            ~/.docker/<service>/.
 
-        2. Generate the Docker Compose configuration from
+        2. Upload optional private environment variables to a mode-0600
+           .env file without exposing values in Compose template diffs.
+
+        3. Generate the Docker Compose configuration from
            templates/docker/<service>/docker-compose.yml.j2
            and deploy it to ~/.docker/<service>/docker-compose.yml.
 
-        3. Generate the user-level systemd unit from
+        4. Generate the user-level systemd unit from
            templates/docker/systemd.service.j2
            and deploy it to
            ~/.config/systemd/user/<service>.service.
 
-        4. Reload the user systemd daemon and enable the service when
+        5. Reload the user systemd daemon and enable the service when
            the systemd unit file changes.
 
-        5. Restart the service when the Docker Compose configuration,
+        6. Restart the service when the Docker Compose configuration,
            systemd unit file, or an additional restart trigger changes.
 
     File permissions:
@@ -105,8 +110,8 @@ Conditional service deployments:
 Notes:
     - Docker Compose and systemd configurations are generated using
       Jinja2 templates.
-    - Service-specific credentials and settings should be supplied
-      through the deployment configuration and template variables.
+    - Service credentials should be supplied through encrypted secrets
+      and written to private project .env files, never Compose templates.
     - Systemd operations run without sudo and manage the user's
       systemd instance.
     - Unchanged configuration files do not trigger unnecessary
