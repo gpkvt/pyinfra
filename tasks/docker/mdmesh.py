@@ -192,7 +192,7 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
             # mdm_seed wrote the configured password. Repair only this first-login
             # state; passwordreset=false means an administrator has changed it.
             admin_hash=$(mdm_pwhash "$ADMIN_PASSWORD")
-            admin_state=$(mdm_psql -c "SELECT (email = '$ADMIN_EMAIL')::text || '/' || passwordreset::text || '/' || (password = '$admin_hash')::text FROM users WHERE login='admin'" | tr -d '[:space:]')
+            admin_state=$(mdm_psql -c "SELECT CASE WHEN email = '$ADMIN_EMAIL' THEN 't' ELSE 'f' END || '/' || CASE WHEN passwordreset THEN 't' ELSE 'f' END || '/' || CASE WHEN password = '$admin_hash' THEN 't' ELSE 'f' END FROM users WHERE login='admin'" | tr -d '[:space:]')
             case "$admin_state" in
                 t/t/f)
                     reset_token=$(openssl rand -hex 16)
