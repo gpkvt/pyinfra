@@ -15,7 +15,9 @@ if config.get("enabled", False):
 
     if not isinstance(idle_timeout, int) or isinstance(idle_timeout, bool) or idle_timeout < 0:
         raise ValueError("samba.idle_timeout must be a non-negative integer number of seconds")
-    if not isinstance(interface, str) or not interface or not all(c.isalnum() or c in "_.:-" for c in interface):
+    if not isinstance(interface, str) or not interface or not all(
+        character.isalnum() or character in "_.:-" for character in interface
+    ):
         raise ValueError("samba.interface must be a valid Linux interface name")
     for label, path in (("upload", upload_path), ("download", download_path)):
         if not isinstance(path, str) or not os.path.isabs(path):
@@ -92,7 +94,7 @@ if config.get("enabled", False):
         name="Reload systemd unit definitions when needed",
         commands=["systemctl daemon-reload"], _sudo=True,
         _if=lambda: host.get_fact(
-            "command", command="systemctl show --property=NeedDaemonReload --value"
+            "command", command="systemctl show samba-idle.timer --property=NeedDaemonReload --value"
         ).strip() == "yes",
     )
     if not idle_timeout:
@@ -105,8 +107,12 @@ if config.get("enabled", False):
             ],
             _sudo=True,
             _if=lambda: (
-                host.get_fact("command", command="systemctl is-active samba-idle.timer 2>/dev/null || true").strip() == "active"
-                or bool(host.get_fact("command", command="nft list table inet samba_idle 2>/dev/null || true").strip())
+                host.get_fact(
+                    "command", command="systemctl is-active samba-idle.timer 2>/dev/null || true"
+                ).strip() == "active"
+                or bool(host.get_fact(
+                    "command", command="nft list table inet samba_idle 2>/dev/null || true"
+                ).strip())
             ),
         )
 
@@ -115,7 +121,11 @@ if config.get("enabled", False):
         commands=["systemctl stop smbd.service", "systemctl mask smbd.service"],
         _sudo=True,
         _if=lambda: (
-            host.get_fact("command", command="systemctl is-active smbd.service 2>/dev/null || true").strip() == "active"
-            or host.get_fact("command", command="systemctl is-enabled smbd.service 2>/dev/null || true").strip() != "masked"
+            host.get_fact(
+                "command", command="systemctl is-active smbd.service 2>/dev/null || true"
+            ).strip() == "active"
+            or host.get_fact(
+                "command", command="systemctl is-enabled smbd.service 2>/dev/null || true"
+            ).strip() != "masked"
         ),
     )
