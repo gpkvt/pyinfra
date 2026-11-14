@@ -66,7 +66,11 @@ github_repo = mdmesh.get("github_repo", "MDMesh-app/MDMesh")
 if not isinstance(github_repo, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", github_repo):
     raise ValueError("docker.mdmesh.github_repo must use owner/repository format")
 
-trusted_proxies = mdmesh.get("trusted_proxies", [])
+# An always-on MDM must not be paused by Sablier after an idle timeout.
+# An explicit per-service setting may opt in, but the safe default is disabled.
+mdmesh.setdefault("sablier", {"enabled": False})
+
+trusted_proxies = mdmesh.get("trusted_proxies", ["127.0.0.1/32", "::1/128"])
 if not isinstance(trusted_proxies, (list, tuple)) or not all(
     isinstance(item, str) and item.strip() for item in trusted_proxies
 ):
