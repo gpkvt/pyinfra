@@ -82,7 +82,8 @@ Operations:
 
     3. Configure application profiles and port-based rules:
        - Iterate over the entries in host.data.ufw.
-       - Ignore unsupported configuration keys and invalid values.
+       - Reject unsupported configuration keys and invalid values before
+         scheduling firewall operations.
        - Deploy application profiles for configured applications.
        - Configure allow or deny rules according to the specified
          action.
@@ -132,7 +133,8 @@ Notes:
     - Port-based rules do not require application profiles.
     - Only explicitly supported applications and services are
       configured.
-    - Unsupported configuration keys and values are ignored.
+    - Unsupported configuration keys and invalid values raise ValueError
+      instead of silently leaving the requested firewall rule unapplied.
     - Existing rules are checked before adding new rules to avoid
       unnecessary changes.
     - Allow and deny rules are managed independently.
@@ -250,13 +252,35 @@ ufw_ports = {
     "ssh": "22/tcp",
 }
 
+if not isinstance(ufw, dict):
+    raise ValueError("ufw configuration must be a dictionary")
+
 for app, action in ufw.items():
+    if not isinstance(app, str) or not app:
+        raise ValueError("UFW rule names must be non-empty strings")
+
     if isinstance(action, dict):
+        unknown_options = set(action) - {"action", "rule"}
+        if unknown_options:
+            raise ValueError(
+                f"Unsupported UFW custom rule options for {app}: "
+                f"{', '.join(sorted(unknown_options))}"
+            )
         custom_action = action.get("action")
         custom_rule = action.get("rule")
-        if custom_action not in ("Allow", "Deny") or not isinstance(custom_rule, str) or not custom_rule.strip():
-            continue
-        rule_arguments = " ".join(shlex.quote(token) for token in shlex.split(custom_rule))
+        if custom_action not in ("Allow", "Deny"):
+            raise ValueError(
+                f"Invalid UFW action for {app}: expected 'Allow' or 'Deny'"
+            )
+        if not isinstance(custom_rule, str) or not custom_rule.strip():
+            raise ValueError(f"UFW custom rule for {app} must be a non-empty string")
+        try:
+            rule_tokens = shlex.split(custom_rule)
+        except ValueError as error:
+            raise ValueError(f"Invalid UFW custom rule for {app}: {error}") from error
+        if not rule_tokens:
+            raise ValueError(f"UFW custom rule for {app} must not be empty")
+        rule_arguments = " ".join(shlex.quote(token) for token in rule_tokens)
         server.shell(
             name=f"{custom_action} {app}",
             commands=[f"ufw {custom_action.lower()} {rule_arguments}"],
@@ -266,7 +290,9 @@ for app, action in ufw.items():
         continue
 
     if action not in ("Allow", "Deny"):
-        continue
+        raise ValueError(
+            f"Invalid UFW action for {app}: expected 'Allow' or 'Deny'"
+        )
 
     if app in ufw_applications:
         application = ufw_applications[app]
@@ -288,7 +314,7 @@ for app, action in ufw.items():
         rule = ufw_ports[app]
 
     else:
-        continue
+        raise ValueError(f"Unsupported UFW rule name: {app}")
 
     if action == "Allow":
         server.shell(
