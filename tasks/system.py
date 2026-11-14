@@ -186,8 +186,17 @@ if timezone:
         raise ValueError(f"Invalid timezone: {timezone}")
 
     current_timezone = host.get_fact(Timezone)
+    timezone_aliases = {
+        "Etc/UTC": "UTC",
+        "Etc/GMT": "UTC",
+        "GMT": "UTC",
+        "UCT": "UTC",
+        "Universal": "UTC",
+    }
 
-    if current_timezone != timezone:
+    if timezone_aliases.get(current_timezone, current_timezone) != timezone_aliases.get(
+        timezone, timezone
+    ):
         server.timezone(
             name=f"Set timezone to {timezone}",
             timezone=timezone,
