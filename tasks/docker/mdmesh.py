@@ -25,7 +25,8 @@ homedir = host.data.get("homedir", f"/home/{username}")
 
 version = mdmesh.get("version", "latest")
 if version == "latest":
-    release_url = f"https://api.github.com/repos/{github_repo}/releases/latest"
+    release_repo = mdmesh.get("github_repo", "MDMesh-app/MDMesh")
+    release_url = f"https://api.github.com/repos/{release_repo}/releases/latest"
     release_query = (
         "python3 -c "
         + shlex.quote(
