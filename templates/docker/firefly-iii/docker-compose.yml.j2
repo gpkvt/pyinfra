@@ -28,7 +28,7 @@ services:
       DB_PORT: 3306
       DB_DATABASE: firefly
       DB_USERNAME: firefly
-      DB_PASSWORD: "{{ database_password | replace('$', '$$') }}"
+      DB_PASSWORD: "${DATABASE_PASSWORD:?}"
       STATIC_CRON_TOKEN: "${STATIC_CRON_TOKEN:?}"
       TZ: "{{ timezone }}"
     volumes:
@@ -41,7 +41,7 @@ services:
       - app
     environment:
       TZ: "{{ timezone }}"
-      STATIC_CRON_TOKEN: "{{ cron_token }}"
+      STATIC_CRON_TOKEN: "${STATIC_CRON_TOKEN:?}"
     command:
       - /bin/sh
       - -c
