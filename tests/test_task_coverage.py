@@ -204,6 +204,7 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                         "mysql_root_password": "ci-mysql-root",
                         "app_key": "base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
                     },
+                    "timetagger": {"credentials": "ci:$2a$08$fake-hash"},
                 }
             },
             raising=False,
