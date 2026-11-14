@@ -11,7 +11,7 @@ import json
 import subprocess
 
 from pyinfra.facts.files import File
-from pyinfra.facts.server import Which
+from pyinfra.facts.server import Command, Which
 
 
 def command_output_text(output: str | list[str] | None) -> str:
@@ -21,6 +21,16 @@ def command_output_text(output: str | list[str] | None) -> str:
     if isinstance(output, str):
         return output
     return "\n".join(str(line) for line in output)
+
+
+def file_has_flag(host, path: str, flag: str) -> bool:
+    """Return whether a Linux file attribute is set, without shell side effects."""
+    output = command_output_text(host.get_fact(
+        Command,
+        f"lsattr -d {shlex.quote(path)} 2>/dev/null || true",
+    ))
+    attributes = output.split(maxsplit=1)
+    return bool(attributes and flag in attributes[0])
 
 
 def merge_secrets(shared, host_secrets):
