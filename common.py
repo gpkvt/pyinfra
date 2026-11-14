@@ -120,15 +120,24 @@ def compose_configuration_matches(host, compose_command):
     `up`, avoiding fragile comparisons between config hashes and container
     labels (which can differ for resolved env_file values and image metadata).
     """
+    # --no-deps keeps this planning check independent of dependency health.
+    # A dependency may be unhealthy while the Compose project still needs
+    # reconciliation. Keep shell failures inside the check: an inconclusive
+    # planner result must trigger deployment rather than abort pyinfra.
     output = command_output(
-        host, f"{compose_command} --dry-run up -d"
+        host,
+        f"{compose_command} --dry-run up --no-deps -d 2>&1 || true",
     )
-    if not output:
+    if not output or re.search(
+        r"\\b(?:error|failed|failure)\\b",
+        output,
+        re.IGNORECASE,
+    ):
         return False
 
     # A no-op reports existing containers as Running/Healthy. Any planned
     # lifecycle or image action means the deployed project needs reconciliation.
     return not re.search(
-        r"\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\b",
+        r"\\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\\b",
         output,
     )
