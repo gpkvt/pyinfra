@@ -253,7 +253,7 @@
     "test_samba_apparmor_hook_is_enabled_only_when_supported"
   ],
   "tasks/samba.py:needs_systemd_reload": [
-    "test_samba_systemd_reload_is_conditional_and_uses_command_fact"
+    "test_samba_systemd_reload_ignores_only_intentional_smbd_mask"
   ],
   "tasks/samba.py:needs_upload_permission_migration": [
     "test_samba_upload_permission_migration_is_conditional"
