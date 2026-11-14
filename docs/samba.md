@@ -21,7 +21,7 @@ Set a top-level samba mapping in host data:
         "enabled": True,
         "interface": "enp3s0",
         "allowed_networks": ["192.168.1.0/24", "10.20.0.0/24"],
-        "idle_timeout": 3600,  # 0 disables automatic shutdown
+        "idle_timeout": 3600,  # minimum 1800 seconds; 0 disables automatic shutdown
         "workgroup": "WORKGROUP",
         "server_string": "On-demand file exchange",
         "upload": {"path": "/srv/samba/upload"},
@@ -33,7 +33,7 @@ Set a top-level samba mapping in host data:
 | enabled | False | Opts into installation and configuration. |
 | interface | lo | Interface name Samba binds to, in addition to loopback. |
 | allowed_networks | required | Non-empty list of IPv4/IPv6 CIDRs allowed through UFW on TCP 445. |
-| idle_timeout | 0 | Stop Samba after this many seconds without incoming SMB packets from allowed networks; 0 disables the monitor. Checks run every 60 seconds. |
+| idle_timeout | 1800 | Stop Samba after this many seconds without incoming SMB packets from allowed networks; allowed values are 0 (disabled) or at least 1800 seconds. Checks run every 60 seconds. |
 | workgroup | WORKGROUP | SMB workgroup. |
 | server_string | On-demand file exchange | Server description. |
 | upload.path | /srv/samba/upload | Persistent upload directory. |
@@ -41,7 +41,7 @@ Set a top-level samba mapping in host data:
 
 Both paths must be distinct absolute paths. The task creates them if absent and never deletes their contents. Upload files are owned by the guest Unix identity; download files are not modified by Samba. Place files in the download directory using normal server-side tools and ensure they are world-readable.
 
-When `idle_timeout` is greater than zero, `samba-start` installs a dedicated nftables counter and starts a systemd timer. The counter observes incoming TCP 445 packets on the configured interface from allowed CIDRs; unrelated interface traffic does not reset the timeout. The monitor checks every 60 seconds and stops Samba through `samba-stop` after the configured idle period. The monitor and its counter are removed when Samba is stopped manually or automatically. The idle monitor requires nftables (`nft`) and systemd.
+When `idle_timeout` is greater than zero, `samba-start` installs a dedicated nftables counter and starts a systemd timer. The counter observes incoming TCP 445 packets on the configured interface from allowed CIDRs; unrelated interface traffic does not reset the timeout. The monitor checks every 60 seconds and stops Samba through `samba-stop` after the configured idle period. The default idle period is 30 minutes; non-zero values below 30 minutes are rejected. The monitor and its counter are removed when Samba is stopped manually or automatically. The idle monitor requires nftables (`nft`) and systemd.
 
 The scripts are installed as /usr/local/sbin/samba-start and /usr/local/sbin/samba-stop. If /usr/local/sbin is not in the invoking user's PATH, call them by absolute path.
 
