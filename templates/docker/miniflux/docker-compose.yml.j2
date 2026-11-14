@@ -24,11 +24,9 @@ services:
     environment:
       - POSTGRES_USER=miniflux
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?}
-      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/12/bin
-      - GOSU_VERSION=1.14
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/{{ postgres_version }}/bin
       - LANG=en_US.utf8
       - PG_MAJOR={{ postgres_version }}
-      - PG_VERSION={{ postgres_version }}.11-1.pgdg110+1
       - PGDATA=/var/lib/postgresql/data
     volumes:
       - {{ homedir }}/.docker/miniflux/db:/var/lib/postgresql/data

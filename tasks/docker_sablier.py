@@ -8,7 +8,6 @@ from pyinfra.operations import files, server
 
 from common import command_output_text
 
-SABLIER_VERSION = "1.20.0"
 options = host.data.get("docker_sablier", {})
 
 if options.get("enabled", False):
@@ -41,7 +40,7 @@ if options.get("enabled", False):
         src="templates/docker/sablier/docker-compose.yml.j2",
         dest=f"{homedir}/.docker/sablier/docker-compose.yml",
         user=username, group=usergroup, mode="640",
-        sablier_version=SABLIER_VERSION,
+        sablier_version=options.get("version", "1.20.0"),
         homedir=homedir,
         _sudo=False,
     )

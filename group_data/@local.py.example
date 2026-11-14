@@ -202,8 +202,14 @@ docker = {
     # },
 }
 
+caddy_versions = {  # Pinned versions used to build the custom Caddy image.
+    "version": "2.11.2",  # Caddy version used by both builder and runtime images.
+    "sablier_plugin": "v1.0.2",  # Sablier Caddy plugin release.
+    "dehydrated": "0.7.2",  # Dehydrated release downloaded into the image.
+}
 docker_sablier = {  # Enables on-demand Docker container startup via Sablier.
-    "enabled": False,  # Sablier and the Docker battery monitor are mutually exclusive.
+    "enabled": False,
+    "version": "1.20.0",  # Sablier server image version.  # Sablier and the Docker battery monitor are mutually exclusive.
     "default_duration": "15m",  # Default container session duration (e.g. 15m or 1h).
     "provider_strategy": "pause",  # Idle Docker behaviour: "pause" retains RAM; "stop" frees it.
     # "strategy": "dynamic",  # Default Caddy integration strategy: "dynamic" or "blocking".

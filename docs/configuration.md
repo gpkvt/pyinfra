@@ -295,6 +295,15 @@ Only keys present in `docker.homepage` are rendered. Omitted sections are not ge
 
 ### Caddy and Sablier
 
+Software release pins are configurable in the local host data. Set
+`caddy_versions.version`, `caddy_versions.sablier_plugin`, and
+`caddy_versions.dehydrated` to select the Caddy image, Sablier Caddy plugin,
+and Dehydrated release used to build the custom Caddy image. The Sablier
+server image is selected with `docker_sablier.version`. Defaults are
+`2.11.2`, `v1.0.2`, `0.7.2`, and `1.20.0`, respectively. Keep these
+pins in `group_data/@local.py` (or the appropriate host/group inventory data)
+rather than editing task or Dockerfile sources.
+
 `caddy_config` maps site addresses to Caddy directives consumed by `tasks/caddy.py`. Caddy is deployed inside the Docker feature gate when both `docker` and `caddy_config` are truthy; it uses the Sablier Caddy plugin and Dehydrated with Hetzner DNS-01 credentials. Ensure upstream services are reachable and `secrets.dehydrated.hetzner_api_token` is present.
 
 `docker_sablier` is an optional mapping. Set `enabled: True` to deploy Sablier before service Compose projects are prepared. The supplied local configuration uses `default_duration: "10m"`, `blocking_timeout: "10m"`, and `stop_dependencies: True`. Caddy uses the dynamic strategy by default, with `default_theme: "ghost"`, `show_details: True`, and `refresh_frequency: "5s"`; per-service overrides live under `docker.<service>.sablier`. `strategy: "blocking"` is available for clients that cannot use the dynamic loading page. `blocking_timeout` applies only to blocking mode.

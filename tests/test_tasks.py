@@ -1,4 +1,5 @@
 # pylint: disable=R0912, R0914, W0613, E1101, R0915, W0621, R0911
+# pylint: disable=too-many-lines
 """Smoke and focused regression tests for top-level deployment tasks.
 
 These tests deliberately mock pyinfra's host and operation APIs. They verify
@@ -594,8 +595,11 @@ def test_dehydrated_hook_handles_text_exit_argument():
 
 def test_caddy_image_creates_dehydrated_config_include_directory():
     """The configured CONFIG_D path exists in the built Caddy image."""
-    dockerfile = (ROOT / "files/caddy/Dockerfile").read_text()
+    dockerfile = (ROOT / "templates/caddy/Dockerfile.j2").read_text()
     assert "mkdir -p /etc/dehydrated/conf.d" in dockerfile
+    assert "caddy:{{ caddy_version }}-builder" in dockerfile
+    assert "sablier-caddy-plugin@{{ sablier_plugin_version }}" in dockerfile
+    assert "dehydrated/v{{ dehydrated_version }}/dehydrated" in dockerfile
     assert "ca-certificates setpriv" in dockerfile
     renewal_service = (ROOT / "templates/caddy/dehydrated-renew.service.j2").read_text()
     assert "docker exec --user {{ uid }}:{{ gid }} caddy /usr/local/bin/renew.sh" in renewal_service
