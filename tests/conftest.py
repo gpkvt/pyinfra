@@ -2,6 +2,7 @@
 """Shared test helpers for pyinfra deployment tests."""
 
 import builtins
+import importlib.machinery
 import importlib.util
 import json
 import runpy
@@ -12,7 +13,8 @@ from pathlib import Path
 import pytest
 
 
-PYINFRA_SPEC = importlib.util.find_spec("pyinfra")
+PYINFRA_SPEC = importlib.machinery.ModuleSpec("pyinfra", loader=None, is_package=True)
+PYINFRA_SPEC.submodule_search_locations = [str(Path(__file__).parent)]
 
 
 ROOT = Path(__file__).resolve().parents[1]
