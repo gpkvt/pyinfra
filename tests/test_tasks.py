@@ -7,7 +7,6 @@ important behavior without contacting or modifying a real machine.
 """
 
 import builtins
-import json
 import os
 import runpy
 import subprocess
