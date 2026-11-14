@@ -64,7 +64,7 @@ credentials_path = f"{homedir}/.git-credentials"  # pylint: disable=undefined-va
 git_credentials = secrets.get("git_credentials")  # pylint: disable=undefined-variable
 
 if git_credentials is not None:
-    desired_content = "".join(f"{credential}\\n" for credential in git_credentials)
+    desired_content = "".join(f"{credential}\n" for credential in git_credentials)
     credentials_exists = host.get_fact(File, path=credentials_path)
     current_content = (
         host.get_fact(FileContents, path=credentials_path)
