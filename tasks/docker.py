@@ -299,7 +299,7 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     service_status = host.get_fact(
         Command,
         f"{systemctl_user} show --property=ActiveState --value "
-        f"{shlex.quote(service)}",
+        f"{shlex.quote(service)} || true",
         _sudo=False,
     )
     service_active = command_output_text(service_status).strip() == "active"
