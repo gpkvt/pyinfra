@@ -63,6 +63,14 @@
   "tasks/apt.py:upgrade_apt_packages": [
     "test_upgrade_apt_packages_runs_only_after_an_index_change"
   ],
+  "tasks/caddy.py:build_dehydrated_certificates": [
+    "test_dehydrated_hostname_certificates_group_names_and_keep_private_ips",
+    "test_dehydrated_hostname_certificates_apply_zone_boundaries_and_blacklist",
+    "test_dehydrated_wildcards_suppress_only_one_label_hostname_matches",
+    "test_dehydrated_wildcard_certificate_can_include_apex_san",
+    "test_dehydrated_auto_hostname_discovery_can_be_disabled",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
+  ],
   "tasks/caddy.py:build_domains_file": [
     "test_dehydrated_certificate_lines_support_multiple_certificates_and_sans",
     "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
@@ -111,8 +119,17 @@
     "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
     "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
   ],
+  "tasks/caddy.py:normalize_domain": [
+    "test_dehydrated_certificate_lines_support_multiple_certificates_and_sans",
+    "test_dehydrated_hostname_certificates_group_names_and_keep_private_ips",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
+  ],
   "tasks/caddy.py:required_version": [
     "test_caddy_versions_must_be_explicitly_configured"
+  ],
+  "tasks/caddy.py:wildcard_covers": [
+    "test_dehydrated_wildcards_suppress_only_one_label_hostname_matches",
+    "test_dehydrated_certificate_configuration_rejects_unsafe_inputs"
   ],
   "tasks/dehydrated.py:CertNeedsRenewal.process": [
     "test_dehydrated_fact_reports_expiring_certificates",
