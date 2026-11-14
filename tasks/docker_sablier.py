@@ -1,5 +1,7 @@
 """Deploy Sablier as a Docker service using the Docker provider."""
 
+import shlex
+
 from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import files, server
@@ -38,20 +40,22 @@ if options.get("enabled", False):
     )
     server.shell(
         name="Enable lingering for Docker service user",
-        commands=[f"loginctl enable-linger {username}"],
+        commands=[f"loginctl enable-linger {shlex.quote(username)}"],
         _sudo=True,
         _if=lambda: command_output_text(host.get_fact(
-            Command, f"loginctl show-user {username} -p Linger"
+            Command, f"loginctl show-user {shlex.quote(username)} -p Linger"
         )).strip() != "Linger=yes",
     )
+    compose_file = shlex.quote(f"{homedir}/.docker/sablier/docker-compose.yml")
+
     server.shell(
         name="Pull Sablier image",
-        commands=[f"docker compose -f {homedir}/.docker/sablier/docker-compose.yml pull"],
+        commands=[f"docker compose -f {compose_file} pull"],
         _sudo=False, _if=lambda: compose.did_change() or config.did_change(),
     )
     server.shell(
         name="Ensure Sablier container is running",
-        commands=[f"docker compose -f {homedir}/.docker/sablier/docker-compose.yml up -d"],
+        commands=[f"docker compose -f {compose_file} up -d"],
         _sudo=False,
         _if=lambda: (
             compose.did_change()

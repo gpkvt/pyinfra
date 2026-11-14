@@ -168,3 +168,36 @@ def test_docker_service_uses_configured_compose_services_on_first_deployment(
         and kwargs.get("src") == "templates/docker/sablier-override.yml.j2"
     )
     assert override_call["sablier_services"] == ["database", "web", "worker"]
+
+
+def test_sablier_shell_arguments_quote_user_and_compose_paths(pyinfra_task_harness):
+    """Configured usernames and home paths are passed as single shell arguments."""
+    pyinfra_task_harness.load("docker_sablier.py", {
+        "username": "tester",
+        "homedir": "/home/test user",
+        "docker_sablier": {"enabled": True},
+    })
+
+    linger = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Enable lingering for Docker service user"
+    )
+    pull = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Pull Sablier image"
+    )
+    start = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Ensure Sablier container is running"
+    )
+
+    assert linger["commands"] == ["loginctl enable-linger tester"]
+    assert pull["commands"] == [
+        "docker compose -f '/home/test user/.docker/sablier/docker-compose.yml' pull"
+    ]
+    assert start["commands"] == [
+        "docker compose -f '/home/test user/.docker/sablier/docker-compose.yml' up -d"
+    ]
