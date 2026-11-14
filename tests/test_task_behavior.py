@@ -486,8 +486,20 @@ def test_ssh_keypair_validation_runs_for_incomplete_pairs_and_skips_complete_pai
     assert generation["_if"][0]() is True
     assert "Incomplete SSH keypair" in generation["commands"][0]
 
+    # pyinfra evaluates facts while loading the task. Load it again with
+    # the complete keypair state to verify the condition from that snapshot.
     states["/home/tester/.ssh/id_ed25519.pub"] = True
-    assert generation["_if"][0]() is False
+    pyinfra_task_harness.load("ssh_keys.py", {
+        "ssh_keys": [{"name": "id_ed25519"}],
+        "username": "tester",
+        "usergroup": "tester",
+    })
+    complete_generation = next(
+        kwargs for namespace, name, kwargs in reversed(pyinfra_task_harness.calls)
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Generate SSH keypair: id_ed25519"
+    )
+    assert complete_generation["_if"][0]() is False
 
 
 def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harness):
