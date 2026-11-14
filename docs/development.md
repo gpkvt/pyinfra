@@ -4,7 +4,7 @@ This guide covers local development, validation and the conventions used when ex
 
 ## Development environment
 
-The project requires Python 3.12 or newer. Runtime dependencies are declared in `pyproject.toml`, development tools are in the `dev` dependency group, and `uv.lock` pins the resolved versions.
+The project requires Python 3.12 or newer. Runtime dependencies are declared in `pyproject.toml` and mirrored in `requirements.txt`; development tools are in the `dev` dependency group. `uv.lock` is intentionally ignored by Git and is generated locally by uv, so it is not a repository-pinned lockfile.
 
 Install [uv](https://docs.astral.sh/uv/) if it is not already available, then synchronize the environment:
 
@@ -19,7 +19,7 @@ Activate the created virtual environment when running commands interactively:
 source .venv/bin/activate
 ```
 
-After changing dependencies in `pyproject.toml`, update the lockfile with `uv lock` and run `uv sync --dev` again. Prefer `uv add PACKAGE` for runtime dependencies and `uv add --dev PACKAGE` for development dependencies so the project metadata and lockfile stay consistent.
+After changing dependencies in `pyproject.toml`, run `uv lock` and `uv sync --dev` to refresh the local environment. When adding or changing runtime dependencies, also update `requirements.txt`, because the deployment CI job installs from that file. Prefer `uv add PACKAGE` for runtime dependencies and `uv add --dev PACKAGE` for development dependencies.
 
 ## Run checks
 
