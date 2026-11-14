@@ -702,6 +702,12 @@ def test_dehydrated_certificate_lines_support_multiple_certificates_and_sans(pyi
         "other.example.com www.other.example.com api.other.example.com",
     ]
     assert module.build_domains_file([]) == []
+    with pytest.raises(ValueError, match="Certificate definition 1.*got str"):
+        module.build_domains_file(["*.example.com"])
+    with pytest.raises(ValueError, match="Certificate definition 1.*got list"):
+        module.build_domains_file([[]])
+    with pytest.raises(ValueError, match="Certificate definitions must be a list.*got str"):
+        module.build_domains_file("*.example.com")
 
 
 def test_dehydrated_hostname_certificates_group_names_and_keep_private_ips(pyinfra_task_harness):
