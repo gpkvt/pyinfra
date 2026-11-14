@@ -290,11 +290,11 @@ def configure_caddy():  # pylint: disable=R0914
     def image_present():
         return command_output_text(host.get_fact(
             Command,
-            f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
+            f"docker image inspect {shlex.quote(image)} >/dev/null 2>&1 && echo present || echo absent",
         )).strip() == "present"
     build_image = server.shell(
         name="Build Caddy image with Sablier plugin and Dehydrated",
-        commands=[f"docker build --tag {shlex.quote(IMAGE)} {shlex.quote(build_dir)}"],
+        commands=[f"docker build --tag {shlex.quote(image)} {shlex.quote(build_dir)}"],
         _sudo=False, _if=lambda: build_changed() or not image_present(),
     )
 
