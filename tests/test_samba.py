@@ -30,6 +30,41 @@ def test_samba_configures_two_distinct_shares(pyinfra_task_harness):
     assert rendered[0]["download_path"] == "/srv/samba/outgoing"
 
 
+def test_samba_systemd_checks_use_command_fact_and_normalize_output(
+    pyinfra_task_harness,
+):
+    fact_calls = []
+
+    def get_fact(fact, *args, **kwargs):
+        fact_calls.append((fact, args, kwargs))
+        command = kwargs["command"]
+        if "NeedDaemonReload" in command:
+            return ["yes"]
+        if "is-active" in command:
+            return ["inactive"]
+        if "is-enabled" in command:
+            return ["masked"]
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("samba.py", {
+        "samba": {
+            "enabled": True,
+            "allowed_networks": ["192.168.1.0/24"],
+        },
+    })
+
+    shell_operations = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+    ]
+    assert len(shell_operations) == 2
+    assert shell_operations[0]["_if"]() is True
+    assert shell_operations[1]["_if"]() is False
+    assert fact_calls
+    assert all(fact.__name__ == "Command" for fact, _, _ in fact_calls)
+
+
 @pytest.mark.parametrize("network", ["not-a-network", "192.168.1.1/99"])
 def test_samba_rejects_invalid_networks(pyinfra_task_harness, network):
     with pytest.raises(ValueError, match="Invalid samba.allowed_networks"):

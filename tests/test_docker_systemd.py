@@ -175,7 +175,7 @@ def test_sablier_shell_arguments_quote_user_and_compose_paths(pyinfra_task_harne
     pyinfra_task_harness.load("docker_sablier.py", {
         "username": "tester",
         "homedir": "/home/test user",
-        "docker_sablier": {"enabled": True},
+        "docker_sablier": {"enabled": True, "version": "1.20.0"},
     })
 
     linger = next(

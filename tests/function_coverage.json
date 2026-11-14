@@ -77,6 +77,9 @@
     "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
     "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
   ],
+  "tasks/caddy.py:required_version": [
+    "test_caddy_versions_must_be_explicitly_configured"
+  ],
   "tasks/dehydrated.py:CertNeedsRenewal.process": [
     "test_dehydrated_fact_reports_expiring_certificates",
     "test_dehydrated_fact_handles_true_false_and_empty_output"

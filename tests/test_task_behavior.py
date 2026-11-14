@@ -1019,7 +1019,7 @@ def test_sablier_docker_provider_strategy_is_configurable(
         "username": "tester",
         "usergroup": "tester",
         "homedir": "/home/tester",
-        "docker_sablier": {"enabled": True, **options},
+        "docker_sablier": {"enabled": True, "version": "1.20.0", **options},
     })
 
     config = next(
@@ -1038,6 +1038,7 @@ def test_sablier_rejects_invalid_docker_provider_strategy(pyinfra_task_harness):
         pyinfra_task_harness.load("docker_sablier.py", {
             "docker_sablier": {
                 "enabled": True,
+                "version": "1.20.0",
                 "provider_strategy": "suspend",
             },
         })

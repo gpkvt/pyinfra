@@ -21,6 +21,7 @@ This project follows a continuous development model. Changes are tracked using d
 
 ### Fixed
 
+- Fixed Samba systemd state checks to use pyinfra's `Command` fact and normalize its line-based output ([#264](https://github.com/gpkvt/pyinfra/issues/264)).
 - Fixed fact-output handling and deployment idempotency across multiple tasks, including Docker, Caddy, Proton, LiMusic, Sablier and Syncthing ([#219](https://github.com/gpkvt/pyinfra/pull/219)).
 - Corrected `runas` shell argument handling, X11 cleanup, Mullvad Browser configuration and privileged script links ([#223](https://github.com/gpkvt/pyinfra/pull/223), [#224](https://github.com/gpkvt/pyinfra/pull/224), [#225](https://github.com/gpkvt/pyinfra/pull/225)).
 - Added validation for APT signing keys and sources, WireGuard, UFW, Docker power-save configuration and SSH key pairs ([#226](https://github.com/gpkvt/pyinfra/pull/226), [#227](https://github.com/gpkvt/pyinfra/pull/227), [#230](https://github.com/gpkvt/pyinfra/pull/230), [#231](https://github.com/gpkvt/pyinfra/pull/231), [#235](https://github.com/gpkvt/pyinfra/pull/235), [#242](https://github.com/gpkvt/pyinfra/pull/242), [#243](https://github.com/gpkvt/pyinfra/pull/243), [#249](https://github.com/gpkvt/pyinfra/pull/249), [#250](https://github.com/gpkvt/pyinfra/pull/250)).
