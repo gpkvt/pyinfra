@@ -6,28 +6,32 @@ import sys
 from types import SimpleNamespace
 
 
-def test_apt_repository_accepts_ascii_armored_signing_keys(pyinfra_task_harness):
-    pyinfra_task_harness.load("apt.py", {
-        "apt_sources": {
-            "docker": {
-                "key": {
-                    "url": "https://download.docker.com/linux/debian/gpg",
-                    "path": "/etc/apt/keyrings/docker.asc",
-                },
-                "repository": {
-                    "url": "https://download.docker.com/linux/debian",
-                    "distribution": "bookworm",
-                    "components": ["stable"],
+def test_apt_repository_accepts_supported_signing_key_extensions(pyinfra_task_harness):
+    for extension in ("asc", "key"):
+        pyinfra_task_harness.load("apt.py", {
+            "apt_sources": {
+                "docker": {
+                    "key": {
+                        "url": "https://download.docker.com/linux/debian/gpg",
+                        "path": f"/etc/apt/keyrings/docker.{extension}",
+                    },
+                    "repository": {
+                        "url": "https://download.docker.com/linux/debian",
+                        "distribution": "bookworm",
+                        "components": ["stable"],
+                    },
                 },
             },
-        },
-    })
+        })
 
-    key = next(
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+    destinations = [
+        kwargs["dest"] for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "apt" and name == "key"
-    )
-    assert key["dest"] == "/etc/apt/keyrings/docker.asc"
+    ]
+    assert destinations == [
+        "/etc/apt/keyrings/docker.asc",
+        "/etc/apt/keyrings/docker.key",
+    ]
 
 
 def test_apt_repository_rejects_unsupported_keyring_suffix(pyinfra_task_harness):
@@ -44,7 +48,7 @@ def test_apt_repository_rejects_unsupported_keyring_suffix(pyinfra_task_harness)
             },
         })
     except ValueError as error:
-        assert "must end in .gpg or .asc" in str(error)
+        assert "must end in .gpg, .asc, or .key" in str(error)
     else:
         raise AssertionError("Unsupported APT keyring suffix was accepted")
 
