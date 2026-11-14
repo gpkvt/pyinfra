@@ -57,7 +57,7 @@ def test_samba_share_security_and_lifecycle_are_explicit():
     assert "OnUnitActiveSec=60s" in timer
 
 
-@pytest.mark.parametrize("timeout", [-1, 1.5, True])
+@pytest.mark.parametrize("timeout", [-1, 1.5, True, 1799])
 def test_samba_rejects_invalid_idle_timeout(pyinfra_task_harness, timeout):
     with pytest.raises(ValueError, match="samba.idle_timeout"):
         pyinfra_task_harness.load("samba.py", {
