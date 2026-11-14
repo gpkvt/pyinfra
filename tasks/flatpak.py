@@ -128,9 +128,13 @@ server.shell(
     name="Update user Flatpak packages",
     commands=[
         """
-        flock -n /tmp/flatpak-update.lock \\
-            flatpak update --user -y \\
-            || echo "Flatpak update already running. Skipping."
+        # Keep lock contention non-fatal, but propagate actual update failures.
+        exec 9>/tmp/flatpak-update.lock
+        if ! flock -n 9; then
+            echo "Flatpak update already running. Skipping."
+            exit 0
+        fi
+        flatpak update --user -y
         """
     ],
     _sudo=False,
