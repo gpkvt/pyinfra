@@ -160,6 +160,32 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
 
 
 
+
+def test_proton_flatpak_facts_are_deferred_until_execution(pyinfra_task_harness):
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": True,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": True,
+            "drive_cli": False,
+        },
+    })
+    remote = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Configure Flathub"
+    )
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install Proton Flatpak application me.proton.Mail"
+    )
+    assert remote["_if"]() is True
+    assert install["_if"]() is True
+
+
 def test_udev_reload_uses_runtime_change_detection(pyinfra_task_harness, monkeypatch):
     observed = []
     monkeypatch.setattr(
