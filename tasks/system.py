@@ -121,6 +121,7 @@ Target:
 """
 
 import re
+from io import StringIO
 from pyinfra import host
 from pyinfra.facts.server import Locales, Timezone
 from pyinfra.operations import apt, files, server
