@@ -11,9 +11,8 @@ wireguard_interface (str): Name of the WireGuard interface to manage.
 
 Operations:
 
-1. Retrieve IPv4 addresses assigned to globally scoped network
-   interfaces using `ip -j -4 addr show scope global`.
-2. Parse the JSON output to inspect assigned IPv4 addresses.
+1. Retrieve IPv4 addresses with pyinfra's built-in `hardware.Ipv4Addrs` fact.
+2. Exclude loopback, link-local and unspecified addresses to match global-scope detection.
 3. Determine whether any assigned address belongs to the configured
    local network using Python's `ipaddress` module.
 4. Start and enable the corresponding WireGuard systemd service
@@ -38,29 +37,25 @@ Notes:
 """
 
 import ipaddress
-import json
-from pyinfra.operations import server
 from pyinfra import host
+from pyinfra.facts.hardware import Ipv4Addrs
+from pyinfra.operations import server
 
-if not hasattr(__import__('builtins'), 'homedir'):
-    from common import initialize
+from common import initialize
+
+if not hasattr(__import__("builtins"), "homedir"):
     initialize(host)
 
-success, output = host.run_shell_command("ip -j -4 addr show scope global")
-
-if not success:
-    raise RuntimeError("Unable to retrieve network interfaces")
-
-interfaces = json.loads("\n".join(output.stdout_lines))
+ipv4_addresses = host.get_fact(Ipv4Addrs)
 local_network_cidr = host.data.get("local_network_cidr") or "10.0.0.0/24"
 wireguard_interface = host.data.get("wireguard_interface", False)
 network = ipaddress.ip_network(local_network_cidr) # pylint: disable=undefined-variable
 
 on_local_network = any(
-    ipaddress.ip_address(addr["local"]) in network
-    for iface in interfaces
-    for addr in iface.get("addr_info", [])
-    if addr["family"] == "inet"
+    address in network
+    for interface_addresses in ipv4_addresses.values()
+    for address in map(ipaddress.ip_address, interface_addresses)
+    if not address.is_loopback and not address.is_link_local and not address.is_unspecified
 )
 
 server.service(
