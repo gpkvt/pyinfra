@@ -312,6 +312,9 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     assert "passwordreset=true" in bootstrap_arguments[2]
     assert "refusing to overwrite" in bootstrap_arguments[2]
     assert "password='$admin_hash' OR NOT passwordreset" in bootstrap_arguments[2]
+    assert "passwordreset=false means an administrator has changed it" in bootstrap_arguments[2]
+    assert "UPDATE users SET password='$admin_hash'" in bootstrap_arguments[2]
+    assert "password='$admin_hash' OR NOT passwordreset" in release_commands[-1]
     assert bootstrap["_if"]() is True
     check_command = release_commands[-1]
     check_arguments = shlex.split(check_command)
