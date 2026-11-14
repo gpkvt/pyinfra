@@ -31,6 +31,8 @@ keyboard = {  # XKB keyboard settings applied to the system.
 local_network_cidr = ""  # Local IPv4 CIDR used by the VPN task to detect LAN presence.
 hostnames = {}  # /etc/hosts mappings: {"192.0.2.10": ["host.example", "host"]}.
 wireguard_interface = None  # Interface used by wg-quick, e.g. "home"; None disables VPN startup.
+wireguard_enabled = True  # Master gate for deploying configured WireGuard interfaces.
+vpn_enabled = True  # Master gate for automatic VPN activation outside local_network_cidr.
 wireguard_config = {}  # WireGuard interfaces keyed by name; private/peer keys belong in secrets.
 # Example interface settings (the matching privatekey and peers go in encrypted secrets):
 # wireguard_config = {
@@ -98,8 +100,15 @@ ssh_config = {}  # SSH client Host entries: {"git.example.com": "    User git\\n
 vscodium = {  # VSCodium extension configuration.
     "extensions": [],  # Marketplace extension IDs to install for the configured user.
 }
-proton = {  # Proton application configuration.
-    # "drive_cli_version": "0.9.0",  # Optional pinned Proton Drive CLI version.
+proton = {  # Proton application configuration; defining this mapping enables the Proton task.
+    # All application switches default to True when this mapping is enabled.
+    # "mail": False,  # Install Proton Mail; defaults to True.
+    # "bridge": False,  # Install Proton Mail Bridge; defaults to True.
+    # "vpn": False,  # Install Proton VPN; defaults to True.
+    # "pass": False,  # Install Proton Pass; defaults to True.
+    # "flatpak": True,  # Install Mail/Bridge/Pass through Flathub; defaults to True.
+    # "drive_cli": True,  # Install Proton Drive CLI; defaults to True.
+    # "drive_cli_version": "0.9.0",  # Pin Proton Drive CLI version; defaults to 0.9.0.
 }
 mullvad_extensions = {}  # Browser extensions keyed by name; each entry requires an add-on id and HTTPS XPI URL.
 # Example: {"uBlock Origin": {"id": "uBlock0@raymondhill.net", "url": "https://addons.mozilla.org/...xpi"}}.
@@ -108,7 +117,8 @@ mullvad_browser_dir = None  # Optional Mullvad Browser profile directory; None u
 # Docker services. Keep this empty to deploy no application containers.
 # Each service is enabled by adding its own dictionary. All persistent service
 # data is stored in host directories below homedir/.docker/ (never named volumes).
-docker_install = True  # Install Docker itself; set False only when Docker is managed elsewhere.
+docker_install = True  # Install Docker itself when docker services are configured; False if managed elsewhere.
+docker_power_monitor = True  # Deploy the Docker battery monitor when Docker services are configured.
 docker = {
     # "forgejo": {  # Self-hosted Git service; secrets are not stored here.
     #     "image": "codeberg.org/forgejo/forgejo:17",  # Container image/tag.
@@ -200,7 +210,11 @@ docker_sablier = {  # Enables on-demand Docker container startup via Sablier.
     # "default_theme": "ghost",  # Theme used by Sablier's dynamic service cards.
     # "refresh_frequency": "5s",  # Polling interval for dynamic service status.
 }  # Per-service overrides live under docker.<service>.sablier.
-docker_power_save = []  # Container names managed by the battery power-save service when on battery.
+docker_power_save = []  # Container names stopped on battery and restored on AC power.
+caddy_enabled = True  # Allow the Caddy task when Docker and caddy_config are both configured.
+apparmor_enabled = True  # Master gate for loading apparmor_profiles.
+mullvad_browser_enabled = True  # Master gate for managing mullvad_extensions.
+vscodium_enabled = True  # Master gate for installing configured VSCodium extensions.
 
 # Reverse proxy, certificates and background services.
 caddy_config = {}  # Caddy sites keyed by hostname; each value is a mapping of Caddy directives.
