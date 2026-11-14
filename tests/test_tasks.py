@@ -94,7 +94,7 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
 def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
     """An already-correct timezone does not schedule a change."""
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        "UTC" if fact.__name__ == "Timezone" else None
+        "UTC" if fact.__name__ == "Timezone" else [] if fact.__name__ == "Locales" else None
     )
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
@@ -108,7 +108,7 @@ def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness
 def test_system_timezone_treats_etc_utc_as_utc(pyinfra_task_harness):
     """Equivalent UTC zoneinfo names do not cause repeated timezone operations."""
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        "Etc/UTC" if fact.__name__ == "Timezone" else None
+        "Etc/UTC" if fact.__name__ == "Timezone" else [] if fact.__name__ == "Locales" else None
     )
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
@@ -120,7 +120,7 @@ def test_system_timezone_treats_etc_utc_as_utc(pyinfra_task_harness):
 
 def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
     """A mismatched timezone still schedules the required correction."""
-    pyinfra_task_harness.host.get_fact = lambda _fact, **_kwargs: "Europe/Berlin"
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (\n        "Europe/Berlin" if fact.__name__ == "Timezone" else []\n    )
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
     assert any(
@@ -244,12 +244,6 @@ def test_vscodium_deduplicates_extensions_and_installs_missing_ids(pyinfra_task_
     ]
     assert len(installs) == 1
     assert "vendor.extension" in installs[0][2]["commands"][0]
-
-
-def test_system_locale_fact_parses_lang_value(pyinfra_task_harness):
-    module = pyinfra_task_harness.load("system.py")
-    assert module.SystemLocale().process(['LANG="en_GB.UTF-8"']) == "en_GB.UTF-8"
-    assert module.SystemLocale().process(["# no locale configured"]) is None
 
 
 def test_dehydrated_fact_reports_expiring_certificates(pyinfra_task_harness):
