@@ -541,3 +541,39 @@ def test_zsh_task_installs_playerctl_for_hyfetch(pyinfra_task_harness):
     assert helper["src"] == "files/hyfetch-song"
     assert helper["dest"].endswith("/.local/bin/hyfetch-song")
     assert helper["mode"] == "750"
+
+
+def test_system_locale_skips_generation_when_equivalent_locale_is_installed(
+    pyinfra_task_harness,
+):
+    """Installed locale aliases are normalized before scheduling generation."""
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, **_kwargs: ["C.utf8"] if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"locale": "C.UTF-8"})
+
+    assert not any(
+        namespace == "server" and name == "locale"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+    default_locale = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "line"
+        and kwargs.get("name") == "Set system default locale: C.UTF-8"
+    )
+    assert default_locale["line"] == 'LANG="C.UTF-8"'
+    assert default_locale["replace"] == "^LANG="
+
+
+def test_system_locale_generates_missing_locale(pyinfra_task_harness):
+    """A locale not present in the installed locale fact is generated."""
+    pyinfra_task_harness.host.get_fact = (
+        lambda fact, **_kwargs: [] if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"locale": "en_GB.UTF-8"})
+
+    assert any(
+        namespace == "server" and name == "locale"
+        and kwargs.get("locale") == "en_GB.UTF-8"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
