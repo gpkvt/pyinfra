@@ -885,6 +885,8 @@ def test_cosmic_panel_uses_default_applets_when_not_configured(
         )
     )
     panel_values = panel_config["src"].getvalue()
+    assert panel_values.endswith(chr(10))
+    assert "\\n" not in panel_values
     assert "com.system76.CosmicAppletQuickSettings" in panel_values
     assert "com.system76.CosmicAppletNotifications" in panel_values
     assert "com.system76.CosmicAppletTime" in panel_values
