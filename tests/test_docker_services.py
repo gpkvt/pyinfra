@@ -3,8 +3,6 @@
 import ast
 import re
 
-import pytest
-
 from conftest import ROOT
 
 def test_docker_service_modules_declare_compose_services():
