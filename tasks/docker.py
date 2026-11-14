@@ -214,6 +214,16 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
                 _sudo=False,
             )
 
+        else:
+            # Remove stale credentials when a service no longer has private
+            # environment values; deletion also triggers a service restart.
+            private_env_file = files.file(
+                name=f"Remove private {service} environment",
+                path=f"{homedir}/.docker/{service}/.env",
+                present=False,
+                _sudo=False,
+            )
+
     compose_file = files.template(
         name=f"Configure {service}",
         src=f"templates/docker/{service}/docker-compose.yml.j2",
