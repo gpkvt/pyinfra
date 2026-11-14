@@ -1,6 +1,7 @@
 {
   "files/scripts/checkmail.sh": "utility",
   "files/scripts/disable_keyboard": "utility",
+  "files/scripts/export_cosmic_config.py": "utility",
   "files/scripts/extract_md.sh": "utility",
   "files/scripts/fix_kdeconnect.sh": "utility",
   "files/scripts/fritz_solar.sh": "utility",
@@ -77,6 +78,5 @@
   "tasks/workstation/peripherals.py": "deployment",
   "tasks/workstation/power.py": "deployment",
   "tasks/workstation/storage.py": "deployment",
-  "tasks/zsh.py": "deployment",
-  "files/scripts/export_cosmic_config.py": "utility"
+  "tasks/zsh.py": "deployment"
 }
