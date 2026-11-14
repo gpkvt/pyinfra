@@ -139,6 +139,14 @@ mullvad_browser_dir = None  # Optional Mullvad Browser profile directory; None u
 docker_install = True  # Install Docker itself when docker services are configured; False if managed elsewhere.
 docker_power_monitor = True  # Deploy the Docker battery monitor when Docker services are configured.
 docker = {
+    # "mdmesh": {  # Android device management; requires encrypted secrets below.
+    #     "version": "latest",  # Or pin a release, e.g. "0.5.0".
+    #     "domain": "mdm.example.com",  # Public DNS hostname; hostname only, no scheme or port.
+    #     "port": 8030,  # Local web-edge port; Caddy terminates HTTPS.
+    #     "admin_email": "admin@example.com",  # Initial administrator email.
+    #     "trusted_proxies": ["127.0.0.1/32", "::1/128"],  # Actual reverse-proxy source CIDRs.
+    #     "sablier": {"enabled": False},  # Keep the always-available MDM endpoint running.
+    # },
     # "forgejo": {  # Self-hosted Git service; secrets are not stored here.
     #     "image": "codeberg.org/forgejo/forgejo:17",  # Container image/tag.
     #     "port": 3000,  # Web interface port published on the host.
