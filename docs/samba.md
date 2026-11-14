@@ -5,7 +5,7 @@ The optional Samba task provides two guest-accessible SMB shares for quick LAN/V
 - **Upload** is a shared, writable dropbox. Guests can upload, replace and remove files. All guest connections use the same Unix identity (nobody), so this is not a private per-device inbox and users are not isolated from one another. Do not use it for confidential uploads.
 - **Download** is guest-readable and read-only. Publish files by copying them into the configured download directory on the server.
 
-The service is deliberately **not enabled at boot**. The deployment installs and configures Samba, stops it and masks smbd.service. It does not start Samba or open the firewall. Run the deployed scripts when file exchange is needed:
+The task installs both the Samba server and `smbclient`, which provides a command-line client for testing guest share access directly from the server (for example, `smbclient -N //127.0.0.1/Upload -c 'ls'`). The service is deliberately **not enabled at boot**. The deployment installs and configures Samba, stops it and masks smbd.service. It does not start Samba or open the firewall. Run the deployed scripts when file exchange is needed:
 
     sudo samba-start
     # Connect from a client to \\server-address\Upload or \\server-address\Download
