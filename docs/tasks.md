@@ -31,7 +31,7 @@ These task modules are included on every full deployment.
 | `tasks/zsh.py` | `zsh` | Installs/configures Zsh and `playerctl`, deploys a LiMusic-specific MPRIS helper, and displays the current track in HyFetch only while LiMusic is playing. The helper forces a UTF-8 locale for `playerctl` metadata so non-ASCII track names also work when Neowofetch runs with `LC_ALL=C`. |
 | `tasks/tmux.py` | `tmux` | Deploys tmux configuration. |
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
-| `tasks/ufw.py` | `ufw` | Applies configured UFW application policies. |
+| `tasks/ufw.py` | `ufw` | Applies configured UFW application, port and custom rules. Rejects unknown rule names, invalid actions and malformed custom-rule definitions instead of silently skipping firewall configuration. |
 | `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured container services, including AppFlowy. |
 | `tasks/docker_power.py` | `docker` | Deploys the Docker battery monitor and its systemd unit; disables it and restores previously stopped containers when Sablier is enabled. |
 | `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Deploys Sablier as a Docker container using the Docker provider and enables on-demand startup through Compose labels. It is mutually exclusive with the Docker battery monitor. |
