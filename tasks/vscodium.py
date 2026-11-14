@@ -87,27 +87,28 @@ if vscodium_config:
     # Remove duplicate entries
     extension_list = list(dict.fromkeys(extension_list))
 
-    # Retrieve installed extensions
-    installed_extensions = host.get_fact(
-        VSCodiumExtensions,
-        target_user=username,
-    )
-
-    # Schedule installation only for missing extensions
-    for extension_id in extension_list:
-        normalized_id = extension_id.split("@", 1)[0].lower()
-
-        if normalized_id in installed_extensions:
-            continue
-
-        server.shell(
-            name=f"Install VSCodium extension: {extension_id}",
-            commands=[
-                (
-                    "codium --install-extension "
-                    f"{shlex.quote(extension_id)}"
-                )
-            ],
-            _sudo=True,
-            _sudo_user=username,
+    # Avoid querying the target when there is nothing configured to install.
+    if extension_list:
+        installed_extensions = host.get_fact(
+            VSCodiumExtensions,
+            target_user=username,
         )
+
+        # Schedule installation only for missing extensions.
+        for extension_id in extension_list:
+            normalized_id = extension_id.split("@", 1)[0].lower()
+
+            if normalized_id in installed_extensions:
+                continue
+
+            server.shell(
+                name=f"Install VSCodium extension: {extension_id}",
+                commands=[
+                    (
+                        "codium --install-extension "
+                        f"{shlex.quote(extension_id)}"
+                    )
+                ],
+                _sudo=True,
+                _sudo_user=username,
+            )
