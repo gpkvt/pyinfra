@@ -69,7 +69,7 @@ File locations:
         ~/.docker/miniflux/
 
     Docker Compose configuration:
-        ~/miniflux/docker-compose.yml
+        ~/.docker/miniflux/docker-compose.yml
 
     systemd service unit:
         ~/.config/systemd/user/miniflux.service
