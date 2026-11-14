@@ -4,14 +4,14 @@ Install WireGuard and deploy VPN interface configurations using pyinfra.
 
 This module installs the WireGuard package and generates configuration files for each VPN interface defined in the host configuration. Private keys are retrieved from the decrypted secrets dictionary and passed securely to the Jinja2 configuration template.
 
-Configuration: vpn (dict): VPN-related settings retrieved from host.data.vpn. Defaults to an empty dictionary.
+Configuration:
 
-wireguard_config (dict): WireGuard interface configurations retrieved
-    from `host.data.wireguard_config`. Each key represents an interface
-    name and each value contains its corresponding configuration.
+wireguard_config (dict): Mapping of Linux interface names (1-15 characters)
+    to interface settings. Each entry must contain an `interface` mapping.
 
-wireguard_secrets (dict): Decrypted WireGuard secrets retrieved from
-    `secrets.wireguard`. Contains private keys indexed by interface name.
+wireguard_secrets (dict): Decrypted values from `secrets.wireguard`, keyed
+    by interface name. Each entry requires a non-empty `privatekey` and a
+    `peers` list containing peer configuration mappings.
 
 Operations:
 
@@ -34,7 +34,8 @@ Notes:
 - Configuration deployment requires sudo.
 - Private keys are retrieved from decrypted secrets rather than
   being stored directly in host configuration.
-- Each interface is configured independently.
+- Interface names are validated before being used in destination paths.
+- Each interface is configured independently and must have matching secrets.
 - This module deploys WireGuard configurations but does not
   start or enable the corresponding VPN services.
 """
