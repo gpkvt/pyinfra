@@ -499,7 +499,7 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
         else ("worker scheduler database" if "/custom/" in command else "generic")
     ) if "config --services" in command or command.startswith("id -u") else ""
     module.deploy_docker_service("custom", "Custom", "/home/tester")
-    module.deploy_docker_service("generic", "Generic", "/home/tester")
+    module.deploy_docker_service("generic", "Generic", "/home/tester", compose_services=["generic"])
     unit_calls = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "template"
