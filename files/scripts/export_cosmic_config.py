@@ -218,8 +218,8 @@ def main(argv=None):
     )
     parser.add_argument(
         "--workstation-file", "--local-file", dest="workstation_file",
-        type=Path, default=Path("groups_data/workstation.py"),
-        help="workstation configuration file to update (default: groups_data/workstation.py)",
+        type=Path, default=Path("group_data/workstation.py"),
+        help="workstation configuration file to update (default: group_data/workstation.py)",
     )
     parser.add_argument("--dry-run", action="store_true", help="print a unified diff without writing")
     args = parser.parse_args(argv)
