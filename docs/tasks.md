@@ -33,7 +33,7 @@ These task modules are included on every full deployment.
 | `tasks/powerline.py` | `powerline` | Deploys Powerline prompt configuration. |
 | `tasks/ufw.py` | `ufw` | Applies configured UFW application, port and custom rules. Rejects unknown rule names, invalid actions and malformed custom-rule definitions instead of silently skipping firewall configuration. |
 | `tasks/docker.py` and `tasks/docker_container.py` | `docker` | Installs Docker, defines the shared Compose/systemd deployment helper, and dispatches configured container services, including AppFlowy. |
-| `tasks/docker_power.py` | `docker` | Deploys the Docker battery monitor and its systemd unit; disables it and restores previously stopped containers when Sablier is enabled. |
+| `tasks/docker_power.py` | `docker` | Deploys the Docker battery monitor and its systemd unit; validates configured `docker_power_save` container names before writing its shell configuration; disables the monitor and restores previously stopped containers when Sablier is enabled. |
 | `tasks/docker_sablier.py` | `docker` and `docker_sablier.enabled` | Deploys Sablier as a Docker container using the Docker provider and enables on-demand startup through Compose labels. It is mutually exclusive with the Docker battery monitor. |
 | `tasks/apparmor.py` | `apparmor_profiles` | Loads/enforces configured AppArmor profiles. |
 | `tasks/workstation/cosmic/deploy.py` | `cosmic` | Deploys explicitly enabled COSMIC appearance, window-management, input, custom-shortcut, panel, dock and workspace settings. Display/output configuration is intentionally excluded. |
