@@ -1,4 +1,5 @@
 """Direct input/output tests for task helpers and pyinfra operations."""
+# pylint: disable=too-many-lines
 # pylint: disable=protected-access
 
 import builtins
