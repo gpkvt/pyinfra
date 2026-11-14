@@ -203,9 +203,6 @@
   "tasks/flatpak.py:uninstall_unused_packages": [
     "test_flatpak_uninstall_operation_reports_only_real_removals"
   ],
-  "tasks/git.py:set_immutable": [
-    "test_set_immutable_uses_requested_chattr_flag"
-  ],
   "tasks/homepage_config.py:homepage_api_exclusions": [
     "test_homepage_api_requests_bypass_sablier_only_on_matching_paths"
   ],
