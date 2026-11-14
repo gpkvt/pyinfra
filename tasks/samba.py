@@ -41,10 +41,12 @@ if config.get("enabled", False):
         workgroup=config.get("workgroup", "WORKGROUP"),
         interface=config.get("interface", "lo"), _sudo=True,
     )
-    files.put(
+    files.template(
         name="Configure Samba firewall networks",
-        src="\n".join(networks) + "\n", dest="/etc/samba/allowed-networks",
-        user="root", group="root", mode="0600", _sudo=True,
+        src="templates/samba/allowed-networks.j2",
+        dest="/etc/samba/allowed-networks",
+        user="root", group="root", mode="0600",
+        networks=networks, _sudo=True,
     )
     for script in ("samba-start", "samba-stop"):
         files.template(
