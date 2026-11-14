@@ -1,7 +1,10 @@
 """Focused tests for Docker service configuration and directory reconciliation."""
 
 import ast
+import builtins
 import re
+import sys
+import types
 
 from conftest import ROOT
 
@@ -160,3 +163,49 @@ def test_docker_compose_projects_use_managed_directory_and_remove_legacy_files(
     assert unit["compose_files"] == "-f docker-compose.yml"
     assert len(legacy) == 2
     assert all(operation["present"] is False for operation in legacy)
+
+def test_timetagger_requires_encrypted_credentials_and_escapes_compose_dollars(
+    pyinfra_task_harness, monkeypatch,
+):
+    """TimeTagger credentials come from secrets and Compose interpolation is escaped."""
+    captured = {}
+    docker_module = types.ModuleType("tasks.docker")
+    docker_module.deploy_docker_service = lambda **kwargs: captured.update(kwargs)
+    monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"docker": {"timetagger": {"credentials": "tester:$2a$08$hash"}}},
+        raising=False,
+    )
+
+    pyinfra_task_harness.load("docker/timetagger.py", {
+        "docker": {"timetagger": {}},
+        "homedir": "/home/tester",
+        "username": "tester",
+        "usergroup": "tester",
+    })
+
+    assert captured["compose_services"] == ["timetagger"]
+    assert captured["credentials"] == "tester:$$2a$$08$$hash"
+
+    template = (ROOT / "templates/docker/timetagger/docker-compose.yml.j2").read_text()
+    assert "TIMETAGGER_CREDENTIALS: \"{{ credentials }}\"" in template
+    assert "test:test" not in template
+
+
+def test_timetagger_rejects_missing_encrypted_credentials(
+    pyinfra_task_harness, monkeypatch,
+):
+    docker_module = types.ModuleType("tasks.docker")
+    docker_module.deploy_docker_service = lambda **_kwargs: None
+    monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
+    monkeypatch.setattr(builtins, "secrets", {}, raising=False)
+
+    import pytest
+
+    with pytest.raises(ValueError, match="credentials must be a single-line"):
+        pyinfra_task_harness.load("docker/timetagger.py", {
+            "docker": {"timetagger": {}},
+            "homedir": "/home/tester",
+        })
