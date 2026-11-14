@@ -55,12 +55,6 @@ def test_samba_share_security_and_lifecycle_are_explicit():
     timer = (ROOT / "templates/samba/samba-idle.timer.j2").read_text()
     assert "CURRENT_BYTES" in checker and "TIMEOUT" in checker
     assert "OnUnitActiveSec=60s" in timer
-    assert "samba-idle.timer" in stop
-    assert "nft delete table inet samba_idle" in stop
-    checker = (ROOT / "templates/samba/samba-idle-check.j2").read_text()
-    timer = (ROOT / "templates/samba/samba-idle.timer.j2").read_text()
-    assert "CURRENT_BYTES" in checker and "TIMEOUT" in checker
-    assert "OnUnitActiveSec=60s" in timer
 
 
 @pytest.mark.parametrize("timeout", [-1, 1.5, True])
