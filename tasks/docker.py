@@ -79,6 +79,7 @@ Deployments:
     File permissions:
         - Docker configuration directory: 0750.
         - Docker Compose configuration: 0640.
+        - Private environment file (when configured): 0600.
         - Systemd service unit: 0644.
 
     Service management:
@@ -119,8 +120,8 @@ Notes:
       systemd reloads or service restarts.
     - Changes to the systemd unit trigger daemon-reload, enable,
       and restart.
-    - Changes to the Docker Compose configuration trigger a
-      service restart.
+    - Changes to the Docker Compose configuration or private
+      environment file trigger a service restart.
     - Service-specific operations can be supplied as additional
       restart triggers through restart_if.
     - Docker image updates are not automatically pulled.
