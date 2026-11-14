@@ -11,6 +11,8 @@ The task installs both the Samba server and `smbclient`, which provides a comman
     # Connect from a client to \\server-address\Upload or \\server-address\Download
     sudo samba-stop
 
+On systems that provide `/usr/share/samba/update-apparmor-samba-profile` and the `samba/smbd-shares` AppArmor profile include, the task adds a systemd drop-in to run the helper before `smbd` starts. This regenerates the AppArmor permissions for the configured share paths without disabling AppArmor. Systems without this integration are left unchanged.
+
 The scripts are safe to repeat. Start adds only missing UFW allow rules for the configured CIDRs, unmasks and starts smbd. Stop stops and masks smbd, then removes only matching rules found in UFW's added-rule list. TCP 445 is the only SMB port used; NetBIOS is disabled. The scripts manage UFW rules and therefore require UFW to be installed and active/configured on the host. If UFW is not the host firewall, adapt the scripts before use.
 
 ## Configuration

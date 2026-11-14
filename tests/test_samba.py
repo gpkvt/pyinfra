@@ -113,3 +113,32 @@ def test_samba_accepts_non_negative_integer_idle_timeout(pyinfra_task_harness, t
             "idle_timeout": timeout,
         },
     })
+
+
+@pytest.mark.parametrize("available, expected", [(True, True), (False, False)])
+def test_samba_apparmor_hook_is_enabled_only_when_supported(
+    pyinfra_task_harness, available, expected,
+):
+    fact_commands = []
+
+    def get_fact(fact, *args, **kwargs):
+        fact_commands.append(kwargs["command"])
+        if "update-apparmor-samba-profile" in kwargs["command"]:
+            return ["yes"] if available else []
+        return []
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("samba.py", {
+        "samba": {
+            "enabled": True,
+            "allowed_networks": ["192.168.1.0/24"],
+        },
+    })
+
+    hook_directory = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "directory"
+        and kwargs.get("path") == "/etc/systemd/system/smbd.service.d"
+    )
+    assert hook_directory["_if"]() is expected
+    assert any("update-apparmor-samba-profile" in command for command in fact_commands)
