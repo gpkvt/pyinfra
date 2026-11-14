@@ -254,7 +254,7 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     assert "/var/lib/postgresql/data" in compose_template
     assert "/opt/mdmesh" in compose_template
     assert "/var/run/docker.sock:/var/run/docker.sock" in compose_template
-    assert "\\nvolumes:\\n" not in compose_template
+    assert "volumes:" not in compose_template.splitlines()
     assert "pgdata:" not in compose_template
     assert "mdmeshdata:" not in compose_template
 
