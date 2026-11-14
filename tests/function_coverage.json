@@ -244,5 +244,8 @@
   "tasks/caddy.py:configure_caddy.caddyfile_loaded": [
     "test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current",
     "test_caddy_retries_reload_when_deployed_config_is_not_acknowledged"
+  ],
+  "tasks/proton.py:installed_flatpak_apps": [
+    "test_proton_flatpak_facts_are_deferred_until_execution"
   ]
 }
