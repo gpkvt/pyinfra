@@ -9,7 +9,7 @@ Configuration:
         domain (str): Public HTTPS URL. Defaults to https://wallabag.21x9.org.
 
 Persistent data:
-    Docker-managed named volumes store the SQLite database, application
+    Host bind mounts below ~/.docker/wallabag/ store the SQLite database, application
     data, and article images. Docker manages their ownership so the
     container's www-data process can write to them.
 
