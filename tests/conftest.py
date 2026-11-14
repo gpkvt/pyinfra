@@ -145,8 +145,6 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             if "remote-list" in command:
                 return ""
             return ""
-        if name == "SystemLocale":
-            return host_data.get("locale")
         if name == "UfwActive":
             return False
         if name == "UfwRules":
@@ -161,11 +159,6 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             return []
         if name == "VSCodiumExtensions":
             return set()
-        if name == "Command":
-            command = kwargs.get("command", args[0] if args else "")
-            if "api.github.com/repos/SimoHypers/limusic/releases/latest" in command:
-                return "v1.3.0"
-            return ""
         if name == "CertNeedsRenewal":
             return False
         if name == "SudoersFile":
