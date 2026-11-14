@@ -11,10 +11,8 @@ never print the credential hash.
 """
 
 import builtins
-from io import StringIO
 
 from pyinfra import host
-from pyinfra.operations import files
 
 from tasks.docker import deploy_docker_service
 
@@ -37,28 +35,6 @@ if (
 homedir = host.data.get("homedir", getattr(builtins, "homedir", "/root"))
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
-service_dir = f"{homedir}/.docker/timetagger"
-
-files.directory(
-    name="Create TimeTagger Docker directory",
-    path=service_dir,
-    user=username,
-    group=usergroup,
-    mode="750",
-    _sudo=False,
-)
-
-# Single quotes preserve bcrypt '$' characters as literal env-file content.
-credentials_file = files.put(
-    name="Configure private TimeTagger credentials",
-    src=StringIO(f"TIMETAGGER_CREDENTIALS='{credentials}'\n"),
-    dest=f"{service_dir}/.env",
-    user=username,
-    group=usergroup,
-    mode="600",
-    _sudo=False,
-)
-
 deploy_docker_service(
     service="timetagger",
     description="TimeTagger Docker Service",
@@ -67,5 +43,5 @@ deploy_docker_service(
     username=username,
     usergroup=usergroup,
     port=timetagger.get("port", 8080),
-    restart_if=[credentials_file],
+    private_env={"TIMETAGGER_CREDENTIALS": credentials},
 )
