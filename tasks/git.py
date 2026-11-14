@@ -76,9 +76,10 @@ if git_credentials is not None:
         host.get_fact(FileContents, path=credentials_path)
         if credentials_exists else None
     )
+    desired_lines = desired_content.splitlines()
 
     # Immutable files must only be unlocked when the rendered content differs.
-    if credentials_exists and current_content != desired_content:
+    if credentials_exists and current_content != desired_lines:
         files.flags(
             name="Make git-credentials writable before updating",
             path=credentials_path,
