@@ -247,5 +247,36 @@
   ],
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
+  ],
+  "files/scripts/export_cosmic_config.py:read_value": [
+    "test_export_supported_reads_only_managed_keys"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_bool": [
+    "test_export_supported_reads_only_managed_keys"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_applets": [
+    "test_export_supported_preserves_raw_ron_and_applet_layout",
+    "test_parse_applets_rejects_other_ron_syntax"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_center": [
+    "test_export_supported_preserves_raw_ron_and_applet_layout"
+  ],
+  "files/scripts/export_cosmic_config.py:convert_value": [
+    "test_export_supported_reads_only_managed_keys"
+  ],
+  "files/scripts/export_cosmic_config.py:export_supported": [
+    "test_export_supported_reads_only_managed_keys",
+    "test_export_supported_preserves_raw_ron_and_applet_layout"
+  ],
+  "files/scripts/export_cosmic_config.py:find_cosmic_expression": [
+    "test_update_local_config_preserves_other_sections_and_management_flags",
+    "test_update_local_config_requires_unambiguous_literal_target"
+  ],
+  "files/scripts/export_cosmic_config.py:update_local_config": [
+    "test_update_local_config_preserves_other_sections_and_management_flags",
+    "test_update_local_config_is_idempotent"
+  ],
+  "files/scripts/export_cosmic_config.py:main": [
+    "test_main_dry_run_does_not_write"
   ]
 }
