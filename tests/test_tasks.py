@@ -677,7 +677,7 @@ def test_docker_service_rejects_empty_app_services(pyinfra_task_harness):
         )
 
 
-def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
+def test_dehydrated_certificate_lines_support_multiple_certificates_and_sans(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
         ["*.example.com"],
@@ -767,6 +767,13 @@ def test_dehydrated_certificate_configuration_rejects_unsafe_inputs(pyinfra_task
             ["example.com", "www.example.com"],
             ["example.net", "www.example.com"],
         ])
+    with pytest.raises(ValueError, match="overlaps a hostname"):
+        module.build_dehydrated_certificates(
+            {"192.168.1.20": ["internal.example.com"]},
+            ["example.com"],
+            blacklist=["internal.example.com"],
+            wildcards=[["*.example.com"]],
+        )
     with pytest.raises(ValueError, match="Invalid domain"):
         module.build_domains_file([["not a domain"]])
 
