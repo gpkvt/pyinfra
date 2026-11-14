@@ -12,7 +12,7 @@ These task modules are included on every full deployment.
 | `tasks/hosts.py` | Manages `/etc/hosts` mappings. | `hostnames` |
 | `tasks/sudo.py` | Writes custom sudoers rules to `/etc/sudoers.d/99-local`, validates with `visudo`, and sets restrictive permissions. | `sudoers_rules` |
 | `tasks/system.py` | Manages hostname, timezone, locale, editor environment, keyboard, sysctl, udev and USBGuard. | See [System configuration](system.md). |
-| `tasks/ssh_keys.py` | Generates supported SSH keypairs only when absent and manages authorized keys. Existing private keys are not overwritten. | `ssh_keys`, `ssh_authorized_keys`, `secrets.ssh` |
+| `tasks/ssh_keys.py` | Generates supported SSH keypairs only when both files are absent and manages authorized keys. Existing private keys are never overwritten; an incomplete keypair (only the private or public file exists) fails safely and requires manual repair. | `ssh_keys`, `ssh_authorized_keys`, `secrets.ssh` |
 | `tasks/git.py` | Installs/configures Git and deploys Git-related configuration and credentials when available. | Git host data and `secrets.git_credentials` |
 | `tasks/fonts.py` | Installs font packages; optionally downloads Powerline-patched fonts. | `powerline_fonts` |
 | `tasks/scripts.py` | Synchronizes `files/scripts/` into the configured user's scripts directory and creates command links. This includes `gpg-vault`, the helper for managing `secrets.json.gpg`. Existing destination files not in the source are preserved. | `username`, `usergroup` |
