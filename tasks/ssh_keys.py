@@ -67,7 +67,7 @@ for key in ssh_keys:
         raise ValueError(f"Unsupported SSH key type: {key_type}")
 
     passphrase = ssh_secrets.get(name, {}).get("passphrase", default_passphrase)
-    key_path = f"{ssh_dir}/{name}"
+    key_path = f"{ssh_dir}{name}"
     pub_path = f"{key_path}.pub"
 
     command = [
