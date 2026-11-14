@@ -217,7 +217,7 @@ def test_docker_image_pull_quotes_compose_path_with_spaces(pyinfra_task_harness)
     pull = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
-        and kwargs.get("name") == "Pull Custom Docker images"
+        and kwargs.get("name") == "Pull custom Docker images"
     )
     assert pull["commands"] == [
         "docker compose -f '/home/test user/.docker/custom/docker-compose.yml' pull"
