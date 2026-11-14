@@ -28,10 +28,10 @@ Example inventory configuration::
     powerline_fonts = True
 """
 
-from pyinfra.operations import apt, server, files
-from pyinfra.facts.server import Command
-from pyinfra.operations.util import any_changed
 from pyinfra import host
+from pyinfra.facts.server import Command
+from pyinfra.operations import apt, files, server
+from pyinfra.operations.util import any_changed
 
 font_packages = apt.packages(
     name="Installing font packages",
