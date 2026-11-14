@@ -1092,3 +1092,18 @@ def test_proton_drive_cli_can_be_disabled_without_a_version(pyinfra_task_harness
         and kwargs.get("name") == "Install or update Proton Drive CLI"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+
+
+def test_sablier_requires_an_explicit_version_when_enabled(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="docker_sablier.version must be explicitly configured"):
+        pyinfra_task_harness.load("docker_sablier.py", {
+            "docker_sablier": {"enabled": True},
+        })
+
+
+def test_miniflux_requires_an_explicit_postgres_version(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="docker.miniflux.postgres_version must be explicitly configured"):
+        pyinfra_task_harness.load("docker/miniflux.py", {
+            "docker": {"miniflux": {}},
+        })
