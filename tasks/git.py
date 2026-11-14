@@ -98,9 +98,10 @@ if git_credentials is not None:
     server.shell(
         name="Protect git-credentials from modification",
         commands=[f"chattr +i {quoted_credentials_path}"],
-        _if=lambda: (
-            bool(host.get_fact(File, path=credentials_path))
-            and not file_has_flag(host, credentials_path, "i", refresh=True)
+        # File existence was checked before template deployment; avoid reusing
+        # that cached fact after the template creates or updates the file.
+        _if=lambda: not file_has_flag(
+            host, credentials_path, "i", refresh=True
         ),
         _sudo=True,
     )
