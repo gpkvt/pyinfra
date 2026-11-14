@@ -1,5 +1,7 @@
 # pylint: disable=E1101
-"""Shared test helpers for pyinfra deployment tests."""
+"""Sha
+    facts.hardware = facts_hardwarered tes
+    monkeypatch.setitem(sys.modules, "pyinfra.facts.hardware", facts_hardware)t helpers for pyinfra deployment tests."""
 
 import builtins
 import importlib.machinery
@@ -246,6 +248,8 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
     facts_server.Which = type("Which", (), {})
+    facts_hardware = types.ModuleType("pyinfra.facts.hardware")
+    facts_hardware.Ipv4Addrs = type("Ipv4Addrs", (), {})
     facts_server.Timezone = type("Timezone", (), {})
     for name, module in (
         ("pyinfra", pyinfra),
