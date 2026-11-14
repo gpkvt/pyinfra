@@ -30,8 +30,9 @@ def test_samba_configures_two_distinct_shares(pyinfra_task_harness):
     assert rendered[0]["download_path"] == "/srv/samba/outgoing"
 
 
-def test_samba_systemd_checks_use_command_fact_and_normalize_output(
-    pyinfra_task_harness,
+@pytest.mark.parametrize("reload_required", [False, True])
+def test_samba_systemd_reload_is_conditional_and_uses_command_fact(
+    pyinfra_task_harness, reload_required,
 ):
     fact_calls = []
 
@@ -39,7 +40,7 @@ def test_samba_systemd_checks_use_command_fact_and_normalize_output(
         fact_calls.append((fact, args, kwargs))
         command = kwargs["command"]
         if "NeedDaemonReload" in command:
-            return ["yes"]
+            return ["yes" if reload_required else "no"]
         if "is-active" in command:
             return ["inactive"]
         if "is-enabled" in command:
@@ -59,7 +60,7 @@ def test_samba_systemd_checks_use_command_fact_and_normalize_output(
         if namespace == "server" and name == "shell"
     }
     assert len(shell_operations) == 3
-    assert shell_operations["Reload systemd unit definitions when needed"]["_if"]() is True
+    assert shell_operations["Reload systemd unit definitions when needed"]["_if"]() is reload_required
     assert shell_operations["Protect existing Samba upload contents from deletion"]["_if"]() is False
     assert shell_operations["Keep Samba stopped until requested"]["_if"]() is False
     assert fact_calls
