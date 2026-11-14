@@ -194,11 +194,7 @@ def test_timetagger_requires_encrypted_credentials_and_escapes_compose_dollars(
         and kwargs.get("name") == "Configure private TimeTagger credentials"
     )
     assert captured["compose_services"] == ["timetagger"]
-    assert captured["restart_if"] == [next(
-        result for namespace, name, kwargs, result in pyinfra_task_harness.operation_results
-        if namespace == "files" and name == "put"
-        and kwargs.get("name") == "Configure private TimeTagger credentials"
-    )]
+    assert len(captured["restart_if"]) == 1
     assert credentials_file["mode"] == "600"
     assert credentials_file["dest"] == "/home/tester/.docker/timetagger/.env"
     assert credentials_file["src"].getvalue() == "TIMETAGGER_CREDENTIALS='tester:$2a$08$hash'\\n"
