@@ -67,6 +67,7 @@ def task_environment(monkeypatch):
     facts = types.ModuleType("pyinfra.facts")
     facts_files = types.ModuleType("pyinfra.facts.files")
     facts_files.File = type("File", (), {})
+    facts_files.FileContents = type("FileContents", (), {})
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
     facts_server.Which = type("Which", (), {})
