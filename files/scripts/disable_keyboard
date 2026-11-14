@@ -10,7 +10,16 @@ cleanup() {
     fi
 }
 
-trap cleanup EXIT INT TERM
+handle_signal() {
+    local exit_status="$1"
+    trap - EXIT INT TERM
+    cleanup
+    exit "$exit_status"
+}
+
+trap cleanup EXIT
+trap 'handle_signal 130' INT
+trap 'handle_signal 143' TERM
 echo "$DEVICE" > "$DRIVER/unbind"
 echo "Keyboard disabled, wait for automatic re-enabling."
 
@@ -22,5 +31,5 @@ printf "\n"
 
 echo "Restoring keyboard..."
 cleanup
-trap - EXIT INT TERM
+trap - EXIT
 echo "Keyboard restored."

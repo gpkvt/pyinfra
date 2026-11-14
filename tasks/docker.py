@@ -262,11 +262,16 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
     stop_dependencies = service_sablier.get(
         "stop_dependencies", sablier_options.get("stop_dependencies", True)
     )
-    app_services = app_services or service_options.get("app_services", [service])
+    if app_services is None:
+        app_services = service_options.get("app_services", [service])
 
     if sablier_enabled and (not isinstance(sablier_group, str) or not sablier_group.strip()):
         raise ValueError(f"Invalid Sablier group for Docker service {service!r}")
-    if not app_services or not all(isinstance(item, str) and item for item in app_services):
+    if (
+        not isinstance(app_services, (list, tuple))
+        or not app_services
+        or not all(isinstance(item, str) and item for item in app_services)
+    ):
         raise ValueError(f"Invalid app_services configuration for Docker service {service!r}")
 
     if sablier_enabled:

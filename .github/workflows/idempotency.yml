@@ -37,6 +37,7 @@ jobs:
       - name: Validate task and utility coverage
         run: |
           python -m compileall -q tasks files/scripts/translate.py
+          bash -n files/dehydrated_hook.sh
           while IFS= read -r script; do
             bash -n "$script"
           done < <(

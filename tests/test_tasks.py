@@ -501,6 +501,19 @@ def test_docker_service_app_services_come_from_service_configuration(pyinfra_tas
     ]
 
 
+def test_docker_service_rejects_empty_app_services(pyinfra_task_harness):
+    """An explicit empty list must not be replaced by the service fallback."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "docker_sablier": {"enabled": False},
+        "docker": {"custom": {}},
+    })
+
+    with pytest.raises(ValueError, match="Invalid app_services configuration"):
+        module.deploy_docker_service(
+            "custom", "Custom", "/home/tester", app_services=[]
+        )
+
+
 def test_dehydrated_domains_support_multiple_certificates_and_sans(pyinfra_task_harness):
     module = pyinfra_task_harness.load("caddy.py")
     assert module.build_domains_file([
