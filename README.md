@@ -1,6 +1,6 @@
 # pyinfra — Linux infrastructure and workstation automation
 
-[![Pre-commit](https://img.shields.io/github/actions/workflow/status/gpkvt/pyinfra/pre-commit.yml?branch=main&label=pre-commit&logo=githubactions&logoColor=white)](https://github.com/gpkvt/pyinfra/actions/workflows/pre-commit.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/gpkvt/pyinfra/idempotency.yml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/gpkvt/pyinfra/actions/workflows/idempotency.yml)
 [![License: MIT](https://img.shields.io/github/license/gpkvt/pyinfra?label=license)](LICENSE)
 [![Open issues](https://img.shields.io/github/issues/gpkvt/pyinfra?logo=github)](https://github.com/gpkvt/pyinfra/issues)
 [![Last commit](https://img.shields.io/github/last-commit/gpkvt/pyinfra?logo=git)](https://github.com/gpkvt/pyinfra/commits/main)

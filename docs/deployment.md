@@ -53,17 +53,18 @@ The core set can still have conditional behavior internally, but its modules are
 | --- | --- |
 | Flatpak executable detected by `Which` | `tasks/flatpak.py` |
 | `host.data.ssh_config` is truthy | `tasks/ssh_config.py` |
-| `host.data.wireguard_config` and `secrets.wireguard` are truthy | `tasks/wireguard.py` |
-| `host.data.syncthing` is truthy | `tasks/syncthing.py` |
+| `host.data.wireguard_config` and `secrets.wireguard` are truthy, and `wireguard_enabled` is not false (defaults to true) | `tasks/wireguard.py` |
+| `host.data.syncthing` is truthy and `syncthing.enabled` is not false (defaults to true) | `tasks/syncthing.py` |
 | `local_network_cidr` and `wireguard_interface` are truthy | `tasks/vpn.py` |
-| `host.data.docker` and `host.data.caddy_config` are truthy | `tasks/caddy.py` |
+| `host.data.docker` and `host.data.caddy_config` are truthy, and `caddy_enabled` is not false (defaults to true) | `tasks/caddy.py` |
 | `host.data.zsh` is truthy | `tasks/zsh.py` |
 | `host.data.tmux` is truthy | `tasks/tmux.py` |
 | `host.data.powerline` is truthy | `tasks/powerline.py` |
 | `host.data.ufw` is truthy | `tasks/ufw.py` |
 | `host.data.docker` is truthy | `tasks/docker.py`, `tasks/docker_power.py` and `tasks/docker_container.py` |
 | `host.data.docker_sablier.enabled` is true (inside the Docker gate) | `tasks/docker_sablier.py` |
-| `host.data.apparmor_profiles` is truthy | `tasks/apparmor.py` |
+| `host.data.apparmor_profiles` is truthy and `apparmor_enabled` is not false (defaults to true) | `tasks/apparmor.py` |
+| `workstation.limusic.enabled` is true | `tasks/workstation/limusic.py` |
 | `workstation.cosmic.enabled` is true | `tasks/workstation/cosmic/deploy.py` |
 | `host.data.mullvad_extensions` is truthy | `tasks/mullvad_extensions.py` |
 | `host.data.vscodium` is truthy | `tasks/vscodium.py` |
