@@ -125,6 +125,10 @@ deploy_docker_service(
         "DB_PASSWORD": mdmesh_secrets["database_password"],
         "HASH_SECRET": mdmesh_secrets["hash_secret"],
         "ADMIN_PASSWORD": mdmesh_secrets["admin_password"],
+        "SERVER_VERSION": version,
+        "WEB_VERSION": version,
+        "SUPERVISOR_VERSION": version,
+        "CURRENT_VERSION": version,
     },
 )
 
