@@ -677,8 +677,10 @@ def test_docker_power_restore_uses_file_fact(pyinfra_task_harness):
     )
     assert restore["_if"]() is True
 
-def test_sudoers_uses_file_contents_fact_to_skip_unchanged_file(pyinfra_task_harness):
-    """An unchanged sudoers file skips validation and installation."""
+def test_sudoers_skips_validation_but_reconciles_metadata_when_content_matches(
+    pyinfra_task_harness
+):
+    """Matching content skips visudo while files.put repairs metadata drift."""
     content = (
         "# Managed by pyinfra - do not edit manually\n"
         "%sudo ALL=(ALL:ALL) ALL\n"
@@ -696,11 +698,14 @@ def test_sudoers_uses_file_contents_fact_to_skip_unchanged_file(pyinfra_task_har
         and kwargs.get("name") == "Validate custom sudoers configuration"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
-    assert not any(
-        namespace == "files" and name == "put"
+    put = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
         and kwargs.get("name") == "Manage custom sudoers configuration"
-        for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+    assert put["mode"] == "440"
+    assert put["user"] == "root"
+    assert put["group"] == "root"
 
 
 def test_ssh_keypair_incomplete_state_fails_instead_of_creating_empty_key(
