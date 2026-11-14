@@ -178,15 +178,33 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     set -a
     . ./.env
     set +a
+    ADMIN_EMAIL={shlex.quote(admin_email)}
     # shellcheck disable=SC1091
     . {shlex.quote(bootstrap)}/db.sh
     PSQL=(docker compose exec -T postgres psql -U mdmesh -d mdmesh)
     state=$(mdm_db_state)
     case "$state" in
         fresh)
-            mdm_seed {shlex.quote(admin_email)} {shlex.quote(bootstrap + "/hmdm_init.en.sql")} "$ADMIN_PASSWORD" "$(openssl rand -hex 16)"
+            mdm_seed "$ADMIN_EMAIL" {shlex.quote(bootstrap + "/hmdm_init.en.sql")} "$ADMIN_PASSWORD" "$(openssl rand -hex 16)"
             ;;
         seeded)
+            # A previous run may have committed seed SQL but stopped before
+            # mdm_seed wrote the configured password. Repair only this first-login
+            # state; passwordreset=false means an administrator has changed it.
+            admin_hash=$(mdm_pwhash "$ADMIN_PASSWORD")
+            admin_state=$(mdm_psql -c "SELECT CASE WHEN email = '$ADMIN_EMAIL' THEN 't' ELSE 'f' END || '/' || CASE WHEN passwordreset THEN 't' ELSE 'f' END || '/' || CASE WHEN password = '$admin_hash' THEN 't' ELSE 'f' END FROM users WHERE login='admin'" | tr -d '[:space:]')
+            case "$admin_state" in
+                t/t/f)
+                    reset_token=$(openssl rand -hex 16)
+                    printf '%s\\n' "UPDATE users SET password='$admin_hash', passwordresettoken='$reset_token' WHERE login='admin' AND email='$ADMIN_EMAIL' AND passwordreset=true;" | mdm_psql
+                    ;;
+                t/t/t|t/f/t|t/f/f)
+                    ;;
+                *)
+                    echo "MDMesh administrator record is missing or has an unexpected email/state; refusing to overwrite it" >&2
+                    exit 1
+                    ;;
+            esac
             ;;
         inconsistent)
             echo "MDMesh database is inconsistent; refusing to seed or overwrite existing data" >&2
@@ -228,12 +246,34 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
         f"{shlex.quote(post_seed_sql)} "
         "2>/dev/null || true"
     )
+    admin_check_script = f"""#!/usr/bin/env bash
+    set -euo pipefail
+    cd {shlex.quote(root)}
+    set -a
+    . ./.env
+    set +a
+    . {shlex.quote(bootstrap)}/db.sh
+    PSQL=(docker compose exec -T postgres psql -U mdmesh -d mdmesh)
+    admin_hash=$(mdm_pwhash "$ADMIN_PASSWORD")
+    mdm_psql -c "SELECT count(*) FROM users WHERE login='admin' AND email={shlex.quote(admin_email)} AND (password='$admin_hash' OR NOT passwordreset)" || true
+    """
+    admin_check = f"bash -c {shlex.quote(admin_check_script)}"
+
+    def mdmesh_needs_initialization():
+        enrollment_ready = command_output_text(
+            host.get_fact(Command, post_seed_check, _sudo=False)
+        ).strip() == "1"
+        administrator_ready = command_output_text(
+            host.get_fact(Command, admin_check, _sudo=False)
+        ).strip() == "1"
+        return not (enrollment_ready and administrator_ready)
+
     server.shell(
         name="Initialize MDMesh database and enrollment defaults",
         # pyinfra executes shell commands through /bin/sh; run this Bash-specific script explicitly with Bash.
         commands=[f"bash -c {shlex.quote(bootstrap_command)}"],
         _sudo=False,
-        _if=lambda: command_output_text(host.get_fact(Command, post_seed_check, _sudo=False)).strip() != "1",
+        _if=mdmesh_needs_initialization,
     )
 
 
