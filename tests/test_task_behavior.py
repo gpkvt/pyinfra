@@ -943,3 +943,59 @@ def test_apt_repository_requires_key_and_repository_mappings(pyinfra_task_harnes
         pyinfra_task_harness.load("apt.py", {
             "apt_sources": {"example": {"key": [], "repository": {}}},
         })
+
+
+@pytest.mark.parametrize(
+    ("jobs", "expect_package", "expect_service"),
+    [
+        (
+            [{
+                "name": "obsolete-job",
+                "command": "/usr/bin/true",
+                "present": False,
+            }],
+            True,
+            False,
+        ),
+        (
+            [{
+                "name": "active-job",
+                "command": "/usr/bin/true",
+                "minute": "*/5",
+            }, {
+                "name": "obsolete-job",
+                "command": "/usr/bin/true",
+                "present": False,
+            }],
+            True,
+            True,
+        ),
+        ([], False, False),
+    ],
+)
+def test_cron_package_and_daemon_follow_required_lifecycle(
+    pyinfra_task_harness, jobs, expect_package, expect_service,
+):
+    """Removal-only jobs need crontab, but do not need the cron daemon."""
+    pyinfra_task_harness.load("cron.py", {
+        "username": "tester",
+        "cron_jobs": jobs,
+    })
+
+    package_operations = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "apt" and name == "packages"
+        and kwargs.get("name") == "Install cron"
+    ]
+    service_operations = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "service"
+        and kwargs.get("name") == "Ensure cron daemon is enabled and running"
+    ]
+
+    assert bool(package_operations) is expect_package
+    assert bool(service_operations) is expect_service
+    assert len([
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "crontab" and name == "crontab"
+    ]) == len(jobs)
