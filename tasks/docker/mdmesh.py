@@ -50,8 +50,27 @@ if missing_secrets:
 
 for key in required_secrets:
     value = mdmesh_secrets[key]
-    if not isinstance(value, str) or any(char in value for char in ("\n", "\r", "\x00", "'", "\\")):
-        raise ValueError(f"MDMesh secret {key!r} must be a single-line string without quotes or backslashes")
+    if not isinstance(value, str) or len(value) < 32 or any(
+        char in value for char in ("\n", "\r", "\x00", "'", "\\")
+    ):
+        raise ValueError(
+            f"MDMesh secret {key!r} must contain at least 32 characters and "
+            "must not contain quotes, backslashes or line breaks"
+        )
+
+image_owner = mdmesh.get("image_owner", "mdmesh-app")
+if not isinstance(image_owner, str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", image_owner):
+    raise ValueError("docker.mdmesh.image_owner must be a lowercase container registry owner")
+
+github_repo = mdmesh.get("github_repo", "MDMesh-app/MDMesh")
+if not isinstance(github_repo, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", github_repo):
+    raise ValueError("docker.mdmesh.github_repo must use owner/repository format")
+
+trusted_proxies = mdmesh.get("trusted_proxies", [])
+if not isinstance(trusted_proxies, (list, tuple)) or not all(
+    isinstance(item, str) and item.strip() for item in trusted_proxies
+):
+    raise ValueError("docker.mdmesh.trusted_proxies must be a list of non-empty proxy CIDRs")
 
 root = f"{homedir}/.docker/mdmesh"
 bootstrap = f"{root}/bootstrap"
@@ -93,11 +112,11 @@ deploy_docker_service(
     username=username,
     usergroup=usergroup,
     version=version,
-    image_owner=mdmesh.get("image_owner", "mdmesh-app"),
+    image_owner=image_owner,
     domain=domain,
     port=port,
-    trusted_proxies=mdmesh.get("trusted_proxies", []),
-    github_repo=mdmesh.get("github_repo", "MDMesh-app/MDMesh"),
+    trusted_proxies=trusted_proxies,
+    github_repo=github_repo,
     private_env={
         "DB_PASSWORD": mdmesh_secrets["database_password"],
         "HASH_SECRET": mdmesh_secrets["hash_secret"],
