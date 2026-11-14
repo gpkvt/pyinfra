@@ -43,7 +43,7 @@ if options.get("enabled", False):
         commands=[f"loginctl enable-linger {shlex.quote(username)}"],
         _sudo=True,
         _if=lambda: command_output_text(host.get_fact(
-            Command, f"loginctl show-user {username} -p Linger"
+            Command, f"loginctl show-user {shlex.quote(username)} -p Linger"
         )).strip() != "Linger=yes",
     )
     compose_file = shlex.quote(f"{homedir}/.docker/sablier/docker-compose.yml")
