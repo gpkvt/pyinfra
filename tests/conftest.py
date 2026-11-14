@@ -1,7 +1,5 @@
 # pylint: disable=E1101
-"""Sha
-    facts.hardware = facts_hardwarered tes
-    monkeypatch.setitem(sys.modules, "pyinfra.facts.hardware", facts_hardware)t helpers for pyinfra deployment tests."""
+"""Shared test helpers for pyinfra deployment tests."""
 
 import builtins
 import importlib.machinery
