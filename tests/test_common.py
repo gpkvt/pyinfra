@@ -47,7 +47,7 @@ def test_file_has_flag_parses_linux_lsattr_output(monkeypatch):
     common = load_module("common.py", "tested_common_file_flags")
     calls = []
     host = types.SimpleNamespace(
-        get_fact=lambda fact, command: (
+        get_fact=lambda fact, command, **_kwargs: (
             calls.append((fact.__name__, command)) or ["----i--------e------- /home/tester/file"]
         )
     )
