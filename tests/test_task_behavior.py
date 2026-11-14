@@ -119,7 +119,7 @@ def test_git_credentials_use_native_immutable_flag_operations(
         raising=False,
     )
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
-        True if fact.__name__ == "File" else "old credentials"
+        True if fact.__name__ == "File" else ["old credentials"]
     )
     pyinfra_task_harness.load("git.py")
 
@@ -144,7 +144,7 @@ def test_git_credentials_remain_immutable_when_rendered_content_matches(
     )
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
         True if fact.__name__ == "File"
-        else "https://user:token@example.test\n"
+        else ["https://user:token@example.test"]
     )
     pyinfra_task_harness.load("git.py")
 
