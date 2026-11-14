@@ -19,7 +19,7 @@ Configuration:
 
         Supported options:
             postgres_version (int): PostgreSQL version used by Miniflux.
-                Defaults to 12.
+                Defaults to 12 (configurable in docker.miniflux.postgres_version).
 
             port (int): Host port exposed by Miniflux.
                 Defaults to 8080.
