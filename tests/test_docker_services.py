@@ -123,3 +123,40 @@ def test_ssh_directory_uses_declarative_metadata_reconciliation(pyinfra_task_har
     assert directory_calls[0]["mode"] == "700"
     assert "_if" not in directory_calls[0]
     assert not any("stat -c" in command for command in fact_commands)
+
+def test_docker_compose_projects_use_managed_directory_and_remove_legacy_files(
+    pyinfra_task_harness,
+):
+    """Compose files and systemd working directories stay below ~/.docker."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "usergroup": "tester",
+    })
+    module.deploy_docker_service(
+        "custom",
+        "Custom",
+        "/home/tester",
+        username="tester",
+        usergroup="tester",
+    )
+
+    compose = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("name") == "Configure custom"
+    )
+    unit = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("name") == "Deploy custom systemd service"
+    )
+    legacy = [
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "file"
+        and kwargs.get("name", "").startswith("Remove legacy custom")
+    ]
+
+    assert compose["dest"] == "/home/tester/.docker/custom/docker-compose.yml"
+    assert unit["compose_files"] == "-f docker-compose.yml"
+    assert len(legacy) == 2
+    assert all(operation["present"] is False for operation in legacy)
