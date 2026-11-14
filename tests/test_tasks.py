@@ -1001,3 +1001,15 @@ def test_cron_task_rejects_invalid_configuration(
 ):
     with pytest.raises(ValueError, match=error):
         pyinfra_task_harness.load("cron.py", config)
+
+
+
+def test_caddy_versions_must_be_explicitly_configured(pyinfra_task_harness):
+    module = pyinfra_task_harness.load("caddy.py")
+    with pytest.raises(ValueError, match="caddy_versions.version"):
+        module.required_version({}, "version", "caddy_versions.version")
+    with pytest.raises(ValueError, match="caddy_versions.sablier_plugin"):
+        module.required_version({"version": "2.12.0"}, "sablier_plugin", "caddy_versions.sablier_plugin")
+    with pytest.raises(ValueError, match="caddy_versions.dehydrated"):
+        module.required_version({"version": "2.12.0"}, "dehydrated", "caddy_versions.dehydrated")
+    assert module.required_version({"version": "2.12.0"}, "version", "caddy_versions.version") == "2.12.0"
