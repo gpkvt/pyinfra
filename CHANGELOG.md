@@ -17,7 +17,7 @@ This project follows a continuous development model. Changes are tracked using d
 
 - Changed Sablier's default idle strategy to pause containers ([#256](https://github.com/gpkvt/pyinfra/pull/256)).
 - Changed cron deployment so removal-only changes do not start or restart the cron daemon ([#255](https://github.com/gpkvt/pyinfra/pull/255)).
-- Changed `hostnames` configuration to use lists; an empty list removes that IP's `/etc/hosts` entries ([#285](https://github.com/gpkvt/pyinfra/issues/285)).
+- Changed `hostnames` configuration to use lists; an empty list removes that IP's `/etc/hosts` entries ([#298](https://github.com/gpkvt/pyinfra/pull/298)).
 - Expanded COSMIC applet configuration and adjusted configuration-directory handling; expanded Docker application-service configuration ([#241](https://github.com/gpkvt/pyinfra/pull/241), [#251](https://github.com/gpkvt/pyinfra/pull/251), [#253](https://github.com/gpkvt/pyinfra/pull/253), [#254](https://github.com/gpkvt/pyinfra/pull/254)).
 
 ### Fixed
