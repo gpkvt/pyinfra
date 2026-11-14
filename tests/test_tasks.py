@@ -91,6 +91,24 @@ def test_ci_inventory_runs_tmux_without_personal_workstation_features():
 
 
 
+
+def test_system_locale_replaces_the_matching_lang_line(pyinfra_task_harness):
+    """The locale value replaces LANG rather than writing the regex as content."""
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        ["C.UTF-8"] if fact.__name__ == "Locales" else None
+    )
+    pyinfra_task_harness.load("system.py", {"locale": "C.UTF-8"})
+
+    locale_operation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "line"
+        and kwargs.get("name") == "Set system default locale: C.UTF-8"
+    )
+    assert locale_operation["path"] == "/etc/default/locale"
+    assert locale_operation["line"] == "^LANG="
+    assert locale_operation["replace"] == 'LANG="C.UTF-8"'
+    assert locale_operation["present"] is True
+
 def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness):
     """An already-correct timezone does not schedule a change."""
     pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
