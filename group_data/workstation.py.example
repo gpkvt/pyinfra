@@ -73,11 +73,8 @@ workstation = {
             "autohide": False,  # Hides the panel until the pointer reaches its screen edge.
             "extend": True,  # Extends the panel across the available screen edge.
             "anchor_gap": 0,  # Set above zero to enable COSMIC's panel edge-gap setting; zero disables it.
-            "applets": {
-                "left": [],  # Applet identifiers/configuration placed on the panel's left.
-                "center": [],  # Applet identifiers/configuration placed in the panel center.
-                "right": [],  # Applet identifiers/configuration placed on the panel's right.
-            },
+            # Omit "applets" to keep the task's default COSMIC panel applets.
+            # Set an explicit mapping to replace defaults; empty lists remove applets.
         },
 
         "dock": {
@@ -87,11 +84,8 @@ workstation = {
             "autohide": False,  # Hides the dock until the pointer reaches its screen edge.
             "extend": True,  # Extends the dock along its screen edge.
             "anchor_gap": 0,  # Set above zero to enable COSMIC's dock edge-gap setting; zero disables it.
-            "applets": {
-                "left": [],  # Applet identifiers/configuration placed on the dock's left.
-                "center": [],  # Applet identifiers/configuration placed in the dock center.
-                "right": [],  # Applet identifiers/configuration placed on the dock's right.
-            },
+            # Omit "applets" to keep the task's default COSMIC dock applets.
+            # Set an explicit mapping to replace defaults; empty lists remove applets.
         },
 
         # Optional directory synchronization; omitted entries are not managed.
