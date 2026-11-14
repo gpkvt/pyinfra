@@ -263,3 +263,40 @@ def test_compose_configuration_detects_missing_or_stopped_services():
         assert not compose_configuration_matches(
             FakeHost(), "docker compose -f compose.yml"
         )
+
+
+
+def test_compose_configuration_ignores_dependency_health_during_dry_run():
+    """The planner must not wait for dependency health to inspect this service."""
+    from common import compose_configuration_matches
+
+    class FakeHost:
+        def get_fact(self, _fact, command, **_kwargs):
+            assert "--dry-run up --no-deps -d" in command
+            assert "|| true" in command
+            return "Container app-1 Running"
+
+    assert compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
+
+
+def test_compose_configuration_treats_dry_run_errors_as_drift():
+    """A failed planner check must request reconciliation, not abort pyinfra."""
+    from common import compose_configuration_matches
+
+    class FakeHost:
+        def get_fact(self, _fact, command, **_kwargs):
+            assert "--dry-run up --no-deps -d" in command
+            return "dependency db failed to start"
+
+    assert not compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
+
+
+def test_compose_configuration_treats_empty_dry_run_as_drift():
+    """Missing planner output is inconclusive and must not be considered current."""
+    from common import compose_configuration_matches
+
+    class FakeHost:
+        def get_fact(self, _fact, command, **_kwargs):
+            return ""
+
+    assert not compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
