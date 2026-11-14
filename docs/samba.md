@@ -2,7 +2,7 @@
 
 The optional Samba task provides two guest-accessible SMB shares for quick LAN/VPN file exchange:
 
-- **Upload** is a shared, writable dropbox. Guests can upload, replace and remove files. All guest connections use the same Unix identity (nobody), so this is not a private per-device inbox and users are not isolated from one another. Do not use it for confidential uploads.
+- **Upload** is a shared dropbox. Guests can upload and write files, but cannot delete or rename files. The directory uses the sticky bit and uploaded files inherit its root ownership. All guest connections use the same Unix identity (nobody), so this is not a private per-device inbox and users are not isolated from one another. Do not use it for confidential uploads.
 - **Download** is guest-readable and read-only. Publish files by copying them into the configured download directory on the server.
 
 The task installs both the Samba server and `smbclient`, which provides a command-line client for testing guest share access directly from the server (for example, `smbclient -N //127.0.0.1/Upload -c 'ls'`). The service is deliberately **not enabled at boot**. On its first deployment, the task stops Samba and masks smbd.service; it does not start Samba or open the firewall. Starting Samba with `samba-start` creates a runtime marker so subsequent pyinfra deployments preserve that explicitly started session. `samba-stop` (including an idle-timeout stop) removes the marker, stops Samba and masks the service. The marker is stored under `/run`, so it is cleared on reboot. Run the deployed scripts when file exchange is needed:
@@ -41,7 +41,7 @@ Set a top-level samba mapping in host data:
 | upload.path | /srv/samba/upload | Persistent upload directory. |
 | download.path | /srv/samba/download | Persistent download directory. |
 
-Both paths must be distinct absolute paths. The task creates them if absent and never deletes their contents. Upload files are owned by the guest Unix identity; download files are not modified by Samba. Place files in the download directory using normal server-side tools and ensure they are world-readable.
+Both paths must be distinct absolute paths. The task creates them if absent and never deletes their contents. Upload files and directories are owned by root with group `nogroup`; the upload directory and its subdirectories have the sticky bit set. This allows guests to create and write uploads while preventing the guest identity from deleting or renaming entries owned by root. Deployment conditionally migrates existing upload contents to these ownership and sticky-bit rules without changing file contents. Download files are not modified by Samba. Place files in the download directory using normal server-side tools and ensure they are world-readable.
 
 When `idle_timeout` is greater than zero, `samba-start` installs a dedicated nftables counter and starts a systemd timer. The counter observes incoming TCP 445 packets on the configured interface from allowed CIDRs; unrelated interface traffic does not reset the timeout. The monitor checks every 60 seconds and stops Samba through `samba-stop` after the configured idle period. The default idle period is 30 minutes; any positive timeout is accepted. The monitor and its counter are removed when Samba is stopped manually or automatically. The idle monitor requires nftables (`nft`) and systemd.
 
@@ -49,6 +49,6 @@ The scripts are installed as /usr/local/sbin/samba-start and /usr/local/sbin/sam
 
 ## Security
 
-This is intended only for a trusted LAN or VPN. Guest upload is intentionally frictionless, but all guests share one Unix identity and can manage files in the Upload share. Anyone with network access to TCP 445 can read the Download share and upload to Upload. Restrict allowed_networks to trusted CIDRs, do not forward TCP 445 from the internet, and stop the service when it is not needed. The firewall rules are temporary operational state: deployment does not open them, and samba-stop removes the matching rules.
+This is intended only for a trusted LAN or VPN. Guest upload is intentionally frictionless, but all guests share one Unix identity and can write uploaded files. They cannot delete or rename entries protected by the sticky bit. Anyone with network access to TCP 445 can read the Download share and upload to Upload. Restrict allowed_networks to trusted CIDRs, do not forward TCP 445 from the internet, and stop the service when it is not needed. The firewall rules are temporary operational state: deployment does not open them, and samba-stop removes the matching rules.
 
 The task does not create Samba user accounts, perform automatic cleanup, or automatically start the service after reboot.
