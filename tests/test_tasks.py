@@ -1,4 +1,5 @@
 # pylint: disable=R0912, R0914, W0613, E1101, R0915, W0621, R0911
+# pylint: disable=too-many-lines
 """Smoke and focused regression tests for top-level deployment tasks.
 
 These tests deliberately mock pyinfra's host and operation APIs. They verify
