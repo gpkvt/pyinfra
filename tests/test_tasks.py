@@ -120,7 +120,9 @@ def test_system_timezone_treats_etc_utc_as_utc(pyinfra_task_harness):
 
 def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
     """A mismatched timezone still schedules the required correction."""
-    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (\n        "Europe/Berlin" if fact.__name__ == "Timezone" else []\n    )
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        "Europe/Berlin" if fact.__name__ == "Timezone" else []
+    )
     pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
 
     assert any(
