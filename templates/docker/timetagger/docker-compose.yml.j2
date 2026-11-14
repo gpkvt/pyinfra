@@ -6,7 +6,7 @@ services:
     volumes:
       - {{ homedir }}/.docker/timetagger:/root/_timetagger
     env_file:
-      - {{ homedir }}/.docker/timetagger/.env
+      - .env
     environment:
       TIMETAGGER_BIND: "0.0.0.0:80"
       TIMETAGGER_DATADIR: /root/_timetagger
