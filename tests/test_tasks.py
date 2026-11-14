@@ -8,9 +8,9 @@ important behavior without contacting or modifying a real machine.
 
 import ast
 import builtins
-import re
 import json
 import os
+import re
 import runpy
 import subprocess
 import sys
