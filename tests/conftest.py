@@ -68,6 +68,7 @@ def task_environment(monkeypatch):
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
     facts.server = facts_server
+    pyinfra.facts = facts
     monkeypatch.setitem(sys.modules, "pyinfra.facts", facts)
     monkeypatch.setitem(sys.modules, "pyinfra.facts.server", facts_server)
     operations = types.ModuleType("pyinfra.operations")
