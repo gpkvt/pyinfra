@@ -731,17 +731,10 @@ def test_ssh_keypair_incomplete_state_fails_instead_of_creating_empty_key(
 
 
 def test_apt_key_changes_are_included_in_repository_update_gate(
-    pyinfra_task_harness, monkeypatch
+    pyinfra_task_harness
 ):
     """Signing-key changes must force an APT index refresh."""
-    calls = []
-
-    def record_any_changed(*operations):
-        calls.append(operations)
-        return lambda: True
-
-    monkeypatch.setattr("pyinfra.operations.util.any_changed", record_any_changed)
-    pyinfra_task_harness.load("apt.py", {
+    module = pyinfra_task_harness.load("apt.py", {
         "apt_sources": {
             "example": {
                 "key": {
@@ -758,7 +751,7 @@ def test_apt_key_changes_are_included_in_repository_update_gate(
     })
 
     # The first gate contains both apt.key and the repository file operation.
-    assert len(calls[0]) == 2
+    assert len(module.apt_repository_operations) == 2
     assert any(
         namespace == "apt" and name == "key"
         for namespace, name, _kwargs in pyinfra_task_harness.calls
