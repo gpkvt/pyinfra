@@ -318,9 +318,12 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         if sablier_enabled else "-f docker-compose.yml"
     )
 
+    compose_path = shlex.quote(
+        f"{homedir}/.docker/{service}/docker-compose.yml"
+    )
     server.shell(
         name=f"Pull {service} Docker images",
-        commands=[f"docker compose -f {homedir}/.docker/{service}/docker-compose.yml pull"],
+        commands=[f"docker compose -f {compose_path} pull"],
         _sudo=False, _if=compose_file.did_change,
     )
 
