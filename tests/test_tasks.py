@@ -247,6 +247,17 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     assert "mdm_seed" in bootstrap["commands"][0]
     assert "inconsistent" in bootstrap["commands"][0]
 
+    mdmesh_config = pyinfra_task_harness.host.data.get("docker", {}).get("mdmesh", {})
+    assert mdmesh_config["sablier"] == {"enabled": False}
+
+    compose_template = (ROOT / "templates/docker/mdmesh/docker-compose.yml.j2").read_text()
+    assert "/var/lib/postgresql/data" in compose_template
+    assert "/opt/mdmesh" in compose_template
+    assert "/var/run/docker.sock:/var/run/docker.sock" in compose_template
+    assert "\\nvolumes:\\n" not in compose_template
+    assert "pgdata:" not in compose_template
+    assert "mdmeshdata:" not in compose_template
+
 
 def test_mdmesh_requires_encrypted_secrets(pyinfra_task_harness, monkeypatch):
     """An incomplete MDMesh secret set fails before any deployment operations are scheduled."""
