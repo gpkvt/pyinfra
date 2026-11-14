@@ -17,7 +17,9 @@ from pyinfra import host
 from tasks.docker import deploy_docker_service
 
 timetagger = host.data.get("docker", {}).get("timetagger", {})
-timetagger_secrets = secrets.get("docker", {}).get("timetagger", {})  # pylint: disable=undefined-variable
+timetagger_secrets = (
+    secrets.get("docker", {}).get("timetagger", {})  # pylint: disable=undefined-variable
+)
 credentials = timetagger_secrets.get("credentials")
 
 if (
