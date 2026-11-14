@@ -58,9 +58,10 @@ def test_samba_systemd_checks_use_command_fact_and_normalize_output(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
     ]
-    assert len(shell_operations) == 2
+    assert len(shell_operations) == 3
     assert shell_operations[0]["_if"]() is True
     assert shell_operations[1]["_if"]() is False
+    assert shell_operations[2]["_if"]() is False
     assert fact_calls
     assert all(fact.__name__ == "Command" for fact, _, _ in fact_calls)
 
@@ -102,9 +103,31 @@ def test_samba_rejects_invalid_networks(pyinfra_task_harness, network):
         })
 
 
+def test_samba_upload_permission_migration_is_conditional(pyinfra_task_harness):
+    pyinfra_task_harness.host.get_fact = lambda fact, *args, **kwargs: (
+        ["yes"] if "find " in kwargs["command"] else []
+    )
+    pyinfra_task_harness.load("samba.py", {
+        "samba": {
+            "enabled": True,
+            "allowed_networks": ["192.168.1.0/24"],
+        },
+    })
+    migration = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Protect existing Samba upload contents from deletion"
+    )
+    assert migration["_if"]() is True
+    assert "chown -R root:nogroup" in migration["commands"][0]
+    assert "chmod +t" in migration["commands"][1]
+
+
 def test_samba_share_security_and_lifecycle_are_explicit():
     config = (ROOT / "templates/samba/smb.conf.j2").read_text()
     assert "[Upload]" in config and "guest ok = yes" in config
+    assert "inherit owner = yes" in config
+    assert "force directory mode = 1000" in config
     assert "[Download]" in config and "read only = yes" in config
     assert "server min protocol = SMB2" in config
     start = (ROOT / "templates/samba/samba-start.j2").read_text()
