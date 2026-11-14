@@ -2,6 +2,11 @@
 Deploy and configure the Docker battery monitor.
 
 The battery saver and Sablier are mutually exclusive.
+
+Configuration:
+    docker_power_save (list[str]): Docker container names to stop while on
+        battery power. Names are validated before being written to the shell
+        configuration; duplicates and invalid names are rejected.
 """
 
 import re
