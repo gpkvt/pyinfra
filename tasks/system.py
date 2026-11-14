@@ -502,12 +502,12 @@ if usbguard:
         # Operation metadata is finalized after execution. Use callbacks so
         # restart decisions reflect actual changes, not prepare-time state.
         configuration_operations = [daemon_result, rules_result]
-        server.shell(
+        server.service(
             name="Enable and restart USBGuard",
-            commands=[
-                "systemctl enable usbguard",
-                "systemctl restart usbguard",
-            ],
+            service="usbguard",
+            running=True,
+            enabled=True,
+            restarted=True,
             _sudo=True,
             _if=any_changed(*configuration_operations),
         )

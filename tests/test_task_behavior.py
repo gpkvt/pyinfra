@@ -380,7 +380,7 @@ def test_udev_reload_uses_runtime_change_detection(pyinfra_task_harness, monkeyp
     assert reload_op["_if"]() is True
 
 
-def test_usbguard_restart_is_conditional_on_configuration_changes(
+def test_usbguard_service_restart_is_conditional_on_configuration_changes(
     pyinfra_task_harness, monkeypatch,
 ):
     changed = {"value": False}
@@ -394,7 +394,7 @@ def test_usbguard_restart_is_conditional_on_configuration_changes(
     })
     restart = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "server" and name == "shell"
+        if namespace == "server" and name == "service"
         and kwargs.get("name") == "Enable and restart USBGuard"
     )
     ensure = next(
@@ -402,6 +402,10 @@ def test_usbguard_restart_is_conditional_on_configuration_changes(
         if namespace == "server" and name == "service"
         and kwargs.get("name") == "Ensure USBGuard is enabled and running"
     )
+    assert restart["service"] == "usbguard"
+    assert restart["running"] is True
+    assert restart["enabled"] is True
+    assert restart["restarted"] is True
     assert restart["_if"]() is False
     assert ensure["_if"]() is True
     changed["value"] = True
