@@ -413,6 +413,33 @@ def test_usbguard_service_restart_is_conditional_on_configuration_changes(
     assert ensure["_if"]() is False
 
 
+def test_sudoers_metadata_is_reconciled_when_content_matches(
+    pyinfra_task_harness,
+):
+    expected = (
+        "# Managed by pyinfra - do not edit manually\n"
+        "tester ALL=(ALL) NOPASSWD: ALL\n"
+    )
+    pyinfra_task_harness.host.get_fact = lambda fact, *_args, **_kwargs: (
+        expected if fact.__name__ == "SudoersFile" else False
+    )
+    pyinfra_task_harness.load("sudo.py", {
+        "sudoers_rules": ["tester ALL=(ALL) NOPASSWD: ALL"],
+    })
+
+    managed_file = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("dest") == "/etc/sudoers.d/99-local"
+    )
+    assert managed_file["mode"] == "440"
+    assert managed_file["user"] == "root"
+    assert managed_file["group"] == "root"
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Validate custom sudoers configuration"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
 def test_ssh_keypair_validation_runs_for_incomplete_pairs_and_skips_complete_pairs(
     pyinfra_task_harness,
 ):
