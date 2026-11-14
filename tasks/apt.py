@@ -71,12 +71,15 @@ for name, repo in apt_sources.items():
     if not isinstance(key_path, str) or not key_path.endswith(".gpg"):
         raise ValueError(f"APT keyring path for {name!r} must end in .gpg")
 
-    apt.key(
+    key_operation = apt.key(
         name=f"Install {name} APT signing key",
         src=key["url"],
         dest=key_path,
         keyid=key.get("keyid"),
     )
+    # A changed signing key must invalidate the APT index cache just like a
+    # changed repository definition.
+    apt_repository_operations.append(key_operation)
 
     architectures = repository.get("architectures", [])
     components = repository.get("components", [])
