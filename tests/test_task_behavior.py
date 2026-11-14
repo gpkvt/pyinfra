@@ -583,7 +583,7 @@ def test_powerline_fonts_install_and_refresh_only_when_required(
 ):
     """Powerline font copies and cache refresh are gated by actual changes."""
     pyinfra_task_harness.host.get_fact = (
-        lambda fact, **_kwargs: ["missing"] if fact.__name__ == "Command" else None
+        lambda fact, _command=None, **_kwargs: ["missing"] if fact.__name__ == "Command" else None
     )
     pyinfra_task_harness.load("fonts.py", {"powerline_fonts": True})
 
@@ -606,7 +606,7 @@ def test_powerline_fonts_install_and_refresh_only_when_required(
     assert extraction["creates"] == "/tmp/powerline-fonts/fonts-master"
     assert install["_if"]() is True
     pyinfra_task_harness.host.get_fact = (
-        lambda fact, **_kwargs: ["current"] if fact.__name__ == "Command" else None
+        lambda fact, _command=None, **_kwargs: ["current"] if fact.__name__ == "Command" else None
     )
     assert install["_if"]() is False
     assert refresh["_if"]() is False
