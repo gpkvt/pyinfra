@@ -9,6 +9,9 @@ import sys
 import types
 from pathlib import Path
 
+
+PYINFRA_SPEC = importlib.util.find_spec("pyinfra")
+
 import pytest
 
 
@@ -57,6 +60,7 @@ def task_environment(monkeypatch):
         return record
 
     pyinfra = types.ModuleType("pyinfra")
+    pyinfra.__spec__ = PYINFRA_SPEC
     pyinfra.host = types.SimpleNamespace(data=Data())
     operations = types.ModuleType("pyinfra.operations")
     for name in ("apt", "files", "server"):
