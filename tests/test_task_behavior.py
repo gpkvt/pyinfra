@@ -505,7 +505,7 @@ def test_mullvad_extension_forces_download_when_source_changes(
 
     assert download["force"] is True
     assert download["src"] == new_url
-    assert marker["src"].getvalue() == f"{new_hash}\\n"
+    assert marker["src"].getvalue() == f"{new_hash}\n"
     assert marker_index > download_index
 
 
