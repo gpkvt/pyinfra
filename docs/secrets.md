@@ -20,6 +20,28 @@ The repository includes `files/scripts/gpg-vault`, an interactive helper deploye
 
 Decryption failures and invalid JSON are not silently ignored: GPG errors and JSON parsing errors stop initialization. The GPG process may prompt for the passphrase depending on the local GPG agent configuration.
 
+Docker service credentials are uploaded separately from Compose templates. The shared `deploy_docker_service()` helper writes `private_env` values to the service project's `.env` file with mode `0600`; single-quoted values preserve characters such as `# Secrets management
+
+The project stores sensitive values in a JSON document encrypted with GPG. Ordinary host configuration belongs in `group_data/`; credentials and private keys belong in the encrypted secrets document.
+
+## Files
+
+| File | Purpose | Commit? |
+| --- | --- | --- |
+| `secrets.json.gpg.example` | Plaintext JSON example/schema with placeholder values | Yes, after checking it contains no real secrets |
+| `secrets.json` | Temporary plaintext working file | No |
+| `secrets.json.gpg` | Encrypted secrets consumed by deployment | Normally no; keep outside version control |
+
+Both real secret files are listed in `.gitignore`.
+
+The repository includes `files/scripts/gpg-vault`, an interactive helper deployed by `tasks/scripts.py`. It manages the plaintext/encrypted file pair locally; it does not change the JSON schema or the way pyinfra loads secrets. The repository also includes a [Visual Studio Code extension](../vscode/gpg-vault/README.md) for performing the same GPG operations from the editor.
+
+## How loading works
+
+`common.initialize()` checks for `secrets.json.gpg` using pyinfra's `File` fact. If found, it executes `gpg --decrypt secrets.json.gpg`, parses standard output as JSON, selects the current inventory host's secrets, and assigns the resolved dictionary to `builtins.secrets`. If the file is absent, `builtins.secrets` becomes `{}` and deployment continues.
+
+Decryption failures and invalid JSON are not silently ignored: GPG errors and JSON parsing errors stop initialization. . The environment file is not included in template diffs, and a change to it triggers a service restart. AppFlowy uses its own rendered `.env` file with the same restrictive mode.
+
 ## Supported top-level keys
 
 The example file documents the current data shape:
