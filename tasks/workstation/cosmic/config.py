@@ -26,19 +26,30 @@ def deploy_cosmic_values(component, values):
     user = host.data.get("username", "root")
     config_root = f"{home}/.config/cosmic"
 
-    for relative_path, value in values.items():
-        destination = f"{config_root}/{relative_path}"
+    destinations = {
+        f"{config_root}/{relative_path}": value
+        for relative_path, value in values.items()
+    }
 
+    # Several settings commonly share one COSMIC component/version directory.
+    # Reconcile each unique parent once before deploying the individual files.
+    directories = sorted({
+        destination.rsplit("/", 1)[0]
+        for destination in destinations
+    })
+    for directory in directories:
         files.directory(
             name=f"Create COSMIC {component} config directory",
-            path="/".join(destination.split("/")[:-1]),
+            path=directory,
             user=user,
             mode="0755",
         )
 
+    for destination, value in destinations.items():
+        relative_path = destination.removeprefix(f"{config_root}/")
         files.put(
             name=f"Configure COSMIC {component}: {relative_path}",
-            src=StringIO(f"{value}\n"),
+            src=StringIO(f"{value}\\n"),
             dest=destination,
             user=user,
             mode="0644",
