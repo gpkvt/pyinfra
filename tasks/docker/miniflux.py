@@ -1,10 +1,8 @@
 # pylint: disable=E0401
 """
 
-import re
 Deploy and manage the Miniflux Docker service using pyinfra.
 
-import re
 
 This module configures and deploys Miniflux using the shared
 deploy_docker_service deployment defined in tasks/docker.py.
@@ -102,6 +100,7 @@ Notes:
       configuration or systemd unit file changes.
     - Docker image updates are not automatically pulled.
 """
+import re
 
 from pyinfra import host
 from tasks.docker import deploy_docker_service
