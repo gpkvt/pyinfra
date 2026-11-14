@@ -32,6 +32,19 @@ local_network_cidr = ""  # Local IPv4 CIDR used by the VPN task to detect LAN pr
 hostnames = {}  # /etc/hosts mappings: {"192.0.2.10": ["host.example", "host"]}.
 wireguard_interface = None  # Interface used by wg-quick, e.g. "home"; None disables VPN startup.
 wireguard_config = {}  # WireGuard interfaces keyed by name; private/peer keys belong in secrets.
+# Example interface settings (the matching privatekey and peers go in encrypted secrets):
+# wireguard_config = {
+#     "home": {
+#         "interface": {
+#             "Address": ["10.10.0.2/32"],  # Tunnel address assigned to this host.
+#             "DNS": "10.10.0.1",  # DNS resolver used while this interface is active.
+#             "MTU": 1420,  # Optional interface MTU.
+#         },
+#     },
+# }
+# secrets.json.gpg must contain hosts["@local"]["wireguard"]["home"] with:
+# privatekey (interface private key) and peers (list of peer dictionaries containing PublicKey,
+# AllowedIPs, and optional PresharedKey, Endpoint and PersistentKeepalive).
 
 # User shell and terminal tools.
 zsh = False  # Installs/configures Zsh and the LiMusic-aware HyFetch music helper.
@@ -43,7 +56,25 @@ tmux = True  # Deploys the user's tmux configuration.
 
 # Core packages and operating-system policy.
 apt_packages = []  # Additional APT package names to install.
-apt_sources = {}  # Third-party APT repositories and signing-key definitions; see tasks/apt.py.
+apt_sources = {}  # Third-party APT repositories; signing keys must use .gpg, .asc or .key paths.
+# Example (leave enabled=False until the repository is trusted and verified):
+# apt_sources = {
+#     "example": {
+#         "enabled": False,  # Set True to download the key and configure this repository.
+#         "key": {
+#             "url": "https://packages.example.org/repo-signing-key.asc",  # HTTPS URL of the repository signing key.
+#             "path": "/etc/apt/keyrings/example.asc",  # Absolute keyring destination; extension must match key format.
+#             # "keyid": "0123456789ABCDEF",  # Optional key fingerprint/key ID for verification.
+#         },
+#         "repository": {
+#             "url": "https://packages.example.org/debian",  # APT repository base URL.
+#             "distribution": "stable",  # Distribution or suite name.
+#             "components": ["main"],  # Repository components; may be empty for repositories without components.
+#             "architectures": ["amd64"],  # Optional architecture filter; omit to use APT defaults.
+#             "types": ["deb"],  # APT source types, normally ["deb"] or ["deb", "deb-src"].
+#         },
+#     },
+# }
 flatpak_packages = []  # Flatpak application IDs installed for the configured user from Flathub when possible.
 sysctl = {}  # Kernel sysctl settings, e.g. {"net.ipv4.ip_forward": 1}.
 udev = {}  # udev rules keyed by rule filename, with rule contents as values.
@@ -56,9 +87,12 @@ apparmor_profiles = []  # AppArmor profile paths/names to load and enforce.
 
 # SSH configuration. Private-key passphrases are read from encrypted secrets.
 ssh_keys = []  # SSH keypairs to generate; existing private keys are never overwritten.
+# Example: {"name": "id_ed25519", "type": "ed25519", "comment": "user@host"}.
+# RSA entries may also set "bits" (minimum 3072); passphrases belong in secrets.json.gpg.
 ssh_authorized_keys = {}  # Authorized keys keyed by target user, e.g. {"YOUR_USERNAME": ["ssh-ed25519 AAAA..."]}.
+# Example: {"YOUR_USERNAME": ["ssh-ed25519 AAAAC3... workstation"]}; keys are reconciled exactly.
 ssh_authorized_keys_enabled = True  # Set False to skip authorized_keys management entirely.
-ssh_config = {}  # SSH client Host entries rendered after the hardened global defaults.
+ssh_config = {}  # SSH client Host entries: {"git.example.com": "    User git\\n    IdentityFile ~/.ssh/id_ed25519"}.
 
 # Optional desktop applications and browser customization.
 vscodium = {  # VSCodium extension configuration.
@@ -67,7 +101,8 @@ vscodium = {  # VSCodium extension configuration.
 proton = {  # Proton application configuration.
     # "drive_cli_version": "0.9.0",  # Optional pinned Proton Drive CLI version.
 }
-mullvad_extensions = {}  # Browser extensions keyed by descriptive name; each entry supplies id and url.
+mullvad_extensions = {}  # Browser extensions keyed by name; each entry requires an add-on id and HTTPS XPI URL.
+# Example: {"uBlock Origin": {"id": "uBlock0@raymondhill.net", "url": "https://addons.mozilla.org/...xpi"}}.
 mullvad_browser_dir = None  # Optional Mullvad Browser profile directory; None uses task defaults.
 
 # Docker services. Keep this empty to deploy no application containers.
@@ -165,14 +200,28 @@ docker = {
     # },
 }
 
-docker_sablier = {"enabled": False}  # Enables on-demand Docker container startup via Sablier.
-docker_power_save = []  # Docker containers managed by the battery power-save service.
+docker_sablier = {  # Enables on-demand Docker container startup via Sablier.
+    "enabled": False,  # Sablier and the Docker battery monitor are mutually exclusive.
+    "default_duration": "15m",  # Default container session duration (e.g. 15m or 1h).
+    # "strategy": "dynamic",  # Default Caddy integration strategy: "dynamic" or "blocking".
+    # "blocking_timeout": "15m",  # Maximum wait for a blocking start request.
+    # "default_theme": "ghost",  # Theme used by Sablier's dynamic service cards.
+    # "refresh_frequency": "5s",  # Polling interval for dynamic service status.
+}  # Per-service overrides live under docker.<service>.sablier.
+docker_power_save = []  # Container names managed by the battery power-save service when on battery.
 
 # Reverse proxy, certificates and background services.
-caddy_config = {}  # Additional Caddy site/service configuration merged with generated Docker services.
-dehydrated_domains = []  # Domains for Dehydrated certificate renewal; DNS API token belongs in secrets.
+caddy_config = {}  # Caddy sites keyed by hostname; each value is a mapping of Caddy directives.
+# Example: {"example.com": {"encode": "gzip", "reverse_proxy": "127.0.0.1:8080"}}.
+# Add only sites not already generated from configured Docker services.
+dehydrated_domains = []  # Each item is a list of DNS names covered by one certificate; Hetzner token belongs in secrets.
+# Example: [["example.com", "*.example.com"], ["other.example.net"]].
 cron_jobs = []  # Named cron jobs; each needs name, command and at least one schedule field.
-syncthing = {}  # Optional Syncthing configuration; empty leaves the service/task disabled.
+syncthing = {}  # Syncthing settings; an empty mapping keeps the GUI on its safe loopback default.
+# Example: {"gui_address": "127.0.0.1:8384"}; avoid exposing the GUI without authentication.
 
 # Firewall is deliberately disabled in this example.
 ufw = {}  # UFW rules; only populate after verifying remote access and SSH allowances.
+# Supported keys: "ssh", "kdeconnect", "localsend", "chromecast-dlna".
+# Example: {"ssh": "Allow", "localsend": "Allow"}; values may be "Allow" or "Deny".
+# Custom rules may use {"action": "Allow", "rule": "443/tcp"} after careful review.
