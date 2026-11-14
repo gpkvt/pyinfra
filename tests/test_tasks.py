@@ -192,6 +192,7 @@ def test_hosts_task_schedules_each_configured_mapping(pyinfra_task_harness):
 
 def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_harness, monkeypatch):
     """MDMesh uses the shared Compose helper and keeps all persistent data on host paths."""
+    monkeypatch.delitem(sys.modules, "tasks.docker", raising=False)
     monkeypatch.setattr(
         builtins,
         "secrets",
