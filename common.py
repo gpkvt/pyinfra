@@ -8,7 +8,6 @@ host-specific values, which take precedence.
 
 import builtins
 import json
-import shlex
 import subprocess
 
 from pyinfra.facts.files import File
@@ -27,17 +26,6 @@ def command_output_text(output: str | list[str] | None) -> str:
 def command_output(host, command: str, **kwargs) -> str:
     """Run a Command fact and normalize its output to text."""
     return command_output_text(host.get_fact(Command, command, **kwargs))
-
-
-def file_has_flag(host, path: str, flag: str, refresh: bool = False) -> bool:
-    """Return whether a Linux file attribute is set, without shell side effects."""
-    command = f"lsattr -d {shlex.quote(path)} 2>/dev/null || true"
-    if refresh:
-        # A distinct fact key forces a fresh check after a preceding chattr operation.
-        command += "; :"
-    output = command_output_text(host.get_fact(Command, command, _sudo=False))
-    attributes = output.split(maxsplit=1)
-    return bool(attributes and flag in attributes[0])
 
 
 def merge_secrets(shared, host_secrets):
