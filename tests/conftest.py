@@ -217,7 +217,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
     for namespace in ("apt", "files", "server", "systemd", "flatpak", "crontab"):
         module = types.ModuleType(f"pyinfra.operations.{namespace}")
         names = {
-            "apt": ("packages", "update", "upgrade"),
+            "apt": ("packages", "update", "upgrade", "key"),
             "files": (
                 "directory", "download", "template", "put", "sync",
                 "line", "file", "link", "unarchive",
