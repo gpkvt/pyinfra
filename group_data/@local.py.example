@@ -143,6 +143,9 @@ mullvad_browser_dir = None  # Optional Mullvad Browser profile directory; None u
 docker_install = True  # Install Docker itself when docker services are configured; False if managed elsewhere.
 docker_power_monitor = True  # Deploy the Docker battery monitor when Docker services are configured.
 docker = {
+    # "adguard_home": {  # Local DNS resolver and DNS rewrites for LAN/WireGuard clients.
+    #     "image": "adguard/adguardhome:v0.107.80",  # Pin the AdGuard Home release.
+    # },
     # "mdmesh": {  # Android device management; requires encrypted secrets below.
     #     "version": "latest",  # Or pin a release, e.g. "0.5.0".
     #     "domain": "mdm.example.com",  # Public DNS hostname; hostname only, no scheme or port.
