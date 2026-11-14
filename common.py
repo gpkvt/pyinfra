@@ -8,6 +8,7 @@ host-specific values, which take precedence.
 
 import builtins
 import json
+import shlex
 import subprocess
 
 from pyinfra.facts.files import File
