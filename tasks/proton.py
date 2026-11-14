@@ -9,10 +9,11 @@ Installation priority:
 APT repository configuration is managed by tasks/apt.py.
 """
 
+import shlex
+
 from pyinfra import host
 from pyinfra.facts.server import Command
 from pyinfra.operations import apt, files, server
-import shlex
 from common import command_output_text
 
 proton = host.data.get("proton", {})
