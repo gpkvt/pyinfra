@@ -592,7 +592,9 @@ def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
         "username": "tester",
     })
     module.deploy_cosmic_values("dock", {
-        "com.system76.CosmicPanel/v1/plugins.ron": "[\"dock\"]"
+        "com.system76.CosmicPanel/v1/plugins.ron": "[\"dock\"]",
+        "com.system76.CosmicPanel/v1/anchor": "Bottom",
+        "com.system76.CosmicPanel.Dock/v1/anchor": "Bottom",
     })
     directories = [
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
@@ -602,9 +604,10 @@ def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "put"
     ]
-    assert directories[-1]["path"] == (
-        "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1"
-    )
+    assert [call["path"] for call in directories] == [
+        "/home/tester/.config/cosmic/com.system76.CosmicPanel.Dock/v1",
+        "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1",
+    ]
     assert uploads[-1]["dest"] == (
         "/home/tester/.config/cosmic/com.system76.CosmicPanel/v1/plugins.ron"
     )
