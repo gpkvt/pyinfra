@@ -30,9 +30,18 @@ def test_samba_configures_two_distinct_shares(pyinfra_task_harness):
     assert rendered[0]["download_path"] == "/srv/samba/outgoing"
 
 
-@pytest.mark.parametrize("reload_required", [False, True])
-def test_samba_systemd_reload_is_conditional_and_uses_command_fact(
-    pyinfra_task_harness, reload_required,
+@pytest.mark.parametrize(
+    "smbd_masked,smbd_reload_required,idle_reload_required,expected",
+    [
+        (True, True, False, False),
+        (True, True, True, True),
+        (False, True, False, True),
+        (False, False, False, False),
+    ],
+)
+def test_samba_systemd_reload_ignores_only_intentional_smbd_mask(
+    pyinfra_task_harness, smbd_masked, smbd_reload_required,
+    idle_reload_required, expected,
 ):
     fact_calls = []
 
@@ -40,11 +49,15 @@ def test_samba_systemd_reload_is_conditional_and_uses_command_fact(
         fact_calls.append((fact, args, kwargs))
         command = kwargs["command"]
         if "NeedDaemonReload" in command:
-            return ["yes" if reload_required else "no"]
+            return ["yes"] if (
+                idle_reload_required or (smbd_reload_required and not smbd_masked)
+            ) else []
+        if "samba-started" in command:
+            return ["yes"]
+        if "systemctl is-enabled smbd.service" in command:
+            return ["masked"]
         if "is-active" in command:
             return ["inactive"]
-        if "is-enabled" in command:
-            return ["masked"]
         return []
 
     pyinfra_task_harness.host.get_fact = get_fact
@@ -59,8 +72,13 @@ def test_samba_systemd_reload_is_conditional_and_uses_command_fact(
         kwargs["name"]: kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "server" and name == "shell"
     }
-    assert len(shell_operations) == 3
-    assert shell_operations["Reload systemd unit definitions when needed"]["_if"]() is reload_required
+    reload_operation = shell_operations["Reload systemd unit definitions when needed"]
+    assert reload_operation["_if"]() is expected
+    assert any(
+        "is-enabled smbd.service" in kwargs["command"]
+        and "NeedDaemonReload" in kwargs["command"]
+        for _, _, kwargs in fact_calls
+    )
     assert shell_operations["Protect existing Samba upload contents from deletion"]["_if"]() is False
     assert shell_operations["Keep Samba stopped until requested"]["_if"]() is False
     assert fact_calls

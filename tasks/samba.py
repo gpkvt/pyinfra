@@ -151,13 +151,17 @@ if config.get("enabled", False):
         )
 
     def needs_systemd_reload():
-        """Return true only when a managed systemd unit needs reloading."""
+        """Return true only when a managed, unmasked unit needs reloading."""
         return command_output_text(host.get_fact(
             Command,
             command=(
-                "for unit in smbd.service samba-idle.service samba-idle.timer; do "
+                "for unit in samba-idle.service samba-idle.timer; do "
                 'if systemctl show "$unit" --property=NeedDaemonReload --value '
-                "2>/dev/null | grep -qx yes; then echo yes; break; fi; done"
+                "2>/dev/null | grep -qx yes; then echo yes; exit 0; fi; done; "
+                "if systemctl is-enabled smbd.service 2>/dev/null | grep -qx masked; "
+                "then exit 0; fi; "
+                "if systemctl show smbd.service --property=NeedDaemonReload --value "
+                "2>/dev/null | grep -qx yes; then echo yes; fi"
             ),
         )).strip() == "yes"
 
