@@ -121,7 +121,6 @@ def build_domains_file(certificates):
 
 
 if not hasattr(__import__("builtins"), "homedir"):
-    from common import initialize
     initialize(host)
 
 
