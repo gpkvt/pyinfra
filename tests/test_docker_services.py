@@ -254,7 +254,7 @@ def test_secrets_example_is_valid_json_and_documents_timetagger_credentials():
     """The tracked encrypted-secrets example remains parseable and complete."""
     example = json.loads((ROOT / "secrets.json.gpg.example").read_text())
 
-    assert example["docker"]["timetagger"]["credentials"] == (
+    assert example["hosts"]["@local"]["docker"]["timetagger"]["credentials"] == (
         "REPLACE_USERNAME:REPLACE_WITH_BCRYPT_HASH"
     )
 
