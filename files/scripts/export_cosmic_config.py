@@ -101,6 +101,7 @@ def parse_center(value):
     return parse_string_list(match.group(1))
 
 
+# pylint: disable=too-many-return-statements,too-many-branches
 def convert_value(value, kind):
     """Convert a supported on-disk value to its host-data representation."""
     if kind == "mode":
