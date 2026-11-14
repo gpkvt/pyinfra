@@ -136,7 +136,7 @@ from pyinfra.api import deploy
 from pyinfra.facts.server import Command
 from pyinfra.operations import apt, files, server
 from pyinfra.operations.util import any_changed
-from common import command_output_text
+from common import command_output_text, compose_configuration_matches
 
 
 def ensure_numeric_directory(path, uid, gid, mode, sudo=True):
@@ -427,6 +427,16 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
             _sudo=False,
             _if=lambda: not sablier_labels_match(),
         )
+    def compose_configuration_is_current():
+        compose_command = (
+            f"docker compose -f {compose_path}"
+            + (
+                f" -f {shlex.quote(f'{homedir}/.docker/{service}/docker-compose.sablier.yml')}"
+                if sablier_enabled else ""
+            )
+        )
+        return compose_configuration_matches(host, compose_command)
+
     server.shell(
         name=f"Reload systemd and ensure {service} is prepared",
         commands=[
@@ -438,6 +448,7 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
         _if=lambda: (
             any_changed(*restart_triggers)()
             or not service_active
+            or not compose_configuration_is_current()
             or (
                 label_recreation is not None
                 and label_recreation.did_change()
