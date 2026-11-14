@@ -131,9 +131,12 @@ if config.get("enabled", False):
         commands=["systemctl daemon-reload"], _sudo=True,
         _if=lambda: command_output_text(host.get_fact(
             Command,
-            command=("if systemctl show smbd.service --property=NeedDaemonReload --value 2>/dev/null | grep -qx yes "
-                     "|| systemctl show samba-idle.timer --property=NeedDaemonReload --value 2>/dev/null | grep -qx yes; "
-                     "then echo yes; fi"),
+            command=(
+                "if systemctl show smbd.service --property=NeedDaemonReload --value "
+                "2>/dev/null | grep -qx yes || "
+                "systemctl show samba-idle.timer --property=NeedDaemonReload --value "
+                "2>/dev/null | grep -qx yes; then echo yes; fi"
+            ),
         )).strip() == "yes",
     )
     server.shell(
