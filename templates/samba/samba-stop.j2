@@ -2,6 +2,7 @@
 set -euo pipefail
 
 NETWORKS_FILE=/etc/samba/allowed-networks
+sudo systemctl stop samba-idle.timer 2>/dev/null || true
 sudo systemctl stop smbd.service
 sudo systemctl mask smbd.service
 
@@ -14,3 +15,6 @@ if [[ -r "$NETWORKS_FILE" ]]; then
         fi
     done < "$NETWORKS_FILE"
 fi
+
+sudo nft delete table inet samba_idle 2>/dev/null || true
+sudo rm -f /run/samba-idle.state
