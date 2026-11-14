@@ -9,7 +9,7 @@ Configuration:
         host.data.apt_packages. Defaults to an empty list.
 
     apt_sources (dict): Third-party APT repositories to configure,
-        including their signing keys and repository definitions. Signing key paths must end in `.gpg` or `.asc`.
+        including their signing keys and repository definitions. Signing key paths must end in `.gpg`, `.asc`, or `.key`.
         Entries with enabled=False are retained as configuration fixtures
         but are not downloaded or added to the system.
 
@@ -68,9 +68,9 @@ for name, repo in apt_sources.items():
     key = repo["key"]
     repository = repo["repository"]
     key_path = key["path"]
-    if not isinstance(key_path, str) or not key_path.endswith((".gpg", ".asc")):
+    if not isinstance(key_path, str) or not key_path.endswith((".gpg", ".asc", ".key")):
         raise ValueError(
-            f"APT keyring path for {name!r} must end in .gpg or .asc"
+            f"APT keyring path for {name!r} must end in .gpg, .asc, or .key"
         )
 
     key_operation = apt.key(
