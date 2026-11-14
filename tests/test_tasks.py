@@ -104,6 +104,20 @@ def test_system_timezone_is_skipped_when_already_configured(pyinfra_task_harness
     )
 
 
+
+def test_system_timezone_treats_etc_utc_as_utc(pyinfra_task_harness):
+    """Equivalent UTC zoneinfo names do not cause repeated timezone operations."""
+    pyinfra_task_harness.host.get_fact = lambda fact, **_kwargs: (
+        "Etc/UTC" if fact.__name__ == "Timezone" else None
+    )
+    pyinfra_task_harness.load("system.py", {"timezone": "UTC"})
+
+    assert not any(
+        namespace == "server" and name == "timezone"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+
+
 def test_system_timezone_is_set_when_it_differs(pyinfra_task_harness):
     """A mismatched timezone still schedules the required correction."""
     pyinfra_task_harness.host.get_fact = lambda _fact, **_kwargs: "Europe/Berlin"
