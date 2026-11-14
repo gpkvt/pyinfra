@@ -7,10 +7,10 @@ services:
     depends_on:
       - db
     environment:
-      - DATABASE_URL=postgres://miniflux:{{ postgres_password }}@db/miniflux?sslmode=disable
+      - DATABASE_URL=postgres://miniflux:${POSTGRES_PASSWORD:?}@db/miniflux?sslmode=disable
       - RUN_MIGRATIONS=True
       - ADMIN_USERNAME={{ admin_username }}
-      - ADMIN_PASSWORD={{ admin_password }}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:?}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - LISTEN_ADDR=0.0.0.0:8080
       - POLLING_SCHEDULER=entry_frequency
