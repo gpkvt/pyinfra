@@ -27,6 +27,7 @@
   "tasks/docker/linkwarden.py": "deployment",
   "tasks/docker/linkwarden_bookmarks.py": "utility",
   "tasks/docker/miniflux.py": "deployment",
+  "tasks/docker/mdmesh.py": "deployment",
   "tasks/docker/nocodb.py": "deployment",
   "tasks/docker/paperless.py": "deployment",
   "tasks/docker/portainer.py": "deployment",
