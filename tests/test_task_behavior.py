@@ -725,6 +725,46 @@ def test_ssh_keypair_incomplete_state_fails_instead_of_creating_empty_key(
     assert "Incomplete SSH keypair" in generation["commands"][0]
 
 
+def test_apt_key_changes_are_included_in_repository_update_gate(
+    pyinfra_task_harness, monkeypatch
+):
+    """Signing-key changes must force an APT index refresh."""
+    calls = []
+
+    def record_any_changed(*operations):
+        calls.append(operations)
+        return lambda: True
+
+    monkeypatch.setattr("pyinfra.operations.util.any_changed", record_any_changed)
+    pyinfra_task_harness.load("apt.py", {
+        "apt_sources": {
+            "example": {
+                "key": {
+                    "url": "https://example.test/archive-key.asc",
+                    "path": "/etc/apt/keyrings/example.gpg",
+                },
+                "repository": {
+                    "url": "https://example.test/apt",
+                    "distribution": "stable",
+                    "components": ["main"],
+                },
+            },
+        },
+    })
+
+    # The first gate contains both apt.key and the repository file operation.
+    assert len(calls[0]) == 2
+    assert any(
+        namespace == "apt" and name == "key"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
+    assert any(
+        namespace == "files" and name == "template"
+        and kwargs.get("dest") == "/etc/apt/sources.list.d/example.list"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+
 def test_apt_sources_use_native_keyring_operation(pyinfra_task_harness):
     """APT signing keys are managed by pyinfra's apt.key operation."""
     pyinfra_task_harness.load("apt.py", {
