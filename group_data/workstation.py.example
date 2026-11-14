@@ -2,109 +2,109 @@
 
 Copy this file to workstation.py and enable only features appropriate for
 the target workstation. Hardware-specific values must be checked locally.
+Each feature is opt-in; this example does not assume that a machine has
+specific hardware or that a desktop session is installed.
 """
 
 workstation = {
     "backup": {
-        "enabled": False,
+        "enabled": False,  # Installs backup tooling and renders Borgmatic configuration; does not run backups.
     },
     "power": {
-        "enabled": False,
-        "manager": "power-profiles-daemon",
+        "enabled": False,  # Installs and configures the selected power-management daemon.
+        "manager": "power-profiles-daemon",  # Selects "power-profiles-daemon" or "tlp".
     },
     "hardware": {
-        "enabled": False,
-        "cpu_vendor": None,
+        "enabled": False,  # Installs firmware management and optional CPU microcode packages.
+        "cpu_vendor": None,  # Set to "intel" or "amd" to install matching microcode; None skips microcode.
     },
     "storage": {
-        "enabled": False,
+        "enabled": False,  # Installs SMART and NVMe command-line monitoring tools; no polling is configured.
     },
     "peripherals": {
-        "enabled": False,
-        "printing": False,
-        "scanning": False,
+        "enabled": False,  # Enables the optional printer/scanner package group.
+        "printing": False,  # Installs printer support and enables CUPS when True.
+        "scanning": False,  # Installs scanner support packages when True.
     },
     "desktop": {
-        "enabled": False,
+        "enabled": False,  # Installs common desktop integration utilities.
+        # "packages": ["example-package"],  # Optional replacement package list; omit to use task defaults.
     },
     "maintenance": {
-        "enabled": False,
+        "enabled": False,  # Installs interactive maintenance tools; does not enable unattended upgrades or reboots.
     },
     "cosmic": {
-        "enabled": False,
+        "enabled": False,  # Master switch for all COSMIC desktop configuration below.
 
         "appearance": {
-            "enabled": False,
-            "mode": "dark",
+            "enabled": False,  # Applies the selected COSMIC appearance mode.
+            "mode": "dark",  # COSMIC theme mode: "dark" or "light".
         },
 
         "window_management": {
-            "enabled": False,
-            "autotile": False,
-            "autotile_behavior": "PerWorkspace",
-            "focus_follows_cursor": False,
-            "cursor_follows_focus": False,
-            "edge_snap_threshold": 10,
+            "enabled": False,  # Applies COSMIC window-management preferences.
+            "autotile": False,  # Enables automatic tiling of windows.
+            "autotile_behavior": "PerWorkspace",  # Controls whether autotiling is shared or tracked per workspace.
+            "focus_follows_cursor": False,  # Focuses a window when the pointer enters it.
+            "cursor_follows_focus": False,  # Moves the pointer when keyboard focus changes.
+            "edge_snap_threshold": 10,  # Distance in logical pixels used for edge snapping.
         },
 
         "input": {
-            "enabled": False,
-            # Supply raw COSMIC RON strings for "default" (mouse)
-            # and/or "touchpad". No hardware-specific values are assumed.
+            "enabled": False,  # Applies raw COSMIC mouse/touchpad settings.
+            # "default": "<RON mouse settings>",  # Raw RON settings for the default mouse device.
+            # "touchpad": "<RON touchpad settings>",  # Raw RON settings for touchpad devices.
         },
 
         "shortcuts": {
-            "enabled": False,
-            # "ron": "<COSMIC custom shortcut map in RON syntax>",
+            "enabled": False,  # Applies the custom COSMIC keyboard shortcut map.
+            # "ron": "<COSMIC custom shortcut map in RON syntax>",  # Complete shortcut configuration as RON.
         },
 
         "workspaces": {
-            "enabled": False,
-            # "ron": "<COSMIC workspace configuration in RON syntax>",
+            "enabled": False,  # Applies custom COSMIC workspace configuration.
+            # "ron": "<COSMIC workspace configuration in RON syntax>",  # Complete workspace configuration as RON.
         },
 
         "panel": {
-            "enabled": False,
-            "position": "top",
-            "size": "xs",
-            "autohide": False,
-            "extend": True,
-            "anchor_gap": 0,
+            "enabled": False,  # Configures the COSMIC top/bottom panel.
+            "position": "top",  # Panel edge: "top", "bottom", "left" or "right" where supported.
+            "size": "xs",  # Panel size preset, e.g. "xs", "s", "m" or "l".
+            "autohide": False,  # Hides the panel until the pointer reaches its screen edge.
+            "extend": True,  # Extends the panel across the available screen edge.
+            "anchor_gap": 0,  # Gap in logical pixels between the panel and its screen edge.
             "applets": {
-                "left": [],
-                "center": [],
-                "right": [],
+                "left": [],  # Applet identifiers/configuration placed on the panel's left.
+                "center": [],  # Applet identifiers/configuration placed in the panel center.
+                "right": [],  # Applet identifiers/configuration placed on the panel's right.
             },
         },
 
         "dock": {
-            "enabled": False,
-            "position": "bottom",
-            "size": "small",
-            "autohide": False,
-            "extend": True,
-            "anchor_gap": 0,
+            "enabled": False,  # Configures the COSMIC dock.
+            "position": "bottom",  # Dock edge: "top", "bottom", "left" or "right".
+            "size": "small",  # Dock icon size preset.
+            "autohide": False,  # Hides the dock until the pointer reaches its screen edge.
+            "extend": True,  # Extends the dock along its screen edge.
+            "anchor_gap": 0,  # Gap in logical pixels between the dock and its screen edge.
             "applets": {
-                "left": [],
-                "center": [],
-                "right": [],
+                "left": [],  # Applet identifiers/configuration placed on the dock's left.
+                "center": [],  # Applet identifiers/configuration placed in the dock center.
+                "right": [],  # Applet identifiers/configuration placed on the dock's right.
             },
         },
 
-        # Optional directory synchronization. Each entry requires:
-        # "src": a repository-relative source directory,
-        # "dest": a path relative to the configured user's home directory.
-        # Example:
+        # Optional directory synchronization; omitted entries are not managed.
         # "config_files": {
         #     "appearance": {
-        #         "src": "files/cosmic/local/appearance/",
-        #         "dest": ".config/cosmic/com.system76.CosmicTheme.Mode/v1/",
+        #         "src": "files/cosmic/local/appearance/",  # Repository-relative source directory.
+        #         "dest": ".config/cosmic/com.system76.CosmicTheme.Mode/v1/",  # Destination relative to homedir.
         #     },
         # },
 
-        # Display/output configuration is intentionally not managed.
+        # Display/output configuration is intentionally not managed by these tasks.
     },
     "limusic": {
-        "enabled": False,
+        "enabled": False,  # Installs the latest stable x86-64 LiMusic AppImage and COSMIC desktop launcher.
     },
 }
