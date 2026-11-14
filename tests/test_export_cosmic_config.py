@@ -107,3 +107,39 @@ def test_main_dry_run_does_not_write(tmp_path, capsys):
 def test_convert_value_maps_dark_mode_values():
     assert EXPORTER.convert_value("true", "mode") == "dark"
     assert EXPORTER.convert_value("false", "mode") == "light"
+
+
+
+def test_main_defaults_to_workstation_py(tmp_path, monkeypatch, capsys):
+    config_dir = tmp_path / "cosmic"
+    config_dir.mkdir()
+    setting = config_dir / "com.system76.CosmicTheme.Mode" / "v1" / "is_dark"
+    setting.parent.mkdir(parents=True)
+    setting.write_text("true\\n", encoding="utf-8")
+    workstation_file = tmp_path / "workstation.py"
+    original = 'workstation = {"cosmic": {"appearance": {"enabled": True}}}\\n'
+    workstation_file.write_text(original, encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    assert EXPORTER.main(["--config-dir", str(config_dir), "--dry-run"]) == 0
+    assert workstation_file.read_text(encoding="utf-8") == original
+    assert "'mode': 'dark'" in capsys.readouterr().out
+
+
+def test_main_accepts_workstation_file_option(tmp_path, capsys):
+    config_dir = tmp_path / "cosmic"
+    config_dir.mkdir()
+    setting = config_dir / "com.system76.CosmicTheme.Mode" / "v1" / "is_dark"
+    setting.parent.mkdir(parents=True)
+    setting.write_text("true\\n", encoding="utf-8")
+    workstation_file = tmp_path / "custom-workstation.py"
+    original = 'workstation = {"cosmic": {"appearance": {"enabled": True}}}\\n'
+    workstation_file.write_text(original, encoding="utf-8")
+
+    assert EXPORTER.main([
+        "--config-dir", str(config_dir),
+        "--workstation-file", str(workstation_file),
+        "--dry-run",
+    ]) == 0
+    assert workstation_file.read_text(encoding="utf-8") == original
+    assert "'mode': 'dark'" in capsys.readouterr().out
