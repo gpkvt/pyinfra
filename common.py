@@ -24,12 +24,13 @@ def command_output_text(output: str | list[str] | None) -> str:
     return "\n".join(str(line) for line in output)
 
 
-def file_has_flag(host, path: str, flag: str) -> bool:
+def file_has_flag(host, path: str, flag: str, refresh: bool = False) -> bool:
     """Return whether a Linux file attribute is set, without shell side effects."""
-    output = command_output_text(host.get_fact(
-        Command,
-        f"lsattr -d {shlex.quote(path)} 2>/dev/null || true",
-    ))
+    command = f"lsattr -d {shlex.quote(path)} 2>/dev/null || true"
+    if refresh:
+        # A distinct fact key forces a fresh check after a preceding chattr operation.
+        command += "; :"
+    output = command_output_text(host.get_fact(Command, command))
     attributes = output.split(maxsplit=1)
     return bool(attributes and flag in attributes[0])
 
