@@ -71,12 +71,16 @@ def task_environment(monkeypatch):
     facts_server = types.ModuleType("pyinfra.facts.server")
     facts_server.Command = type("Command", (), {})
     facts_server.Which = type("Which", (), {})
+    facts_hardware = types.ModuleType("pyinfra.facts.hardware")
+    facts_hardware.Ipv4Addrs = type("Ipv4Addrs", (), {})
     facts.files = facts_files
     facts.server = facts_server
+    facts.hardware = facts_hardware
     pyinfra.facts = facts
     monkeypatch.setitem(sys.modules, "pyinfra.facts", facts)
     monkeypatch.setitem(sys.modules, "pyinfra.facts.files", facts_files)
     monkeypatch.setitem(sys.modules, "pyinfra.facts.server", facts_server)
+    monkeypatch.setitem(sys.modules, "pyinfra.facts.hardware", facts_hardware)
     operations = types.ModuleType("pyinfra.operations")
     for name in ("apt", "files", "server"):
         module = types.ModuleType(f"pyinfra.operations.{name}")
