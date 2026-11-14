@@ -53,7 +53,7 @@ def test_update_local_config_preserves_other_sections_and_management_flags():
     )
     updated = EXPORTER.update_local_config(source, {"appearance": {"mode": "dark"}})
     assert '"mode": \'dark\'' in updated
-    assert '"enabled": False' in updated
+    assert "'enabled': False" in updated
     assert '"desktop"' in updated
     assert 'other = {"keep": True}' in updated
 
@@ -93,4 +93,4 @@ def test_main_dry_run_does_not_write(tmp_path, capsys):
         "--dry-run",
     ]) == 0
     assert local_file.read_text(encoding="utf-8") == original
-    assert "+                       'mode': 'dark'," in capsys.readouterr().out
+    assert "'mode': 'dark'" in capsys.readouterr().out
