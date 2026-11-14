@@ -10,11 +10,15 @@ if config.get("enabled", False):
     upload_path = config.get("upload", {}).get("path", "/srv/samba/upload")
     download_path = config.get("download", {}).get("path", "/srv/samba/download")
     networks = config.get("allowed_networks", [])
-    idle_timeout = config.get("idle_timeout", 0)
+    idle_timeout = config.get("idle_timeout", 1800)
     interface = config.get("interface", "lo")
 
-    if not isinstance(idle_timeout, int) or isinstance(idle_timeout, bool) or idle_timeout < 0:
-        raise ValueError("samba.idle_timeout must be a non-negative integer number of seconds")
+    if (
+        not isinstance(idle_timeout, int)
+        or isinstance(idle_timeout, bool)
+        or (idle_timeout != 0 and idle_timeout < 1800)
+    ):
+        raise ValueError("samba.idle_timeout must be 0 (disabled) or at least 1800 seconds")
     if not isinstance(interface, str) or not interface or not all(
         character.isalnum() or character in "_.:-" for character in interface
     ):
