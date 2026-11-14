@@ -12,6 +12,12 @@ SABLIER_VERSION = "1.20.0"
 options = host.data.get("docker_sablier", {})
 
 if options.get("enabled", False):
+    provider_strategy = options.get("provider_strategy", "pause")
+    if provider_strategy not in ("stop", "pause"):
+        raise ValueError(
+            "docker_sablier.provider_strategy must be 'stop' or 'pause'"
+        )
+
     username = host.data.get("username", "root")
     usergroup = host.data.get("usergroup", "root")
     homedir = host.data.get("homedir", f"/home/{username}")
@@ -27,6 +33,7 @@ if options.get("enabled", False):
         dest=f"{homedir}/.docker/sablier/sablier.yaml",
         user=username, group=usergroup, mode="640",
         default_duration=options.get("default_duration", "15m"),
+        provider_strategy=provider_strategy,
         _sudo=False,
     )
     compose = files.template(

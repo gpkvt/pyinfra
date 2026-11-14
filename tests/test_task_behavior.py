@@ -999,3 +999,44 @@ def test_cron_package_and_daemon_follow_required_lifecycle(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "crontab" and name == "crontab"
     ]) == len(jobs)
+
+
+
+@pytest.mark.parametrize(
+    ("options", "expected_strategy"),
+    [
+        ({}, "pause"),
+        ({"provider_strategy": "pause"}, "pause"),
+        ({"provider_strategy": "stop"}, "stop"),
+    ],
+)
+def test_sablier_docker_provider_strategy_is_configurable(
+    pyinfra_task_harness, options, expected_strategy,
+):
+    """Sablier defaults to pausing idle containers and accepts explicit stop."""
+    pyinfra_task_harness.load("docker_sablier.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "docker_sablier": {"enabled": True, **options},
+    })
+
+    config = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "template"
+        and kwargs.get("name") == (
+            "Configure Sablier Docker provider and session defaults"
+        )
+    )
+    assert config["provider_strategy"] == expected_strategy
+
+
+def test_sablier_rejects_invalid_docker_provider_strategy(pyinfra_task_harness):
+    """Invalid Docker lifecycle strategies fail before scheduling deployment."""
+    with pytest.raises(ValueError, match="provider_strategy must be 'stop' or 'pause'"):
+        pyinfra_task_harness.load("docker_sablier.py", {
+            "docker_sablier": {
+                "enabled": True,
+                "provider_strategy": "suspend",
+            },
+        })

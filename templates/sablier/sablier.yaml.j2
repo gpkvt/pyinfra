@@ -3,6 +3,8 @@
 provider:
   name: docker
   reject-unlabeled-requests: true
+  docker:
+    strategy: {{ provider_strategy }}
 sessions:
   default-duration: {{ default_duration }}
   expiration-interval: 10s
