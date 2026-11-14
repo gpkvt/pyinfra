@@ -30,7 +30,7 @@ def file_has_flag(host, path: str, flag: str, refresh: bool = False) -> bool:
     if refresh:
         # A distinct fact key forces a fresh check after a preceding chattr operation.
         command += "; :"
-    output = command_output_text(host.get_fact(Command, command))
+    output = command_output_text(host.get_fact(Command, command, _sudo=False))
     attributes = output.split(maxsplit=1)
     return bool(attributes and flag in attributes[0])
 
