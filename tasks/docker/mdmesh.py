@@ -178,25 +178,40 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     set -a
     . ./.env
     set +a
-    ADMIN_EMAIL=admin@PLACEHOLDER
+    ADMIN_EMAIL={shlex.quote(admin_email)}
     # shellcheck disable=SC1091
     . {shlex.quote(bootstrap)}/db.sh
     PSQL=(docker compose exec -T postgres psql -U mdmesh -d mdmesh)
     state=$(mdm_db_state)
     case "$state" in
         fresh)
-            mdm_seed {shlex.quote(admin_email)} {shlex.quote(bootstrap + "/hmdm_init.en.sql")} "$ADMIN_PASSWORD" "$(openssl rand -hex 16)"
+            mdm_seed "$ADMIN_EMAIL" {shlex.quote(bootstrap + "/hmdm_init.en.sql")} "$ADMIN_PASSWORD" "$(openssl rand -hex 16)"
             ;;
         seeded)
-            # A previous run may have committed the seed SQL but stopped before
-            # mdm_seed wrote the configured administrator password. Repair only
-            # that first-login state; never overwrite a password after reset=false.
+            # A previous run may have committed seed SQL but stopped before
+            # mdm_seed wrote the configured password. Repair only this first-login
+            # state; passwordreset=false means an administrator has changed it.
             admin_hash=$(mdm_pwhash "$ADMIN_PASSWORD")
-            admin_state=$(mdm_psql -c "SELECT (email = '${ADMIN_EMAIL}')::text || '/' || passwordreset::text || '/' || (password = '$admin_hash')::text FROM users WHERE login='admin'" | tr -d '[:space:]')
+            admin_state=$(mdm_psql -c "SELECT (email = '$ADMIN_EMAIL')::text || '/' || passwordreset::text || '/' || (password = '$admin_hash')::text FROM users WHERE login='admin'" | tr -d '[:space:]')
             case "$admin_state" in
                 t/t/f)
                     reset_token=$(openssl rand -hex 16)
-                    admin_vars="\\set h $(_mdm_psql_arg "$admin_hash")"            echo "MDMesh database is inconsistent; refusing to seed or overwrite existing data" >&2
+                    mdm_psql <<SQL
+    UPDATE users
+    SET password='$admin_hash', passwordresettoken='$reset_token'
+    WHERE login='admin' AND email='$ADMIN_EMAIL' AND passwordreset=true;
+    SQL
+                    ;;
+                t/t/t|t/f/t|t/f/f)
+                    ;;
+                *)
+                    echo "MDMesh administrator record is missing or has an unexpected email/state; refusing to overwrite it" >&2
+                    exit 1
+                    ;;
+            esac
+            ;;
+        inconsistent)
+            echo "MDMesh database is inconsistent; refusing to seed or overwrite existing data" >&2
             exit 1
             ;;
         *)
