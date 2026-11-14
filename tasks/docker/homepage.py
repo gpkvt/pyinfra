@@ -166,5 +166,6 @@ deploy_docker_service(
     image=homepage.get("image", "ghcr.io/gethomepage/homepage:latest"),
     port=homepage.get("port", 8020),
     domain=homepage.get("domain", "homepage.21x9.org"),
-    environment=homepage_environment,
+    private_env=homepage_environment,
+    environment_keys=sorted(homepage_environment),
 )
