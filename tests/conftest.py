@@ -86,7 +86,7 @@ def task_environment(monkeypatch):
     operations = types.ModuleType("pyinfra.operations")
     for name in ("apt", "files", "server"):
         module = types.ModuleType(f"pyinfra.operations.{name}")
-        for function in ("packages", "template", "service", "flags"):
+        for function in ("packages", "template", "service"):
             setattr(module, function, operation(name))
         setattr(operations, name, module)
         monkeypatch.setitem(sys.modules, f"pyinfra.operations.{name}", module)
@@ -222,7 +222,7 @@ def pyinfra_task_harness(monkeypatch):  # pylint: disable=R0914,R0915
             "apt": ("packages", "update", "upgrade"),
             "files": (
                 "directory", "download", "template", "put", "sync",
-                "line", "file", "link", "unarchive", "flags",
+                "line", "file", "link", "unarchive",
             ),
             "server": (
                 "shell", "service", "hostname", "timezone", "locale",
