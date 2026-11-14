@@ -161,6 +161,53 @@ def test_apparmor_enforcement_schedules_only_profiles_not_already_enforcing(
 
 
 
+
+def test_proton_drive_cli_updates_when_configured_version_changes(pyinfra_task_harness):
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "0.9.1",
+        },
+    })
+    install = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install or update Proton Drive CLI"
+    )
+    assert "0.9.1/linux-x64/proton-drive" in install["commands"][0]
+    assert "proton-drive-version" in install["commands"][-1]
+    assert install["_sudo"] is True
+
+
+def test_proton_drive_cli_skips_when_configured_version_is_installed(
+    pyinfra_task_harness,
+):
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, **_kwargs: ["0.9.1"]
+    )
+    pyinfra_task_harness.load("proton.py", {
+        "proton": {
+            "mail": False,
+            "bridge": False,
+            "vpn": False,
+            "pass": False,
+            "flatpak": False,
+            "drive_cli": True,
+            "drive_cli_version": "0.9.1",
+        },
+    })
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Install or update Proton Drive CLI"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+
+
 def test_proton_flatpak_facts_are_deferred_until_execution(pyinfra_task_harness):
     pyinfra_task_harness.load("proton.py", {
         "proton": {
