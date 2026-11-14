@@ -69,10 +69,10 @@ workstation = {
         "panel": {
             "enabled": False,  # Configures the COSMIC top/bottom panel.
             "position": "top",  # Panel edge: "top", "bottom", "left" or "right" where supported.
-            "size": "xs",  # Panel size preset, e.g. "xs", "s", "m" or "l".
+            "size": "xs",  # Panel size: "xs", "s", "m", "l", "xl" or aliases "extra_small", "small", "normal", "large", "extra_large".
             "autohide": False,  # Hides the panel until the pointer reaches its screen edge.
             "extend": True,  # Extends the panel across the available screen edge.
-            "anchor_gap": 0,  # Gap in logical pixels between the panel and its screen edge.
+            "anchor_gap": 0,  # Set above zero to enable COSMIC's panel edge-gap setting; zero disables it.
             "applets": {
                 "left": [],  # Applet identifiers/configuration placed on the panel's left.
                 "center": [],  # Applet identifiers/configuration placed in the panel center.
@@ -86,7 +86,7 @@ workstation = {
             "size": "small",  # Dock icon size preset.
             "autohide": False,  # Hides the dock until the pointer reaches its screen edge.
             "extend": True,  # Extends the dock along its screen edge.
-            "anchor_gap": 0,  # Gap in logical pixels between the dock and its screen edge.
+            "anchor_gap": 0,  # Set above zero to enable COSMIC's dock edge-gap setting; zero disables it.
             "applets": {
                 "left": [],  # Applet identifiers/configuration placed on the dock's left.
                 "center": [],  # Applet identifiers/configuration placed in the dock center.
