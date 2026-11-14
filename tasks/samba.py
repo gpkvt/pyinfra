@@ -38,6 +38,19 @@ if config.get("enabled", False):
     except (TypeError, ValueError) as error:
         raise ValueError(f"Invalid samba.allowed_networks entry: {error}") from error
 
+    def needs_samba_apparmor_hook():
+        return command_output_text(host.get_fact(
+            Command,
+            command=(
+                "test -x /usr/share/samba/update-apparmor-samba-profile && "
+                "grep -Fq 'include if exists <samba/smbd-shares>' "
+                "/etc/apparmor.d/usr.sbin.smbd && "
+                "! systemctl cat smbd.service 2>/dev/null | "
+                "grep -Fq 'ExecStartPre=/usr/share/samba/"
+                "update-apparmor-samba-profile' && echo yes || true"
+            ),
+        )).strip() == "yes"
+
     apt.packages(
         name="Install Samba server, client and idle-monitor dependencies",
         packages=["samba", "smbclient"] + (["nftables"] if idle_timeout else []),
@@ -59,6 +72,19 @@ if config.get("enabled", False):
         server_string=config.get("server_string", "On-demand file exchange"),
         workgroup=config.get("workgroup", "WORKGROUP"),
         interface=interface, _sudo=True,
+    )
+    files.directory(
+        name="Create Samba AppArmor systemd drop-in directory",
+        path="/etc/systemd/system/smbd.service.d",
+        present=True, _sudo=True,
+        _if=needs_samba_apparmor_hook,
+    )
+    files.template(
+        name="Enable automatic Samba AppArmor share permissions",
+        src="templates/samba/smbd-apparmor.conf.j2",
+        dest="/etc/systemd/system/smbd.service.d/apparmor.conf",
+        user="root", group="root", mode="0644",
+        _sudo=True, _if=needs_samba_apparmor_hook,
     )
     files.template(
         name="Configure Samba firewall networks",
@@ -102,7 +128,9 @@ if config.get("enabled", False):
         commands=["systemctl daemon-reload"], _sudo=True,
         _if=lambda: command_output_text(host.get_fact(
             Command,
-            command="systemctl show samba-idle.timer --property=NeedDaemonReload --value",
+            command=("if systemctl show smbd.service --property=NeedDaemonReload --value 2>/dev/null | grep -qx yes "
+                     "|| systemctl show samba-idle.timer --property=NeedDaemonReload --value 2>/dev/null | grep -qx yes; "
+                     "then echo yes; fi"),
         )).strip() == "yes",
     )
     server.shell(
