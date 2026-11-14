@@ -196,11 +196,7 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
             case "$admin_state" in
                 t/t/f)
                     reset_token=$(openssl rand -hex 16)
-                    mdm_psql <<SQL
-    UPDATE users
-    SET password='$admin_hash', passwordresettoken='$reset_token'
-    WHERE login='admin' AND email='$ADMIN_EMAIL' AND passwordreset=true;
-    SQL
+                    printf '%s\\n' "UPDATE users SET password='$admin_hash', passwordresettoken='$reset_token' WHERE login='admin' AND email='$ADMIN_EMAIL' AND passwordreset=true;" | mdm_psql
                     ;;
                 t/t/t|t/f/t|t/f/f)
                     ;;
