@@ -23,7 +23,7 @@ services:
     image: postgres:{{ postgres_version }}
     environment:
       - POSTGRES_USER=miniflux
-      - POSTGRES_PASSWORD={{ postgres_password }}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:?}
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/lib/postgresql/12/bin
       - GOSU_VERSION=1.14
       - LANG=en_US.utf8
