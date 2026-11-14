@@ -94,3 +94,7 @@ def test_main_dry_run_does_not_write(tmp_path, capsys):
     ]) == 0
     assert local_file.read_text(encoding="utf-8") == original
     assert "'mode': 'dark'" in capsys.readouterr().out
+
+def test_convert_value_maps_dark_mode_values():
+    assert EXPORTER.convert_value("true", "mode") == "dark"
+    assert EXPORTER.convert_value("false", "mode") == "light"
