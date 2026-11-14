@@ -337,3 +337,26 @@ def test_secret_bearing_compose_templates_use_private_environment_variables():
         ROOT / "templates/docker/homepage/docker-compose.yml.j2"
     ).read_text()
     assert "environment_keys" in homepage
+
+def test_empty_private_environment_removes_stale_credentials(pyinfra_task_harness):
+    """Removing configured secrets deletes the old private project env file."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "usergroup": "tester",
+    })
+    module.deploy_docker_service(
+        "custom",
+        "Custom",
+        "/home/tester",
+        username="tester",
+        usergroup="tester",
+        private_env={},
+    )
+
+    removal = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "file"
+        and kwargs.get("name") == "Remove private custom environment"
+    )
+    assert removal["path"] == "/home/tester/.docker/custom/.env"
+    assert removal["present"] is False
