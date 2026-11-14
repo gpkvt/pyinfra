@@ -94,8 +94,6 @@ def test_samba_deployment_preserves_explicitly_started_session(pyinfra_task_harn
     )
     assert keep_stopped["_if"]() is False
 
-
-
 @pytest.mark.parametrize("network", ["not-a-network", "192.168.1.1/99"])
 def test_samba_rejects_invalid_networks(pyinfra_task_harness, network):
     with pytest.raises(ValueError, match="Invalid samba.allowed_networks"):
