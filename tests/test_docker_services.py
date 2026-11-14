@@ -2,10 +2,11 @@
 
 import ast
 import builtins
-import pytest
 import re
 import sys
 import types
+
+import pytest
 
 from conftest import ROOT
 
