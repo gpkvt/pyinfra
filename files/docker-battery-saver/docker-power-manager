@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-source /etc/docker/battery-containers.conf
+CONFIG_FILE="${DOCKER_POWER_CONFIG:-/etc/docker/battery-containers.conf}"
+source "$CONFIG_FILE"
 
-STATE_DIR="/var/lib/docker-power-manager"
+STATE_DIR="${DOCKER_POWER_STATE_DIR:-/var/lib/docker-power-manager}"
 STATE_FILE="$STATE_DIR/running-containers"
+STATE_COMPLETE="$STATE_FILE.complete"
 
 mkdir -p "$STATE_DIR"
 
 case "${1:-}" in
     battery)
-        # Preserve the original state across repeated battery checks.
-        [[ -e "$STATE_FILE" ]] && exit 0
+        # A partial state file means a previous stop attempt failed. Retry
+        # unfinished containers until the complete marker can be written.
+        [[ -e "$STATE_COMPLETE" ]] && exit 0
         touch "$STATE_FILE"
 
         for container in "${BATTERY_CONTAINERS[@]}"; do
             if docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null | grep -q true; then
-                echo "$container" >> "$STATE_FILE"
+                grep -Fxq "$container" "$STATE_FILE" || echo "$container" >> "$STATE_FILE"
                 docker stop "$container"
             fi
         done
@@ -29,7 +32,7 @@ case "${1:-}" in
                 docker start "$container"
             done < "$STATE_FILE"
 
-            rm -f "$STATE_FILE"
+            rm -f "$STATE_FILE" "$STATE_COMPLETE"
         fi
         ;;
 
