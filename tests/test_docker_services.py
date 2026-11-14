@@ -188,11 +188,24 @@ def test_timetagger_requires_encrypted_credentials_and_escapes_compose_dollars(
         "usergroup": "tester",
     })
 
+    credentials_file = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Configure private TimeTagger credentials"
+    )
     assert captured["compose_services"] == ["timetagger"]
-    assert captured["credentials"] == "tester:$$2a$$08$$hash"
+    assert captured["restart_if"] == [next(
+        result for namespace, name, kwargs, result in pyinfra_task_harness.operation_results
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Configure private TimeTagger credentials"
+    )]
+    assert credentials_file["mode"] == "600"
+    assert credentials_file["dest"] == "/home/tester/.docker/timetagger/.env"
+    assert credentials_file["src"].getvalue() == "TIMETAGGER_CREDENTIALS='tester:$2a$08$hash'\\n"
 
     template = (ROOT / "templates/docker/timetagger/docker-compose.yml.j2").read_text()
-    assert "TIMETAGGER_CREDENTIALS: \"{{ credentials }}\"" in template
+    assert "{{ homedir }}/.docker/timetagger/.env" in template
+    assert "TIMETAGGER_CREDENTIALS" not in template
     assert "test:test" not in template
 
 
