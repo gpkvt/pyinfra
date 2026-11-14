@@ -20,7 +20,7 @@ if [[ {{ idle_timeout }} -gt 0 ]] && ! sudo systemctl is-active --quiet samba-id
     printf '%s %s\n' "$bytes" "$(date +%s)" | sudo tee /run/samba-idle.state >/dev/null
 fi
 
-sudo systemctl unmask smbd.service
+sudo systemctl unmask --quiet smbd.service
 sudo systemctl start smbd.service
 
 if [[ {{ idle_timeout }} -gt 0 ]] && ! sudo systemctl is-active --quiet samba-idle.timer; then
