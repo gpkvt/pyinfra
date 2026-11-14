@@ -52,7 +52,7 @@ def test_update_local_config_preserves_other_sections_and_management_flags():
         'other = {"keep": True}\n'
     )
     updated = EXPORTER.update_local_config(source, {"appearance": {"mode": "dark"}})
-    assert '"mode": \'dark\'' in updated
+    assert "'mode': 'dark'" in updated
     assert "'enabled': False" in updated
     assert '"desktop"' in updated
     assert 'other = {"keep": True}' in updated
