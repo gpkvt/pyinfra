@@ -46,6 +46,8 @@ def test_workstation_example_disables_machine_specific_features_by_default():
     assert config["hardware"]["cpu_vendor"] is None
     assert config["peripherals"]["printing"] is False
     assert config["peripherals"]["scanning"] is False
+    assert "applets" not in config["cosmic"]["panel"]
+    assert "applets" not in config["cosmic"]["dock"]
 
     # Omitting applet overrides preserves the defaults in the panel/dock tasks.
     assert "applets" not in config["cosmic"]["panel"]
