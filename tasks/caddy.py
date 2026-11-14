@@ -248,10 +248,12 @@ def configure_caddy():  # pylint: disable=R0914
             f"Cannot manage systemd user {username!r} (UID {uid}) "
             f"from unprivileged UID {current_uid}"
         )
-    renewal_timer_status = host.get_fact(
-        Command, f"{systemctl_user} is-active caddy-renew.timer", _sudo=False
-    )
-    renewal_timer_active = command_output_text(renewal_timer_status).strip() == "active"
+    def renewal_timer_active():
+        return command_output_text(host.get_fact(
+            Command,
+            f"{systemctl_user} is-active caddy-renew.timer || true",
+            _sudo=False,
+        )).strip() == "active"
     server.shell(
         name="Enable daily Caddy certificate renewal",
         commands=[
@@ -261,7 +263,7 @@ def configure_caddy():  # pylint: disable=R0914
         _sudo=False,
         _if=lambda: (
             renewal_service.did_change() or renewal_timer.did_change()
-            or not renewal_timer_active
+            or not renewal_timer_active()
         ),
     )
 
@@ -270,36 +272,39 @@ def configure_caddy():  # pylint: disable=R0914
             dockerfile.did_change() or entrypoint.did_change()
             or hook.did_change() or renew_script.did_change()
         )
-    image_present = command_output_text(host.get_fact(
-        Command,
-        f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
-    )).strip() == "present"
+    def image_present():
+        return command_output_text(host.get_fact(
+            Command,
+            f"docker image inspect {shlex.quote(IMAGE)} >/dev/null 2>&1 && echo present || echo absent",
+        )).strip() == "present"
     server.shell(
         name="Build Caddy image with Sablier plugin and Dehydrated",
         commands=[f"docker build --tag {shlex.quote(IMAGE)} {shlex.quote(build_dir)}"],
-        _sudo=False, _if=lambda: build_changed() or not image_present,
+        _sudo=False, _if=lambda: build_changed() or not image_present(),
     )
 
-    container_running = command_output_text(host.get_fact(
-        Command, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
-    )).strip() == "true"
-    container_healthy = command_output_text(host.get_fact(
-        Command, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
-    )).strip() == "healthy"
+    def container_running():
+        return command_output_text(host.get_fact(
+            Command, "docker inspect -f '{{.State.Running}}' caddy 2>/dev/null || true"
+        )).strip() == "true"
+
+    def container_healthy():
+        return command_output_text(host.get_fact(
+            Command, "docker inspect -f '{{.State.Health.Status}}' caddy 2>/dev/null || true"
+        )).strip() == "healthy"
     def recreate():
         return (
             compose.did_change() or build_changed()
             or domains_file.did_change() or dehydrated_config.did_change()
             or env_file.did_change()
-            or not container_running or not container_healthy
+            or not container_running() or not container_healthy()
         )
-    server.shell(
+    start_caddy = server.shell(
         name="Start Caddy and Dehydrated containers",
         commands=[
-            f"docker compose -f {shlex.quote(root + '/docker-compose.yml')} up -d"
-            + (" --force-recreate" if container_running and not container_healthy else "")
+            f"docker compose -f {shlex.quote(root + '/docker-compose.yml')} up -d --force-recreate"
         ],
-        _sudo=False, _if=recreate,
+        _sudo=False, _if=start_caddy.did_change,
     )
     server.shell(
         name="Wait for Caddy container health",
@@ -317,14 +322,15 @@ def configure_caddy():  # pylint: disable=R0914
     # Track the last Caddyfile that was successfully validated and reloaded.
     # This survives pyinfra runs, so a skipped/failed reload is retried even
     # when files.template reports no change on the next deployment.
-    caddyfile_loaded = command_output_text(host.get_fact(
-        Command,
-        "docker exec --user "
-        + f"{uid}:{gid} caddy sh -ec "
-        + "'current=$(sha256sum /etc/pyinfra-caddy/Caddyfile | cut -d \" \" -f1); "
-        + "previous=$(cat /config/.pyinfra-caddyfile.sha256 2>/dev/null || true); "
-        + "[ \"$current\" = \"$previous\" ] && printf match || printf drift'",
-    )).strip() == "match"
+    def caddyfile_loaded():
+        return command_output_text(host.get_fact(
+            Command,
+            "docker exec --user "
+            + f"{uid}:{gid} caddy sh -ec "
+            + "'current=$(sha256sum /etc/pyinfra-caddy/Caddyfile | cut -d \" \" -f1); "
+            + "previous=$(cat /config/.pyinfra-caddyfile.sha256 2>/dev/null || true); "
+            + "[ \"$current\" = \"$previous\" ] && printf match || printf drift'",
+        )).strip() == "match"
     server.shell(
         name="Validate and reload Caddy when deployed configuration is unacknowledged",
         commands=[
@@ -337,7 +343,7 @@ def configure_caddy():  # pylint: disable=R0914
             + "/config/.pyinfra-caddyfile.sha256'"
         ],
         _sudo=False,
-        _if=lambda: not caddyfile_loaded,
+        _if=lambda: not caddyfile_loaded(),
     )
 
 
