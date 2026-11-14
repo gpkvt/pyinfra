@@ -6,8 +6,9 @@ The battery saver and Sablier are mutually exclusive.
 
 from pyinfra import host
 from pyinfra.facts.server import Command
-from common import command_output_text
 from pyinfra.operations import files, server, systemd
+
+from common import command_output_text
 
 battery_container = host.data.get("docker_power_save", {})
 sablier_enabled = host.data.get("docker_sablier", {}).get("enabled", False)
