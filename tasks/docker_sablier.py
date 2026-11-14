@@ -11,6 +11,11 @@ from common import command_output_text
 options = host.data.get("docker_sablier", {})
 
 if options.get("enabled", False):
+    sablier_version = options.get("version")
+    if not isinstance(sablier_version, str) or not sablier_version.strip():
+        raise ValueError(
+            "docker_sablier.version must be explicitly configured as a non-empty string"
+        )
     provider_strategy = options.get("provider_strategy", "pause")
     if provider_strategy not in ("stop", "pause"):
         raise ValueError(
@@ -40,7 +45,7 @@ if options.get("enabled", False):
         src="templates/docker/sablier/docker-compose.yml.j2",
         dest=f"{homedir}/.docker/sablier/docker-compose.yml",
         user=username, group=usergroup, mode="640",
-        sablier_version=options.get("version", "1.20.0"),
+        sablier_version=sablier_version.strip(),
         homedir=homedir,
         _sudo=False,
     )
