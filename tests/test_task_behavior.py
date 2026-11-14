@@ -513,6 +513,27 @@ def test_dehydrated_fact_handles_true_false_and_empty_output(pyinfra_task_harnes
     assert 'for cert in /var/lib/dehydrated/certs/*/fullchain.pem; do' in fact.command
     assert 'for cert in "/var/lib/dehydrated/certs/*/fullchain.pem"; do' not in fact.command
 
+@pytest.mark.parametrize(
+    ("config", "message"),
+    [
+        ({"typo-ssh": "Allow"}, "Unsupported UFW rule name"),
+        ({"ssh": "allow"}, "Invalid UFW action"),
+        ({"custom": {"action": "Allow"}}, "non-empty string"),
+        ({"custom": {"action": "Allow", "rule": "   "}}, "non-empty string"),
+        ({"custom": {"action": "Allow", "rule": "from 'unterminated"}}, "Invalid UFW custom rule"),
+        ({"custom": {"action": "Allow", "rule": "22/tcp", "extra": True}}, "Unsupported UFW custom rule options"),
+    ],
+)
+def test_ufw_rejects_invalid_configuration(pyinfra_task_harness, config, message):
+    with pytest.raises(ValueError, match=message):
+        pyinfra_task_harness.load("ufw.py", {"ufw": config})
+
+
+def test_ufw_rejects_non_dictionary_configuration(pyinfra_task_harness):
+    with pytest.raises(ValueError, match="must be a dictionary"):
+        pyinfra_task_harness.load("ufw.py", {"ufw": []})
+
+
 def test_ufw_added_rules_normalizes_only_added_rule_commands(pyinfra_task_harness):
     module = pyinfra_task_harness.load("ufw.py", {"ufw": {}})
     assert module.UfwAddedRules().process([
