@@ -19,6 +19,9 @@ if "grav" in container:
 if "forgejo" in container:
     local.include("tasks/docker/forgejo.py")
 
+if "adguard_home" in container:
+    local.include("tasks/docker/adguard_home.py")
+
 if "portainer" in container:
     local.include("tasks/docker/portainer.py")
 

@@ -248,6 +248,13 @@ The local Homepage configuration declares the Miniflux, Forgejo and Portainer AP
 Header widgets and service widgets can expose network and application data. Keep Homepage behind trusted authentication, a VPN, or an authenticated reverse proxy. API keys must have only the permissions needed for read-only dashboard access.
 
 
+ 
+**AdGuard Home**
+
+Enable it by adding `"adguard_home": {}` to the `docker` mapping in `@local.py`. It runs as a Docker Compose container using host networking, which lets the DNS service bind directly to TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data are stored in `~/.docker/adguard-home/conf/` and `~/.docker/adguard-home/work/`. The default image is pinned to `adguard/adguardhome:v0.107.80`; override it with `docker.adguard_home.image` when deliberately upgrading.
+
+On first start, complete AdGuard Home's setup wizard at `http://<host-address>:3000`. Configure DNS to listen only on the LAN and WireGuard addresses that should serve clients, then add DNS rewrites for the desired local names and aliases. The initial setup wizard and DNS listener must not be exposed to the public Internet: allow TCP/UDP 53 and the setup/admin interface only from trusted LAN and WireGuard networks using the host firewall. Host networking also means there are no Compose port mappings to restrict exposure. Check for an existing host resolver already using port 53 before enabling the container; do not disable or reconfigure the host resolver automatically. Point the FRITZ!Box DHCP DNS setting and/or WireGuard clients' `DNS` setting at the host's reachable AdGuard Home address. The container is opt-in and is not deployed unless `docker.adguard_home` is present.
+
 **Storage migration**
 
 All configured services use direct host bind mounts below `~/.docker/`; no Docker-managed named volumes are used. When changing a service's storage definition, Docker Compose does not automatically migrate existing data. Back up the source and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.
