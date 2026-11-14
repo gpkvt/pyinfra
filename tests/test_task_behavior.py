@@ -648,7 +648,10 @@ def test_cosmic_values_are_deployed_only_when_enabled(pyinfra_task_harness):
         call for call in uploads
         if call["dest"].endswith("/com.system76.CosmicPanel/v1/plugins.ron")
     )
-    assert plugin_upload["src"].getvalue() == '["dock"]\n'
+    uploaded_content = plugin_upload["src"].getvalue()
+    assert uploaded_content == '["dock"]' + chr(10)
+    assert uploaded_content.endswith(chr(10))
+    assert "\\n" not in uploaded_content
     assert plugin_upload["mode"] == "0644"
 
 
@@ -882,6 +885,8 @@ def test_cosmic_panel_uses_default_applets_when_not_configured(
         )
     )
     panel_values = panel_config["src"].getvalue()
+    assert panel_values.endswith(chr(10))
+    assert "\\n" not in panel_values
     assert "com.system76.CosmicAppletQuickSettings" in panel_values
     assert "com.system76.CosmicAppletNotifications" in panel_values
     assert "com.system76.CosmicAppletTime" in panel_values
