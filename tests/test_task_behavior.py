@@ -150,6 +150,37 @@ def test_git_credentials_use_conditional_chattr_operations(
     assert protect["_if"]() is True
 
 
+
+def test_git_credentials_are_protected_after_first_deployment(
+    pyinfra_task_harness, monkeypatch,
+):
+    monkeypatch.setattr(
+        builtins,
+        "secrets",
+        {"git_credentials": ["https://user:token@example.test"]},
+        raising=False,
+    )
+    file_exists = {"value": False}
+    pyinfra_task_harness.host.get_fact = lambda fact, command="", **_kwargs: (
+        file_exists["value"] if fact.__name__ == "File"
+        else ["-------------e------- /home/tester/.git-credentials"]
+    )
+    pyinfra_task_harness.load("git.py")
+
+    assert not any(
+        namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Make git-credentials writable before updating"
+        for namespace, name, kwargs in pyinfra_task_harness.calls
+    )
+    protect = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Protect git-credentials from modification"
+    )
+    file_exists["value"] = True
+    assert protect["_if"]() is True
+
+
 def test_git_credentials_remain_immutable_when_rendered_content_matches(
     pyinfra_task_harness, monkeypatch,
 ):
