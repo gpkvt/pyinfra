@@ -2,7 +2,7 @@
 """
 Manage Mullvad Browser extensions and user preferences using pyinfra.
 
-Configures the Mullvad Browser distribution directory, downloads and deploys configured browser extensions, and installs a managed user.js file containing browser preferences.
+Configures the Mullvad Browser distribution directory, reconciles configured browser extensions, and installs a managed user.js file containing browser preferences.
 
 Host configuration:
 
@@ -28,27 +28,39 @@ Operations:
 
 1. Initialize common host configuration if necessary.
 2. Create the Mullvad Browser extensions directory.
-3. Download configured extensions, naming each XPI file after
-   its extension ID.
+3. Declaratively download configured extensions, naming each XPI file
+   after its extension ID and refreshing it when the configured URL changes.
 4. Deploy the managed user.js file to the Mullvad Browser
    distribution directory.
 
 Restart Mullvad Browser after deployment for changes to take effect.
 """
 
+import hashlib
+import re
+import shlex
+from io import StringIO
+from urllib.parse import urlsplit
+
+from common import command_output, initialize
 from pyinfra import host
+from pyinfra.facts.files import File
 from pyinfra.operations import files
 
 if not hasattr(__import__('builtins'), 'homedir'):
-    from common import initialize
     initialize(host)
 
-profile_dir=host.data.get("mullvad_browser_dir", "/usr/lib/mullvad-browser/distribution")
-extensions=host.data.get("mullvad_extensions", {})
+profile_dir = host.data.get(
+    "mullvad_browser_dir",
+    "/usr/lib/mullvad-browser/distribution",
+)
+extensions = host.data.get("mullvad_extensions", {})
+if not isinstance(extensions, dict):
+    raise ValueError("mullvad_extensions must be a dictionary")
 extensions_dir = f"{profile_dir}/extensions"
 
-user=host.data.get("username", "root")
-group=host.data.get("usergroup", "root")
+user = host.data.get("username", "root")
+group = host.data.get("usergroup", "root")
 
 # Create extensions directory
 files.directory(
@@ -59,18 +71,63 @@ files.directory(
     mode="0700",
 )
 
-# Download and deploy extensions only if they don't already exist
+# Reconcile each configured extension and its source URL
 for name, extension in extensions.items():
-    extension_path = f"{extensions_dir}/{extension['id']}.xpi"
-
-    if not host.get_fact(
-        __import__("pyinfra").facts.files.File,
-        path=extension_path,
+    if not isinstance(extension, dict):
+        raise ValueError(f"Invalid Mullvad extension configuration: {name}")
+    extension_id = extension.get("id")
+    url = extension.get("url")
+    if (
+        not isinstance(extension_id, str)
+        or not re.fullmatch(
+            r"(?:[A-Za-z0-9._@+-]+|\{[0-9A-Fa-f-]{36}\})",
+            extension_id,
+        )
     ):
+        raise ValueError(f"Invalid Mullvad extension ID: {extension_id!r}")
+
+    try:
+        parsed_url = urlsplit(url) if isinstance(url, str) else None
+        valid_url = (
+            parsed_url is not None
+            and parsed_url.scheme == "https"
+            and bool(parsed_url.hostname)
+            and not parsed_url.username
+            and not parsed_url.password
+        )
+    except ValueError:
+        valid_url = False
+
+    if not valid_url:
+        raise ValueError(f"Invalid Mullvad extension URL for {name!r}")
+
+    extension_path = f"{extensions_dir}/{extension_id}.xpi"
+
+    # files.download does not re-fetch an existing file by default. Keep a
+    # marker for the configured URL so URL changes trigger one forced download
+    # without downloading every time pyinfra runs.
+    source_marker = f"{extension_path}.source-sha256"
+    source_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
+    installed_source_hash = command_output(
+        host,
+        f"cat {shlex.quote(source_marker)} 2>/dev/null || true",
+    ).strip()
+    extension_exists = host.get_fact(File, path=extension_path)
+
+    if installed_source_hash != source_hash or not extension_exists:
         files.download(
             name=f"Download {name}",
-            src=extension["url"],
+            src=url,
             dest=extension_path,
+            user=user,
+            group=group,
+            mode="0600",
+            force=True,
+        )
+        files.put(
+            name=f"Record {name} source URL",
+            src=StringIO(f"{source_hash}\n"),
+            dest=source_marker,
             user=user,
             group=group,
             mode="0600",
