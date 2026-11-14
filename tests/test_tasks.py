@@ -921,7 +921,9 @@ def test_caddy_does_not_rebuild_or_recreate_when_image_and_container_are_current
         }
     ]
     assert len(docker_actions) == 5
-    assert all(call["_if"]() is False for call in docker_actions)
+    assert all(call["_if"]() is False for call in docker_actions), [
+        (call["name"], call["_if"]()) for call in docker_actions
+    ]
     assert status_sudo_flags == [False]
 
 
