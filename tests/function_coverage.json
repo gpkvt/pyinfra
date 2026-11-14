@@ -284,5 +284,8 @@
   ],
   "tasks/samba.py:needs_upload_permission_migration": [
     "test_samba_upload_permission_migration_is_conditional"
+  ],
+  "tasks/samba.py:needs_systemd_reload": [
+    "test_samba_systemd_reload_is_conditional_and_uses_command_fact"
   ]
 }
