@@ -579,11 +579,23 @@ def test_system_locale_generates_missing_locale(pyinfra_task_harness):
     )
 
 def test_powerline_fonts_install_and_refresh_only_when_required(
-    pyinfra_task_harness,
+    pyinfra_task_harness, monkeypatch,
 ):
     """Powerline font copies and cache refresh are gated by actual changes."""
     pyinfra_task_harness.host.get_fact = (
         lambda fact, _command=None, **_kwargs: ["missing"] if fact.__name__ == "Command" else None
+    )
+    changed = {"value": False}
+    util = sys.modules["pyinfra.operations.util"]
+    monkeypatch.setattr(
+        util,
+        "any_changed",
+        lambda *operations: lambda: any(operation.did_change() for operation in operations),
+    )
+    monkeypatch.setattr(
+        pyinfra_task_harness.result,
+        "did_change",
+        lambda: changed["value"],
     )
     pyinfra_task_harness.load("fonts.py", {"powerline_fonts": True})
 
@@ -610,7 +622,7 @@ def test_powerline_fonts_install_and_refresh_only_when_required(
     )
     assert install["_if"]() is False
     assert refresh["_if"]() is False
-    pyinfra_task_harness.result.changed = True
+    changed["value"] = True
     assert refresh["_if"]() is True
 
 
