@@ -73,11 +73,17 @@ workstation = {
             "autohide": False,  # Hides the panel until the pointer reaches its screen edge.
             "extend": True,  # Extends the panel across the available screen edge.
             "anchor_gap": 0,  # Set above zero to enable COSMIC's panel edge-gap setting; zero disables it.
-            "applets": {
-                "left": [],  # Applet identifiers/configuration placed on the panel's left.
-                "center": [],  # Applet identifiers/configuration placed in the panel center.
-                "right": [],  # Applet identifiers/configuration placed on the panel's right.
-            },
+            # Omit "applets" to keep COSMIC's default panel layout. Uncomment to override it:
+            # "applets": {
+            #     "left": ["com.system76.CosmicAppletQuickSettings"],  # Quick Settings applet on the left.
+            #     "center": [],  # Applets centered in the panel.
+            #     "right": [  # Status and session applets on the right.
+            #         "com.system76.CosmicAppletNotifications",
+            #         "com.system76.CosmicAppletTime",
+            #         "com.system76.CosmicAppletTempest",
+            #         "com.system76.CosmicAppletUserSession",
+            #     ],
+            # },
         },
 
         "dock": {
@@ -87,11 +93,17 @@ workstation = {
             "autohide": False,  # Hides the dock until the pointer reaches its screen edge.
             "extend": True,  # Extends the dock along its screen edge.
             "anchor_gap": 0,  # Set above zero to enable COSMIC's dock edge-gap setting; zero disables it.
-            "applets": {
-                "left": [],  # Applet identifiers/configuration placed on the dock's left.
-                "center": [],  # Applet identifiers/configuration placed in the dock center.
-                "right": [],  # Applet identifiers/configuration placed on the dock's right.
-            },
+            # Omit "applets" to keep COSMIC's default dock layout. Uncomment to override it:
+            # "applets": {
+            #     "left": ["com.system76.CosmicAppletWorkspaces"],  # Workspace switcher on the left.
+            #     "center": [  # App launchers and running-app controls in the center.
+            #         "com.system76.CosmicPanelAppLibraryButton",
+            #         "com.system76.CosmicPanelLauncherButton",
+            #         "com.system76.CosmicAppList",
+            #         "com.system76.CosmicAppletMinimize",
+            #     ],
+            #     "right": [],  # Applets placed on the dock's right.
+            # },
         },
 
         # Optional directory synchronization; omitted entries are not managed.
