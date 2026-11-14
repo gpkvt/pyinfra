@@ -10,7 +10,13 @@ if config.get("enabled", False):
     upload_path = config.get("upload", {}).get("path", "/srv/samba/upload")
     download_path = config.get("download", {}).get("path", "/srv/samba/download")
     networks = config.get("allowed_networks", [])
+    idle_timeout = config.get("idle_timeout", 0)
+    interface = config.get("interface", "lo")
 
+    if not isinstance(idle_timeout, int) or isinstance(idle_timeout, bool) or idle_timeout < 0:
+        raise ValueError("samba.idle_timeout must be a non-negative integer number of seconds")
+    if not isinstance(interface, str) or not interface or not all(c.isalnum() or c in "_.:-" for c in interface):
+        raise ValueError("samba.interface must be a valid Linux interface name")
     for label, path in (("upload", upload_path), ("download", download_path)):
         if not isinstance(path, str) or not os.path.isabs(path):
             raise ValueError(f"samba.{label}.path must be an absolute path")
@@ -23,7 +29,11 @@ if config.get("enabled", False):
     except (TypeError, ValueError) as error:
         raise ValueError(f"Invalid samba.allowed_networks entry: {error}") from error
 
-    apt.packages(name="Install Samba server", packages=["samba"], present=True, _sudo=True)
+    apt.packages(
+        name="Install Samba server and idle-monitor dependencies",
+        packages=["samba"] + (["nftables"] if idle_timeout else []),
+        present=True, _sudo=True,
+    )
     files.directory(
         name="Create Samba upload directory", path=upload_path,
         user="nobody", group="nogroup", mode="0770", present=True, _sudo=True,
@@ -39,7 +49,7 @@ if config.get("enabled", False):
         upload_path=upload_path, download_path=download_path,
         server_string=config.get("server_string", "On-demand file exchange"),
         workgroup=config.get("workgroup", "WORKGROUP"),
-        interface=config.get("interface", "lo"), _sudo=True,
+        interface=interface, _sudo=True,
     )
     files.template(
         name="Configure Samba firewall networks",
@@ -48,12 +58,56 @@ if config.get("enabled", False):
         user="root", group="root", mode="0600",
         networks=networks, _sudo=True,
     )
+    files.template(
+        name="Configure Samba idle traffic counter",
+        src="templates/samba/idle-nftables.j2",
+        dest="/etc/samba/idle-nftables.conf",
+        user="root", group="root", mode="0600",
+        networks=networks, interface=interface, _sudo=True,
+    )
+    files.template(
+        name="Install Samba idle checker",
+        src="templates/samba/samba-idle-check.j2",
+        dest="/usr/local/sbin/samba-idle-check",
+        user="root", group="root", mode="0750",
+        idle_timeout=idle_timeout, _sudo=True,
+    )
+    for unit in ("samba-idle.service", "samba-idle.timer"):
+        files.template(
+            name=f"Install {unit}",
+            src=f"templates/samba/{unit}.j2",
+            dest=f"/etc/systemd/system/{unit}",
+            user="root", group="root", mode="0644", _sudo=True,
+        )
     for script in ("samba-start", "samba-stop"):
         files.template(
             name=f"Install {script} command",
             src=f"templates/samba/{script}.j2",
             dest=f"/usr/local/sbin/{script}",
-            user="root", group="root", mode="0750", _sudo=True,
+            user="root", group="root", mode="0750",
+            idle_timeout=idle_timeout, _sudo=True,
+        )
+
+    server.shell(
+        name="Reload systemd unit definitions when needed",
+        commands=["systemctl daemon-reload"], _sudo=True,
+        _if=lambda: host.get_fact(
+            "command", command="systemctl show --property=NeedDaemonReload --value"
+        ).strip() == "yes",
+    )
+    if not idle_timeout:
+        server.shell(
+            name="Remove Samba idle monitor when disabled",
+            commands=[
+                "systemctl stop samba-idle.timer 2>/dev/null || true",
+                "nft delete table inet samba_idle 2>/dev/null || true",
+                "rm -f /run/samba-idle.state",
+            ],
+            _sudo=True,
+            _if=lambda: (
+                host.get_fact("command", command="systemctl is-active samba-idle.timer 2>/dev/null || true").strip() == "active"
+                or bool(host.get_fact("command", command="nft list table inet samba_idle 2>/dev/null || true").strip())
+            ),
         )
 
     server.shell(
