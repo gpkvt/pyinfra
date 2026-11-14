@@ -1,5 +1,7 @@
 # pylint: disable=E0401
 """
+
+import re
 Deploy and manage the Miniflux Docker service using pyinfra.
 
 import re
