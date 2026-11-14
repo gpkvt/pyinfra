@@ -718,3 +718,18 @@ def test_proton_drive_cli_reinstalls_when_binary_is_missing(pyinfra_task_harness
         and kwargs.get("name") == "Install Proton Drive CLI"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+
+def test_system_timezone_skips_equivalent_utc_alias(pyinfra_task_harness):
+    """Etc/UTC and UTC represent the same zone and must not cause a change."""
+    pyinfra_task_harness.host.get_fact = lambda fact, *_args, **_kwargs: (
+        "Etc/UTC" if getattr(fact, "__name__", "") == "Timezone" else []
+    )
+    pyinfra_task_harness.load("system.py", {
+        "locale": "",
+        "timezone": "UTC",
+    })
+    assert not any(
+        namespace == "server" and name == "timezone"
+        for namespace, name, _kwargs in pyinfra_task_harness.calls
+    )
