@@ -156,7 +156,7 @@ if config.get("enabled", False):
             Command,
             command=(
                 "for unit in smbd.service samba-idle.service samba-idle.timer; do "
-                "if systemctl show \\"$unit\\" --property=NeedDaemonReload --value "
+                'if systemctl show "$unit" --property=NeedDaemonReload --value '
                 "2>/dev/null | grep -qx yes; then echo yes; break; fi; done"
             ),
         )).strip() == "yes"
