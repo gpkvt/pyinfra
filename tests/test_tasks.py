@@ -732,8 +732,7 @@ def test_dehydrated_wildcards_suppress_only_one_label_hostname_matches(pyinfra_t
         wildcards=[["*.example.com"]],
     ) == [
         ["*.example.com"],
-        ["nested.api.example.com", "example.com"],
-        ["other.example.net"],
+        ["nested.api.example.com", "example.com", "other.example.net"],
     ]
 
 
