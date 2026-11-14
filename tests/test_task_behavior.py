@@ -1063,7 +1063,10 @@ def test_sablier_image_version_is_configurable(pyinfra_task_harness):
 
 
 def test_proton_drive_cli_requires_an_explicit_version(pyinfra_task_harness):
-    with pytest.raises(ValueError, match="proton.drive_cli_version must be explicitly configured"):
+    with pytest.raises(
+        ValueError,
+        match="proton.drive_cli_version must be explicitly configured",
+    ):
         pyinfra_task_harness.load("proton.py", {
             "proton": {
                 "mail": False,
@@ -1096,14 +1099,20 @@ def test_proton_drive_cli_can_be_disabled_without_a_version(pyinfra_task_harness
 
 
 def test_sablier_requires_an_explicit_version_when_enabled(pyinfra_task_harness):
-    with pytest.raises(ValueError, match="docker_sablier.version must be explicitly configured"):
+    with pytest.raises(
+        ValueError,
+        match="docker_sablier.version must be explicitly configured",
+    ):
         pyinfra_task_harness.load("docker_sablier.py", {
             "docker_sablier": {"enabled": True},
         })
 
 
 def test_miniflux_requires_an_explicit_postgres_version(pyinfra_task_harness):
-    with pytest.raises(ValueError, match="docker.miniflux.postgres_version must be explicitly configured"):
+    with pytest.raises(
+        ValueError,
+        match="docker.miniflux.postgres_version must be explicitly configured",
+    ):
         pyinfra_task_harness.load("docker/miniflux.py", {
             "docker": {"miniflux": {}},
         })
