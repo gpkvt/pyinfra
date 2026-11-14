@@ -150,18 +150,21 @@ if config.get("enabled", False):
             idle_timeout=idle_timeout, _sudo=True,
         )
 
+    def needs_systemd_reload():
+        """Return true only when a managed systemd unit needs reloading."""
+        return command_output_text(host.get_fact(
+            Command,
+            command=(
+                "for unit in smbd.service samba-idle.service samba-idle.timer; do "
+                "if systemctl show \\"$unit\\" --property=NeedDaemonReload --value "
+                "2>/dev/null | grep -qx yes; then echo yes; break; fi; done"
+            ),,
+        )).strip() == "yes"
+
     server.shell(
         name="Reload systemd unit definitions when needed",
         commands=["systemctl daemon-reload"], _sudo=True,
-        _if=lambda: command_output_text(host.get_fact(
-            Command,
-            command=(
-                "if systemctl show smbd.service --property=NeedDaemonReload --value "
-                "2>/dev/null | grep -qx yes || "
-                "systemctl show samba-idle.timer --property=NeedDaemonReload --value "
-                "2>/dev/null | grep -qx yes; then echo yes; fi"
-            ),
-        )).strip() == "yes",
+        _if=needs_systemd_reload,
     )
     server.shell(
         name="Keep Samba stopped until requested",
