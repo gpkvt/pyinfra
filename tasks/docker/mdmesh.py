@@ -230,7 +230,8 @@ def deploy_mdmesh():
     )
     server.shell(
         name="Initialize MDMesh database and enrollment defaults",
-        commands=[bootstrap_command],
+        # pyinfra executes shell commands through /bin/sh; run this Bash-specific script explicitly with Bash.
+        commands=[f"bash -c {shlex.quote(bootstrap_command)}"],
         _sudo=False,
         _if=lambda: command_output_text(host.get_fact(Command, post_seed_check, _sudo=False)).strip() != "1",
     )
