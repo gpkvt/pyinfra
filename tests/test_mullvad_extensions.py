@@ -78,7 +78,10 @@ def test_mullvad_extension_skips_download_when_source_is_unchanged(
     [
         {"id": "../escape", "url": "https://addons.example.invalid/example.xpi"},
         {"id": "example@example.invalid", "url": "http://addons.example.invalid/example.xpi"},
-        {"id": "example@example.invalid", "url": "https://user:pass@addons.example.invalid/example.xpi"},
+        {
+            "id": "example@example.invalid",
+            "url": "https://user:pass@addons.example.invalid/example.xpi",
+        },
     ],
 )
 def test_mullvad_extension_rejects_invalid_id_or_url(
