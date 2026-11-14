@@ -278,5 +278,11 @@
   ],
   "files/scripts/export_cosmic_config.py:main": [
     "test_main_dry_run_does_not_write"
+  ],
+  "files/scripts/export_cosmic_config.py:parse_string_list": [
+    "test_parse_applets_accepts_cosmic_ron_trailing_commas"
+  ],
+  "tasks/samba.py:needs_upload_permission_migration": [
+    "test_samba_upload_permission_migration_is_conditional"
   ]
 }

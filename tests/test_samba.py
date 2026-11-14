@@ -68,7 +68,7 @@ def test_samba_systemd_checks_use_command_fact_and_normalize_output(
 
 
 def test_samba_deployment_preserves_explicitly_started_session(pyinfra_task_harness):
-    def get_fact(fact, *args, **kwargs):
+    def get_fact(_fact, *_args, **kwargs):
         command = kwargs["command"]
         if "samba-started" in command:
             return ["yes"]
@@ -175,7 +175,7 @@ def test_samba_apparmor_hook_is_enabled_only_when_supported(
 ):
     fact_commands = []
 
-    def get_fact(fact, *args, **kwargs):
+    def get_fact(_fact, *_args, **kwargs):
         fact_commands.append(kwargs["command"])
         if "update-apparmor-samba-profile" in kwargs["command"]:
             return ["yes"] if available else []
