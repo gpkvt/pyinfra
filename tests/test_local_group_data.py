@@ -21,7 +21,15 @@ def test_local_example_has_safe_portable_defaults():
     assert data["flatpak_packages"] == []
     assert data["hostnames"] == {}
     assert data["wireguard_config"] == {}
+    assert data["wireguard_enabled"] is True
+    assert data["vpn_enabled"] is True
     assert data["docker"] == {}
+    assert data["docker_power_monitor"] is True
+    assert data["caddy_enabled"] is True
+    assert data["apparmor_enabled"] is True
+    assert data["mullvad_browser_enabled"] is True
+    assert data["vscodium_enabled"] is True
+    assert data["proton"] == {}
     assert data["ufw"] == {}
 
 
