@@ -17,12 +17,8 @@ def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_h
             return "0"
         if command == "id -u tester":
             return "1000"
-        if "config --hash=" in command:
-            return "custom expected-hash"
-        if "ps -a -q custom" in command:
-            return "container-id"
-        if "docker inspect --format" in command:
-            return "expected-hash"
+        if "--dry-run up -d" in command:
+            return "Container custom Running"
         if "show --property=ActiveState --value custom" in command:
             return "active"
         return ""
@@ -55,12 +51,8 @@ def test_docker_systemd_commands_use_current_configured_user(pyinfra_task_harnes
             status_sudo_flags.append(kwargs.get("_sudo"))
         if command in {"id -u", "id -u tester"}:
             return "1000"
-        if "config --hash=" in command:
-            return "custom expected-hash"
-        if "ps -a -q custom" in command:
-            return "container-id"
-        if "docker inspect --format" in command:
-            return "expected-hash"
+        if "--dry-run up -d" in command:
+            return "Container custom Running"
         if "show --property=ActiveState --value custom" in command:
             return "active"
         return ""
@@ -233,60 +225,41 @@ def test_docker_image_pull_quotes_compose_path_with_spaces(pyinfra_task_harness)
 
 
 
-def test_compose_configuration_matches_all_replicas(pyinfra_task_harness):
-    """All containers for each Compose service must carry the desired hash."""
+
+def test_compose_configuration_matches_when_dry_run_is_a_noop():
+    """Compose reports Running for containers that already match."""
     from common import compose_configuration_matches
 
     class FakeHost:
         def get_fact(self, _fact, command, **_kwargs):
-            if "config --hash=" in command:
-                return "web web-hash\ndb db-hash"
-            if "ps -a -q web" in command:
-                return "web-1 web-2"
-            if "ps -a -q db" in command:
-                return "db-1"
-            if "docker inspect --format" in command and "web-1" in command:
-                return "web-hash\nweb-hash"
-            if "docker inspect --format" in command and "db-1" in command:
-                return "db-hash"
-            raise AssertionError("Unexpected command: " + command)
+            assert "--dry-run up -d" in command
+            return "Container web-1 Running"
 
-    assert compose_configuration_matches(
-        FakeHost(), "docker compose -f compose.yml", ["web", "db"]
-    )
+    assert compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
 
 
-def test_compose_configuration_detects_stale_container_hash():
-    """A running container with an old Compose hash is drift, not a no-op."""
+def test_compose_configuration_detects_recreation_in_dry_run():
+    """Compose's own planner identifies stale service configuration."""
     from common import compose_configuration_matches
 
     class FakeHost:
         def get_fact(self, _fact, command, **_kwargs):
-            if "config --hash=" in command:
-                return "web desired-hash"
-            if "ps -a -q web" in command:
-                return "web-container"
-            if "docker inspect --format" in command:
-                return "old-hash"
-            raise AssertionError("Unexpected command: " + command)
+            assert "--dry-run up -d" in command
+            return "Container web-1 Recreated"
 
-    assert not compose_configuration_matches(
-        FakeHost(), "docker compose -f compose.yml", ["web"]
-    )
+    assert not compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
 
 
-def test_compose_configuration_detects_missing_container():
-    """A declared Compose service without a container must be reconciled."""
+def test_compose_configuration_detects_missing_or_stopped_services():
+    """A planned create or start is a required deployment change."""
     from common import compose_configuration_matches
 
-    class FakeHost:
-        def get_fact(self, _fact, command, **_kwargs):
-            if "config --hash=" in command:
-                return "web desired-hash"
-            if "ps -a -q web" in command:
-                return ""
-            raise AssertionError("Unexpected command: " + command)
+    for action in ("Container web-1 Created", "Container web-1 Started"):
+        class FakeHost:
+            def get_fact(self, _fact, command, **_kwargs):
+                assert "--dry-run up -d" in command
+                return action
 
-    assert not compose_configuration_matches(
-        FakeHost(), "docker compose -f compose.yml", ["web"]
-    )
+        assert not compose_configuration_matches(
+            FakeHost(), "docker compose -f compose.yml"
+        )

@@ -8,7 +8,7 @@ host-specific values, which take precedence.
 
 import builtins
 import json
-import shlex
+import re
 import subprocess
 
 from pyinfra.facts.files import File
@@ -112,52 +112,23 @@ def initialize(host, check_flatpak=False):
 
 
 
-def compose_configuration_matches(host, compose_command, services=None):
-    """Return whether every configured Compose service matches its runtime hash.
 
-    Compose stores a config hash on each created container. Comparing that
-    label with the hash generated from the deployed Compose files detects
-    drift even when containers are still running and pyinfra file operations
-    report no changes.
+def compose_configuration_matches(host, compose_command):
+    """Return whether Compose would leave every managed container unchanged.
+
+    Compose's own dry-run planner uses the same engine-level comparison as
+    `up`, avoiding fragile comparisons between config hashes and container
+    labels (which can differ for resolved env_file values and image metadata).
     """
-    expected_output = command_output(
-        host, f"{compose_command} config --hash='*'"
+    output = command_output(
+        host, f"{compose_command} --dry-run up -d"
     )
-    expected = {}
-    for line in expected_output.splitlines():
-        fields = line.split()
-        if len(fields) == 2:
-            expected[fields[0]] = fields[1]
-
-    if services is None:
-        services_output = command_output(
-            host, f"{compose_command} config --services"
-        )
-        services = services_output.splitlines()
-
-    services = tuple(services)
-    if not services or any(service not in expected for service in services):
+    if not output:
         return False
 
-    for service in services:
-        container_ids = command_output(
-            host,
-            f"{compose_command} ps -a -q {shlex.quote(service)}",
-        ).split()
-        if not container_ids:
-            return False
-
-        actual_output = command_output(
-            host,
-            "docker inspect --format "
-            "'{{ index .Config.Labels \"com.docker.compose.config-hash\" }}' "
-            + " ".join(shlex.quote(container_id) for container_id in container_ids),
-        )
-        actual_hashes = actual_output.splitlines()
-        if (
-            len(actual_hashes) != len(container_ids)
-            or any(value != expected[service] for value in actual_hashes)
-        ):
-            return False
-
-    return True
+    # A no-op reports existing containers as Running/Healthy. Any planned
+    # lifecycle or image action means the deployed project needs reconciliation.
+    return not re.search(
+        r"\\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\\b",
+        output,
+    )
