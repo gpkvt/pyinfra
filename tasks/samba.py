@@ -152,23 +152,29 @@ if config.get("enabled", False):
         _if=lambda: (
             command_output_text(host.get_fact(
                 Command,
-                command="systemctl is-active smbd.service 2>/dev/null || true",
-            )).strip() == "active"
-            or command_output_text(host.get_fact(
-                Command,
-                command="systemctl is-enabled smbd.service 2>/dev/null || true",
-            )).strip() != "masked"
-            or command_output_text(host.get_fact(
-                Command,
-                command="systemctl is-active samba-idle.timer 2>/dev/null || true",
-            )).strip() == "active"
-            or bool(command_output_text(host.get_fact(
-                Command,
-                command="nft list table inet samba_idle 2>/dev/null || true",
-            )).strip())
-            or command_output_text(host.get_fact(
-                Command,
-                command="test -e /run/samba-idle.state && echo present || true",
-            )).strip() == "present"
+                command="test -e /run/samba-started && echo yes || true",
+            )).strip() != "yes"
+            and (
+                command_output_text(host.get_fact(
+                    Command,
+                    command="systemctl is-active smbd.service 2>/dev/null || true",
+                )).strip() == "active"
+                or command_output_text(host.get_fact(
+                    Command,
+                    command="systemctl is-enabled smbd.service 2>/dev/null || true",
+                )).strip() != "masked"
+                or command_output_text(host.get_fact(
+                    Command,
+                    command="systemctl is-active samba-idle.timer 2>/dev/null || true",
+                )).strip() == "active"
+                or bool(command_output_text(host.get_fact(
+                    Command,
+                    command="nft list table inet samba_idle 2>/dev/null || true",
+                )).strip())
+                or command_output_text(host.get_fact(
+                    Command,
+                    command="test -e /run/samba-idle.state && echo present || true",
+                )).strip() == "present"
+            )
         ),
     )

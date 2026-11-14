@@ -22,6 +22,7 @@ fi
 
 sudo systemctl unmask --quiet smbd.service
 sudo systemctl start smbd.service
+sudo touch /run/samba-started
 
 if [[ {{ idle_timeout }} -gt 0 ]] && ! sudo systemctl is-active --quiet samba-idle.timer; then
     sudo systemctl start samba-idle.timer
