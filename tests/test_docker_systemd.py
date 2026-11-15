@@ -1,5 +1,7 @@
 """Docker systemd and Sablier reconciliation task tests."""
 
+from common import compose_configuration_matches
+
 
 def test_docker_systemd_commands_run_as_configured_user_when_root(pyinfra_task_harness):
     """Root-driven deployments must execute user-systemd commands as the owner."""
@@ -228,8 +230,6 @@ def test_docker_image_pull_quotes_compose_path_with_spaces(pyinfra_task_harness)
 
 
 def test_compose_configuration_matches_when_dry_run_is_a_noop():
-    from common import compose_configuration_matches
-
     """Compose reports Running for containers that already match."""
 
     class FakeHost:
@@ -241,8 +241,6 @@ def test_compose_configuration_matches_when_dry_run_is_a_noop():
 
 
 def test_compose_configuration_detects_recreation_in_dry_run():
-    from common import compose_configuration_matches
-
     """Compose's own planner identifies stale service configuration."""
 
     class FakeHost:
@@ -254,8 +252,6 @@ def test_compose_configuration_detects_recreation_in_dry_run():
 
 
 def test_compose_configuration_detects_missing_or_stopped_services():
-    from common import compose_configuration_matches
-
     """A planned create or start is a required deployment change."""
 
     for action in ("Container web-1 Created", "Container web-1 Started"):
@@ -271,8 +267,6 @@ def test_compose_configuration_detects_missing_or_stopped_services():
 
 
 def test_compose_configuration_ignores_dependency_health_during_dry_run():
-    from common import compose_configuration_matches
-
     """The planner must not wait for dependency health to inspect this service."""
 
     class FakeHost:
@@ -285,8 +279,6 @@ def test_compose_configuration_ignores_dependency_health_during_dry_run():
 
 
 def test_compose_configuration_treats_dry_run_errors_as_drift():
-    from common import compose_configuration_matches
-
     """A failed planner check must request reconciliation, not abort pyinfra."""
 
     class FakeHost:
@@ -298,8 +290,6 @@ def test_compose_configuration_treats_dry_run_errors_as_drift():
 
 
 def test_compose_configuration_treats_empty_dry_run_as_drift():
-    from common import compose_configuration_matches
-
     """Missing planner output is inconclusive and must not be considered current."""
 
     class FakeHost:
