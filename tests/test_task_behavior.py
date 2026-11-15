@@ -158,7 +158,10 @@ def test_flatpak_update_skips_only_lock_contention_and_propagates_failures(
         and kwargs.get("name") == "Update user Flatpak packages"
     )
     command = update["commands"][0]
-    assert "exec 9>/tmp/flatpak-update.lock" in command
+    assert 'lock_dir="${XDG_RUNTIME_DIR:-$HOME/.cache}"' in command
+    assert 'mkdir -p "$lock_dir"' in command
+    assert "umask 077" in command
+    assert 'exec 9>"$lock_dir/pyinfra-flatpak-update.lock"' in command
     assert "if ! flock -n 9; then" in command
     assert "flatpak update --user -y" in command
     assert '|| echo "Flatpak update already running. Skipping."' not in command
