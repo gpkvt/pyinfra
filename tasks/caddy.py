@@ -125,12 +125,18 @@ def wildcard_covers(hostname, wildcard):
 def build_domains_file(certificates):
     """Validate certificate definitions and return one domains.txt line per certificate."""
     if not isinstance(certificates, list):
-        raise ValueError("Certificate definitions must be a list")
+        raise ValueError(
+            "Certificate definitions must be a list of certificate name lists; "
+            f"got {type(certificates).__name__}: {certificates!r}"
+        )
     seen = set()
     lines = []
     for index, names in enumerate(certificates, start=1):
         if not isinstance(names, (list, tuple)) or not names:
-            raise ValueError(f"Certificate definition {index} must be a non-empty list of domain names")
+            raise ValueError(
+                f"Certificate definition {index} must be a non-empty list of domain names; "
+                f"got {type(names).__name__}: {names!r}"
+            )
         normalized = []
         for name in names:
             name = normalize_domain(name, "certificate definitions")
