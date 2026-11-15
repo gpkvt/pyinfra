@@ -18,6 +18,7 @@
   "tasks/cron.py": "deployment",
   "tasks/dehydrated.py": "deployment",
   "tasks/docker.py": "deployment",
+  "tasks/docker/adguard_home.py": "deployment",
   "tasks/docker/appflowy.py": "deployment",
   "tasks/docker/ci-smoke.py": "deployment",
   "tasks/docker/firefly-iii.py": "deployment",
@@ -79,6 +80,5 @@
   "tasks/workstation/peripherals.py": "deployment",
   "tasks/workstation/power.py": "deployment",
   "tasks/workstation/storage.py": "deployment",
-  "tasks/zsh.py": "deployment",
-  "tasks/docker/adguard_home.py": "deployment"
+  "tasks/zsh.py": "deployment"
 }
