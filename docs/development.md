@@ -21,6 +21,30 @@ source .venv/bin/activate
 
 After changing dependencies in `pyproject.toml`, run `uv lock` and `uv sync --dev` to refresh the local environment. When adding or changing runtime dependencies, also update `requirements.txt`, because the deployment CI job installs from that file. Prefer `uv add PACKAGE` for runtime dependencies and `uv add --dev PACKAGE` for development dependencies.
 
+## Makefile shortcuts
+
+The repository root includes a `Makefile` for common development and deployment commands. Run `make help` to list the targets.
+
+| Target | Purpose |
+| --- | --- |
+| `make sync` | Run `uv sync --dev`. |
+| `make hooks` | Install the pre-commit Git hooks. |
+| `make lint` | Run all pre-commit hooks against tracked files. |
+| `make test` | Run the pytest suite. |
+| `make compile` | Check Python and shell syntax, matching the CI syntax checks. |
+| `make check` | Run lint, tests and syntax checks. |
+| `make dry-run` | Preview deployment with `--dry --diff`. |
+| `make deploy` | Apply the deployment with `--diff`. |
+
+Deployment targets are deliberately limited to `@local` by default. Select another target explicitly, for example:
+
+```bash
+make dry-run TARGET_ARGS="--limit hostname"
+make deploy TARGET_ARGS="--limit hostname"
+```
+
+You can also override `INVENTORY`, `DEPLOY`, `UV`, `PYTHON`, `PYTEST`, `PRE_COMMIT` or `PYINFRA` when using a different executable or deployment entry point. Review the preview before running `make deploy`; the Makefile does not replace the deployment safety checks described below.
+
 ## Run checks
 
 Run all configured hooks:
