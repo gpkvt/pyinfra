@@ -218,7 +218,7 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
             ;;
     esac
     """
-    admin_check_script = f"""#!/usr/bin/env bash
+    database_state_script = f"""#!/usr/bin/env bash
     set -euo pipefail
     cd {shlex.quote(root)}
     set -a
@@ -226,19 +226,21 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     set +a
     . {shlex.quote(bootstrap)}/db.sh
     PSQL=(docker compose exec -T postgres psql -U mdmesh -d mdmesh)
-    admin_hash=$(mdm_pwhash "$ADMIN_PASSWORD")
-    mdm_psql -c "SELECT count(*) FROM users WHERE login='admin' AND email={shlex.quote(admin_email)} AND (password='$admin_hash' OR NOT passwordreset)" || true
+    mdm_db_state
     """
-    admin_check = f"bash -c {shlex.quote(admin_check_script)}"
+    database_state_check = f"bash -c {shlex.quote(database_state_script)}"
 
     def mdmesh_needs_initialization():
-        # Enrollment defaults are intentionally not a readiness condition:
-        # an existing database must never be re-seeded just because an
-        # administrator later removes or changes those defaults.
-        administrator_ready = command_output_text(
-            host.get_fact(Command, admin_check, _sudo=False)
-        ).strip() == "1"
-        return not administrator_ready
+        # Seed only a fresh database. A seeded database must not re-enter the
+        # bootstrap operation because an administrator password changed or
+        # enrollment settings were edited after initial setup.
+        state = command_output_text(
+            host.get_fact(Command, database_state_check, _sudo=False)
+        ).strip()
+        # Let the bounded bootstrap wait handle a database whose schema is
+        # not ready yet. It will fail clearly for inconsistent/unavailable
+        # states rather than attempting to overwrite existing data.
+        return state != "seeded"
 
     server.shell(
         name="Initialize MDMesh database and enrollment defaults",
