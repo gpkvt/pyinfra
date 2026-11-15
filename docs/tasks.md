@@ -248,7 +248,7 @@ The local Homepage configuration declares the Miniflux, Forgejo and Portainer AP
 Header widgets and service widgets can expose network and application data. Keep Homepage behind trusted authentication, a VPN, or an authenticated reverse proxy. API keys must have only the permissions needed for read-only dashboard access.
 
 
- 
+
 **AdGuard Home**
 
 Enable it by adding `"adguard_home": {}` to the `docker` mapping in `@local.py`. It runs as a Docker Compose container using host networking, which lets the DNS service bind directly to TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data are stored in `~/.docker/adguard_home/conf/` and `~/.docker/adguard_home/work/`. The default image is pinned to `adguard/adguardhome:v0.107.80`; override it with `docker.adguard_home.image` when deliberately upgrading.

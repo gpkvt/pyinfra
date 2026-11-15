@@ -140,6 +140,9 @@
     "test_docker_service_treats_missing_systemd_status_as_inactive",
     "test_docker_service_accepts_multiple_restart_triggers"
   ],
+  "tasks/docker.py:deploy_docker_service.compose_configuration_is_current": [
+    "test_docker_service_accepts_multiple_restart_triggers"
+  ],
   "tasks/docker.py:deploy_docker_service.sablier_labels_match": [
     "test_docker_sablier_container_inspection_is_deferred_until_execution"
   ],
@@ -233,6 +236,12 @@
   "tasks/docker/linkwarden_bookmarks.py:update_service_icon_references.dict_value": [
     "test_update_service_icon_references_is_idempotent_and_adds_missing_icon"
   ],
+  "tasks/docker/mdmesh.py:deploy_mdmesh": [
+    "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
+  ],
+  "tasks/docker/mdmesh.py:deploy_mdmesh.mdmesh_needs_initialization": [
+    "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
+  ],
   "tasks/flatpak.py:FlatpakRemotes.process": [
     "test_flatpak_facts_ignore_blank_output_lines"
   ],
@@ -304,14 +313,5 @@
   ],
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
-  ],
-  "tasks/docker.py:deploy_docker_service.compose_configuration_is_current": [
-    "test_docker_service_accepts_multiple_restart_triggers"
-  ],
-  "tasks/docker/mdmesh.py:deploy_mdmesh": [
-    "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
-  ],
-  "tasks/docker/mdmesh.py:deploy_mdmesh.mdmesh_needs_initialization": [
-    "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
   ]
 }
