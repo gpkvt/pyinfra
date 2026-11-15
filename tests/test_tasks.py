@@ -251,8 +251,8 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
             return "0"
         if command == "id -u tester":
             return "1000"
-        if "SELECT count(*) FROM users" in command:
-            return "1"
+        if "mdm_db_state" in command:
+            return "seeded"
         return ""
 
     pyinfra_task_harness.host.get_fact = get_fact
@@ -323,15 +323,12 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     # even if their enrollment defaults have since been changed.
     assert bootstrap["_if"]() is False
     assert not any("SELECT count(*) FROM settings" in command for command in release_commands)
-    admin_check_command = next(
+    database_state_command = next(
         command for command in release_commands
-        if "SELECT count(*) FROM users" in command
+        if "mdm_db_state" in command
     )
-    admin_check_arguments = shlex.split(admin_check_command)
-    assert any(
-        "password='$admin_hash' OR NOT passwordreset" in argument
-        for argument in admin_check_arguments
-    )
+    assert "mdm_db_state" in database_state_command
+    assert not any("SELECT count(*) FROM users" in command for command in release_commands)
 
     mdmesh_config = pyinfra_task_harness.host.data.get("docker", {}).get("mdmesh", {})
     assert mdmesh_config["sablier"] == {"enabled": False}
