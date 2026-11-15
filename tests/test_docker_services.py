@@ -372,10 +372,10 @@ def test_adguard_home_is_dispatched_only_when_configured():
 def test_adguard_home_uses_host_network_and_persistent_bind_mounts():
     """DNS binds directly to the host while all state remains under ~/.docker."""
     template = (
-        ROOT / "templates/docker/adguard-home/docker-compose.yml.j2"
+        ROOT / "templates/docker/adguard_home/docker-compose.yml.j2"
     ).read_text()
     assert "network_mode: host" in template
-    assert "{{ homedir }}/.docker/adguard-home/work:/opt/adguardhome/work" in template
-    assert "{{ homedir }}/.docker/adguard-home/conf:/opt/adguardhome/conf" in template
+    assert "{{ homedir }}/.docker/adguard_home/work:/opt/adguardhome/work" in template
+    assert "{{ homedir }}/.docker/adguard_home/conf:/opt/adguardhome/conf" in template
     assert "ports:" not in template
     assert "volumes:" not in template.split("services:", 1)[0]
