@@ -128,8 +128,11 @@ server.shell(
     name="Update user Flatpak packages",
     commands=[
         """
-        # Keep lock contention non-fatal, but propagate actual update failures.
-        exec 9>/tmp/flatpak-update.lock
+        # Keep the lock in a user-owned runtime/cache directory, not shared /tmp.
+        lock_dir="${XDG_RUNTIME_DIR:-$HOME/.cache}"
+        mkdir -p "$lock_dir"
+        umask 077
+        exec 9>"$lock_dir/pyinfra-flatpak-update.lock"
         if ! flock -n 9; then
             echo "Flatpak update already running. Skipping."
             exit 0
