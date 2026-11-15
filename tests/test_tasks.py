@@ -251,6 +251,8 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
             return "0"
         if command == "id -u tester":
             return "1000"
+        if "SELECT count(*) FROM users" in command:
+            return "1"
         return ""
 
     pyinfra_task_harness.host.get_fact = get_fact
@@ -307,18 +309,20 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
     assert bootstrap_arguments[:2] == ["bash", "-c"]
     assert "set -euo pipefail" in bootstrap_arguments[2]
     assert "mdm_seed" in bootstrap_arguments[2]
+    assert "mdm_post_seed" in bootstrap_arguments[2]
+    fresh_branch = bootstrap_arguments[2].split("fresh)", 1)[1].split(";;", 1)[0]
+    assert "mdm_post_seed" in fresh_branch
+    assert bootstrap_arguments[2].count("mdm_post_seed") == 1
     assert "inconsistent" in bootstrap_arguments[2]
     assert "mdm_pwhash" in bootstrap_arguments[2]
     assert "passwordreset=true" in bootstrap_arguments[2]
     assert "refusing to overwrite" in bootstrap_arguments[2]
     assert "passwordreset=false means an administrator has changed it" in bootstrap_arguments[2]
     assert "UPDATE users SET password='$admin_hash'" in bootstrap_arguments[2]
-    assert bootstrap["_if"]() is True
-    check_command = next(
-        command for command in release_commands
-        if "SELECT count(*) FROM settings" in command
-    )
-    check_arguments = shlex.split(check_command)
+    # Existing databases with a healthy administrator skip initialization,
+    # even if their enrollment defaults have since been changed.
+    assert bootstrap["_if"]() is False
+    assert not any("SELECT count(*) FROM settings" in command for command in release_commands)
     admin_check_command = next(
         command for command in release_commands
         if "SELECT count(*) FROM users" in command
@@ -328,10 +332,6 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(pyinfra_task_har
         "password='$admin_hash' OR NOT passwordreset" in argument
         for argument in admin_check_arguments
     )
-    sql_argument = next(argument for argument in check_arguments if "SELECT count(*) FROM settings" in argument)
-    assert "com.hmdm.emuilauncherrestarter" in sql_argument
-    assert check_arguments[-2:] == ["2>/dev/null", "||"] or check_arguments[-1] == "true"
-    assert "|| true" in check_command
 
     mdmesh_config = pyinfra_task_harness.host.data.get("docker", {}).get("mdmesh", {})
     assert mdmesh_config["sablier"] == {"enabled": False}
