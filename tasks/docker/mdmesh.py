@@ -186,6 +186,8 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     case "$state" in
         fresh)
             mdm_seed "$ADMIN_EMAIL" {shlex.quote(bootstrap + "/hmdm_init.en.sql")} "$ADMIN_PASSWORD" "$(openssl rand -hex 16)"
+            # Enrollment defaults are part of first-time database creation only.
+            mdm_post_seed {shlex.quote(bootstrap + "/post_seed.sql")}
             ;;
         seeded)
             # A previous run may have committed seed SQL but stopped before
@@ -215,37 +217,7 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
             exit 1
             ;;
     esac
-    mdm_post_seed {shlex.quote(bootstrap + "/post_seed.sql")}
     """
-    post_seed_sql = """
-        SELECT count(*) FROM settings
-        WHERE createnewdevices AND newdeviceconfigurationid IS NOT NULL
-        AND NOT EXISTS (
-            SELECT 1 FROM configurations
-            WHERE qrcodekey IN (
-                '6fb9c8dc81483173a0c0e9f8b2e46be1',
-                '8e6ca072ddb926a1af61578dfa9fc334',
-                '350e0fb7fc3f4b7fe61cac75fd43818f'
-            )
-        )
-        AND NOT EXISTS (
-            SELECT 1 FROM applications
-            WHERE pkg IN (
-                'com.hmdm.launcher',
-                'com.hmdm.pager',
-                'com.hmdm.phoneproxy',
-                'com.hmdm.emuilauncherrestarter'
-            )
-        )
-    """
-    # Quote the SQL as one shell argument. Keep the fact successful when the
-    # database is not ready yet; bootstrap_command performs the bounded wait.
-    post_seed_check = (
-        f"cd {shlex.quote(root)} && docker compose exec -T postgres "
-        "psql -U mdmesh -d mdmesh -Atqc "
-        f"{shlex.quote(post_seed_sql)} "
-        "2>/dev/null || true"
-    )
     admin_check_script = f"""#!/usr/bin/env bash
     set -euo pipefail
     cd {shlex.quote(root)}
@@ -260,13 +232,13 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     admin_check = f"bash -c {shlex.quote(admin_check_script)}"
 
     def mdmesh_needs_initialization():
-        enrollment_ready = command_output_text(
-            host.get_fact(Command, post_seed_check, _sudo=False)
-        ).strip() == "1"
+        # Enrollment defaults are intentionally not a readiness condition:
+        # an existing database must never be re-seeded just because an
+        # administrator later removes or changes those defaults.
         administrator_ready = command_output_text(
             host.get_fact(Command, admin_check, _sudo=False)
         ).strip() == "1"
-        return not (enrollment_ready and administrator_ready)
+        return not administrator_ready
 
     server.shell(
         name="Initialize MDMesh database and enrollment defaults",
