@@ -28,7 +28,9 @@ workstation = {
     },
     "desktop": {
         "enabled": False,  # Installs common desktop integration utilities.
-        # "packages": ["example-package"],  # Optional replacement package list; omit to use task defaults.
+        # "packages": [
+            "example-package"
+        ],  # Optional replacement package list; omit to use task defaults.
     },
     "maintenance": {
         "enabled": False,  # Installs interactive maintenance tools; does not enable unattended upgrades or reboots.
@@ -40,7 +42,6 @@ workstation = {
             "enabled": False,  # Applies the selected COSMIC appearance mode.
             "mode": "dark",  # COSMIC theme mode: "dark" or "light".
         },
-
         "window_management": {
             "enabled": False,  # Applies COSMIC window-management preferences.
             "autotile": False,  # Enables automatic tiling of windows.
@@ -49,61 +50,76 @@ workstation = {
             "cursor_follows_focus": False,  # Moves the pointer when keyboard focus changes.
             "edge_snap_threshold": 10,  # Distance in logical pixels used for edge snapping.
         },
-
         "input": {
             "enabled": False,  # Applies raw COSMIC mouse/touchpad settings.
             # "default": "<RON mouse settings>",  # Raw RON settings for the default mouse device.
             # "touchpad": "<RON touchpad settings>",  # Raw RON settings for touchpad devices.
         },
-
         "shortcuts": {
             "enabled": False,  # Applies the custom COSMIC keyboard shortcut map.
             # "ron": "<COSMIC custom shortcut map in RON syntax>",  # Complete shortcut configuration as RON.
         },
-
         "workspaces": {
             "enabled": False,  # Applies custom COSMIC workspace configuration.
             # "ron": "<COSMIC workspace configuration in RON syntax>",  # Complete workspace configuration as RON.
         },
-
         "panel": {
             "enabled": False,  # Configures the COSMIC top/bottom panel.
-            "position": "top",  # Panel edge: "top", "bottom", "left" or "right" where supported.
-            "size": "xs",  # Panel size: "xs", "s", "m", "l", "xl" or aliases "extra_small", "small", "normal", "large", "extra_large".
+            "position": "top",  # Panel edge: "top",
+            "bottom",
+            "left" or "right" where supported.
+            "size": "xs",  # Panel size: "xs",
+            "s",
+            "m",
+            "l",
+            "xl" or aliases "extra_small",
+            "small",
+            "normal",
+            "large",
+            "extra_large".
             "autohide": False,  # Hides the panel until the pointer reaches its screen edge.
             "extend": True,  # Extends the panel across the available screen edge.
             "anchor_gap": 0,  # Set above zero to enable COSMIC's panel edge-gap setting; zero disables it.
             # Omit "applets" to keep COSMIC's default panel layout. Uncomment to override it:
             # "applets": {
-            #     "left": ["com.system76.CosmicAppletQuickSettings"],  # Quick Settings applet on the left.
+            #     "left": [
+                    "com.system76.CosmicAppletQuickSettings"
+                ],  # Quick Settings applet on the left.
             #     "center": [],  # Applets centered in the panel.
             #     "right": [  # Status and session applets on the right.
             #         "com.system76.CosmicAppletNotifications",
             #         "com.system76.CosmicAppletTime",
             #         "com.system76.CosmicAppletTempest",
             #         "com.system76.CosmicAppletUserSession",
-            #     ],
-            # },
+            #
+                ],
+            #
+            },
         },
-
         "dock": {
             "enabled": False,  # Configures the COSMIC dock.
-            "position": "bottom",  # Dock edge: "top", "bottom", "left" or "right".
+            "position": "bottom",  # Dock edge: "top",
+            "bottom",
+            "left" or "right".
             "size": "small",  # Dock icon size preset.
             "autohide": False,  # Hides the dock until the pointer reaches its screen edge.
             "extend": True,  # Extends the dock along its screen edge.
             "anchor_gap": 0,  # Set above zero to enable COSMIC's dock edge-gap setting; zero disables it.
             # Omit "applets" to keep COSMIC's default dock layout. Uncomment to override it:
             # "applets": {
-            #     "left": ["com.system76.CosmicAppletWorkspaces"],  # Workspace switcher on the left.
+            #     "left": [
+                    "com.system76.CosmicAppletWorkspaces"
+                ],  # Workspace switcher on the left.
             #     "center": [  # App launchers and running-app controls in the center.
             #         "com.system76.CosmicPanelAppLibraryButton",
             #         "com.system76.CosmicPanelLauncherButton",
             #         "com.system76.CosmicAppList",
             #         "com.system76.CosmicAppletMinimize",
-            #     ],
+            #
+                ],
             #     "right": [],  # Applets placed on the dock's right.
-            # },
+            #
+            },
         },
 
         # Optional directory synchronization; omitted entries are not managed.
@@ -111,8 +127,10 @@ workstation = {
         #     "appearance": {
         #         "src": "files/cosmic/local/appearance/",  # Repository-relative source directory.
         #         "dest": ".config/cosmic/com.system76.CosmicTheme.Mode/v1/",  # Destination relative to homedir.
-        #     },
-        # },
+        #
+            },
+        #
+        },
 
         # Display/output configuration is intentionally not managed by these tasks.
     },
