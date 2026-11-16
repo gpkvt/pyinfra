@@ -49,10 +49,11 @@ plugins:
 
 nav:
   - Home: index.md
+  - Tasks: tasks-overview.md
+  - Task reference: tasks.md
   - Architecture: architecture.md
   - Configuration: configuration.md
   - Deployment: deployment.md
-  - Tasks: tasks.md
   - Docker: docker.md
   - Secrets: secrets.md
   - System: system.md
