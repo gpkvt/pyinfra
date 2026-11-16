@@ -332,7 +332,11 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(
     assert "UPDATE users SET password='$admin_hash'" in bootstrap_arguments[2]
     # Existing databases with a healthy administrator skip initialization,
     # even if their enrollment defaults have since been changed.
-    assert bootstrap["_if"]() is should_initialize
+    if database_state == "unavailable":
+        with pytest.raises(RuntimeError, match="Unable to determine MDMesh database state"):
+            bootstrap["_if"]()
+    else:
+        assert bootstrap["_if"]() is should_initialize
     assert not any("SELECT count(*) FROM settings" in command for command in release_commands)
     database_state_command = next(
         command for command in release_commands
