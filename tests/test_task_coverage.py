@@ -1,6 +1,7 @@
 """Keep CI coverage inventory synchronized with every task and utility."""
 
 import ast
+import base64
 import builtins
 import json
 import shutil
@@ -331,6 +332,26 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
             if feature == "peripherals":
                 config["printing"] = True
             data = {"workstation": {feature: config}}
+            if feature == "limusic":
+                release = {
+                    "tag_name": "v1.3.0",
+                    "assets": [{
+                        "name": "limusic_1.3.0_amd64.AppImage",
+                        "digest": "sha256:" + "0" * 64,
+                        "browser_download_url": (
+                            "https://example.invalid/limusic.AppImage"
+                        ),
+                    }],
+                }
+                encoded_release = base64.b64encode(
+                    json.dumps(release).encode()
+                ).decode()
+                pyinfra_task_harness.host.get_fact = (
+                    lambda _fact, command, **_kwargs: encoded_release
+                    if "api.github.com/repos/SimoHypers/limusic/releases/latest"
+                    in command
+                    else ""
+                )
         pyinfra_task_harness.load(module_path, data)
 
     assert (
