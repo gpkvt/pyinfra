@@ -1,3 +1,4 @@
+---
 name: Bug report
 description: Report a problem with a deployment task or configuration.
 title: "[Bug]: "
@@ -8,7 +9,8 @@ body:
     attributes:
       value: |
         Thanks for reporting a bug!
-        Remove credentials, private keys, tokens, and sensitive infrastructure details before submitting.
+        Remove credentials, private keys, tokens, and sensitive details.
+        Do not include host-specific infrastructure details.
 
   - type: textarea
     id: description
