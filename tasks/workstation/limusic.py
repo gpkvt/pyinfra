@@ -4,9 +4,13 @@ Install Limusic's latest stable Linux AppImage for the configured user.
 
 The release AppImage is self-updating. The task installs it once per stable
 release, verifies the published SHA-256 digest, and installs the matching
-upstream application icon and a COSMIC-discoverable desktop entry.
+upstream application icon and a COSMIC-discoverable desktop entry. If GitHub's
+release API is unavailable or rate-limited, the existing installation is left
+untouched and the update is retried on the next deployment.
 """
 
+import base64
+import json
 import shlex
 from io import StringIO
 
@@ -36,55 +40,69 @@ if config.get("enabled", False):
     applications_dir = f"{homedir}/.local/share/applications"
     desktop_file = f"{applications_dir}/limusic.desktop"
 
-    release_command = (
-        "python3 -c "
-        + shlex.quote(
-            "import json, urllib.request; "
-            "request = urllib.request.Request("
-            "'https://api.github.com/repos/SimoHypers/limusic/releases/latest', "
-            "headers={'Accept': 'application/vnd.github+json', "
-            "'User-Agent': 'pyinfra-limusic-installer'}); "
-            "print(json.load(urllib.request.urlopen(request, timeout=30))['tag_name'])"
+    release_lookup_script = """
+import base64
+import json
+import sys
+import urllib.error
+import urllib.request
+
+request = urllib.request.Request(
+    "https://api.github.com/repos/SimoHypers/limusic/releases/latest",
+    headers={
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "pyinfra-limusic-installer",
+    },
+)
+try:
+    with urllib.request.urlopen(request, timeout=30) as response:
+        release = json.load(response)
+    print(base64.b64encode(json.dumps(release).encode()).decode())
+except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as error:
+    print(f"Limusic release lookup unavailable: {error}", file=sys.stderr)
+"""
+    release_command = "python3 -c " + shlex.quote(release_lookup_script)
+    release_data = command_output_text(host.get_fact(Command, release_command)).strip()
+
+    # GitHub's unauthenticated API is rate-limited. If metadata is unavailable,
+    # leave the existing installation untouched and retry on the next deploy.
+    if release_data:
+        release = json.loads(base64.b64decode(release_data))
+        latest_tag = release["tag_name"]
+        installed_state_command = (
+            f"if [ -x {shlex.quote(appimage)} ] && "
+            f"[ -s {shlex.quote(icon_file)} ]; then "
+            f"cat {shlex.quote(version_file)} 2>/dev/null || true; fi"
         )
-    )
-    latest_tag = command_output_text(host.get_fact(Command, release_command)).strip()
+        installed_tag = command_output_text(
+            host.get_fact(Command, installed_state_command)
+        ).strip()
 
-    if not latest_tag:
-        raise RuntimeError("Could not resolve the latest stable Limusic release")
+        files.directory(
+            name="Create Limusic AppImage directory",
+            path=install_dir,
+            user=username,
+            group=usergroup,
+            mode="0755",
+        )
+        files.directory(
+            name="Create Limusic icon directory",
+            path=icon_dir,
+            user=username,
+            group=usergroup,
+            mode="0755",
+        )
+        files.directory(
+            name="Create user desktop applications directory",
+            path=applications_dir,
+            user=username,
+            group=usergroup,
+            mode="0755",
+        )
 
-    installed_state_command = (
-        f"if [ -x {shlex.quote(appimage)} ] && "
-        f"[ -s {shlex.quote(icon_file)} ]; then "
-        f"cat {shlex.quote(version_file)} 2>/dev/null || true; fi"
-    )
-    installed_tag = command_output_text(
-        host.get_fact(Command, installed_state_command)
-    ).strip()
-
-    files.directory(
-        name="Create Limusic AppImage directory",
-        path=install_dir,
-        user=username,
-        group=usergroup,
-        mode="0755",
-    )
-    files.directory(
-        name="Create Limusic icon directory",
-        path=icon_dir,
-        user=username,
-        group=usergroup,
-        mode="0755",
-    )
-    files.directory(
-        name="Create user desktop applications directory",
-        path=applications_dir,
-        user=username,
-        group=usergroup,
-        mode="0755",
-    )
-
-    if latest_tag != installed_tag:
-        install_script = r'''
+        if latest_tag != installed_tag:
+            install_script = r'''
+import base64
 import hashlib
 import json
 import os
@@ -94,18 +112,8 @@ import sys
 import tempfile
 import urllib.request
 
-expected_tag, appimage_path, icon_path, version_path = sys.argv[1:]
-api_url = "https://api.github.com/repos/SimoHypers/limusic/releases/latest"
-request = urllib.request.Request(
-    api_url,
-    headers={
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "pyinfra-limusic-installer",
-    },
-)
-with urllib.request.urlopen(request, timeout=30) as response:
-    release = json.load(response)
-
+expected_tag, release_data, appimage_path, icon_path, version_path = sys.argv[1:]
+release = json.loads(base64.b64decode(release_data))
 tag = release.get("tag_name")
 if tag != expected_tag:
     raise RuntimeError(
@@ -182,48 +190,48 @@ if not icon_data.startswith(b"\x89PNG\r\n\x1a\n"):
     raise RuntimeError("Downloaded Limusic icon is not a PNG image")
 atomic_write(icon, icon_data, 0o644)
 atomic_write(version, (tag + "\n").encode(), 0o644)
-'''
-        server.shell(
-            name=f"Install Limusic AppImage {latest_tag}",
-            commands=[
-                "python3 -c "
-                + shlex.quote(install_script)
-                + " "
-                + " ".join(
-                    shlex.quote(value)
-                    for value in (latest_tag, appimage, icon_file, version_file)
-                )
-            ],
-            _sudo=True,
-            _sudo_user=username,
-            _if=lambda: command_output_text(
-                host.get_fact(Command, installed_state_command)
-            ).strip() != latest_tag,
-        )
+    '''
+            server.shell(
+                name=f"Install Limusic AppImage {latest_tag}",
+                commands=[
+                    "python3 -c "
+                    + shlex.quote(install_script)
+                    + " "
+                    + " ".join(
+                        shlex.quote(value)
+                        for value in (latest_tag, release_data, appimage, icon_file, version_file)
+                    )
+                ],
+                _sudo=True,
+                _sudo_user=username,
+                _if=lambda: command_output_text(
+                    host.get_fact(Command, installed_state_command)
+                ).strip() != latest_tag,
+            )
 
-    desktop_exec = (
-        '"'
-        + appimage.replace("\\", "\\\\").replace('"', '\\"')
-        + '" %U'
-    )
-    desktop_entry = (
-        "[Desktop Entry]\n"
-        "Version=1.0\n"
-        "Type=Application\n"
-        "Name=Limusic\n"
-        "Comment=Listen to YouTube Music\n"
-        f"Exec={desktop_exec}\n"
-        f"TryExec={appimage}\n"
-        f"Icon={icon_file}\n"
-        "Terminal=false\n"
-        "Categories=AudioVideo;Audio;Player;\n"
-        "StartupWMClass=limusic\n"
-    )
-    files.put(
-        name="Create Limusic COSMIC desktop launcher",
-        src=StringIO(desktop_entry),
-        dest=desktop_file,
-        user=username,
-        group=usergroup,
-        mode="0644",
-    )
+        desktop_exec = (
+            '"'
+            + appimage.replace("\\", "\\\\").replace('"', '\\"')
+            + '" %U'
+        )
+        desktop_entry = (
+            "[Desktop Entry]\n"
+            "Version=1.0\n"
+            "Type=Application\n"
+            "Name=Limusic\n"
+            "Comment=Listen to YouTube Music\n"
+            f"Exec={desktop_exec}\n"
+            f"TryExec={appimage}\n"
+            f"Icon={icon_file}\n"
+            "Terminal=false\n"
+            "Categories=AudioVideo;Audio;Player;\n"
+            "StartupWMClass=limusic\n"
+        )
+        files.put(
+            name="Create Limusic COSMIC desktop launcher",
+            src=StringIO(desktop_entry),
+            dest=desktop_file,
+            user=username,
+            group=usergroup,
+            mode="0644",
+        )

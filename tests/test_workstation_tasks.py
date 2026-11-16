@@ -1,5 +1,8 @@
 """Unit tests for workstation task selection and validation."""
 
+import base64
+import json
+
 import pytest
 
 
@@ -135,6 +138,18 @@ def test_maintenance_installs_utilities_without_scheduling_reboots(task_environm
     assert calls["server"] == []
 
 
+
+def _limusic_release_payload():
+    release = {
+        "tag_name": "v1.3.0",
+        "assets": [{
+            "name": "limusic_1.3.0_amd64.AppImage",
+            "digest": "sha256:" + "0" * 64,
+            "browser_download_url": "https://example.invalid/limusic.AppImage",
+        }],
+    }
+    return base64.b64encode(json.dumps(release).encode()).decode()
+
 def test_limusic_does_not_schedule_operations_when_disabled(task_environment):
     calls, load = task_environment
     load("limusic", {"enabled": False})
@@ -145,6 +160,11 @@ def test_limusic_does_not_schedule_operations_when_disabled(task_environment):
 
 
 def test_limusic_installs_release_icon_and_cosmic_launcher(pyinfra_task_harness):
+    pyinfra_task_harness.host.get_fact = (
+        lambda _fact, command, **_kwargs: _limusic_release_payload()
+        if "api.github.com/repos/SimoHypers/limusic/releases/latest" in command
+        else ""
+    )
     pyinfra_task_harness.load("workstation/limusic.py", {
         "username": "tester",
         "usergroup": "tester",
@@ -179,7 +199,7 @@ def test_limusic_installs_release_icon_and_cosmic_launcher(pyinfra_task_harness)
 
 def test_limusic_skips_appimage_download_when_release_is_current(pyinfra_task_harness):
     pyinfra_task_harness.host.get_fact = (
-        lambda _fact, command, **_kwargs: "v1.3.0"
+        lambda _fact, command, **_kwargs: _limusic_release_payload()
         if "api.github.com/repos/SimoHypers/limusic/releases/latest" in command
         else "v1.3.0"
     )
@@ -200,3 +220,18 @@ def test_limusic_skips_appimage_download_when_release_is_current(pyinfra_task_ha
         and kwargs["name"] == "Create Limusic COSMIC desktop launcher"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+def test_limusic_skips_operations_when_github_api_is_rate_limited(
+    pyinfra_task_harness,
+):
+    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: ""
+
+    pyinfra_task_harness.load("workstation/limusic.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "workstation": {"limusic": {"enabled": True}},
+    })
+
+    assert pyinfra_task_harness.calls == []
+
