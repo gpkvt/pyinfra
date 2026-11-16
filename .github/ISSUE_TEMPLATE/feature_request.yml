@@ -1,0 +1,38 @@
+name: Feature request
+description: Suggest an improvement or new deployment capability.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem or use case should this feature address?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the desired behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: configuration
+    attributes:
+      label: Configuration example
+      description: Optionally show the desired configuration.
+      render: yaml
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context

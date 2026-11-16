@@ -1,0 +1,72 @@
+name: Bug report
+description: Report a problem with a deployment task or configuration.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug!
+        Remove credentials, private keys, tokens, and sensitive infrastructure details before submitting.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the problem you encountered.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the relevant task, configuration, and commands.
+      placeholder: |
+        1. Configure ...
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs and error messages
+      description: Redact secrets and private information.
+      render: shell
+
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+
+  - type: input
+    id: pyinfra
+    attributes:
+      label: pyinfra version
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system and version
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
