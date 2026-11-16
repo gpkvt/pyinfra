@@ -369,10 +369,7 @@ syncthing = {}  # Syncthing settings; an empty mapping keeps the GUI on its safe
 
 # Firewall is deliberately disabled in this example.
 ufw = {}  # UFW rules; only populate after verifying remote access and SSH allowances.
-# Supported keys: "ssh",
-"kdeconnect",
-"localsend",
-"chromecast-dlna".
+# Supported keys: "ssh", "kdeconnect", "localsend" and "chromecast-dlna".
 # Example: {
 #     "ssh": "Allow",
 #     "localsend": "Allow"
