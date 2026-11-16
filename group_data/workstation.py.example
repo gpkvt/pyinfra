@@ -98,9 +98,7 @@ workstation = {
         },
         "dock": {
             "enabled": False,  # Configures the COSMIC dock.
-            "position": "bottom",  # Dock edge: "top",
-            "bottom",
-            "left" or "right".
+            "position": "bottom",  # Dock edge: "top", "bottom", "left" or "right".
             "size": "small",  # Dock icon size preset.
             "autohide": False,  # Hides the dock until the pointer reaches its screen edge.
             "extend": True,  # Extends the dock along its screen edge.
