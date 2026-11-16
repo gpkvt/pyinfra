@@ -128,9 +128,9 @@ apt_sources = {}  # Third-party APT repositories; signing keys must use .gpg, .a
 #
 #         },
 #
-    },
+#     },
 #
-}
+# }
 flatpak_packages = []  # Flatpak application IDs installed for the configured user from Flathub when possible.
 # sysctl = {}  # Kernel sysctl settings, e.g. {
 #     "net.ipv4.ip_forward": 1
