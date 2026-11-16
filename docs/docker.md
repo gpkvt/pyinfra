@@ -53,20 +53,28 @@ All paths in the table are relative to `~/.docker/`. Services use host-directory
 
 ## Storage and security
 
-<grid class="docker-info-grid" columns={2}>
-  <grid-item>
-    <div class="docker-info-card"><b><code>~/.docker/&lt;service&gt;/</code></b><p>Compose files, environment files and persistent application data stay grouped per service.</p></div>
-  </grid-item>
-  <grid-item>
-    <div class="docker-info-card"><b>Host bind mounts only</b><p>Data is visible and backup-friendly on the host. No Docker-managed named volumes are used.</p></div>
-  </grid-item>
-  <grid-item>
-    <div class="docker-info-card"><b>Encrypted secrets</b><p>Passwords, API keys and signing secrets belong in <code>secrets.json.gpg</code>, not tracked host data.</p></div>
-  </grid-item>
-  <grid-item>
-    <div class="docker-info-card"><b>Loopback by default</b><p>Publish web interfaces through a trusted reverse proxy or VPN rather than exposing container ports publicly.</p></div>
-  </grid-item>
-</grid>
+<div class="docker-info-grid" markdown>
+<div class="docker-info-card" markdown>
+**<code>~/.docker/&lt;service&gt;/</code>**
+
+Compose files, environment files and persistent application data stay grouped per service.
+</div>
+<div class="docker-info-card" markdown>
+**Host bind mounts only**
+
+Data is visible and backup-friendly on the host. No Docker-managed named volumes are used.
+</div>
+<div class="docker-info-card" markdown>
+**Encrypted secrets**
+
+Passwords, API keys and signing secrets belong in `secrets.json.gpg`, not tracked host data.
+</div>
+<div class="docker-info-card" markdown>
+**Loopback by default**
+
+Publish web interfaces through a trusted reverse proxy or VPN rather than exposing container ports publicly.
+</div>
+</div>
 
 !!! warning "Before enabling a service"
     Check for existing listeners and reverse-proxy routes, configure strong secrets, and review the Compose template. Portainer, MDMesh's supervisor and other Docker-socket consumers can control the Docker host and must be treated as privileged components.
