@@ -9,6 +9,8 @@ release API is unavailable or rate-limited, the existing installation is left
 untouched and the update is retried on the next deployment.
 """
 
+import base64
+import json
 import shlex
 from io import StringIO
 
@@ -54,16 +56,18 @@ request = urllib.request.Request(
 try:
     with urllib.request.urlopen(request, timeout=30) as response:
         release = json.load(response)
-    print(release["tag_name"])
+    print(base64.b64encode(json.dumps(release).encode()).decode())
 except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as error:
     print(f"Limusic release lookup unavailable: {error}", file=sys.stderr)
 """
     release_command = "python3 -c " + shlex.quote(release_lookup_script)
-    latest_tag = command_output_text(host.get_fact(Command, release_command)).strip()
+    release_data = command_output_text(host.get_fact(Command, release_command)).strip()
 
     # GitHub's unauthenticated API is rate-limited. If metadata is unavailable,
     # leave the existing installation untouched and retry on the next deploy.
-    if latest_tag:
+    if release_data:
+        release = json.loads(base64.b64decode(release_data))
+        latest_tag = release["tag_name"]
         installed_state_command = (
             f"if [ -x {shlex.quote(appimage)} ] && "
             f"[ -s {shlex.quote(icon_file)} ]; then "
@@ -97,103 +101,94 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
 
         if latest_tag != installed_tag:
             install_script = r'''
-    import hashlib
-    import json
-    import os
-    import pathlib
-    import re
-    import sys
-    import tempfile
-    import urllib.request
+import base64
+import hashlib
+import json
+import os
+import pathlib
+import re
+import sys
+import tempfile
+import urllib.request
 
-    expected_tag, appimage_path, icon_path, version_path = sys.argv[1:]
-    api_url = "https://api.github.com/repos/SimoHypers/limusic/releases/latest"
-    request = urllib.request.Request(
-        api_url,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "User-Agent": "pyinfra-limusic-installer",
-        },
+expected_tag, release_data, appimage_path, icon_path, version_path = sys.argv[1:]
+release = json.loads(base64.b64decode(release_data))
+tag = release.get("tag_name")
+if tag != expected_tag:
+    raise RuntimeError(
+        f"Limusic release changed during deployment: {tag!r} != {expected_tag!r}"
     )
-    with urllib.request.urlopen(request, timeout=30) as response:
-        release = json.load(response)
 
-    tag = release.get("tag_name")
-    if tag != expected_tag:
-        raise RuntimeError(
-            f"Limusic release changed during deployment: {tag!r} != {expected_tag!r}"
-        )
+assets = [
+    asset for asset in release.get("assets", [])
+    if re.fullmatch(r"limusic_.+_amd64\.AppImage", asset.get("name", ""))
+]
+if len(assets) != 1:
+    raise RuntimeError(
+        f"Expected one x86_64 Limusic AppImage in {tag}, found {len(assets)}"
+    )
 
-    assets = [
-        asset for asset in release.get("assets", [])
-        if re.fullmatch(r"limusic_.+_amd64\.AppImage", asset.get("name", ""))
-    ]
-    if len(assets) != 1:
-        raise RuntimeError(
-            f"Expected one x86_64 Limusic AppImage in {tag}, found {len(assets)}"
-        )
+asset = assets[0]
+digest = asset.get("digest", "")
+if not digest.startswith("sha256:"):
+    raise RuntimeError("Limusic release does not publish an AppImage SHA-256 digest")
 
-    asset = assets[0]
-    digest = asset.get("digest", "")
-    if not digest.startswith("sha256:"):
-        raise RuntimeError("Limusic release does not publish an AppImage SHA-256 digest")
+appimage = pathlib.Path(appimage_path)
+icon = pathlib.Path(icon_path)
+version = pathlib.Path(version_path)
 
-    appimage = pathlib.Path(appimage_path)
-    icon = pathlib.Path(icon_path)
-    version = pathlib.Path(version_path)
-
-    def atomic_write(destination, data, mode):
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        fd, temporary = tempfile.mkstemp(dir=destination.parent)
-        try:
-            with os.fdopen(fd, "wb") as output:
-                output.write(data)
-                output.flush()
-                os.fsync(output.fileno())
-            os.chmod(temporary, mode)
-            os.replace(temporary, destination)
-        finally:
-            if os.path.exists(temporary):
-                os.unlink(temporary)
-
-    appimage.parent.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(dir=appimage.parent)
+def atomic_write(destination, data, mode):
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    fd, temporary = tempfile.mkstemp(dir=destination.parent)
     try:
-        hasher = hashlib.sha256()
-        request = urllib.request.Request(
-            asset["browser_download_url"],
-            headers={"User-Agent": "pyinfra-limusic-installer"},
-        )
-        with urllib.request.urlopen(request, timeout=120) as response, os.fdopen(fd, "wb") as output:
-            while True:
-                chunk = response.read(1024 * 1024)
-                if not chunk:
-                    break
-                hasher.update(chunk)
-                output.write(chunk)
+        with os.fdopen(fd, "wb") as output:
+            output.write(data)
             output.flush()
             os.fsync(output.fileno())
-        if hasher.hexdigest() != digest.removeprefix("sha256:"):
-            raise RuntimeError("Limusic AppImage SHA-256 verification failed")
-        os.chmod(temporary, 0o755)
-        os.replace(temporary, appimage)
+        os.chmod(temporary, mode)
+        os.replace(temporary, destination)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
 
-    icon_url = (
-        f"https://raw.githubusercontent.com/SimoHypers/limusic/{tag}/"
-        "src-tauri/icons/icon.png"
-    )
+appimage.parent.mkdir(parents=True, exist_ok=True)
+fd, temporary = tempfile.mkstemp(dir=appimage.parent)
+try:
+    hasher = hashlib.sha256()
     request = urllib.request.Request(
-        icon_url, headers={"User-Agent": "pyinfra-limusic-installer"}
+        asset["browser_download_url"],
+        headers={"User-Agent": "pyinfra-limusic-installer"},
     )
-    with urllib.request.urlopen(request, timeout=30) as response:
-        icon_data = response.read()
-    if not icon_data.startswith(b"\x89PNG\r\n\x1a\n"):
-        raise RuntimeError("Downloaded Limusic icon is not a PNG image")
-    atomic_write(icon, icon_data, 0o644)
-    atomic_write(version, (tag + "\n").encode(), 0o644)
+    with urllib.request.urlopen(request, timeout=120) as response, os.fdopen(fd, "wb") as output:
+        while True:
+            chunk = response.read(1024 * 1024)
+            if not chunk:
+                break
+            hasher.update(chunk)
+            output.write(chunk)
+        output.flush()
+        os.fsync(output.fileno())
+    if hasher.hexdigest() != digest.removeprefix("sha256:"):
+        raise RuntimeError("Limusic AppImage SHA-256 verification failed")
+    os.chmod(temporary, 0o755)
+    os.replace(temporary, appimage)
+finally:
+    if os.path.exists(temporary):
+        os.unlink(temporary)
+
+icon_url = (
+    f"https://raw.githubusercontent.com/SimoHypers/limusic/{tag}/"
+    "src-tauri/icons/icon.png"
+)
+request = urllib.request.Request(
+    icon_url, headers={"User-Agent": "pyinfra-limusic-installer"}
+)
+with urllib.request.urlopen(request, timeout=30) as response:
+    icon_data = response.read()
+if not icon_data.startswith(b"\x89PNG\r\n\x1a\n"):
+    raise RuntimeError("Downloaded Limusic icon is not a PNG image")
+atomic_write(icon, icon_data, 0o644)
+atomic_write(version, (tag + "\n").encode(), 0o644)
     '''
             server.shell(
                 name=f"Install Limusic AppImage {latest_tag}",
@@ -203,7 +198,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
                     + " "
                     + " ".join(
                         shlex.quote(value)
-                        for value in (latest_tag, appimage, icon_file, version_file)
+                        for value in (latest_tag, release_data, appimage, icon_file, version_file)
                     )
                 ],
                 _sudo=True,
