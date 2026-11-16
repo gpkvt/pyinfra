@@ -39,7 +39,6 @@ Restart Mullvad Browser after deployment for changes to take effect.
 import hashlib
 import re
 import shlex
-from io import StringIO
 from urllib.parse import urlsplit
 
 from common import command_output, initialize
@@ -103,9 +102,8 @@ for name, extension in extensions.items():
 
     extension_path = f"{extensions_dir}/{extension_id}.xpi"
 
-    # files.download does not re-fetch an existing file by default. Keep a
-    # marker for the configured URL so URL changes trigger one forced download
-    # without downloading every time pyinfra runs.
+    # Track the configured URL so downloads happen only when the source changes.
+    # The temporary file and marker are promoted only after a complete download.
     source_marker = f"{extension_path}.source-sha256"
     source_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
     installed_source_hash = command_output(
