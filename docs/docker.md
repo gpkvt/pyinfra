@@ -2,7 +2,7 @@
 
 Deploy and operate containerized applications with a shared Compose and systemd workflow. Each service is opt-in through `host.data.docker`; persistent state lives in the configured user's home directory.
 
-<div class="docker-stats" markdown>
+<div class="docker-stats">
 <div class="docker-stat"><span class="docker-stat-value">18</span><span class="docker-stat-label">documented services</span></div>
 <div class="docker-stat"><span class="docker-stat-value">~/.docker/</span><span class="docker-stat-label">persistent host storage</span></div>
 <div class="docker-stat"><span class="docker-stat-value">127.0.0.1</span><span class="docker-stat-label">default web binding</span></div>
@@ -38,7 +38,7 @@ All paths in the table are relative to `~/.docker/`. Services use host-directory
 
 ## How deployment works
 
-<div class="docker-flow" markdown>
+<div class="docker-flow">
 <div><b>01 · Configure</b><p>Add the service key below <code>docker</code> in host data. Secrets belong in the encrypted secrets file.</p></div>
 <div><b>02 · Render</b><p>Compose is written to <code>~/.docker/&lt;service&gt;/docker-compose.yml</code>; its user systemd unit is written under <code>~/.config/systemd/user/</code>.</p></div>
 <div><b>03 · Reconcile</b><p>Changed Compose configuration triggers an image pull and service reconciliation. Unchanged files do not cause an image pull.</p></div>
@@ -53,26 +53,22 @@ All paths in the table are relative to `~/.docker/`. Services use host-directory
 
 ## Storage and security
 
-<div class="docker-info-grid" markdown>
-<div class="docker-info-card" markdown>
-**<code>~/.docker/&lt;service&gt;/</code>**
-
-Compose files, environment files and persistent application data stay grouped per service.
+<div class="docker-info-grid">
+<div class="docker-info-card">
+<strong><code>~/.docker/&lt;service&gt;/</code></strong>
+<p>Compose files, environment files and persistent application data stay grouped per service.</p>
 </div>
-<div class="docker-info-card" markdown>
-**Host bind mounts only**
-
-Data is visible and backup-friendly on the host. No Docker-managed named volumes are used.
+<div class="docker-info-card">
+<strong>Host bind mounts only</strong>
+<p>Data is visible and backup-friendly on the host. No Docker-managed named volumes are used.</p>
 </div>
-<div class="docker-info-card" markdown>
-**Encrypted secrets**
-
-Passwords, API keys and signing secrets belong in `secrets.json.gpg`, not tracked host data.
+<div class="docker-info-card">
+<strong>Encrypted secrets</strong>
+<p>Passwords, API keys and signing secrets belong in <code>secrets.json.gpg</code>, not tracked host data.</p>
 </div>
-<div class="docker-info-card" markdown>
-**Loopback by default**
-
-Publish web interfaces through a trusted reverse proxy or VPN rather than exposing container ports publicly.
+<div class="docker-info-card">
+<strong>Loopback by default</strong>
+<p>Publish web interfaces through a trusted reverse proxy or VPN rather than exposing container ports publicly.</p>
 </div>
 </div>
 
