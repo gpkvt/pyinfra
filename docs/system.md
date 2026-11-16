@@ -1,5 +1,18 @@
 # System configuration
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">MANAGE THE LINUX BASELINE</span>
+    <p class="page-lead">Configure operating-system settings such as hostname, locale, timezone, keyboard, kernel parameters and device security.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>Identity</strong><span>Hostname, locale and users</span></div>
+  <div class="page-intro-item"><strong>Hardware</strong><span>Keyboard, udev and USBGuard</span></div>
+  <div class="page-intro-item"><strong>Kernel</strong><span>sysctl and system defaults</span></div>
+  </div>
+</div>
+
+
 `tasks/system.py` manages operating-system settings from the current target's `host.data`. It is included in every full deployment. The supplied implementation targets Debian/Ubuntu-style system configuration files and Linux system facilities. The `gpg-vault` utility is deployed separately as a user script and does not change these system settings; see [Secrets management](secrets.md).
 
 ## Settings overview
