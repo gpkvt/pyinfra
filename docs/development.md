@@ -1,5 +1,18 @@
 # Development
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">BUILD AND VALIDATE SAFELY</span>
+    <p class="page-lead">Set up the development environment, run the project checks and follow the conventions used when extending pyinfra tasks.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>uv</strong><span>Reproducible environment</span></div>
+  <div class="page-intro-item"><strong>pytest</strong><span>Task regression coverage</span></div>
+  <div class="page-intro-item"><strong>pre-commit</strong><span>Lint and quality checks</span></div>
+  </div>
+</div>
+
+
 This guide covers local development, validation and the conventions used when extending the automation.
 
 ## Development environment
