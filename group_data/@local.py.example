@@ -57,7 +57,7 @@ wireguard_config = {}  # WireGuard interfaces keyed by name; private/peer keys b
 #
 #     },
 #
-}
+# }
 # secrets.json.gpg must contain hosts[
 #     "@local"
 # ][
@@ -128,9 +128,9 @@ apt_sources = {}  # Third-party APT repositories; signing keys must use .gpg, .a
 #
 #         },
 #
-    },
+#     },
 #
-}
+# }
 flatpak_packages = []  # Flatpak application IDs installed for the configured user from Flathub when possible.
 # sysctl = {}  # Kernel sysctl settings, e.g. {
 #     "net.ipv4.ip_forward": 1
@@ -198,7 +198,7 @@ docker = {
     # "adguard_home": {  # Local DNS resolver and DNS rewrites for LAN/WireGuard clients.
     #     "image": "adguard/adguardhome:v0.107.80",  # Pin the AdGuard Home release.
     #
-    },
+    # },
     # "mdmesh": {  # Android device management; requires encrypted secrets below.
     #     "version": "latest",  # Or pin a release, e.g. "0.5.0".
     #     "domain": "mdm.example.com",  # Public DNS hostname; hostname only, no scheme or port.
@@ -212,7 +212,7 @@ docker = {
 #             "enabled": False
 #         },  # Keep the always-available MDM endpoint running.
     #
-    },
+    # },
     # "forgejo": {  # Self-hosted Git service; secrets are not stored here.
     #     "image": "codeberg.org/forgejo/forgejo:17",  # Container image/tag.
     #     "port": 3000,  # Web interface port published on the host.
@@ -220,19 +220,19 @@ docker = {
     #     "ssh_server": False,  # Expose the container's SSH server when True.
     #     "domain": "git.example.com",  # Public URL used by the service/reverse proxy.
     #
-    },
+    # },
     # "linkwarden": {  # Bookmark manager; credentials and encryption keys belong in secrets.
     #     "image": "ghcr.io/linkwarden/linkwarden:latest",  # Container image/tag.
     #     "port": 8021,  # Web interface port published on the host.
     #     "domain": "links.example.com",  # Public URL used for authentication callbacks.
     #     "blacklist": [],  # Linkwarden bookmark IDs omitted from Homepage bookmark synchronization.
     #
-    },
+    # },
     # "miniflux": {  # RSS reader; administrator/database passwords belong in secrets.
     #     "postgres_version": 12,  # Required PostgreSQL major version used by the database container.
     #     "port": 8080,  # Web interface port published on the host.
     #
-    },
+    # },
     # "paperless": {  # Document management; database password and secret key belong in secrets.
     #     "image": "ghcr.io/paperless-ngx/paperless-ngx:latest",  # Container image/tag.
     #     "port": 8022,  # Web interface port published on the host.
@@ -240,7 +240,7 @@ docker = {
     #     "uid": 1000,  # UID used by the Paperless container for file access.
     #     "gid": 1000,  # GID used by the Paperless container for file access.
     #
-    },
+    # },
     # "firefly-iii": {  # Personal finance manager; database/app secrets belong in secrets.
     #     "image": "fireflyiii/core:latest",  # Application image/tag.
     #     "port": 8023,  # Main web interface port.
@@ -248,7 +248,7 @@ docker = {
     #     "fints_port": 8024,  # Optional Firefly III FINTS importer port.
     #     "fints_domain": "fints.example.com",  # Optional FINTS importer hostname.
     #
-    },
+    # },
     # "appflowy": {  # AppFlowy workspace; all required credentials belong in secrets.
     #     "port": 8026,  # Web interface port published on the host.
     #     "domain": "appflowy.example.com",  # Public application hostname.
@@ -257,13 +257,13 @@ docker = {
 #             "nginx"
 #         ],  # Compose services to start for this deployment.
     #
-    },
+    # },
     # "snipe-it": {  # IT asset management; database/app secrets belong in secrets.
     #     "image": "snipe/snipe-it:latest",  # Application image/tag.
     #     "port": 8025,  # Web interface port published on the host.
     #     "domain": "assets.example.com",  # Public application hostname.
     #
-    },
+    # },
     # "grav": {  # Grav CMS.
     #     "image": "getgrav/grav:1.7",  # Container image/tag.
     #     "port": 8080,  # Web interface port published on the host.
@@ -272,44 +272,44 @@ docker = {
     #     "scheduler": True,  # Enable Grav's scheduler.
     #     "fix_permissions": True,  # Let the container repair content permissions.
     #
-    },
+    # },
     # "nocodb": {  # No-code database frontend.
     #     "image": "nocodb/nocodb:latest",  # Container image/tag.
     #     "port": 8019,  # Web interface port published on the host.
     #     "domain": "https://db.example.com",  # Public URL, including scheme.
     #
-    },
+    # },
     # "portainer": {  # Docker management UI.
     #     "image": "portainer/portainer-ce:lts",  # Container image/tag.
     #     "port": 9000,  # HTTP interface port published on the host.
     #
-    },
+    # },
     # "tasmoadmin": {  # TasmoAdmin for managing Tasmota devices.
     #     "image": "ghcr.io/tasmoadmin/tasmoadmin:latest",  # Container image/tag.
     #     "port": 8016,  # Web interface port published on the host.
     #
-    },
+    # },
     # "timetagger": {  # TimeTagger time tracking; username:bcrypt-hash belongs in secrets.
     #     "port": 8080,  # Web interface port published on the host.
     #
-    },
+    # },
     # "vaultwarden": {  # Bitwarden-compatible password manager; admin token belongs in secrets.
     #     "image": "vaultwarden/server:latest",  # Container image/tag.
     #     "port": 8018,  # Web interface port published on the host.
     #     "domain": "https://vault.example.com",  # Public URL, including scheme.
     #
-    },
+    # },
     # "wallabag": {  # Read-it-later service.
     #     "image": "wallabag/wallabag:latest",  # Container image/tag.
     #     "port": 8017,  # Web interface port published on the host.
     #     "domain": "https://read.example.com",  # Public URL, including scheme.
     #
-    },
+    # },
     # "wg-easy": {  # WireGuard web management UI; peer/private keys are managed separately.
     #     "image": "ghcr.io/wg-easy/wg-easy:15",  # Container image/tag.
     #     "ui_port": 51821,  # Web UI port; VPN UDP port is configured by the container.
     #
-    },
+    # },
     # "mdmesh": {  # Self-hosted Android MDM; Linux endpoint management is not supported.
     #     "version": "latest",  # Resolve the latest stable GitHub release; use a semantic version to pin.
     #     "domain": "mdm.example.com",  # Public HTTPS hostname handled by the existing Caddy proxy.
@@ -319,7 +319,7 @@ docker = {
 #             "172.16.0.0/12"
 #         ],  # Optional trusted proxy CIDRs forwarded to the MDMesh web edge.
     #
-    },
+    # },
 }
 
 caddy_versions = {  # Pinned versions used to build the custom Caddy image.
@@ -369,10 +369,7 @@ syncthing = {}  # Syncthing settings; an empty mapping keeps the GUI on its safe
 
 # Firewall is deliberately disabled in this example.
 ufw = {}  # UFW rules; only populate after verifying remote access and SSH allowances.
-# Supported keys: "ssh",
-"kdeconnect",
-"localsend",
-"chromecast-dlna".
+# Supported keys: "ssh", "kdeconnect", "localsend" and "chromecast-dlna".
 # Example: {
 #     "ssh": "Allow",
 #     "localsend": "Allow"

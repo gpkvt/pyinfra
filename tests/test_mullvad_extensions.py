@@ -18,13 +18,8 @@ def test_mullvad_extension_downloads_when_source_marker_is_missing(
 
     download = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "download"
+        if namespace == "server" and name == "shell"
         and kwargs.get("name") == "Download Example"
-    )
-    marker = next(
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "put"
-        and kwargs.get("name") == "Record Example source URL"
     )
     preferences = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
@@ -32,12 +27,16 @@ def test_mullvad_extension_downloads_when_source_marker_is_missing(
         and kwargs.get("name") == "Manage Mullvad Browser preferences"
     )
 
-    assert download["src"] == url
-    assert download["dest"] == (
-        "/opt/mullvad/extensions/example@example.invalid.xpi"
-    )
-    assert download["force"] is True
-    assert marker["dest"].endswith(".xpi.source-sha256")
+    command = download["commands"][0]
+    assert url in command
+    assert "--retry 3 --retry-all-errors" in command
+    assert "--connect-timeout 20 --max-time 300" in command
+    assert "mv " in command
+    assert "keeping the existing extension" in command
+    assert "then echo 'Downloaded Example'" in command
+    assert "else rm -f" in command
+    assert "/opt/mullvad/extensions/example@example.invalid.xpi.source-sha256" in command
+    assert hashlib.sha256(url.encode("utf-8")).hexdigest() in command
     assert preferences["dest"] == "/opt/mullvad/user.js"
 
 
@@ -63,12 +62,9 @@ def test_mullvad_extension_skips_download_when_source_is_unchanged(
     })
 
     assert not any(
-        namespace == "files" and name == "download"
-        for namespace, name, _kwargs in pyinfra_task_harness.calls
-    )
-    assert not any(
-        namespace == "files" and name == "put"
-        and kwargs.get("name") == "Record Example source URL"
+        (namespace == "files" and name == "download")
+        or (namespace == "server" and name == "shell"
+            and kwargs.get("name") == "Download Example")
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
 

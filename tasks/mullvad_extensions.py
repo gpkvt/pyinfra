@@ -39,13 +39,12 @@ Restart Mullvad Browser after deployment for changes to take effect.
 import hashlib
 import re
 import shlex
-from io import StringIO
 from urllib.parse import urlsplit
 
 from common import command_output, initialize
 from pyinfra import host
 from pyinfra.facts.files import File
-from pyinfra.operations import files
+from pyinfra.operations import files, server
 
 if not hasattr(__import__('builtins'), 'homedir'):
     initialize(host)
@@ -103,9 +102,8 @@ for name, extension in extensions.items():
 
     extension_path = f"{extensions_dir}/{extension_id}.xpi"
 
-    # files.download does not re-fetch an existing file by default. Keep a
-    # marker for the configured URL so URL changes trigger one forced download
-    # without downloading every time pyinfra runs.
+    # Track the configured URL so downloads happen only when the source changes.
+    # The temporary file and marker are promoted only after a complete download.
     source_marker = f"{extension_path}.source-sha256"
     source_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
     installed_source_hash = command_output(
@@ -115,22 +113,36 @@ for name, extension in extensions.items():
     extension_exists = host.get_fact(File, path=extension_path)
 
     if installed_source_hash != source_hash or not extension_exists:
-        files.download(
-            name=f"Download {name}",
-            src=url,
-            dest=extension_path,
-            user=user,
-            group=group,
-            mode="0600",
-            force=True,
+        temporary_path = f"{extension_path}.download"
+        temporary_marker = f"{source_marker}.tmp"
+        download_command = (
+            f"rm -f {shlex.quote(temporary_path)} "
+            f"{shlex.quote(temporary_marker)}; "
+            f"if curl --fail --location --silent --show-error "
+            f"--retry 3 --retry-all-errors --retry-delay 2 "
+            f"--connect-timeout 20 --max-time 300 "
+            f"--output {shlex.quote(temporary_path)} "
+            f"{shlex.quote(url)} "
+            f"&& test -s {shlex.quote(temporary_path)} "
+            f"&& chown {shlex.quote(f'{user}:{group}')} "
+            f"{shlex.quote(temporary_path)} "
+            f"&& chmod 0600 {shlex.quote(temporary_path)} "
+            f"&& mv {shlex.quote(temporary_path)} {shlex.quote(extension_path)} "
+            f"&& printf '%s\\n' {shlex.quote(source_hash)} "
+            f"> {shlex.quote(temporary_marker)} "
+            f"&& chown {shlex.quote(f'{user}:{group}')} "
+            f"{shlex.quote(temporary_marker)} "
+            f"&& chmod 0600 {shlex.quote(temporary_marker)} "
+            f"&& mv {shlex.quote(temporary_marker)} {shlex.quote(source_marker)}; "
+            f"then echo 'Downloaded {name}'; "
+            f"else rm -f {shlex.quote(temporary_path)} "
+            f"{shlex.quote(temporary_marker)}; "
+            f"echo 'WARNING: Could not download {name}; keeping the existing extension and retrying on the next deployment'; "
+            f"fi"
         )
-        files.put(
-            name=f"Record {name} source URL",
-            src=StringIO(f"{source_hash}\n"),
-            dest=source_marker,
-            user=user,
-            group=group,
-            mode="0600",
+        server.shell(
+            name=f"Download {name}",
+            commands=[download_command],
         )
 
 files.put(
