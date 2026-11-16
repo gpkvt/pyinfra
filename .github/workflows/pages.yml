@@ -5,12 +5,6 @@ name: GitHub Pages
   push:
     branches:
       - main
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'README.md'
-      - 'CONTRIBUTING.md'
-      - '.github/workflows/pages.yml'
   pull_request:
     branches:
       - main
