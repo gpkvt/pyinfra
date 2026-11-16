@@ -31,7 +31,7 @@ workstation = {
         # "packages": [
 #             "example-package"
 #         ],  # Optional replacement package list; omit to use task defaults.
-#     },
+    },
     "maintenance": {
         "enabled": False,  # Installs interactive maintenance tools; does not enable unattended upgrades or reboots.
     },
