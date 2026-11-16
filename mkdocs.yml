@@ -58,5 +58,6 @@ nav:
   - Tasks: tasks.md
   - Secrets: secrets.md
   - System: system.md
+  - Samba: samba.md
   - Templates: templates.md
   - Development: development.md

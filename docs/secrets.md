@@ -12,7 +12,7 @@ The project stores sensitive values in a JSON document encrypted with GPG. Ordin
 
 Both real secret files are listed in `.gitignore`.
 
-The repository includes `files/scripts/gpg-vault`, an interactive helper deployed by `tasks/scripts.py`. It manages the plaintext/encrypted file pair locally; it does not change the JSON schema or the way pyinfra loads secrets. The repository also includes a [Visual Studio Code extension](../vscode/gpg-vault/README.md) for performing the same GPG operations from the editor.
+The repository includes `files/scripts/gpg-vault`, an interactive helper deployed by `tasks/scripts.py`. It manages the plaintext/encrypted file pair locally; it does not change the JSON schema or the way pyinfra loads secrets. The repository also includes a [Visual Studio Code extension](https://github.com/gpkvt/pyinfra/blob/main/vscode/gpg-vault/README.md) for performing the same GPG operations from the editor.
 
 ## How loading works
 
@@ -141,7 +141,7 @@ The extension invokes the local GPG executable and delegates passphrase entry to
 
 File encryption saves the active document first, writes or replaces the sibling `.gpg` file without an overwrite prompt, and then removes the plaintext source. It attempts to overwrite the regular plaintext file with random data and flush it before unlinking, but this is best-effort sanitization rather than a guarantee of physical erasure. File decryption writes the original filename and replaces an existing plaintext destination without prompting. Decrypted files are created with owner-only permissions where supported. The `gpg-vault.openDecryptedFile` setting (default `true`) controls whether the decrypted file is opened in the editor; `gpg-vault.gpgPath` selects the GPG executable.
 
-Selection commands replace the selected text in the editor with its encrypted or decrypted form. The extension stages operation data in a private temporary directory and removes that directory after the operation. See the [extension README](../vscode/gpg-vault/README.md) for installation and command details.
+Selection commands replace the selected text in the editor with its encrypted or decrypted form. The extension stages operation data in a private temporary directory and removes that directory after the operation. See the [extension README](https://github.com/gpkvt/pyinfra/blob/main/vscode/gpg-vault/README.md) for installation and command details.
 
 ## Manual GPG fallback
 

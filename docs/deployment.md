@@ -4,7 +4,7 @@ Run deployments from the repository root. `deploy.py` initializes shared state a
 
 ## Before the first deployment
 
-1. Read the safety notes in the [README](../README.md).
+1. Read the safety notes in the [README](https://github.com/gpkvt/pyinfra/blob/main/README.md).
 2. Review `inventory.py`; verify target names, SSH hostnames, ports, users and `_sudo` settings.
 3. Review the matching `group_data/<host>.py` and every group-data file for groups assigned to that target. Remove example settings that do not belong on the target. For example, `@local` belongs to the `workstation` group in the supplied inventory and therefore receives `group_data/workstation.py`.
 4. Prepare `secrets.json.gpg` only if the enabled features need secrets. Use `gpg-vault create` or `gpg-vault edit` after the script has been deployed; see [Secrets management](secrets.md).
