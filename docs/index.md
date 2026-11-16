@@ -96,7 +96,7 @@ Read the [architecture overview](architecture.md) for the execution model.
 - [System configuration](system.md) — Linux settings and security controls.
 - [Templates and static assets](templates.md) — generated files and static payloads.
 - [Development](development.md) — tests, checks and contribution workflow.
-- [Contributing](../CONTRIBUTING.md) — how to report issues and propose changes.
+- [Contributing guide](https://github.com/gpkvt/pyinfra/blob/main/CONTRIBUTING.md) — how to report issues and propose changes.
 
 ## Requirements
 
