@@ -147,6 +147,10 @@ Check the CLI options supported by your installed pyinfra version with `pyinfra 
 └── docs/                    # Detailed project documentation
 ```
 
+## Releases
+
+GitHub Releases are created from semantic-version tags. See the [release guide](docs/releasing.md) for the tagging and publishing process.
+
 ## Documentation
 
 - [Architecture and execution model](docs/architecture.md)
