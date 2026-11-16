@@ -81,10 +81,10 @@ samba = {
     "server_string": "On-demand file exchange",  # Description displayed by SMB clients.
     "upload": {
         "path": "/srv/samba/upload",  # Shared writable guest upload directory.
-    # },
+    },
     "download": {
         "path": "/srv/samba/download",  # Guest-readable, read-only download directory.
-    # },
+    },
 }
 
 # User shell and terminal tools.
