@@ -22,6 +22,6 @@ def test_collapsible_state_is_saved_and_restored_per_page():
 
     assert 'window.localStorage.setItem(key, event.target.open ? "open" : "closed")' in script
     assert 'window.localStorage.getItem(key)' in script
-    assert 'window.document$.subscribe(restoreDisclosureStates)' in script
+    assert "document$.subscribe(restoreDisclosureStates)" in script
     assert 'window.location.pathname' in script
     assert 'details.open = savedState === "open"' in script
