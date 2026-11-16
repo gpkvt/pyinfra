@@ -249,4 +249,3 @@ def test_limusic_skips_operations_when_github_api_is_rate_limited(
     })
 
     assert pyinfra_task_harness.calls == []
-
