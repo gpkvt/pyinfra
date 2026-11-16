@@ -1,5 +1,18 @@
 # Deployment workflow
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">FROM REVIEW TO RECONCILIATION</span>
+    <p class="page-lead">Prepare a target, preview the operations and apply only the changes needed to bring it into the desired state.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>Prepare</strong><span>Inventory, data and access</span></div>
+  <div class="page-intro-item"><strong>Preview</strong><span>Dry run with diffs</span></div>
+  <div class="page-intro-item"><strong>Apply</strong><span>Run and verify changes</span></div>
+  </div>
+</div>
+
+
 Run deployments from the repository root. `deploy.py` initializes shared state and includes task modules according to the selected host's configuration and available secrets.
 
 ## Before the first deployment

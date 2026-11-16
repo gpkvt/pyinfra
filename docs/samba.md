@@ -1,5 +1,18 @@
 # On-demand Samba file exchange
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">NETWORK FILE SHARING</span>
+    <p class="page-lead">Deploy and configure Samba shares with host-specific settings, controlled access and repeatable service management.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>Shares</strong><span>Define exported paths</span></div>
+  <div class="page-intro-item"><strong>Access</strong><span>Manage users and permissions</span></div>
+  <div class="page-intro-item"><strong>Service</strong><span>Apply configuration safely</span></div>
+  </div>
+</div>
+
+
 The optional Samba task provides two guest-accessible SMB shares for quick LAN/VPN file exchange:
 
 - **Upload** is a shared dropbox. Guests can upload and write files, but cannot delete or rename files. The directory uses the sticky bit and uploaded files inherit its root ownership. All guest connections use the same Unix identity (nobody), so this is not a private per-device inbox and users are not isolated from one another. Do not use it for confidential uploads.

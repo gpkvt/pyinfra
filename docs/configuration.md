@@ -1,5 +1,18 @@
 # Host configuration
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">DEFINE THE DESIRED STATE</span>
+    <p class="page-lead">Configure each machine with tracked examples and private local data. Keep feature choices readable, credentials protected and task logic reusable.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>group_data/</strong><span>Host and role settings</span></div>
+  <div class="page-intro-item"><strong>workstation</strong><span>Opt-in desktop features</span></div>
+  <div class="page-intro-item"><strong>secrets</strong><span>Encrypted credentials</span></div>
+  </div>
+</div>
+
+
 Host-specific desired state is stored as Python data in `group_data/`. pyinfra exposes the values for a target through `host.data`. Real machine configuration is intentionally untracked: `.gitignore` excludes `group_data/@local.py` and `group_data/workstation.py`. The repository tracks portable templates at `group_data/@local.py.example` and `group_data/workstation.py.example` instead.
 
 After cloning, create local copies before deploying:
