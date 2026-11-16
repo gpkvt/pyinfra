@@ -47,6 +47,7 @@ nav:
   - Configuration: configuration.md
   - Deployment: deployment.md
   - Tasks: tasks.md
+  - Docker: docker.md
   - Secrets: secrets.md
   - System: system.md
   - Samba: samba.md
