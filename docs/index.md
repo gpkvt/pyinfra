@@ -135,7 +135,7 @@
 <section class="install-section" markdown>
   <div class="install-copy">
     <div class="section-kicker">03 / GET STARTED</div>
-    ## Your next deployment starts here.
+    <h2>Your next deployment starts here.</h2>
     <p>Clone the repository, prepare your local host configuration, and inspect the first run. Start with a non-production target and adapt the examples before deploying.</p>
     <a class="action primary" href="configuration/">Read the getting-started guide <span>↗</span></a>
   </div>
