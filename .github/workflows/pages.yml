@@ -14,11 +14,11 @@ name: GitHub Pages
       - 'README.md'
       - 'CONTRIBUTING.md'
       - '.github/workflows/pages.yml'
+      - 'tests/test_pages_workflow.py'
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: read
+  contents: write
 
 concurrency:
   group: pages
@@ -26,7 +26,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build documentation
+    name: Build and publish documentation
     runs-on: ubuntu-latest
 
     steps:
@@ -40,35 +40,17 @@ jobs:
           cache: pip
           cache-dependency-path: mkdocs.yml
 
-      - name: Configure GitHub Pages
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/configure-pages@v5
-
       - name: Install documentation dependencies
         run: python -m pip install --upgrade pip mkdocs-material
 
-      - name: Build site
+      - name: Build HTML
         run: mkdocs build --strict
 
-      - name: Upload Pages artifact
-        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-        uses: actions/upload-pages-artifact@v4
+      - name: Publish HTML to gh-pages
+        if: github.event_name != 'pull_request'
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: site
-
-  deploy:
-    name: Deploy GitHub Pages
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./site
+          force_orphan: true
