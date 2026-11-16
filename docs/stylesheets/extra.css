@@ -192,3 +192,27 @@ code, pre, .mono { font-family: "DM Mono", ui-monospace, monospace; }
 @media (prefers-reduced-motion: reduce) {
   *, *:before, *:after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
 }
+
+/* Docker guide: compact metrics, service tables and workflow cards. */
+.docker-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 28px 0 42px; }
+.docker-stat, .docker-info-card, .docker-flow > div { min-width: 0; padding: 19px; border: 1px solid var(--landing-line); border-radius: 15px; background: linear-gradient(145deg, #192231aa, #121722aa); }
+.docker-stat { display: grid; gap: 7px; }
+.docker-stat-value { color: var(--landing-mint); font: 700 clamp(1.05rem, 2.2vw, 1.55rem) "DM Mono", monospace; overflow-wrap: anywhere; }
+.docker-stat-label { color: var(--landing-muted); font-size: .7rem; }
+.docker-flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin: 24px 0; }
+.docker-flow b, .docker-info-card b { color: var(--landing-text); font-size: .85rem; }
+.docker-flow p, .docker-info-card p { margin: 8px 0 0; color: var(--landing-muted); font-size: .76rem; line-height: 1.65; }
+.docker-info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 20px 0 28px; }
+.docker-info-card { height: 100%; }
+.md-typeset .docker-info-card code { overflow-wrap: anywhere; }
+.md-typeset table:not([class]) { display: table; width: 100%; font-size: .76rem; }
+.md-typeset table:not([class]) th { color: var(--landing-mint); }
+.md-typeset table:not([class]) td { vertical-align: top; }
+.md-typeset details { margin: 24px 0; border: 1px solid var(--landing-line); border-radius: 13px; background: #121722; }
+.md-typeset details summary { color: var(--landing-mint); font-weight: 700; }
+@media (max-width: 850px) {
+  .docker-stats, .docker-flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 550px) {
+  .docker-stats, .docker-flow, .docker-info-grid { grid-template-columns: 1fr; }
+}
