@@ -21,11 +21,6 @@ def test_mullvad_extension_downloads_when_source_marker_is_missing(
         if namespace == "server" and name == "shell"
         and kwargs.get("name") == "Download Example"
     )
-    marker = next(
-        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "files" and name == "put"
-        and kwargs.get("name") == "Record Example source URL"
-    )
     preferences = next(
         kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
         if namespace == "files" and name == "put"
@@ -40,8 +35,8 @@ def test_mullvad_extension_downloads_when_source_marker_is_missing(
     assert "keeping the existing extension" in command
     assert "then echo 'Downloaded Example'" in command
     assert "else rm -f" in command
-    assert "files" not in command
-    assert marker["dest"].endswith(".xpi.source-sha256")
+    assert "/opt/mullvad/extensions/example@example.invalid.xpi.source-sha256" in command
+    assert hashlib.sha256(url.encode("utf-8")).hexdigest() in command
     assert preferences["dest"] == "/opt/mullvad/user.js"
 
 
@@ -70,11 +65,6 @@ def test_mullvad_extension_skips_download_when_source_is_unchanged(
         (namespace == "files" and name == "download")
         or (namespace == "server" and name == "shell"
             and kwargs.get("name") == "Download Example")
-        for namespace, name, kwargs in pyinfra_task_harness.calls
-    )
-    assert not any(
-        namespace == "files" and name == "put"
-        and kwargs.get("name") == "Record Example source URL"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
 
