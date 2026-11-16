@@ -40,6 +40,7 @@ if config.get("enabled", False):
 
     release_lookup_script = """
 import json
+import sys
 import urllib.error
 import urllib.request
 
@@ -55,7 +56,7 @@ try:
         release = json.load(response)
     print(release["tag_name"])
 except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as error:
-    print(f"Limusic release lookup unavailable: {error}")
+    print(f"Limusic release lookup unavailable: {error}", file=sys.stderr)
 """
     release_command = "python3 -c " + shlex.quote(release_lookup_script)
     latest_tag = command_output_text(host.get_fact(Command, release_command)).strip()
@@ -71,7 +72,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
         installed_tag = command_output_text(
             host.get_fact(Command, installed_state_command)
         ).strip()
-    
+
         files.directory(
             name="Create Limusic AppImage directory",
             path=install_dir,
@@ -93,7 +94,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
             group=usergroup,
             mode="0755",
         )
-    
+
         if latest_tag != installed_tag:
             install_script = r'''
     import hashlib
@@ -104,7 +105,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
     import sys
     import tempfile
     import urllib.request
-    
+
     expected_tag, appimage_path, icon_path, version_path = sys.argv[1:]
     api_url = "https://api.github.com/repos/SimoHypers/limusic/releases/latest"
     request = urllib.request.Request(
@@ -116,13 +117,13 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
     )
     with urllib.request.urlopen(request, timeout=30) as response:
         release = json.load(response)
-    
+
     tag = release.get("tag_name")
     if tag != expected_tag:
         raise RuntimeError(
             f"Limusic release changed during deployment: {tag!r} != {expected_tag!r}"
         )
-    
+
     assets = [
         asset for asset in release.get("assets", [])
         if re.fullmatch(r"limusic_.+_amd64\.AppImage", asset.get("name", ""))
@@ -131,16 +132,16 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
         raise RuntimeError(
             f"Expected one x86_64 Limusic AppImage in {tag}, found {len(assets)}"
         )
-    
+
     asset = assets[0]
     digest = asset.get("digest", "")
     if not digest.startswith("sha256:"):
         raise RuntimeError("Limusic release does not publish an AppImage SHA-256 digest")
-    
+
     appimage = pathlib.Path(appimage_path)
     icon = pathlib.Path(icon_path)
     version = pathlib.Path(version_path)
-    
+
     def atomic_write(destination, data, mode):
         destination.parent.mkdir(parents=True, exist_ok=True)
         fd, temporary = tempfile.mkstemp(dir=destination.parent)
@@ -154,7 +155,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
         finally:
             if os.path.exists(temporary):
                 os.unlink(temporary)
-    
+
     appimage.parent.mkdir(parents=True, exist_ok=True)
     fd, temporary = tempfile.mkstemp(dir=appimage.parent)
     try:
@@ -179,7 +180,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
-    
+
     icon_url = (
         f"https://raw.githubusercontent.com/SimoHypers/limusic/{tag}/"
         "src-tauri/icons/icon.png"
@@ -211,7 +212,7 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
                     host.get_fact(Command, installed_state_command)
                 ).strip() != latest_tag,
             )
-    
+
         desktop_exec = (
             '"'
             + appimage.replace("\\", "\\\\").replace('"', '\\"')
