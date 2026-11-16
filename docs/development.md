@@ -156,3 +156,10 @@ Some hooks modify files automatically. Review the resulting diff after running t
 See [CONTRIBUTING.md](https://github.com/gpkvt/pyinfra/blob/main/CONTRIBUTING.md) for repository contribution guidance.
 
 The tmux task schedules plugin installation and updates as pyinfra operations after the `tmux-plugin-manager` package operation. It verifies both plugin-manager scripts at execution time and only runs plugin management when the package or tmux configuration changes. This avoids invoking commands during deployment preparation, before queued package installation has executed, and avoids reporting changes on an unchanged second deployment.
+
+
+## Releases
+
+This repository publishes GitHub Releases from semantic-version tags; it is
+not packaged for PyPI. Follow the [release guide](releasing.md) to prepare the
+changelog, tag a release commit and publish the generated release notes.
