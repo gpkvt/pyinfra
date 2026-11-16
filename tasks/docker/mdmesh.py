@@ -237,10 +237,16 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
         state = command_output_text(
             host.get_fact(Command, database_state_check, _sudo=False)
         ).strip()
-        # Let the bounded bootstrap wait handle a database whose schema is
-        # not ready yet. It will fail clearly for inconsistent/unavailable
-        # states rather than attempting to overwrite existing data.
-        return state != "seeded"
+        # Only a confirmed fresh database may enter the initialization
+        # operation. Existing or inconsistent databases are left untouched;
+        # unknown states fail closed rather than being treated as fresh.
+        if state == "fresh":
+            return True
+        if state in {"seeded", "inconsistent"}:
+            return False
+        raise RuntimeError(
+            f"Unable to determine MDMesh database state: {state!r}"
+        )
 
     server.shell(
         name="Initialize MDMesh database and enrollment defaults",
