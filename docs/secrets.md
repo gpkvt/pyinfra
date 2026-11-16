@@ -1,5 +1,18 @@
 # Secrets management
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">KEEP CREDENTIALS OUT OF GIT</span>
+    <p class="page-lead">Store passwords, API tokens and private keys in an encrypted secrets file, and manage it through the gpg-vault workflow.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>GPG</strong><span>Encrypted at rest</span></div>
+  <div class="page-intro-item"><strong>gpg-vault</strong><span>Create and edit safely</span></div>
+  <div class="page-intro-item"><strong>Runtime</strong><span>Decrypted only for deployment</span></div>
+  </div>
+</div>
+
+
 The project stores sensitive values in a JSON document encrypted with GPG. Ordinary host configuration belongs in `group_data/`; credentials and private keys belong in the encrypted secrets document.
 
 ## Files
