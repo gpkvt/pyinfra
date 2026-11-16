@@ -1,5 +1,8 @@
+---
 site_name: pyinfra
-site_description: Configuration-driven Linux infrastructure and workstation automation for Debian and Ubuntu.
+site_description: >-
+  Configuration-driven Linux infrastructure and workstation automation for
+  Debian and Ubuntu.
 site_url: https://gpkvt.github.io/pyinfra/
 repo_url: https://github.com/gpkvt/pyinfra
 repo_name: gpkvt/pyinfra
