@@ -24,3 +24,4 @@ def test_pages_workflow_does_not_publish_pull_request_builds():
 
     assert "if: github.event_name != 'pull_request'" in workflow
     assert "contents: write" in workflow
+    assert "workflow_dispatch:" in workflow
