@@ -25,13 +25,18 @@ jobs:
     name: Publish GitHub release
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Validate version tag
         env:
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          version_pattern='^v[0-9]+\.[0-9]+\.[0-9]+'
+          version_pattern='^v[0-9]+\\.[0-9]+\\.[0-9]+'
           version_pattern+='(-[0-9A-Za-z.-]+)?'
-          version_pattern+='(\+[0-9A-Za-z.-]+)?'
+          version_pattern+='(\\+[0-9A-Za-z.-]+)?'
           version_pattern+='$'
           if [[ ! "$RELEASE_TAG" =~ $version_pattern ]]; then
             echo "Invalid release tag: $RELEASE_TAG" >&2
@@ -44,7 +49,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          gh release create "$RELEASE_TAG" \
-            --verify-tag \
-            --generate-notes \
+          gh release create "$RELEASE_TAG" \\
+            --verify-tag \\
+            --generate-notes \\
             --title "$RELEASE_TAG"
