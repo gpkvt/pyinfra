@@ -6,6 +6,18 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_release_workflow_checks_out_repository_before_publishing():
+    """Release notes generation has a local Git repository and complete history."""
+    workflow = (ROOT / ".github/workflows/release.yml").read_text()
+
+    checkout = workflow.index("uses: actions/checkout@v4")
+    validation = workflow.index("Validate version tag")
+    release = workflow.index("Create GitHub release")
+
+    assert checkout < validation < release
+    assert "fetch-depth: 0" in workflow
+
+
 def test_release_workflow_uses_version_tags_and_publishes_github_releases():
     """Only version tags trigger releases, using the least required permission."""
     workflow = (ROOT / ".github/workflows/release.yml").read_text()
