@@ -10,25 +10,25 @@
 </div>
 
 <div class="task-hub-grid">
-  <a href="../tasks/#core-tasks">
+  <a href="tasks.md#core-tasks">
     <span class="task-hub-index">01 / ALWAYS INCLUDED</span>
     <strong>Core system tasks</strong>
     <p>APT, hosts, sudo, system settings, SSH keys, Git, fonts, scripts and Midnight Commander.</p>
     <b>Explore core tasks ↗</b>
   </a>
-  <a href="../tasks/#optional-tasks">
+  <a href="tasks.md#optional-tasks">
     <span class="task-hub-index">02 / FEATURE GATED</span>
     <strong>Optional features</strong>
     <p>WireGuard, VPN, Syncthing, firewall, Docker, AppArmor, Flatpak, Proton and more.</p>
     <b>Explore optional tasks ↗</b>
   </a>
-  <a href="../tasks/#workstation-role-tasks">
+  <a href="tasks.md#workstation-role-tasks">
     <span class="task-hub-index">03 / WORKSTATION ROLE</span>
     <strong>Desktop &amp; hardware</strong>
     <p>Power, backup, firmware, storage, peripherals, desktop integration and COSMIC.</p>
     <b>Explore workstation tasks ↗</b>
   </a>
-  <a href="../tasks/#docker-services">
+  <a href="tasks.md#docker-services">
     <span class="task-hub-index">04 / CONTAINER STACKS</span>
     <strong>Docker services</strong>
     <p>Compose projects, persistent bind-mounted data, systemd lifecycle and service-specific settings.</p>
