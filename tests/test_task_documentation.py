@@ -14,10 +14,10 @@ def test_task_hub_highlights_all_major_task_categories():
     assert "Optional features" in page
     assert "Desktop &amp; hardware" in page
     assert "Docker services" in page
-    assert "task-reference/#core-tasks" in page
-    assert "task-reference/#optional-tasks" in page
-    assert "task-reference/#workstation-role-tasks" in page
-    assert "task-reference/#docker-services" in page
+    assert "tasks.md#core-tasks" in page
+    assert "tasks.md#optional-tasks" in page
+    assert "tasks.md#workstation-role-tasks" in page
+    assert "tasks.md#docker-services" in page
 
 
 def test_task_hub_styles_are_registered():
