@@ -41,6 +41,7 @@ if config.get("enabled", False):
     desktop_file = f"{applications_dir}/limusic.desktop"
 
     release_lookup_script = """
+import base64
 import json
 import sys
 import urllib.error
