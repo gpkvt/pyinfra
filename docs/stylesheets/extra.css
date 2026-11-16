@@ -133,7 +133,7 @@ code, pre, .mono { font-family: "DM Mono", ui-monospace, monospace; }
 .code-comment { color: #748195; }
 .code-panel-foot { margin: 0; padding: 0 23px 19px; }
 
-.install-section { display: grid; grid-template-columns: .95fr 1.05fr; align-items: center; gap: 55px; margin: 95px 0 35px; padding: 42px; border: 1px solid #8be0c433; border-radius: 27px; background: linear-gradient(130deg, #172c2a, #172130 65%, #211e31); }
+.landing section.install-section { display: grid; grid-template-columns: .95fr 1.05fr; align-items: center; gap: 55px; margin: 95px 0 35px; padding: 42px; border: 1px solid #8be0c433; border-radius: 27px; background: linear-gradient(130deg, #172c2a, #172130 65%, #211e31); }
 .install-copy h2 { font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.08; }
 .install-copy p { font-size: .85rem; }
 .install-copy .action { margin-top: 12px; }
@@ -163,7 +163,7 @@ code, pre, .mono { font-family: "DM Mono", ui-monospace, monospace; }
   .workflow { grid-template-columns: 1fr 1fr; }
   .workflow-connector { display: none; }
   .code-showcase, .install-section { grid-template-columns: 1fr; }
-  .install-section { gap: 28px; }
+  .landing section.install-section { gap: 28px; padding: 23px; }
 }
 @media (max-width: 650px) {
   .md-content__inner { padding-right: 18px; padding-left: 18px; }
@@ -184,7 +184,7 @@ code, pre, .mono { font-family: "DM Mono", ui-monospace, monospace; }
   .workflow-step { min-height: 0; }
   .workflow-symbol { margin: 8px 0; }
   .code-showcase { gap: 28px; margin-top: 48px; }
-  .install-section { margin-top: 65px; padding: 23px; border-radius: 20px; }
+  .landing section.install-section { margin-top: 65px; padding: 23px; border-radius: 20px; }
   .install-terminal pre { overflow-wrap: anywhere; white-space: pre-wrap; }
   .docs-grid { grid-template-columns: 1fr; }
   .final-cta { padding: 70px 0; }
