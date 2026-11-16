@@ -94,7 +94,7 @@ workstation = {
             #
 #                 ],
             #
-            },
+#             },
         },
         "dock": {
             "enabled": False,  # Configures the COSMIC dock.
@@ -119,7 +119,7 @@ workstation = {
 #                 ],
             #     "right": [],  # Applets placed on the dock's right.
             #
-            },
+#             },
         },
 
         # Optional directory synchronization; omitted entries are not managed.
