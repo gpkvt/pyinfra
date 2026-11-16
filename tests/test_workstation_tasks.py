@@ -200,3 +200,18 @@ def test_limusic_skips_appimage_download_when_release_is_current(pyinfra_task_ha
         and kwargs["name"] == "Create Limusic COSMIC desktop launcher"
         for namespace, name, kwargs in pyinfra_task_harness.calls
     )
+
+def test_limusic_skips_operations_when_github_api_is_rate_limited(
+    pyinfra_task_harness,
+):
+    pyinfra_task_harness.host.get_fact = lambda *_args, **_kwargs: ""
+
+    pyinfra_task_harness.load("workstation/limusic.py", {
+        "username": "tester",
+        "usergroup": "tester",
+        "homedir": "/home/tester",
+        "workstation": {"limusic": {"enabled": True}},
+    })
+
+    assert pyinfra_task_harness.calls == []
+
