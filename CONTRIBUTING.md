@@ -340,25 +340,12 @@ Keep pull requests focused and reasonably small to make reviewing easier.
 
 ## Reporting Issues
 
-Bug reports and feature requests are welcome.
+Bug reports and feature requests are welcome. Please select the appropriate form in the [GitHub issue tracker](https://github.com/gpkvt/pyinfra/issues/new/choose):
 
-Please use the GitHub issue tracker:
+- **Bug report:** Include reproduction steps, expected and actual behavior, relevant redacted logs, Python and pyinfra versions, and operating system details.
+- **Feature request:** Explain the problem or use case, the proposed behavior, and any relevant configuration examples.
 
-<https://github.com/gpkvt/pyinfra/issues>
-
-When reporting a bug, include as much relevant information as possible:
-
-- A clear description of the problem.
-- Steps to reproduce it.
-- Expected and actual behavior.
-- Relevant error messages or logs, with sensitive information removed.
-- Relevant configuration details, with credentials and private data redacted.
-- Python and pyinfra versions.
-- Operating system and distribution information.
-
-For feature requests, describe the intended use case and explain how the proposed functionality would fit into the existing configuration-driven architecture.
-
-Do not publish exploitable security vulnerabilities or sensitive infrastructure details in public issues. Contact the repository maintainer privately instead.
+The issue tracker also provides a private security advisory link. Do not publish exploitable security vulnerabilities, credentials, private keys, tokens, or sensitive infrastructure details in public issues.
 
 ## License
 
