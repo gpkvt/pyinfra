@@ -233,8 +233,8 @@ def test_mdmesh_is_skipped_without_a_configured_domain(pyinfra_task_harness):
     [
         ("fresh", True),
         ("seeded", False),
-        ("inconsistent", True),
-        ("unavailable", True),
+        ("inconsistent", False),
+        ("unavailable", False),
     ],
 )
 def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(
