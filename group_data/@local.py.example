@@ -32,12 +32,12 @@ local_network_cidr = ""  # Local IPv4 CIDR used by the VPN task to detect LAN pr
 # /etc/hosts mappings: each IP maps to a list of hostnames; [] removes that IP entry.
 hostnames = {
     # "127.0.0.1": [
-        "localhost"
-    ],
+#         "localhost"
+#     ],
     # "192.0.2.10": [
-        "host.example",
-        "host"
-    ],
+#         "host.example",
+#         "host"
+#     ],
 }
 wireguard_interface = None  # Interface used by wg-quick, e.g. "home"; None disables VPN startup.
 wireguard_enabled = True  # Master gate for deploying configured WireGuard interfaces.
@@ -48,23 +48,23 @@ wireguard_config = {}  # WireGuard interfaces keyed by name; private/peer keys b
 #     "home": {
 #         "interface": {
 #             "Address": [
-                "10.10.0.2/32"
-            ],  # Tunnel address assigned to this host.
+#                 "10.10.0.2/32"
+#             ],  # Tunnel address assigned to this host.
 #             "DNS": "10.10.0.1",  # DNS resolver used while this interface is active.
 #             "MTU": 1420,  # Optional interface MTU.
 #
-        },
+#         },
 #
-    },
+#     },
 #
 }
 # secrets.json.gpg must contain hosts[
-    "@local"
-][
-    "wireguard"
-][
-    "home"
-] with:
+#     "@local"
+# ][
+#     "wireguard"
+# ][
+#     "home"
+# ] with:
 # privatekey (interface private key) and peers (list of peer dictionaries containing PublicKey,
 # AllowedIPs, and optional PresharedKey, Endpoint and PersistentKeepalive).
 
@@ -107,35 +107,35 @@ apt_sources = {}  # Third-party APT repositories; signing keys must use .gpg, .a
 #             "path": "/etc/apt/keyrings/example.asc",  # Absolute keyring destination; extension must match key format.
 #             # "keyid": "0123456789ABCDEF",  # Optional key fingerprint/key ID for verification.
 #
-        },
+#         },
 #         "repository": {
 #             "url": "https://packages.example.org/debian",  # APT repository base URL.
 #             "distribution": "stable",  # Distribution or suite name.
 #             "components": [
-                "main"
-            ],  # Repository components; may be empty for repositories without components.
+#                 "main"
+#             ],  # Repository components; may be empty for repositories without components.
 #             "architectures": [
-                "amd64"
-            ],  # Optional architecture filter; omit to use APT defaults.
+#                 "amd64"
+#             ],  # Optional architecture filter; omit to use APT defaults.
 #             "types": [
-                "deb"
-            ],  # APT source types, normally [
-                "deb"
-            ] or [
-                "deb",
-                "deb-src"
-            ].
+#                 "deb"
+#             ],  # APT source types, normally [
+#                 "deb"
+#             ] or [
+#                 "deb",
+#                 "deb-src"
+#             ].
 #
-        },
+#         },
 #
     },
 #
 }
 flatpak_packages = []  # Flatpak application IDs installed for the configured user from Flathub when possible.
-sysctl = {}  # Kernel sysctl settings, e.g. {
-    "net.ipv4.ip_forward": 1
-}.
-udev = {}  # udev rules keyed by rule filename, with rule contents as values.
+# sysctl = {}  # Kernel sysctl settings, e.g. {
+#     "net.ipv4.ip_forward": 1
+# }.
+# udev = {}  # udev rules keyed by rule filename, with rule contents as values.
 usbguard = {  # USBGuard daemon configuration; disabled unless explicitly enabled.
     "enabled": False,  # Installs/enables USBGuard when True.
     "rules": [],  # USBGuard policy rules; review carefully to avoid locking out devices.
@@ -146,25 +146,25 @@ apparmor_profiles = []  # AppArmor profile paths/names to load and enforce.
 # SSH configuration. Private-key passphrases are read from encrypted secrets.
 ssh_keys = []  # SSH keypairs to generate; existing private keys are never overwritten.
 # Example: {
-    "name": "id_ed25519",
-    "type": "ed25519",
-    "comment": "user@host"
-}.
+#     "name": "id_ed25519",
+#     "type": "ed25519",
+#     "comment": "user@host"
+# }.
 # RSA entries may also set "bits" (minimum 3072); passphrases belong in secrets.json.gpg.
-ssh_authorized_keys = {}  # Authorized keys keyed by target user, e.g. {
-    "YOUR_USERNAME": [
-        "ssh-ed25519 AAAA..."
-    ]
-}.
+# ssh_authorized_keys = {}  # Authorized keys keyed by target user, e.g. {
+#     "YOUR_USERNAME": [
+#         "ssh-ed25519 AAAA..."
+#     ]
+# }.
 # Example: {
-    "YOUR_USERNAME": [
-        "ssh-ed25519 AAAAC3... workstation"
-    ]
-}; keys are reconciled exactly.
-ssh_authorized_keys_enabled = True  # Set False to skip authorized_keys management entirely.
-ssh_config = {}  # SSH client Host entries: {
-    "git.example.com": "    User git\\n    IdentityFile ~/.ssh/id_ed25519"
-}.
+#     "YOUR_USERNAME": [
+#         "ssh-ed25519 AAAAC3... workstation"
+#     ]
+# }; keys are reconciled exactly.
+# ssh_authorized_keys_enabled = True  # Set False to skip authorized_keys management entirely.
+# ssh_config = {}  # SSH client Host entries: {
+#     "git.example.com": "    User git\\n    IdentityFile ~/.ssh/id_ed25519"
+# }.
 
 # Optional desktop applications and browser customization.
 vscodium = {  # VSCodium extension configuration.
@@ -182,11 +182,11 @@ proton = {  # Proton application configuration; defining this mapping enables th
 }
 mullvad_extensions = {}  # Browser extensions keyed by name; each entry requires an add-on id and HTTPS XPI URL.
 # Example: {
-    "uBlock Origin": {
-        "id": "uBlock0@raymondhill.net",
-        "url": "https://addons.mozilla.org/...xpi"
-    }
-}.
+#     "uBlock Origin": {
+#         "id": "uBlock0@raymondhill.net",
+#         "url": "https://addons.mozilla.org/...xpi"
+#     }
+# }.
 mullvad_browser_dir = None  # Optional Mullvad Browser profile directory; None uses task defaults.
 
 # Docker services. Keep this empty to deploy no application containers.
@@ -205,12 +205,12 @@ docker = {
     #     "port": 8030,  # Local web-edge port; Caddy terminates HTTPS.
     #     "admin_email": "admin@example.com",  # Initial administrator email.
     #     "trusted_proxies": [
-            "127.0.0.1/32",
-            "::1/128"
-        ],  # Actual reverse-proxy source CIDRs.
+#             "127.0.0.1/32",
+#             "::1/128"
+#         ],  # Actual reverse-proxy source CIDRs.
     #     "sablier": {
-            "enabled": False
-        },  # Keep the always-available MDM endpoint running.
+#             "enabled": False
+#         },  # Keep the always-available MDM endpoint running.
     #
     },
     # "forgejo": {  # Self-hosted Git service; secrets are not stored here.
@@ -254,8 +254,8 @@ docker = {
     #     "domain": "appflowy.example.com",  # Public application hostname.
     #     "admin_email": "admin@example.com",  # Initial administrator email.
     #     "app_services": [
-            "nginx"
-        ],  # Compose services to start for this deployment.
+#             "nginx"
+#         ],  # Compose services to start for this deployment.
     #
     },
     # "snipe-it": {  # IT asset management; database/app secrets belong in secrets.
@@ -316,8 +316,8 @@ docker = {
     #     "port": 8030,  # Local MDMesh web edge port; only bound to 127.0.0.1.
     #     "admin_email": "admin@example.com",  # Initial administrator account email.
     #     # "trusted_proxies": [
-            "172.16.0.0/12"
-        ],  # Optional trusted proxy CIDRs forwarded to the MDMesh web edge.
+#             "172.16.0.0/12"
+#         ],  # Optional trusted proxy CIDRs forwarded to the MDMesh web edge.
     #
     },
 }
@@ -346,26 +346,26 @@ vscodium_enabled = True  # Master gate for installing configured VSCodium extens
 # Reverse proxy, certificates and background services.
 caddy_config = {}  # Caddy sites keyed by hostname; each value is a mapping of Caddy directives.
 # Example: {
-    "example.com": {
-        "encode": "gzip",
-        "reverse_proxy": "127.0.0.1:8080"
-    }
-}.
+#     "example.com": {
+#         "encode": "gzip",
+#         "reverse_proxy": "127.0.0.1:8080"
+#     }
+# }.
 # Add only sites not already generated from configured Docker services.
 dehydrated_auto_domains = True  # Set False to disable automatic certificate discovery from hostnames.
 dehydrated_zones = []  # Explicit DNS-zone allowlist; only names within these zones are auto-enrolled.
 dehydrated_blacklist = []  # Exclude individual hostnames or all names assigned to an IP address.
 dehydrated_wildcards = []  # Explicit wildcard certificates, e.g. [
-    [
-        "example.com",
-        "*.example.com"
-    ]
-]; each item is one certificate.
+#     [
+#         "example.com",
+#         "*.example.com"
+#     ]
+# ]; each item is one certificate.
 cron_jobs = []  # Named cron jobs; each needs name, command and at least one schedule field.
 syncthing = {}  # Syncthing settings; an empty mapping keeps the GUI on its safe loopback default.
 # Example: {
-    "gui_address": "127.0.0.1:8384"
-}; avoid exposing the GUI without authentication.
+#     "gui_address": "127.0.0.1:8384"
+# }; avoid exposing the GUI without authentication.
 
 # Firewall is deliberately disabled in this example.
 ufw = {}  # UFW rules; only populate after verifying remote access and SSH allowances.
@@ -374,10 +374,10 @@ ufw = {}  # UFW rules; only populate after verifying remote access and SSH allow
 "localsend",
 "chromecast-dlna".
 # Example: {
-    "ssh": "Allow",
-    "localsend": "Allow"
-}; values may be "Allow" or "Deny".
+#     "ssh": "Allow",
+#     "localsend": "Allow"
+# }; values may be "Allow" or "Deny".
 # Custom rules may use {
-    "action": "Allow",
-    "rule": "443/tcp"
-} after careful review.
+#     "action": "Allow",
+#     "rule": "443/tcp"
+# } after careful review.
