@@ -1,6 +1,65 @@
 # Task reference
 
-`deploy.py` is the authoritative task orchestrator. It always includes the core modules and includes optional modules only when their gate is truthy. This page summarizes each module; inspect the implementation and its templates for the definitive behavior and accepted data shape.
+Run a consistent infrastructure workflow from one inventory: pyinfra's task modules turn host and group data into repeatable system configuration. Core tasks establish the baseline, optional tasks add services only when enabled, and workstation roles keep desktop-specific tooling separate.
+
+<div class="docker-stats tasks-stats">
+<div class="docker-stat"><span class="docker-stat-value">Core</span><span class="docker-stat-label">baseline on every full deployment</span></div>
+<div class="docker-stat"><span class="docker-stat-value">Opt-in</span><span class="docker-stat-label">optional features behind data gates</span></div>
+<div class="docker-stat"><span class="docker-stat-value">Per host</span><span class="docker-stat-label">host and group configuration</span></div>
+<div class="docker-stat"><span class="docker-stat-value">Repeatable</span><span class="docker-stat-label">change-aware deployment operations</span></div>
+</div>
+
+## Task groups
+
+<div class="docker-info-grid tasks-groups">
+<div class="docker-info-card">
+<strong>Core baseline</strong>
+<p>Packages, system settings, users' SSH and Git configuration, scripts, fonts and other essentials included in every full deployment.</p>
+</div>
+<div class="docker-info-card">
+<strong>Optional features</strong>
+<p>WireGuard, VPN activation, firewall rules, Docker services, Syncthing, Proton apps, browser extensions and other capabilities enabled through host data.</p>
+</div>
+<div class="docker-info-card">
+<strong>Workstation role</strong>
+<p>Explicitly enabled desktop and hardware features such as power management, firmware tools, storage utilities, peripherals and COSMIC settings.</p>
+</div>
+<div class="docker-info-card">
+<strong>Focused task runs</strong>
+<p>Run an individual task module for diagnosis or targeted work, while keeping the full deployment entry point for normal provisioning.</p>
+</div>
+</div>
+
+## How tasks are applied
+
+<div class="docker-flow tasks-flow">
+<div><b>01 · Inventory</b><p>Inventory membership and host/group data define the target machines and their desired configuration.</p></div>
+<div><b>02 · Gate</b><p><code>deploy.py</code> always includes core modules and evaluates feature flags before loading optional modules.</p></div>
+<div><b>03 · Configure</b><p>Task modules use pyinfra operations and templates to install packages and manage system or user configuration.</p></div>
+<div><b>04 · Reconcile</b><p>Change-aware operations avoid unnecessary restarts and updates; rerunning deployment converges toward the same state.</p></div>
+</div>
+
+## Configuration model
+
+Feature selection belongs in host or group data, not in edits to the task modules. Optional task gates are evaluated by `deploy.py`; workstation features additionally require their nested `enabled: True` setting.
+
+```python
+# Example host/group data
+wireguard_config = {...}  # enables WireGuard configuration
+syncthing = True          # enables Syncthing
+workstation = {
+    "power": {
+        "enabled": True,
+        "manager": "tlp",
+    },
+}
+```
+
+Keep credentials and other sensitive values in the encrypted secrets file. Review each feature's configuration and operational notes before enabling it, especially for network access, firewall policy, VPN routing and privileged containers.
+
+## Task reference
+
+The sections below describe the task modules, their inclusion conditions and the configuration keys they consume. Treat the implementation and templates as authoritative when checking accepted values or exact behavior.
 
 ## Core tasks
 
