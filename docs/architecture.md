@@ -1,5 +1,18 @@
 # Architecture
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">HOW THE PROJECT FITS TOGETHER</span>
+    <p class="page-lead">Understand how inventory, host data, deployment logic and task modules work together to produce repeatable infrastructure changes.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>Inventory</strong><span>Where pyinfra connects</span></div>
+  <div class="page-intro-item"><strong>Host data</strong><span>What each machine needs</span></div>
+  <div class="page-intro-item"><strong>Tasks</strong><span>How changes are applied</span></div>
+  </div>
+</div>
+
+
 This project uses [pyinfra](https://pyinfra.com/) to turn Python host data into repeatable infrastructure operations. Its main separation is between **where to connect**, **what a host should look like**, and **how to implement each change**.
 
 ## Repository layers
