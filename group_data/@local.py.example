@@ -57,7 +57,7 @@ wireguard_config = {}  # WireGuard interfaces keyed by name; private/peer keys b
 #
 #     },
 #
-}
+# }
 # secrets.json.gpg must contain hosts[
 #     "@local"
 # ][
