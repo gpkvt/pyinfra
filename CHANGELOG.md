@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented in this file.
 
-This project follows a continuous development model. Changes are tracked using date-based entries until formal releases are introduced.
+Changes are tracked in date-based entries in this changelog and published as GitHub Releases from semantic-version tags. See [Releasing](docs/releasing.md).
 
 ## [14.11.2026]
 
