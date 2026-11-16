@@ -66,13 +66,17 @@ except (urllib.error.HTTPError, urllib.error.URLError, KeyError, ValueError) as 
 
     # GitHub's unauthenticated API is rate-limited. If metadata is unavailable,
     # leave the existing installation untouched and retry on the next deploy.
-    try:
-        release = json.loads(base64.b64decode(release_data)) if release_data else None
-    except (ValueError, TypeError):
-        # Ignore malformed or unexpected fact output just like an unavailable API.
-        release = None
+    release = None
+    if release_data:
+        try:
+            decoded_release = json.loads(base64.b64decode(release_data))
+        except (ValueError, TypeError):
+            # Ignore malformed or unexpected fact output just like an unavailable API.
+            decoded_release = None
+        if isinstance(decoded_release, dict):
+            release = decoded_release
 
-    if release:
+    if release is not None:
         latest_tag = release["tag_name"]
         installed_state_command = (
             f"if [ -x {shlex.quote(appimage)} ] && "
