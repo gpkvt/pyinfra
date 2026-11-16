@@ -60,11 +60,11 @@
       <p>Packages, repositories, users, SSH, networking, firewall rules and system services.</p>
       <span class="card-link">Explore system tasks ↗</span>
     </a>
-    <a class="feature-card" href="tasks/">
+    <a class="feature-card" href="docker/">
       <div class="feature-icon blue">▦</div>
-      <h3>Application services</h3>
-      <p>Deploy Docker Compose applications with persistent host directories and systemd integration.</p>
-      <span class="card-link">Browse task reference ↗</span>
+      <h3>Docker services</h3>
+      <p>Explore container stacks, ports, persistent storage, reverse proxies and on-demand startup.</p>
+      <span class="card-link">Explore Docker deployments ↗</span>
     </a>
     <a class="feature-card" href="configuration/">
       <div class="feature-icon violet">◈</div>
