@@ -1,5 +1,18 @@
 # Templates and static assets
 
+<div class="page-intro" markdown>
+  <div class="page-intro-copy">
+    <span class="page-eyebrow">GENERATE CONFIGURATION CONSISTENTLY</span>
+    <p class="page-lead">Use Jinja2 templates to render host-aware configuration files while keeping reusable content separate from task execution.</p>
+  </div>
+  <div class="page-intro-grid">
+  <div class="page-intro-item"><strong>Jinja2</strong><span>Render dynamic values</span></div>
+  <div class="page-intro-item"><strong>Host data</strong><span>Supply per-machine settings</span></div>
+  <div class="page-intro-item"><strong>Tasks</strong><span>Deploy only changed output</span></div>
+  </div>
+</div>
+
+
 Task modules use two asset types:
 
 - **Templates** in `templates/` are rendered with host-specific values or secrets.
