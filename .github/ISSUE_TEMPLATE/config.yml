@@ -4,4 +4,5 @@ contact_links:
   - name: Report a security vulnerability
     url: https://github.com/gpkvt/pyinfra/security/advisories/new
     about: >-
-      Report security vulnerabilities privately instead of opening a public issue.
+      Report security vulnerabilities privately instead of opening
+      a public issue.

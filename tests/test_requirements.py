@@ -16,3 +16,15 @@ def test_cyclopts_pin_matches_pyinfra_dependency_range():
     )
 
     assert cyclopts == "cyclopts==4.25.3"
+
+
+def test_python_dateutil_pin_matches_pyinfra_dependency_range():
+    """Keep python-dateutil below 3 as required by pyinfra."""
+    requirements = (ROOT / "requirements.txt").read_text().splitlines()
+
+    dateutil = next(
+        requirement for requirement in requirements
+        if requirement.startswith("python-dateutil==")
+    )
+
+    assert dateutil == "python-dateutil==2.9.0.post0"
