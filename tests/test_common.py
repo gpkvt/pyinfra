@@ -52,6 +52,8 @@ def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
         data={"homedir": "/home/tester"},
     )
 
+    monkeypatch.setattr(common.shutil, "which", lambda _command: None)
+
     common.initialize(host, check_flatpak=True)
 
     assert builtins.secrets == {}
@@ -73,7 +75,7 @@ def test_initialize_decrypts_and_selects_host_secrets(monkeypatch):
     host = types.SimpleNamespace(
         name="test-host",
         get_fact=lambda *_args, **_kwargs: True,
-        data={},
+        data={"hostname": "test-host"},
     )
     monkeypatch.setattr(
         subprocess,
