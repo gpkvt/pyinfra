@@ -112,16 +112,14 @@ def test_flatpak_install_resolves_ids_from_string_command_output(
     host = pyinfra_task_harness.host
 
     def get_fact(fact, *args, **kwargs):
-        if getattr(fact, "__name__", "") == "FlatpakRemotes":
-            return ["flathub"]
+        if getattr(fact, "__name__", "") == "FlatpakRemoteApplications":
+            return {"flathub": {"app.go2tv.go2tv", "org.example.Available"}}
         if getattr(fact, "__name__", "") == "FlatpakUpdates":
             return []
         if getattr(fact, "__name__", "") == "Command":
             command = kwargs.get("command", args[0] if args else "")
             if command.startswith("flatpak list --user"):
                 return "org.example.AlreadyInstalled\n"
-            if command.startswith("flatpak remote-ls --user"):
-                return "app.go2tv.go2tv\norg.example.Available\n"
         return ""
 
     host.get_fact = get_fact
