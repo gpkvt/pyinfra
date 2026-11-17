@@ -329,7 +329,7 @@ caddy_versions = {  # Pinned versions used to build the custom Caddy image.
     "dehydrated": "0.7.2",  # Dehydrated release downloaded into the image.
 }
 docker_sablier = {  # Enables on-demand Docker container startup via Sablier.
-    "enabled": False,
+    "enabled": False,  # Enable the Sablier server and on-demand service startup.
     "version": "1.20.0",  # Sablier server image version.  # Sablier and the Docker battery monitor are mutually exclusive.
     "default_duration": "15m",  # Default container session duration (e.g. 15m or 1h).
     "provider_strategy": "pause",  # Idle Docker behaviour: "pause" retains RAM; "stop" frees it.
