@@ -86,7 +86,7 @@ def test_deployment_defaults_to_dry_run_and_uses_argument_list(monkeypatch):
     result = manager.run_deployment("@local")
     assert result["dry_run"] is True
     assert "--dry" in captured["command"]
-    assert captured["shell"] if "shell" in captured else True
+    assert "shell" not in captured
     assert captured["cwd"] == manager.ROOT
 
 
