@@ -26,16 +26,15 @@ publishing step.
    creating an annotated tag and pushing it to `origin`. If pushing fails,
    the local tag is retained so you can inspect the remote state before retrying.
 
-4. The `.github/workflows/release.yml` workflow validates the pushed tag and
-   creates the GitHub Release with automatically generated notes.
+4. Create the GitHub Release manually from the pushed tag. Add release notes
+   from the corresponding `CHANGELOG.md` entry.
 5. Review the published release at
    [GitHub Releases](https://github.com/gpkvt/pyinfra/releases).
 
 Use `vMAJOR.MINOR.PATCH` tags. Pre-release and build metadata are accepted,
-for example `v1.1.0-rc.1` and `v1.1.0+build.2`. The workflow does not build
-or upload Python distribution artifacts. Merging a pull request does not
-publish a release; publishing starts only after a version tag is pushed (or
-the workflow is manually dispatched).
+for example `v1.1.0-rc.1` and `v1.1.0+build.2`. The release process does not build or upload Python distribution artifacts.
+Merging a pull request does not publish a release; create the tag and GitHub
+Release explicitly when the changes are ready.
 
 A tag is immutable release history: if a release needs correction, publish a
 new patch version rather than moving an existing tag.

@@ -1,4 +1,4 @@
-"""Regression tests for the GitHub Pages publishing workflow."""
+"""Regression tests for published documentation content."""
 
 from datetime import datetime
 import re
@@ -6,60 +6,6 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW = ROOT / ".github" / "workflows" / "pages.yml"
-
-
-def test_pages_workflow_builds_html_and_publishes_to_gh_pages():
-    """MkDocs output is built strictly and deployed from the generated site."""
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-
-    assert "run: mkdocs build --strict" in workflow
-    assert "uses: actions/upload-artifact@v6" in workflow
-    assert "name: documentation-site" in workflow
-    assert "uses: peaceiris/actions-gh-pages@v4" in workflow
-    assert "publish_branch: gh-pages" in workflow
-    assert "publish_dir: ./site" in workflow
-    assert "github_token: ${{ secrets.GITHUB_TOKEN }}" in workflow
-
-
-def test_pages_workflow_deletes_old_branch_after_build_before_publish():
-    """The old site is removed only after a successful build is ready."""
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-
-    build = workflow.index("run: mkdocs build --strict")
-    artifact = workflow.index("uses: actions/download-artifact@v6")
-    deletion = workflow.index("- name: Delete previous gh-pages branch")
-    publish = workflow.index("- name: Publish HTML to gh-pages")
-
-    assert build < artifact < deletion < publish
-    assert "git ls-remote --exit-code --heads origin gh-pages" in workflow
-    assert "git push origin --delete gh-pages" in workflow
-    assert 'elif [ "$status" -eq 2 ]; then' in workflow
-    assert "gh-pages does not exist; nothing to delete." in workflow
-    assert "Unable to inspect the gh-pages branch" in workflow
-    assert "force_orphan: true" in workflow
-
-
-def test_pages_workflow_does_not_publish_pull_request_builds():
-    """Pull requests validate the site without changing the published branch."""
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-
-    assert "if: github.event_name != 'pull_request'" in workflow
-    assert "permissions:\n  contents: read" in workflow
-    assert "    permissions:\n      contents: write" in workflow
-    assert "    needs: build" in workflow
-    assert "workflow_dispatch:" in workflow
-
-
-def test_pages_workflow_isolates_pull_request_concurrency_from_publication():
-    """PR validation cannot cancel a main-branch documentation deployment."""
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-
-    assert "  group: >-" in workflow
-    assert "github.event_name == 'pull_request'" in workflow
-    assert "format('pr-{0}', github.event.pull_request.number)" in workflow
-    assert "|| 'publish' }}" in workflow
-    assert "cancel-in-progress: true" in workflow
 
 
 def test_homepage_section_headings_are_markdown_inside_html():

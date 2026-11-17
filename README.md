@@ -1,6 +1,5 @@
 # pyinfra
 
-[![CI](https://img.shields.io/github/actions/workflow/status/gpkvt/pyinfra/idempotency.yml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/gpkvt/pyinfra/actions/workflows/idempotency.yml)
 [![License](https://img.shields.io/github/license/gpkvt/pyinfra?label=license)](LICENSE)
 [![Issues](https://img.shields.io/github/issues/gpkvt/pyinfra?logo=github)](https://github.com/gpkvt/pyinfra/issues)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -226,7 +225,7 @@ pre-commit run --all-files
 uv run pytest tests/ -v
 ```
 
-The pytest suite mocks pyinfra APIs; it does not deploy to or modify a real host. CI runs the regression suite for pushes and pull requests targeting `main`.
+The pytest suite mocks pyinfra APIs; it does not deploy to or modify a real host. Run the regression suite locally before submitting changes.
 
 Please keep task changes idempotent: a second run against an already-correct target should not report changes or repeat unnecessary work. Add or update tests and documentation alongside task behavior changes. See [Development](docs/development.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
