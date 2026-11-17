@@ -48,12 +48,11 @@ fn project_config_file() -> Option<PathBuf> {
     Some(base.join("pyinfra-manager").join("repository"))
 }
 fn remember_project(root: &std::path::Path) {
-    if let Some(file) = project_config_file() {
-        if let Some(parent) = file.parent() {
-            if std::fs::create_dir_all(parent).is_ok() {
-                let _ = std::fs::write(file, root.display().to_string());
-            }
-        }
+    if let Some(file) = project_config_file()
+        && let Some(parent) = file.parent()
+        && std::fs::create_dir_all(parent).is_ok()
+    {
+        let _ = std::fs::write(file, root.display().to_string());
     }
 }
 fn discover_project() -> Option<PathBuf> {
@@ -61,18 +60,18 @@ fn discover_project() -> Option<PathBuf> {
     if let Some(path) = std::env::var_os("PYINFRA_REPOSITORY") {
         candidates.push(PathBuf::from(path));
     }
-    if let Some(file) = project_config_file() {
-        if let Ok(path) = std::fs::read_to_string(file) {
-            candidates.push(PathBuf::from(path.trim()));
-        }
+    if let Some(file) = project_config_file()
+        && let Ok(path) = std::fs::read_to_string(file)
+    {
+        candidates.push(PathBuf::from(path.trim()));
     }
     if let Ok(path) = std::env::current_dir() {
         candidates.push(path);
     }
-    if let Ok(executable) = std::env::current_exe() {
-        if let Some(parent) = executable.parent() {
-            candidates.push(parent.to_path_buf());
-        }
+    if let Ok(executable) = std::env::current_exe()
+        && let Some(parent) = executable.parent()
+    {
+        candidates.push(parent.to_path_buf());
     }
     for candidate in candidates {
         for ancestor in candidate.ancestors() {
