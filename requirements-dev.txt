@@ -25,9 +25,8 @@ pygments==2.21.0
 pyinfra==3.11.1
 pynacl==1.6.2
 pytest==9.2.0
-python-dateutil==4.0.0
+python-dateutil==2.9.0.post0
 rich==15.0.0
-rich-rst==2.2.0
 six==1.17.0
 typeguard==4.6.0
 types-paramiko==5.1.0.20261030
