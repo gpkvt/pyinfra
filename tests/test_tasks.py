@@ -454,9 +454,15 @@ def test_flatpak_facts_ignore_blank_output_lines(pyinfra_task_harness):
     assert module.FlatpakUpdates().process(["app.one", "", " app.two "]) == [
         "app.one", " app.two ",
     ]
-    assert module.FlatpakRemotes().process(["flathub", "", "other"]) == [
-        "flathub", "other",
-    ]
+    assert module.FlatpakRemoteApplications().process([
+        "Ref Origin",
+        "",
+        "app/org.example.App/x86_64/stable flathub",
+        "runtime/org.example.Codecs/x86_64/stable other",
+    ]) == {
+        "flathub": {"org.example.App"},
+        "other": {"org.example.Codecs"},
+    }
 
 
 def test_flatpak_ref_ids_normalizes_application_and_runtime_refs(pyinfra_task_harness):
