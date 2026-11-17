@@ -19,18 +19,24 @@ def test_python_checks_use_supported_version_and_timeouts():
     assert "requirements-dev.txt" in workflow
 
 
-def test_python_dateutil_version_is_consistent_and_pyinfra_compatible():
-    """All dependency manifests pin the version supported by pyinfra."""
-    expected = "2.9.0.post0"
+def test_python_dependency_versions_are_consistent_and_pyinfra_compatible():
+    """All dependency manifests pin versions supported by pyinfra."""
     manifests = {
         "pyproject.toml": ROOT / "pyproject.toml",
         "requirements.txt": ROOT / "requirements.txt",
         "requirements-dev.txt": ROOT / "requirements-dev.txt",
     }
+    expected = {
+        "cyclopts": "4.25.3",
+        "python-dateutil": "2.9.0.post0",
+    }
 
     for name, path in manifests.items():
         content = path.read_text(encoding="utf-8")
-        assert f"python-dateutil=={expected}" in content, name
+        for package, version in expected.items():
+            assert f"{package}=={version}" in content, (
+                f"{name} must pin {package}=={version}"
+            )
 
 
 def test_cosmic_ci_checks_formatting_lints_and_all_targets():
