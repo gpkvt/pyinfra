@@ -289,3 +289,42 @@ code, pre, .mono { font-family: "DM Mono", ui-monospace, monospace; }
   .page-intro-item { flex-direction: row; align-items: baseline; justify-content: space-between; }
   .page-intro-item span { text-align: right; }
 }
+
+
+/* Homepage latest-changelog section. */
+.changelog-card {
+  padding: 26px 30px;
+  border: 1px solid var(--landing-line);
+  border-radius: 17px;
+  background: linear-gradient(135deg, #192b2a, #151d29);
+}
+.changelog-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.changelog-date {
+  color: var(--landing-mint);
+  font: 11px "DM Mono", monospace;
+}
+.changelog-label {
+  color: var(--landing-muted);
+  font: 9px "DM Mono", monospace;
+  letter-spacing: .12em;
+}
+.changelog-card ul {
+  padding-left: 20px;
+  color: var(--landing-muted);
+  font-size: .8rem;
+  line-height: 1.9;
+}
+.changelog-card li::marker { color: var(--landing-mint); }
+.changelog-card .text-link {
+  display: inline-block;
+  margin-top: 12px;
+}
+@media (max-width: 550px) {
+  .changelog-card { padding: 21px; }
+}
