@@ -55,6 +55,7 @@ nav:
   - Architecture: architecture.md
   - Configuration: configuration.md
   - Deployment: deployment.md
+  - Pyinfra Manager: pyinfra-manager.md
   - Docker: docker.md
   - Secrets: secrets.md
   - System: system.md
