@@ -313,5 +313,8 @@
   ],
   "tasks/workstation/cosmic/config.py:deploy_cosmic_values": [
     "test_cosmic_values_are_deployed_only_when_enabled"
+  ],
+  "tasks/flatpak.py:FlatpakRemoteApplications.process": [
+    "test_flatpak_remote_applications_groups_refs_in_one_query"
   ]
 }
