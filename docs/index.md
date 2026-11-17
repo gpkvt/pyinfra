@@ -171,6 +171,27 @@
   </div>
 </section>
 
+<section class="changelog-section" markdown>
+  <div class="section-head" markdown>
+    <div class="section-kicker" markdown>05 / PROJECT HISTORY</div>
+    ## What's new in pyinfra.
+    <p>A quick look at the latest improvements. The full history remains available in the changelog.</p>
+  </div>
+  <div class="changelog-card">
+    <div class="changelog-meta">
+      <span class="changelog-date">17 November 2026</span>
+      <span class="changelog-label">LATEST UPDATE</span>
+    </div>
+    <ul>
+      <li>Added a native COSMIC desktop manager for browsing tasks, editing settings, validating configuration and running deployments with dry-run as the default (<a href="https://github.com/gpkvt/pyinfra/pull/351">#351</a>).</li>
+      <li>Added configurable AdGuard Home web UI port handling under `docker.adguard_home.web_port`; reconcile only the listen address, preserve other settings and restart the service only when the address changes (<a href="https://github.com/gpkvt/pyinfra/pull/355">#355</a>, <a href="https://github.com/gpkvt/pyinfra/pull/356">#356</a>, <a href="https://github.com/gpkvt/pyinfra/pull/358">#358</a>).</li>
+      <li>Improved desktop-manager checkout discovery using environment, saved configuration, launch directory and executable parent directories, with validation and persistence of usable paths (<a href="https://github.com/gpkvt/pyinfra/pull/368">#368</a>).</li>
+      <li>Fixed deployment initialization by avoiding host-fact calls before pyinfra binds the host context; corrected local-host secret selection and CI shell command handling (<a href="https://github.com/gpkvt/pyinfra/pull/363">#363</a>).</li>
+    </ul>
+    <a class="text-link" href="changelog/">Explore the complete changelog ↗</a>
+  </div>
+</section>
+
 <div class="final-cta">
   <div class="eyebrow">PYINFRA · OPEN SOURCE</div>
   <h2>Make infrastructure<br><span>predictable.</span></h2>
