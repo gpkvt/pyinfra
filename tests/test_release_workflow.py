@@ -69,7 +69,7 @@ def test_release_helper_checks_release_preconditions_and_remote_tag():
     assert 'Create and push this release tag?' in script
     assert 'git tag -a' in script
     assert 'git push origin' in script
-    assert 'the local tag was retained' in script
+    assert 'the local tag was retained' in script.lower()
 
 
 def test_release_documentation_uses_the_helper_and_describes_workflow():
