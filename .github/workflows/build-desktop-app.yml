@@ -1,3 +1,4 @@
+---
 name: Build COSMIC Desktop App
 
 'on':
@@ -51,13 +52,22 @@ jobs:
           workspaces: apps/pyinfra-manager
 
       - name: Check formatting
-        run: cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml --all -- --check
+        run: |
+          cargo fmt \
+            --manifest-path apps/pyinfra-manager/Cargo.toml \
+            --all -- --check
 
       - name: Run Clippy
-        run: cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets -- -D warnings
+        run: |
+          cargo clippy \
+            --manifest-path apps/pyinfra-manager/Cargo.toml \
+            --all-targets -- -D warnings
 
       - name: Build release executable
-        run: cargo build --manifest-path apps/pyinfra-manager/Cargo.toml --release
+        run: |
+          cargo build \
+            --manifest-path apps/pyinfra-manager/Cargo.toml \
+            --release
 
       - name: Package application
         run: |
