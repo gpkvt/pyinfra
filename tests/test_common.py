@@ -52,6 +52,8 @@ def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
         data={"homedir": "/home/tester"},
     )
 
+    monkeypatch.setattr(common.shutil, "which", lambda _command: None)
+
     common.initialize(host, check_flatpak=True)
 
     assert builtins.secrets == {}
@@ -62,6 +64,7 @@ def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
 def test_initialize_decrypts_and_selects_host_secrets(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_with_secrets")
+    monkeypatch.setattr(common.Path, "is_file", lambda _path: True)
     secret_data = {
         "shared": {"git_credentials": ["https://example.test/shared"]},
         "hosts": {
@@ -72,7 +75,7 @@ def test_initialize_decrypts_and_selects_host_secrets(monkeypatch):
     host = types.SimpleNamespace(
         name="test-host",
         get_fact=lambda *_args, **_kwargs: True,
-        data={},
+        data={"hostname": "test-host"},
     )
     monkeypatch.setattr(
         subprocess,

@@ -9,10 +9,12 @@ host-specific values, which take precedence.
 import builtins
 import json
 import re
+import shutil
+import socket
 import subprocess
+from pathlib import Path
 
-from pyinfra.facts.files import File
-from pyinfra.facts.server import Command, Which
+from pyinfra.facts.server import Command
 
 
 def command_output_text(output: str | list[str] | None) -> str:
@@ -89,9 +91,9 @@ def initialize(host, check_flatpak=False):
         json.JSONDecodeError: If decrypted content is invalid JSON.
         ValueError: If the secrets document has an invalid structure.
     """
-    secrets_file = host.get_fact(File, path="secrets.json.gpg")
+    secrets_file = Path("secrets.json.gpg")
 
-    if secrets_file:
+    if secrets_file.is_file():
         result = subprocess.run(
             ["gpg", "--decrypt", "secrets.json.gpg"],
             check=True,
@@ -99,8 +101,9 @@ def initialize(host, check_flatpak=False):
             text=True,
         )
         decrypted_secrets = json.loads(result.stdout)
-        builtins.secrets = select_host_secrets(decrypted_secrets, host.name)
-        print(f"    Loading Secrets: Decrypted successfully for {host.name}")
+        hostname = host.data.get("hostname") or socket.gethostname()
+        builtins.secrets = select_host_secrets(decrypted_secrets, hostname)
+        print(f"    Loading Secrets: Decrypted successfully for {hostname}")
     else:
         builtins.secrets = {}
         print("    Loading Secrets: None, skipping...")
@@ -108,7 +111,7 @@ def initialize(host, check_flatpak=False):
     builtins.homedir = host.data.get("homedir", "/root/")
 
     if check_flatpak:
-        builtins.flatpak = host.get_fact(Which, command="flatpak")
+        builtins.flatpak = shutil.which("flatpak")
 
 
 

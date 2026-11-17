@@ -43,10 +43,12 @@ def test_cosmic_ci_checks_formatting_lints_and_all_targets():
     """The main CI workflow catches Rust formatting and lint regressions."""
     workflow = CI_WORKFLOW.read_text(encoding="utf-8")
 
+    normalized = " ".join(workflow.split())
+
     assert "components: rustfmt, clippy" in workflow
-    assert "cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml --all -- --check" in workflow
-    assert "cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets -- -D warnings" in workflow
-    assert "cargo check --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets" in workflow
+    assert "cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml --all -- --check" in normalized
+    assert "cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets -- -D warnings" in normalized
+    assert "cargo check --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets" in normalized
 
 
 def test_idempotency_workflow_checks_smoke_container_after_second_run():
