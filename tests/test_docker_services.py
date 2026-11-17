@@ -398,20 +398,20 @@ def test_adguard_public_dns_firewall_rule_is_documented_as_opt_in():
     assert "ufw {custom_action.lower()} {rule_arguments}" in firewall_task
 
 
-@pytest.mark.parametrize(("settings", "expected"), [
-    ({}, "127.0.0.1:3000"),
-    ({"web_port": 3001}, "127.0.0.1:3001"),
+@pytest.mark.parametrize(("web_port", "expected"), [
+    (None, "127.0.0.1:3000"),
+    (3001, "127.0.0.1:3001"),
 ])
 def test_adguard_web_port_defaults_and_is_configurable(
-    pyinfra_task_harness, settings, expected,
+    pyinfra_task_harness, web_port, expected,
 ):
-    """AdGuard keeps the legacy port by default and accepts an explicit web port."""
-    if not settings:
-        pyinfra_task_harness.host.data.pop("web_port", None)
+    """AdGuard keeps the legacy port by default and accepts a nested custom port."""
+    adguard_settings = {}
+    if web_port is not None:
+        adguard_settings["web_port"] = web_port
 
     module = pyinfra_task_harness.load("docker/adguard_home.py", {
-        **settings,
-        "docker": {"adguard_home": {}},
+        "docker": {"adguard_home": adguard_settings},
         "homedir": "/home/tester",
         "username": "tester",
         "usergroup": "tester",
@@ -434,8 +434,7 @@ def test_adguard_rejects_invalid_web_ports(pyinfra_task_harness, web_port):
     """Invalid ports fail before scheduling changes."""
     with pytest.raises(ValueError, match="web_port must be an integer"):
         pyinfra_task_harness.load("docker/adguard_home.py", {
-            "web_port": web_port,
-            "docker": {"adguard_home": {}},
+            "docker": {"adguard_home": {"web_port": web_port}},
             "homedir": "/home/tester",
         })
 
@@ -445,8 +444,7 @@ def test_adguard_config_reconciliation_preserves_settings_and_is_idempotent(
 ):
     """Only http.address changes; a second reconciliation is a no-op."""
     module = pyinfra_task_harness.load("docker/adguard_home.py", {
-        "web_port": 3001,
-        "docker": {"adguard_home": {}},
+        "docker": {"adguard_home": {"web_port": 3001}},
         "homedir": "/home/tester",
     })
     config = tmp_path / "AdGuardHome.yaml"

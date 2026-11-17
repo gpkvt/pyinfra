@@ -4,7 +4,7 @@
 
 <div class="task-hub-hero" markdown>
   <div class="task-hub-eyebrow">PYINFRA · TASK LIBRARY</div>
-  ## Infrastructure work, ready to reuse.
+  <h2>Infrastructure work, ready to reuse.</h2>
   <p>Explore the task modules that configure Linux hosts, provision Docker services and tailor workstation environments. Core tasks establish the baseline; optional tasks are enabled through host and group data.</p>
   <a class="task-hub-primary" href="../tasks/">Browse the complete task reference ↗</a>
 </div>

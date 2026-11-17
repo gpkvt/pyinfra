@@ -186,7 +186,7 @@ The task reference explains Homepage widgets, Linkwarden bookmark synchronizatio
 
     Enable it by adding an AdGuard Home mapping to `docker` in `@local.py`. It runs as a Docker Compose container using host networking, which lets DNS listen directly on host TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data remain in the bind-mounted directories `~/.docker/adguard_home/conf/` and `~/.docker/adguard_home/work/`. The default image is pinned to `adguard/adguardhome:v0.107.80`; override it with `docker.adguard_home.image` when deliberately upgrading.
 
-    Configure the web UI port with the top-level `web_port` setting in `@local.py`. It defaults to `3000` when omitted; set it to `3001` when Forgejo already occupies host port 3000:
+    Configure the web UI port with `docker.adguard_home.web_port` in `@local.py`. It defaults to `3000` when omitted; set it to `3001` when Forgejo already occupies host port 3000:
 
     ```python
     web_port = 3001
@@ -203,7 +203,7 @@ The task reference explains Homepage widgets, Linkwarden bookmark synchronizatio
     }
     ```
 
-    On first start, complete AdGuard Home's setup wizard at `http://<host-address>:3000` (the initial setup port remains AdGuard's default). After the configuration file exists, the task stops AdGuard before reconciling only `http.address` to `127.0.0.1:<web_port>`, preserving the rest of `AdGuardHome.yaml`; the normal deployment then restarts the service when the address changes. The first-run configuration is left untouched until the setup wizard creates the file. The web UI is then loopback-only and should be reached through the configured Caddy reverse proxy. The default port remains 3000 unless explicitly overridden.
+    On first start, complete AdGuard Home's setup wizard at `http://<host-address>:3000` (the initial setup port remains AdGuard's default). After the configuration file exists, the task stops AdGuard before reconciling only `http.address` to `127.0.0.1:<docker.adguard_home.web_port>`, preserving the rest of `AdGuardHome.yaml`; the normal deployment then restarts the service when the address changes. The first-run configuration is left untouched until the setup wizard creates the file. The web UI is then loopback-only and should be reached through the configured Caddy reverse proxy. The default port remains 3000 unless explicitly overridden.
 
     DNS continues to use host TCP/UDP port 53. Configure DNS to listen only on the LAN and WireGuard addresses that should serve clients, then add DNS rewrites for the desired local names and aliases. Host networking means there are no Compose port mappings to restrict exposure. Check for an existing host resolver already using port 53 before enabling the container; do not disable or reconfigure the host resolver automatically. Point the FRITZ!Box DHCP DNS setting and/or WireGuard clients' `DNS` setting at the host's reachable AdGuard Home address. The container is opt-in and is not deployed unless `docker.adguard_home` is present.
 
