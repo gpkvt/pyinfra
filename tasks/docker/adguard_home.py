@@ -5,7 +5,8 @@ Deploy AdGuard Home as a Docker container.
 Configuration:
     docker.adguard_home (dict):
         image (str): AdGuard Home image. Defaults to adguard/adguardhome:v0.107.80.
-        web_port (int): Loopback-only web UI port. Defaults to 3000.
+    web_port (int): Top-level @local.py setting for the loopback-only web UI port.
+        Defaults to 3000.
 
 Persistent data:
     ~/.docker/adguard_home/conf/
@@ -93,9 +94,9 @@ else:
 adguard_home = host.data.get("docker", {}).get("adguard_home", {})
 username = host.data.get("username", "root")
 usergroup = host.data.get("usergroup", "root")
-web_port = adguard_home.get("web_port", 3000)
+web_port = host.data.get("web_port", 3000)
 if isinstance(web_port, bool) or not isinstance(web_port, int) or not 1 <= web_port <= 65535:
-    raise ValueError("docker.adguard_home.web_port must be an integer between 1 and 65535")
+    raise ValueError("web_port must be an integer between 1 and 65535")
 
 config_path = f"{homedir}/.docker/adguard_home/conf/AdGuardHome.yaml"  # pylint: disable=undefined-variable
 web_address = f"127.0.0.1:{web_port}"
