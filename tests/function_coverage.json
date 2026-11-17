@@ -242,8 +242,8 @@
   "tasks/docker/mdmesh.py:deploy_mdmesh.mdmesh_needs_initialization": [
     "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
   ],
-  "tasks/flatpak.py:FlatpakRemotes.process": [
-    "test_flatpak_facts_ignore_blank_output_lines"
+  "tasks/flatpak.py:FlatpakRemoteApplications.process": [
+    "test_flatpak_remote_applications_groups_refs_in_one_query"
   ],
   "tasks/flatpak.py:FlatpakUpdates.process": [
     "test_flatpak_facts_ignore_blank_output_lines"
