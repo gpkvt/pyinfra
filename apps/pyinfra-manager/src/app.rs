@@ -55,6 +55,29 @@ async fn backend_command(project: String, args: Vec<String>) -> String {
     }
 }
 
+async fn open_settings(project: String, config_file: &'static str) -> String {
+    let result = Command::new("uv")
+        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "init-config"])
+        .current_dir(&project)
+        .output()
+        .await;
+    match result {
+        Ok(output) if output.status.success() => {
+            let path = PathBuf::from(&project).join("group_data").join(config_file);
+            match Command::new("xdg-open").arg(path).spawn() {
+                Ok(_) => format!("Initialized local settings and opened {config_file}."),
+                Err(error) => format!("Settings initialized, but could not open editor: {error}"),
+            }
+        }
+        Ok(output) => format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
+        ),
+        Err(error) => format!("Could not initialize settings: {error}"),
+    }
+}
+
 impl cosmic::Application for AppModel {
     type Executor = cosmic::executor::Default;
     type Flags = ();
@@ -166,32 +189,13 @@ impl cosmic::Application for AppModel {
                     Message::BackendOutput,
                 );
             }
-            Message::OpenSettings | Message::OpenWorkstationSettings => {
+            Message::OpenSettings => {
                 let project = self.project_path.clone();
-                let config_file = if matches!(message, Message::OpenSettings) { "@local.py" } else { "workstation.py" };
-                return Task::perform(async move {
-                    let result = Command::new("uv")
-                        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "init-config"])
-                        .current_dir(&project)
-                        .output()
-                        .await;
-                    match result {
-                        Ok(output) if output.status.success() => {
-                            let path = PathBuf::from(&project).join("group_data").join(config_file);
-                            let open = Command::new("xdg-open").arg(path).spawn();
-                            match open {
-                                Ok(_) => format!("Initialized local settings and opened {config_file}."),
-                                Err(error) => format!("Settings initialized, but could not open editor: {error}"),
-                            }
-                        }
-                        Ok(output) => format!(
-                            "{}{}",
-                            String::from_utf8_lossy(&output.stdout),
-                            String::from_utf8_lossy(&output.stderr),
-                        ),
-                        Err(error) => format!("Could not initialize settings: {error}"),
-                    }
-                }, Message::BackendOutput);
+                return Task::perform(open_settings(project, "@local.py"), Message::BackendOutput);
+            }
+            Message::OpenWorkstationSettings => {
+                let project = self.project_path.clone();
+                return Task::perform(open_settings(project, "workstation.py"), Message::BackendOutput);
             }
             Message::ValidateSettings => {
                 let project = self.project_path.clone();
