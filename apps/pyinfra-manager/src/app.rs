@@ -61,7 +61,12 @@ async fn open_settings(
     config_key: &'static str,
 ) -> String {
     let result = Command::new("uv")
-        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "init-config"])
+        .args([
+            "run",
+            "python",
+            "apps/pyinfra-manager/backend/manager.py",
+            "init-config",
+        ])
         .current_dir(&project)
         .output()
         .await;
@@ -69,8 +74,11 @@ async fn open_settings(
         Ok(output) if output.status.success() => {
             let backup = Command::new("uv")
                 .args([
-                    "run", "python", "apps/pyinfra-manager/backend/manager.py",
-                    "backup-config", config_key,
+                    "run",
+                    "python",
+                    "apps/pyinfra-manager/backend/manager.py",
+                    "backup-config",
+                    config_key,
                 ])
                 .current_dir(&project)
                 .output()
@@ -154,7 +162,9 @@ impl cosmic::Application for AppModel {
         let body: Element<'_, Message> = match self.page {
             Page::Overview => widget::column::with_capacity(3)
                 .push(widget::text::title2("Infrastructure at a glance"))
-                .push(widget::text("The app delegates execution to this checkout's deploy.py."))
+                .push(widget::text(
+                    "The app delegates execution to this checkout's deploy.py.",
+                ))
                 .push(widget::button::text("Load task catalog").on_press(Message::LoadCatalog))
                 .into(),
             Page::Tasks => widget::column::with_capacity(3)
@@ -166,8 +176,13 @@ impl cosmic::Application for AppModel {
                 .into(),
             Page::Settings => widget::column::with_capacity(4)
                 .push(widget::text::title2("Host and workstation settings"))
-                .push(widget::text("Choose a file to open it in your system's configured editor."))
-                .push(widget::button::text("Initialize / edit @local.py").on_press(Message::OpenSettings))
+                .push(widget::text(
+                    "Choose a file to open it in your system's configured editor.",
+                ))
+                .push(
+                    widget::button::text("Initialize / edit @local.py")
+                        .on_press(Message::OpenSettings),
+                )
                 .push(
                     widget::button::text("Initialize / edit workstation.py")
                         .on_press(Message::OpenWorkstationSettings),
@@ -184,13 +199,9 @@ impl cosmic::Application for AppModel {
                         .on_input(Message::HostChanged),
                 )
                 .push(
-                    widget::button::text("Preview (dry-run)")
-                        .on_press(Message::PreviewDeployment),
+                    widget::button::text("Preview (dry-run)").on_press(Message::PreviewDeployment),
                 )
-                .push(
-                    widget::button::text("Apply deployment…")
-                        .on_press(Message::RequestApply),
-                )
+.push(widget::button::text("Apply deployment…").on_press(Message::RequestApply))
                 .push(if self.confirm_apply {
                     widget::row::with_capacity(2)
                         .push(widget::button::text("Confirm apply").on_press(Message::ConfirmApply))
