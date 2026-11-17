@@ -37,7 +37,10 @@ def test_pages_workflow_isolates_pull_request_concurrency_from_publication():
     """PR validation cannot cancel a main-branch documentation deployment."""
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    assert "group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'publish' }}" in workflow
+    assert "  group: >-" in workflow
+    assert "github.event_name == 'pull_request'" in workflow
+    assert "format('pr-{0}', github.event.pull_request.number)" in workflow
+    assert "|| 'publish' }}" in workflow
     assert "cancel-in-progress: true" in workflow
 
 
