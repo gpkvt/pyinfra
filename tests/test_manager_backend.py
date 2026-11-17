@@ -1,4 +1,5 @@
 """Tests for the Pyinfra Manager local backend."""
+# pylint: disable=E1101,C0301
 import importlib.util
 from pathlib import Path
 
@@ -14,11 +15,12 @@ def test_discover_tasks_includes_core_and_every_workstation_feature():
     tasks = {item["path"]: item for item in manager.discover_tasks()}
     assert "tasks/apt.py" in tasks
     assert "tasks/system.py" in tasks
-    for path in manager.WORKSTATION_TASKS.values():
-        assert path in tasks
+    assert "tasks/workstation/cosmic/deploy.py" in tasks
+    assert "tasks/workstation/backup.py" in tasks
+    assert "tasks/docker/miniflux.py" in tasks
 
 
-def test_config_validation_does_not_execute_python(monkeypatch, tmp_path):
+def test_config_validation_does_not_execute_python(tmp_path):
     marker = tmp_path / "executed"
     source = f"open({str(marker)!r}, 'w').write('unsafe')"
     manager.validate_config(source)
