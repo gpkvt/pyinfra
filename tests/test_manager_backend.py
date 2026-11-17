@@ -1,0 +1,96 @@
+"""Tests for the Pyinfra Manager local backend."""
+# pylint: disable=E1101,C0301
+import importlib.util
+from pathlib import Path
+
+import pytest
+
+MODULE = Path(__file__).resolve().parents[1] / "apps/pyinfra-manager/backend/manager.py"
+SPEC = importlib.util.spec_from_file_location("manager_backend", MODULE)
+manager = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(manager)
+
+
+def test_discover_tasks_includes_core_and_nested_task_modules():
+    tasks = {item["path"]: item for item in manager.discover_tasks()}
+    assert tasks["tasks/apt.py"]["included_by_default"] is True
+    assert tasks["tasks/system.py"]["included_by_default"] is True
+    assert tasks["tasks/cron.py"]["included_by_default"] is False
+    assert "tasks/workstation/cosmic/deploy.py" in tasks
+    assert "tasks/workstation/backup.py" in tasks
+    assert "tasks/docker/miniflux.py" in tasks
+
+
+def test_config_validation_does_not_execute_python(tmp_path):
+    marker = tmp_path / "executed"
+    source = f"open({str(marker)!r}, 'w').write('unsafe')"
+    manager.validate_config(source)
+    assert not marker.exists()
+
+
+def test_invalid_config_reports_syntax_error():
+    with pytest.raises(manager.ManagerError, match="syntax error"):
+        manager.validate_config("broken = (")
+
+
+def test_save_config_is_idempotent_and_creates_private_backup(monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    target = tmp_path / "@local.py"
+    target.write_text("hostname = 'before'\n", encoding="utf-8")
+    monkeypatch.setattr(manager, "_safe_config_path", lambda _key: target)
+    assert manager.save_config("local", "hostname = 'after'\n") is True
+    assert target.read_text(encoding="utf-8") == "hostname = 'after'\n"
+    backup = tmp_path / "state/pyinfra-manager/backups/@local.py.bak"
+    assert backup.read_text(encoding="utf-8") == "hostname = 'before'\n"
+    assert backup.stat().st_mode & 0o777 == 0o600
+    assert manager.save_config("local", "hostname = 'after'\n") is False
+
+
+def test_save_config_refuses_to_overwrite_existing_backup(monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    target = tmp_path / "workstation.py"
+    target.write_text("workstation = {}\n", encoding="utf-8")
+    backup = tmp_path / "state/pyinfra-manager/backups/workstation.py.bak"
+    backup.parent.mkdir(parents=True)
+    backup.write_text("previous", encoding="utf-8")
+    monkeypatch.setattr(manager, "_safe_config_path", lambda _key: target)
+    with pytest.raises(manager.ManagerError, match="Backup already exists"):
+        manager.save_config("workstation", "workstation = {'cosmic': {}}\n")
+
+
+def test_backup_config_creates_timestamped_private_backup(monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    target = tmp_path / "@local.py"
+    target.write_text("hostname = 'private'\n", encoding="utf-8")
+    monkeypatch.setattr(manager, "_safe_config_path", lambda _key: target)
+    backup = Path(manager.backup_config("local"))
+    assert backup.is_file()
+    assert backup.read_text(encoding="utf-8") == "hostname = 'private'\n"
+    assert backup.stat().st_mode & 0o777 == 0o600
+
+
+def test_deployment_defaults_to_dry_run_and_uses_argument_list(monkeypatch):
+    captured = {}
+
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured.update(kwargs)
+        return type("Result", (), {
+            "returncode": 0,
+            "stdout": "preview",
+            "stderr": "",
+        })()
+
+    monkeypatch.setattr(manager, "configured_hosts", lambda: ["@local"])
+    monkeypatch.setattr(manager.subprocess, "run", fake_run)
+    result = manager.run_deployment("@local")
+    assert result["dry_run"] is True
+    assert "--dry" in captured["command"]
+    assert "shell" not in captured
+    assert captured["cwd"] == manager.ROOT
+
+
+def test_deployment_rejects_hosts_outside_inventory(monkeypatch):
+    monkeypatch.setattr(manager, "configured_hosts", lambda: ["@local"])
+    with pytest.raises(manager.ManagerError, match="Unknown inventory host"):
+        manager.run_deployment("untrusted-host")

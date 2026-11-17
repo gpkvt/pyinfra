@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Pyinfra Manager
+Comment=Manage local pyinfra deployments
+Exec=pyinfra-manager
+Icon=org.pyinfra.Manager
+Terminal=false
+Categories=System;Settings;
+StartupNotify=true

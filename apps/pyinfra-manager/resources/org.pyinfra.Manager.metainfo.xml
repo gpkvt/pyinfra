@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>org.pyinfra.Manager</id>
+  <name>Pyinfra Manager</name>
+  <summary>Manage pyinfra workstation and infrastructure deployments</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>A COSMIC desktop application for inspecting task modules, editing local
+    host and workstation configuration, previewing deployments, and applying
+    pyinfra changes with explicit confirmation.</p>
+  </description>
+  <launchable type="desktop-id">org.pyinfra.Manager.desktop</launchable>
+  <provides>
+    <id>org.pyinfra.Manager</id>
+    <id>com.system76.CosmicApplication</id>
+  </provides>
+  <url type="vcs-browser">https://github.com/gpkvt/pyinfra</url>
+</component>

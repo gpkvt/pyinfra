@@ -1,0 +1,267 @@
+//! Main COSMIC application model for Pyinfra Manager.
+use cosmic::iced::{Alignment, Length};
+use cosmic::prelude::*;
+use cosmic::widget;
+use std::path::PathBuf;
+use tokio::process::Command;
+
+pub struct AppModel {
+    core: cosmic::Core,
+    page: Page,
+    project_path: String,
+    host: String,
+    output: String,
+    confirm_apply: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Page {
+    Overview,
+    Tasks,
+    Settings,
+    Deploy,
+}
+
+#[derive(Debug, Clone)]
+pub enum Message {
+    Navigate(Page),
+    ProjectPathChanged(String),
+    HostChanged(String),
+    LoadCatalog,
+    OpenSettings,
+    OpenWorkstationSettings,
+    ValidateSettings,
+    PreviewDeployment,
+    RequestApply,
+    ConfirmApply,
+    CancelApply,
+    BackendOutput(String),
+}
+
+async fn backend_command(project: String, args: Vec<String>) -> String {
+    let result = Command::new("uv")
+        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py"])
+        .args(args)
+        .current_dir(&project)
+        .output()
+        .await;
+    match result {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            format!("{stdout}{stderr}")
+        }
+        Err(error) => format!("Could not start the local backend: {error}"),
+    }
+}
+
+async fn open_settings(
+    project: String,
+    config_file: &'static str,
+    config_key: &'static str,
+) -> String {
+    let result = Command::new("uv")
+        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "init-config"])
+        .current_dir(&project)
+        .output()
+        .await;
+    match result {
+        Ok(output) if output.status.success() => {
+            let backup = Command::new("uv")
+                .args([
+                    "run", "python", "apps/pyinfra-manager/backend/manager.py",
+                    "backup-config", config_key,
+                ])
+                .current_dir(&project)
+                .output()
+                .await;
+            match backup {
+                Ok(backup) if backup.status.success() => {
+                    let backup_info = String::from_utf8_lossy(&backup.stdout);
+                    let path = PathBuf::from(&project).join("group_data").join(config_file);
+                    match Command::new("xdg-open").arg(path).spawn() {
+                        Ok(_) => format!(
+                            "Opened {config_file}. A private backup was created first: {backup_info}"
+                        ),
+                        Err(error) => format!("Backup created, but could not open editor: {error}"),
+                    }
+                }
+                Ok(backup) => format!(
+                    "Could not create a settings backup: {}{}",
+                    String::from_utf8_lossy(&backup.stdout),
+                    String::from_utf8_lossy(&backup.stderr),
+                ),
+                Err(error) => format!("Could not start the backup operation: {error}"),
+            }
+        }
+        Ok(output) => format!(
+            "{}{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr),
+        ),
+        Err(error) => format!("Could not initialize settings: {error}"),
+    }
+}
+
+impl cosmic::Application for AppModel {
+    type Executor = cosmic::executor::Default;
+    type Flags = ();
+    type Message = Message;
+    const APP_ID: &'static str = "org.pyinfra.Manager";
+
+    fn core(&self) -> &cosmic::Core { &self.core }
+    fn core_mut(&mut self) -> &mut cosmic::Core { &mut self.core }
+
+    fn init(core: cosmic::Core, _flags: ()) -> (Self, Task<cosmic::Action<Message>>) {
+        let project_path = std::env::current_dir()
+            .unwrap_or_else(|_| PathBuf::from("."))
+            .display()
+            .to_string();
+        (Self {
+            core,
+            page: Page::Overview,
+            project_path,
+            host: "@local".into(),
+            output: "Choose your pyinfra checkout, then load its task catalog.".into(),
+            confirm_apply: false,
+        }, Task::none())
+    }
+
+    fn nav_model(&self) -> Option<&cosmic::widget::nav_bar::Model> {
+        None
+    }
+
+    fn view(&self) -> Element<'_, Message> {
+        let heading = widget::text::title1("Pyinfra Manager");
+        let project_input = widget::text_input("Repository checkout", &self.project_path)
+            .on_input(Message::ProjectPathChanged);
+        let navigation = widget::row::with_capacity(4)
+            .push(widget::button::text("Overview").on_press(Message::Navigate(Page::Overview)))
+            .push(widget::button::text("Tasks").on_press(Message::Navigate(Page::Tasks)))
+            .push(widget::button::text("Settings").on_press(Message::Navigate(Page::Settings)))
+            .push(widget::button::text("Deploy").on_press(Message::Navigate(Page::Deploy)))
+            .spacing(8)
+            .align_y(Alignment::Center);
+
+        let body: Element<'_, Message> = match self.page {
+            Page::Overview => widget::column::with_capacity(3)
+                .push(widget::text::title2("Infrastructure at a glance"))
+                .push(widget::text("The app delegates execution to this checkout's deploy.py."))
+                .push(widget::button::text("Load task catalog").on_press(Message::LoadCatalog))
+                .into(),
+            Page::Tasks => widget::column::with_capacity(3)
+                .push(widget::text::title2("Task catalog"))
+                .push(widget::text("Catalog includes task modules discovered from deploy.py and tasks/."))
+                .push(widget::button::text("Refresh task catalog").on_press(Message::LoadCatalog))
+                .into(),
+            Page::Settings => widget::column::with_capacity(4)
+                .push(widget::text::title2("Host and workstation settings"))
+                .push(widget::text("Choose a file to open it in your system's configured editor."))
+                .push(widget::button::text("Initialize / edit @local.py").on_press(Message::OpenSettings))
+                .push(widget::button::text("Initialize / edit workstation.py").on_press(Message::OpenWorkstationSettings))
+                .push(widget::button::text("Validate both settings files").on_press(Message::ValidateSettings))
+                .into(),
+            Page::Deploy => widget::column::with_capacity(5)
+                .push(widget::text::title2("Deployment"))
+                .push(widget::text_input("Inventory host (for example @local)", &self.host)
+                    .on_input(Message::HostChanged))
+                .push(widget::button::text("Preview (dry-run)").on_press(Message::PreviewDeployment))
+                .push(widget::button::text("Apply deployment…").on_press(Message::RequestApply))
+                .push(if self.confirm_apply {
+                    widget::row::with_capacity(2)
+                        .push(widget::button::text("Confirm apply").on_press(Message::ConfirmApply))
+                        .push(widget::button::text("Cancel").on_press(Message::CancelApply))
+                } else {
+                    widget::row::with_capacity(1)
+                        .push(widget::text("Apply requires a separate confirmation."))
+                })
+                .into(),
+        };
+
+        let output = widget::scrollable(widget::text(self.output.as_str()))
+            .height(Length::Fill);
+        widget::container(
+            widget::column::with_capacity(6)
+                .push(heading)
+                .push(project_input)
+                .push(navigation)
+                .push(widget::text("────────────────────────────────────────────────"))
+                .push(body)
+                .push(widget::text::title3("Activity"))
+                .push(output)
+                .spacing(16)
+                .padding(24)
+                .width(Length::Fill)
+                .height(Length::Fill),
+        )
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into()
+    }
+
+    fn update(&mut self, message: Message) -> Task<cosmic::Action<Message>> {
+        match message {
+            Message::Navigate(page) => {
+                self.page = page;
+                self.confirm_apply = false;
+            }
+            Message::ProjectPathChanged(path) => self.project_path = path,
+            Message::HostChanged(host) => self.host = host,
+            Message::LoadCatalog => {
+                let project = self.project_path.clone();
+                return Task::perform(
+                    backend_command(project, vec!["catalog".into()]),
+                    Message::BackendOutput,
+                );
+            }
+            Message::OpenSettings => {
+                let project = self.project_path.clone();
+                return Task::perform(open_settings(project, "@local.py", "local"), Message::BackendOutput);
+            }
+            Message::OpenWorkstationSettings => {
+                let project = self.project_path.clone();
+                return Task::perform(open_settings(project, "workstation.py", "workstation"), Message::BackendOutput);
+            }
+            Message::ValidateSettings => {
+                let project = self.project_path.clone();
+                return Task::perform(async move {
+                    let mut messages = Vec::new();
+                    for (key, file) in [("local", "group_data/@local.py"), ("workstation", "group_data/workstation.py")] {
+                        let result = Command::new("uv")
+                            .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "validate-config", key, file])
+                            .current_dir(&project)
+                            .output()
+                            .await;
+                        match result {
+                            Ok(output) => messages.push(format!("{}: {}{}", file, String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr))),
+                            Err(error) => messages.push(format!("{file}: {error}")),
+                        }
+                    }
+                    messages.join("\n")
+                }, Message::BackendOutput);
+            }
+            Message::PreviewDeployment => {
+                let project = self.project_path.clone();
+                let host = self.host.trim().to_string();
+                self.confirm_apply = false;
+                return Task::perform(
+                    backend_command(project, vec!["run".into(), host]),
+                    Message::BackendOutput,
+                );
+            }
+            Message::RequestApply => self.confirm_apply = true,
+            Message::ConfirmApply => {
+                let project = self.project_path.clone();
+                let host = self.host.trim().to_string();
+                self.confirm_apply = false;
+                return Task::perform(
+                    backend_command(project, vec!["run".into(), host, "--apply".into()]),
+                    Message::BackendOutput,
+                );
+            }
+            Message::CancelApply => self.confirm_apply = false,
+            Message::BackendOutput(output) => self.output = output,
+        }
+        Task::none()
+    }
+}
