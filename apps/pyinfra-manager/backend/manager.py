@@ -14,6 +14,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 
 ROOT = Path(__file__).resolve().parents[3]
 CONFIG_FILES = {
@@ -54,6 +55,21 @@ def ensure_config_files() -> dict[str, str]:
             target.chmod(0o600)
         result[key] = str(target)
     return result
+
+
+
+def backup_config(key: str) -> str:
+    """Create a private, timestamped backup before an external editor is opened."""
+    path = _safe_config_path(key)
+    if not path.is_file():
+        raise ManagerError("Initialize local configuration before editing it")
+    state_home = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state"))
+    backup_dir = state_home / "pyinfra-manager" / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    backup = backup_dir / f"{path.name}.{time.time_ns()}.bak"
+    shutil.copy2(path, backup)
+    backup.chmod(0o600)
+    return str(backup)
 
 
 def read_config(key: str) -> str:
@@ -227,6 +243,8 @@ def main() -> int:
     sub.add_parser("catalog")
     sub.add_parser("hosts")
     sub.add_parser("init-config")
+    backup = sub.add_parser("backup-config")
+    backup.add_argument("key", choices=CONFIG_FILES)
     read = sub.add_parser("read-config")
     read.add_argument("key", choices=CONFIG_FILES)
     validate = sub.add_parser("validate-config")
@@ -246,6 +264,8 @@ def main() -> int:
             result = ensure_config_files()
         elif args.action == "read-config":
             result = read_config(args.key)
+        elif args.action == "backup-config":
+            result = {"backup": backup_config(args.key)}
         elif args.action == "validate-config":
             validate_config(args.file.read_text(encoding="utf-8"), args.key)
             result = {"valid": True}
