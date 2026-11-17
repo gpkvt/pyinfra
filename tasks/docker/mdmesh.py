@@ -169,10 +169,11 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
         sleep 5
     done
     for attempt in $(seq 1 120); do
-        state=$(docker compose exec -T postgres psql -U mdmesh -d mdmesh -Atqc \\
-            "SELECT to_regclass('public.settings') IS NOT NULL" 2>/dev/null || true)
-        [ "$state" = "t" ] && break
-        [ "$attempt" -lt 120 ] || {{ echo "MDMesh database schema did not initialize" >&2; exit 1; }}
+        schema_ready=$(docker compose exec -T postgres psql -U mdmesh -d mdmesh -Atqc \\
+            "SELECT to_regclass('public.settings') IS NOT NULL AND to_regclass('public.devices') IS NOT NULL" \\
+            2>/dev/null || true)
+        [ "$schema_ready" = "t" ] && break
+        [ "$attempt" -lt 120 ] || {{ echo "MDMesh settings/devices schema did not initialize" >&2; exit 1; }}
         sleep 5
     done
     set -a
@@ -221,6 +222,19 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     database_state_script = f"""#!/usr/bin/env bash
     set -euo pipefail
     cd {shlex.quote(root)}
+    # The _if predicate runs before the bootstrap operation. Wait here (not only
+    # inside bootstrap_command) for PostgreSQL and both tables used by mdm_db_state;
+    # otherwise a normal first-start Liquibase migration looks like an unknown state.
+    for attempt in $(seq 1 120); do
+        if docker compose exec -T postgres pg_isready -U mdmesh -d mdmesh >/dev/null 2>&1; then
+            schema_ready=$(docker compose exec -T postgres psql -U mdmesh -d mdmesh -Atqc \\
+                "SELECT to_regclass('public.settings') IS NOT NULL AND to_regclass('public.devices') IS NOT NULL" \\
+                2>/dev/null || true)
+            [ "$schema_ready" = "t" ] && break
+        fi
+        [ "$attempt" -lt 120 ] || {{ echo unavailable; exit 0; }}
+        sleep 5
+    done
     set -a
     . ./.env
     set +a
