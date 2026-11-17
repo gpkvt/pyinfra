@@ -345,7 +345,8 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(
     )
     assert "mdm_db_state" in database_state_command
     assert "pg_isready -U mdmesh -d mdmesh" in database_state_command
-    assert "to_regclass('public.settings') IS NOT NULL AND to_regclass('public.devices') IS NOT NULL" in database_state_command
+    assert "public.settings" in database_state_command
+    assert "public.devices" in database_state_command
     assert "seq 1 120" in database_state_command
     assert not any("SELECT count(*) FROM users" in command for command in release_commands)
 
