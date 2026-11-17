@@ -50,7 +50,7 @@
 <section class="intro-section" markdown>
   <div class="section-head">
     <div class="section-kicker">01 / THE TOOLKIT</div>
-    ## Everything you need to manage your Linux environment.
+    <h2>Everything you need to manage your Linux environment.</h2>
     <p>From the first package to a complete application stack, pyinfra brings infrastructure and workstation automation into one maintainable workflow.</p>
   </div>
   <div class="feature-grid">
@@ -96,7 +96,7 @@
 <section class="showcase-section" markdown>
   <div class="section-head">
     <div class="section-kicker">02 / HOW IT WORKS</div>
-    ## A workflow you can reason about.
+    <h2>A workflow you can reason about.</h2>
     <p>Define the desired state, inspect the operations, and apply only after you understand the plan.</p>
   </div>
   <div class="workflow">
@@ -158,7 +158,7 @@
 <section class="docs-section" markdown>
   <div class="section-head">
     <div class="section-kicker">04 / DOCUMENTATION</div>
-    ## Go deeper.
+    <h2>Go deeper.</h2>
     <p>Find the details you need, from the architecture to individual task modules.</p>
   </div>
   <div class="docs-grid">
