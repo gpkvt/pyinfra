@@ -22,6 +22,7 @@ CONFIG_FILES = {
     "workstation": ("group_data/workstation.py.example", "group_data/workstation.py"),
 }
 
+
 class ManagerError(Exception):
     """An expected, user-displayable manager error."""
 
@@ -55,7 +56,6 @@ def ensure_config_files() -> dict[str, str]:
             target.chmod(0o600)
         result[key] = str(target)
     return result
-
 
 
 def backup_config(key: str) -> str:
@@ -136,7 +136,6 @@ def _literal_includes(tree: ast.AST) -> set[str]:
     return found
 
 
-
 def _unconditional_includes(tree: ast.Module) -> set[str]:
     """Find literal task includes that are direct top-level statements."""
     found = set()
@@ -211,6 +210,7 @@ def discover_tasks() -> list[dict[str, object]]:
             "entrypoint": entrypoint,
         })
     return tasks
+
 
 def configured_hosts() -> list[str]:
     """Read inventory host names from its literal _all_hosts dictionary."""
