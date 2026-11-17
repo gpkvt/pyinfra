@@ -10,7 +10,7 @@ pub struct AppModel {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Page {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]\nenum Page {
     Overview,
     Tasks,
     Settings,
@@ -18,7 +18,7 @@ enum Page {
 }
 
 #[derive(Debug, Clone)]
-pub enum Message {
+enum Message {
     Navigate(Page),
     BackendUnavailable,
 }
@@ -79,7 +79,7 @@ impl cosmic::Application for AppModel {
             widget::column()
                 .push(heading)
                 .push(navigation)
-                .push(widget::divider::horizontal::default())
+                .push(widget::text("────────────────────────────────────────────────"))
                 .push(body)
                 .spacing(20)
                 .padding(24)
