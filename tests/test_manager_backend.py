@@ -13,8 +13,9 @@ SPEC.loader.exec_module(manager)
 
 def test_discover_tasks_includes_core_and_nested_task_modules():
     tasks = {item["path"]: item for item in manager.discover_tasks()}
-    assert "tasks/apt.py" in tasks
-    assert "tasks/system.py" in tasks
+    assert tasks["tasks/apt.py"]["included_by_default"] is True
+    assert tasks["tasks/system.py"]["included_by_default"] is True
+    assert tasks["tasks/cron.py"]["included_by_default"] is False
     assert "tasks/workstation/cosmic/deploy.py" in tasks
     assert "tasks/workstation/backup.py" in tasks
     assert "tasks/docker/miniflux.py" in tasks
