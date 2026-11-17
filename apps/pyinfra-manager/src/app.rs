@@ -2,11 +2,16 @@
 use cosmic::iced::{Alignment, Length};
 use cosmic::prelude::*;
 use cosmic::widget;
+use std::path::PathBuf;
+use tokio::process::Command;
 
 pub struct AppModel {
     core: cosmic::Core,
     page: Page,
-    status: String,
+    project_path: String,
+    host: String,
+    output: String,
+    confirm_apply: bool,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -20,7 +25,32 @@ enum Page {
 #[derive(Debug, Clone)]
 enum Message {
     Navigate(Page),
-    BackendUnavailable,
+    ProjectPathChanged(String),
+    HostChanged(String),
+    LoadCatalog,
+    OpenSettings,
+    PreviewDeployment,
+    RequestApply,
+    ConfirmApply,
+    CancelApply,
+    BackendOutput(String),
+}
+
+async fn backend_command(project: String, args: Vec<String>) -> String {
+    let result = Command::new("uv")
+        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py"])
+        .args(args)
+        .current_dir(&project)
+        .output()
+        .await;
+    match result {
+        Ok(output) => {
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            format!("{stdout}{stderr}")
+        }
+        Err(error) => format!("Could not start the local backend: {error}"),
+    }
 }
 
 impl cosmic::Application for AppModel {
@@ -33,10 +63,17 @@ impl cosmic::Application for AppModel {
     fn core_mut(&mut self) -> &mut cosmic::Core { &mut self.core }
 
     fn init(core: cosmic::Core, _flags: ()) -> (Self, Task<cosmic::Action<Message>>) {
+        let project_path = std::env::current_dir()
+            .unwrap_or_else(|_| PathBuf::from("."))
+            .display()
+            .to_string();
         (Self {
             core,
             page: Page::Overview,
-            status: "Select a project checkout to get started.".into(),
+            project_path,
+            host: "@local".into(),
+            output: "Choose your pyinfra checkout, then load its task catalog.".into(),
+            confirm_apply: false,
         }, Task::none())
     }
 
@@ -46,6 +83,8 @@ impl cosmic::Application for AppModel {
 
     fn view(&self) -> Element<'_, Message> {
         let heading = widget::text::title1("Pyinfra Manager");
+        let project_input = widget::text_input("Repository checkout", &self.project_path)
+            .on_input(Message::ProjectPathChanged);
         let navigation = widget::row::with_capacity(4)
             .push(widget::button::text("Overview").on_press(Message::Navigate(Page::Overview)))
             .push(widget::button::text("Tasks").on_press(Message::Navigate(Page::Tasks)))
@@ -53,35 +92,53 @@ impl cosmic::Application for AppModel {
             .push(widget::button::text("Deploy").on_press(Message::Navigate(Page::Deploy)))
             .spacing(8)
             .align_y(Alignment::Center);
+
         let body: Element<'_, Message> = match self.page {
-            Page::Overview => widget::column()
+            Page::Overview => widget::column::with_capacity(3)
                 .push(widget::text::title2("Infrastructure at a glance"))
-                .push(widget::text(self.status.as_str()))
-                .push(widget::text("Use Tasks to inspect the repository task catalog."))
+                .push(widget::text("The app delegates execution to this checkout's deploy.py."))
+                .push(widget::button::text("Load task catalog").on_press(Message::LoadCatalog))
                 .into(),
-            Page::Tasks => widget::column()
+            Page::Tasks => widget::column::with_capacity(3)
                 .push(widget::text::title2("Task catalog"))
-                .push(widget::text("Core, optional and workstation task modules are discovered from deploy.py."))
-                .push(widget::text("Conditional inclusion remains controlled by the repository configuration."))
+                .push(widget::text("Catalog includes task modules discovered from deploy.py and tasks/."))
+                .push(widget::button::text("Refresh task catalog").on_press(Message::LoadCatalog))
                 .into(),
-            Page::Settings => widget::column()
+            Page::Settings => widget::column::with_capacity(4)
                 .push(widget::text::title2("Host and workstation settings"))
-                .push(widget::text("Edit group_data/@local.py and group_data/workstation.py."))
-                .push(widget::text("Settings are syntax-validated and backed up before saving."))
+                .push(widget::text("Choose a file to open it in your system's configured editor."))
+                .push(widget::button::text("Initialize / edit @local.py").on_press(Message::OpenSettings))
+                .push(widget::text("The backend also initializes workstation.py from its tracked example."))
                 .into(),
-            Page::Deploy => widget::column()
+            Page::Deploy => widget::column::with_capacity(5)
                 .push(widget::text::title2("Deployment"))
-                .push(widget::text("Preview with pyinfra --dry --diff before applying any changes."))
-                .push(widget::text("Applying a deployment requires explicit confirmation."))
+                .push(widget::text_input("Inventory host (for example @local)", &self.host)
+                    .on_input(Message::HostChanged))
+                .push(widget::button::text("Preview (dry-run)").on_press(Message::PreviewDeployment))
+                .push(widget::button::text("Apply deployment…").on_press(Message::RequestApply))
+                .push(if self.confirm_apply {
+                    widget::row::with_capacity(2)
+                        .push(widget::button::text("Confirm apply").on_press(Message::ConfirmApply))
+                        .push(widget::button::text("Cancel").on_press(Message::CancelApply))
+                } else {
+                    widget::row::with_capacity(1)
+                        .push(widget::text("Apply requires a separate confirmation."))
+                })
                 .into(),
         };
+
+        let output = widget::scrollable(widget::text(self.output.as_str()))
+            .height(Length::Fill);
         widget::container(
-            widget::column()
+            widget::column::with_capacity(6)
                 .push(heading)
+                .push(project_input)
                 .push(navigation)
                 .push(widget::text("────────────────────────────────────────────────"))
                 .push(body)
-                .spacing(20)
+                .push(widget::text::title3("Activity"))
+                .push(output)
+                .spacing(16)
                 .padding(24)
                 .width(Length::Fill)
                 .height(Length::Fill),
@@ -93,10 +150,66 @@ impl cosmic::Application for AppModel {
 
     fn update(&mut self, message: Message) -> Task<cosmic::Action<Message>> {
         match message {
-            Message::Navigate(page) => self.page = page,
-            Message::BackendUnavailable => {
-                self.status = "The local Python backend could not be started.".into();
+            Message::Navigate(page) => {
+                self.page = page;
+                self.confirm_apply = false;
             }
+            Message::ProjectPathChanged(path) => self.project_path = path,
+            Message::HostChanged(host) => self.host = host,
+            Message::LoadCatalog => {
+                let project = self.project_path.clone();
+                return Task::perform(
+                    backend_command(project, vec!["catalog".into()]),
+                    Message::BackendOutput,
+                );
+            }
+            Message::OpenSettings => {
+                let project = self.project_path.clone();
+                return Task::perform(async move {
+                    let result = Command::new("uv")
+                        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "init-config"])
+                        .current_dir(&project)
+                        .output()
+                        .await;
+                    match result {
+                        Ok(output) if output.status.success() => {
+                            let path = PathBuf::from(&project).join("group_data/@local.py");
+                            let open = Command::new("xdg-open").arg(path).spawn();
+                            match open {
+                                Ok(_) => "Initialized local settings and opened @local.py.".into(),
+                                Err(error) => format!("Settings initialized, but could not open editor: {error}"),
+                            }
+                        }
+                        Ok(output) => format!(
+                            "{}{}",
+                            String::from_utf8_lossy(&output.stdout),
+                            String::from_utf8_lossy(&output.stderr),
+                        ),
+                        Err(error) => format!("Could not initialize settings: {error}"),
+                    }
+                }, Message::BackendOutput);
+            }
+            Message::PreviewDeployment => {
+                let project = self.project_path.clone();
+                let host = self.host.trim().to_string();
+                self.confirm_apply = false;
+                return Task::perform(
+                    backend_command(project, vec!["run".into(), host]),
+                    Message::BackendOutput,
+                );
+            }
+            Message::RequestApply => self.confirm_apply = true,
+            Message::ConfirmApply => {
+                let project = self.project_path.clone();
+                let host = self.host.trim().to_string();
+                self.confirm_apply = false;
+                return Task::perform(
+                    backend_command(project, vec!["run".into(), host, "--apply".into()]),
+                    Message::BackendOutput,
+                );
+            }
+            Message::CancelApply => self.confirm_apply = false,
+            Message::BackendOutput(output) => self.output = output,
         }
         Task::none()
     }
