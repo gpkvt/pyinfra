@@ -398,19 +398,20 @@ def test_adguard_public_dns_firewall_rule_is_documented_as_opt_in():
     assert "ufw {custom_action.lower()} {rule_arguments}" in firewall_task
 
 
-@pytest.mark.parametrize(("settings", "expected"), [
-    ({}, "127.0.0.1:3000"),
-    ({"docker": {"adguard_home": {"web_port": 3001}}}, "127.0.0.1:3001"),
+@pytest.mark.parametrize(("web_port", "expected"), [
+    (None, "127.0.0.1:3000"),
+    (3001, "127.0.0.1:3001"),
 ])
 def test_adguard_web_port_defaults_and_is_configurable(
-    pyinfra_task_harness, settings, expected,
+    pyinfra_task_harness, web_port, expected,
 ):
-    """AdGuard keeps the legacy port by default and accepts an explicit web port."""
-    if not settings:
+    """AdGuard keeps the legacy port by default and accepts a nested custom port."""
+    adguard_settings = {}
+    if web_port is not None:
+        adguard_settings["web_port"] = web_port
 
     module = pyinfra_task_harness.load("docker/adguard_home.py", {
-        **settings,
-        "docker": {"adguard_home": {}},
+        "docker": {"adguard_home": adguard_settings},
         "homedir": "/home/tester",
         "username": "tester",
         "usergroup": "tester",
@@ -425,7 +426,7 @@ def test_adguard_web_port_defaults_and_is_configurable(
     assert "systemctl --user stop adguard_home" in operation["commands"][0]
     assert operation["_sudo"] is True
     assert operation["_if"]() is False  # Missing config is a no-op during first-run setup.
-    assert module._ADGUARD_CONFIG_SCRIPT
+    assert getattr(module, "_ADGUARD_CONFIG_SCRIPT")
 
 
 @pytest.mark.parametrize("web_port", [0, 65536, True, "3001", 1.5])
