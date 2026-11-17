@@ -7,4 +7,4 @@ description = "COSMIC desktop manager for the pyinfra repository"
 repository = "https://github.com/gpkvt/pyinfra"
 
 [dependencies]
-libcosmic = { package = "cosmic", git = "https://github.com/pop-os/libcosmic.git", features = ["about", "single-instance", "wgpu"] }
+[dependencies.libcosmic]\ngit = "https://github.com/pop-os/libcosmic.git"\nfeatures = ["about", "single-instance", "wgpu"]
