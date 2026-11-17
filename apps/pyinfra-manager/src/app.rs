@@ -3,6 +3,37 @@ use cosmic::iced::{Alignment, Length};
 use cosmic::prelude::*;
 use cosmic::widget;
 use std::path::PathBuf;
+
+fn repository_root(path: &std::path::Path) -> Result<PathBuf, String> {
+    let root = path.canonicalize().map_err(|error| format!("Cannot access repository directory {}: {error}", path.display()))?;
+    let required = ["deploy.py", "inventory.py", "pyproject.toml", "group_data", "tasks", "apps/pyinfra-manager/backend/manager.py"];
+    let missing: Vec<_> = required.iter().filter(|relative| !root.join(relative).exists()).copied().collect();
+    if !missing.is_empty() { return Err(format!("Not a pyinfra checkout ({}). Missing: {}", root.display(), missing.join(", "))); }
+    Ok(root)
+}
+fn backend_script(project: &str) -> Result<(PathBuf, PathBuf), String> {
+    let root = repository_root(&PathBuf::from(project))?;
+    let script = root.join("apps/pyinfra-manager/backend/manager.py");
+    if !script.is_file() { return Err(format!("Pyinfra backend not found: {}", script.display())); }
+    Ok((root, script))
+}
+fn project_config_file() -> Option<PathBuf> {
+    let base = std::env::var_os("XDG_CONFIG_HOME").map(PathBuf::from).or_else(|| std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".config")))?;
+    Some(base.join("pyinfra-manager").join("repository"))
+}
+fn remember_project(root: &std::path::Path) {
+    if let Some(file) = project_config_file() { if let Some(parent) = file.parent() { if std::fs::create_dir_all(parent).is_ok() { let _ = std::fs::write(file, root.display().to_string()); } } }
+}
+fn discover_project() -> Option<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Some(path) = std::env::var_os("PYINFRA_REPOSITORY") { candidates.push(PathBuf::from(path)); }
+    if let Some(file) = project_config_file() { if let Ok(path) = std::fs::read_to_string(file) { candidates.push(PathBuf::from(path.trim())); } }
+    if let Ok(path) = std::env::current_dir() { candidates.push(path); }
+    if let Ok(executable) = std::env::current_exe() { if let Some(parent) = executable.parent() { candidates.push(parent.to_path_buf()); } }
+    for candidate in candidates { for ancestor in candidate.ancestors() { if let Ok(root) = repository_root(ancestor) { return Some(root); } } }
+    None
+}
+
 use tokio::process::Command;
 
 pub struct AppModel {
@@ -39,74 +70,36 @@ pub enum Message {
 }
 
 async fn backend_command(project: String, args: Vec<String>) -> String {
-    let result = Command::new("uv")
-        .args(["run", "python", "apps/pyinfra-manager/backend/manager.py"])
-        .args(args)
-        .current_dir(&project)
-        .output()
-        .await;
+    let (root, script) = match backend_script(&project) { Ok(paths) => paths, Err(error) => return error };
+    remember_project(&root);
+    let result = Command::new("uv").args(["run", "python"]).arg(&script).args(args).current_dir(&root).output().await;
     match result {
-        Ok(output) => {
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            let stderr = String::from_utf8_lossy(&output.stderr);
-            format!("{stdout}{stderr}")
-        }
+        Ok(output) => { let stdout = String::from_utf8_lossy(&output.stdout); let stderr = String::from_utf8_lossy(&output.stderr); format!("{stdout}{stderr}") }
         Err(error) => format!("Could not start the local backend: {error}"),
     }
 }
 
-async fn open_settings(
-    project: String,
-    config_file: &'static str,
-    config_key: &'static str,
-) -> String {
-    let result = Command::new("uv")
-        .args([
-            "run",
-            "python",
-            "apps/pyinfra-manager/backend/manager.py",
-            "init-config",
-        ])
-        .current_dir(&project)
-        .output()
-        .await;
+async fn open_settings(project: String, config_file: &'static str, config_key: &'static str) -> String {
+    let (root, script) = match backend_script(&project) { Ok(paths) => paths, Err(error) => return error };
+    remember_project(&root);
+    let result = Command::new("uv").args(["run", "python"]).arg(&script).arg("init-config").current_dir(&root).output().await;
     match result {
         Ok(output) if output.status.success() => {
-            let backup = Command::new("uv")
-                .args([
-                    "run",
-                    "python",
-                    "apps/pyinfra-manager/backend/manager.py",
-                    "backup-config",
-                    config_key,
-                ])
-                .current_dir(&project)
-                .output()
-                .await;
+            let backup = Command::new("uv").args(["run", "python"]).arg(&script).args(["backup-config", config_key]).current_dir(&root).output().await;
             match backup {
                 Ok(backup) if backup.status.success() => {
                     let backup_info = String::from_utf8_lossy(&backup.stdout);
-                    let path = PathBuf::from(&project).join("group_data").join(config_file);
+                    let path = root.join("group_data").join(config_file);
                     match Command::new("xdg-open").arg(path).spawn() {
-                        Ok(_) => format!(
-                            "Opened {config_file}. A private backup was created first: {backup_info}"
-                        ),
+                        Ok(_) => format!("Opened {config_file}. A private backup was created first: {backup_info}"),
                         Err(error) => format!("Backup created, but could not open editor: {error}"),
                     }
                 }
-                Ok(backup) => format!(
-                    "Could not create a settings backup: {}{}",
-                    String::from_utf8_lossy(&backup.stdout),
-                    String::from_utf8_lossy(&backup.stderr),
-                ),
+                Ok(backup) => format!("Could not create a settings backup: {}{}", String::from_utf8_lossy(&backup.stdout), String::from_utf8_lossy(&backup.stderr)),
                 Err(error) => format!("Could not start the backup operation: {error}"),
             }
         }
-        Ok(output) => format!(
-            "{}{}",
-            String::from_utf8_lossy(&output.stdout),
-            String::from_utf8_lossy(&output.stderr),
-        ),
+        Ok(output) => format!("{}{}", String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr)),
         Err(error) => format!("Could not initialize settings: {error}"),
     }
 }
@@ -126,10 +119,7 @@ impl cosmic::Application for AppModel {
     }
 
     fn init(core: cosmic::Core, _flags: ()) -> (Self, Task<cosmic::Action<Message>>) {
-        let project_path = std::env::current_dir()
-            .unwrap_or_else(|_| PathBuf::from("."))
-            .display()
-            .to_string();
+        let project_path = discover_project().unwrap_or_else(|| std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))).display().to_string();
         (
             Self {
                 core,
@@ -241,7 +231,13 @@ impl cosmic::Application for AppModel {
                 self.page = page;
                 self.confirm_apply = false;
             }
-            Message::ProjectPathChanged(path) => self.project_path = path,
+            Message::ProjectPathChanged(path) => {
+                self.project_path = path;
+                if let Ok(root) = repository_root(&PathBuf::from(&self.project_path)) {
+                    remember_project(&root);
+                    self.output = format!("Using pyinfra checkout: {}", root.display());
+                }
+            },
             Message::HostChanged(host) => self.host = host,
             Message::LoadCatalog => {
                 let project = self.project_path.clone();
@@ -271,21 +267,14 @@ impl cosmic::Application for AppModel {
                 let project = self.project_path.clone();
                 return Task::perform(
                     async move {
+                        let (root, script) = match backend_script(&project) { Ok(paths) => paths, Err(error) => return error };
+                        remember_project(&root);
                         let mut messages = Vec::new();
                         for (key, file) in [
                             ("local", "group_data/@local.py"),
                             ("workstation", "group_data/workstation.py"),
                         ] {
-                            let result = Command::new("uv")
-                                .args([
-                                    "run",
-                                    "python",
-                                    "apps/pyinfra-manager/backend/manager.py",
-                                    "validate-config",
-                                    key,
-                                    file,
-                                ])
-                                .current_dir(&project)
+                            let result = Command::new("uv").args(["run", "python"]).arg(&script).args(["validate-config", key, file]).current_dir(&root)
                                 .output()
                                 .await;
                             match result {
@@ -329,5 +318,56 @@ impl cosmic::Application for AppModel {
             Message::BackendOutput(output) => self.output = output,
         }
         Task::none()
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn repository_root_rejects_an_incomplete_directory() {
+        let path = std::env::temp_dir().join(format!(
+            "pyinfra-manager-incomplete-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&path).expect("create test directory");
+        let result = repository_root(&path);
+        std::fs::remove_dir_all(&path).expect("remove test directory");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Not a pyinfra checkout"));
+    }
+
+    #[test]
+    fn repository_root_accepts_the_required_checkout_layout() {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock after epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "pyinfra-manager-valid-{}-{nonce}",
+            std::process::id()
+        ));
+        for relative in [
+            "group_data",
+            "tasks",
+            "apps/pyinfra-manager/backend",
+        ] {
+            std::fs::create_dir_all(path.join(relative)).expect("create required directory");
+        }
+        for relative in [
+            "deploy.py",
+            "inventory.py",
+            "pyproject.toml",
+            "apps/pyinfra-manager/backend/manager.py",
+        ] {
+            std::fs::write(path.join(relative), "").expect("create required file");
+        }
+
+        let result = repository_root(&path).expect("valid checkout");
+        assert_eq!(result, path.canonicalize().expect("canonical test path"));
+        std::fs::remove_dir_all(path).expect("remove test checkout");
     }
 }
