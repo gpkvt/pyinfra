@@ -6,8 +6,6 @@ This module ensures Flatpak is installed, installs configured
 applications and checks for updates.
 """
 
-import shlex
-
 from pyinfra.operations import flatpak, server, apt
 from pyinfra import host, logger
 from pyinfra.api import FactBase, operation
