@@ -59,7 +59,8 @@ def test_release_helper_checks_release_preconditions_and_remote_tag():
     assert 'git branch --show-current' in script
     assert 'git status --porcelain' in script
     assert 'grep -Eq' in script
-    assert 'git fetch origin main --tags' in script
+    assert "git fetch origin '+refs/heads/main:refs/remotes/origin/main' --tags" in script
+    assert 'git merge-base --is-ancestor origin/main HEAD' in script
     assert 'git rev-parse HEAD' in script
     assert 'git rev-parse origin/main' in script
     assert 'git show-ref --verify --quiet' in script
@@ -77,5 +78,4 @@ def test_release_documentation_uses_the_helper_and_describes_workflow():
 
     assert './scripts/publish-release.sh v1.2.3' in docs
     assert 'local `main` exactly matches the fetched `origin/main`' in docs
-    assert 'does not' in docs
     assert 'Merging a pull request does not' in docs

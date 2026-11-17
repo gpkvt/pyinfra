@@ -44,7 +44,7 @@ if [[ ! -s CHANGELOG.md ]] ||
     exit 1
 fi
 
-git fetch origin main --tags
+git fetch origin '+refs/heads/main:refs/remotes/origin/main' --tags
 
 if ! git merge-base --is-ancestor origin/main HEAD; then
     echo "Error: local main is not based on origin/main." >&2
