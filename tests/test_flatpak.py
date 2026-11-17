@@ -103,8 +103,10 @@ def test_flatpak_task_discovers_both_ref_types_and_prefers_flathub(
         "org.example.Codecs",
     ]
     fact_commands = []
+    fact_names = []
 
     def get_fact(fact, **kwargs):
+        fact_names.append(fact.__name__)
         command = kwargs.get("command", "")
         if command:
             fact_commands.append(command)
@@ -128,9 +130,7 @@ def test_flatpak_task_discovers_both_ref_types_and_prefers_flathub(
     assert installs[0]["remote"] == "flathub"
     assert installs[0]["user"] is True
     assert "flatpak list --user --columns=ref" in fact_commands
-    assert fact_commands.count(
-        "flatpak remote-ls --user --columns=ref,origin"
-    ) == 0  # Remote discovery is requested as one dedicated fact, not Command.
+    assert fact_names.count("FlatpakRemoteApplications") == 1
 
 
 def test_flatpak_task_skips_installed_runtime_refs(pyinfra_task_harness):
