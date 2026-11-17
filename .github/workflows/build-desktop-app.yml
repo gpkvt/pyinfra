@@ -1,0 +1,93 @@
+name: Build COSMIC Desktop App
+
+'on':
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/pyinfra-manager/**'
+      - '.github/workflows/build-desktop-app.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/pyinfra-manager/**'
+      - '.github/workflows/build-desktop-app.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build Linux x86_64 application
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install COSMIC build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            cmake \
+            libexpat1-dev \
+            libfontconfig-dev \
+            libfreetype-dev \
+            libwayland-dev \
+            libxkbcommon-dev \
+            pkgconf
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Cargo dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: apps/pyinfra-manager
+
+      - name: Check formatting
+        run: cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml --all -- --check
+
+      - name: Run Clippy
+        run: cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets -- -D warnings
+
+      - name: Build release executable
+        run: cargo build --manifest-path apps/pyinfra-manager/Cargo.toml --release
+
+      - name: Package application
+        run: |
+          set -euo pipefail
+
+          bundle="pyinfra-manager-linux-x86_64"
+          mkdir -p "$bundle"
+
+          install -m 0755 \
+            apps/pyinfra-manager/target/release/pyinfra-manager \
+            "$bundle/pyinfra-manager"
+
+          install -m 0644 \
+            apps/pyinfra-manager/resources/org.pyinfra.Manager.desktop \
+            "$bundle/org.pyinfra.Manager.desktop"
+
+          install -m 0644 \
+            apps/pyinfra-manager/resources/org.pyinfra.Manager.metainfo.xml \
+            "$bundle/org.pyinfra.Manager.metainfo.xml"
+
+          install -m 0644 \
+            apps/pyinfra-manager/README.md \
+            "$bundle/README.md"
+
+          tar -czf "${bundle}.tar.gz" "$bundle"
+
+      - name: Upload application artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: pyinfra-manager-linux-x86_64
+          path: pyinfra-manager-linux-x86_64.tar.gz
+          if-no-files-found: error
+          retention-days: 14
