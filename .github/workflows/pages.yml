@@ -75,6 +75,23 @@ jobs:
           name: documentation-site
           path: site/
 
+      - name: Delete previous gh-pages branch
+        shell: bash
+        run: |
+          set +e
+          git ls-remote --exit-code --heads origin gh-pages >/dev/null
+          status=$?
+          set -e
+
+          if [ "$status" -eq 0 ]; then
+            git push origin --delete gh-pages
+          elif [ "$status" -eq 2 ]; then
+            echo "gh-pages does not exist; nothing to delete."
+          else
+            echo "Unable to inspect the gh-pages branch (exit $status)." >&2
+            exit "$status"
+          fi
+
       - name: Publish HTML to gh-pages
         uses: peaceiris/actions-gh-pages@v4
         with:
