@@ -90,9 +90,9 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     if not isinstance(github_repo, str) or not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", github_repo):
         raise ValueError("docker.mdmesh.github_repo must use owner/repository format")
 
-    # An always-on MDM must not be paused by Sablier after an idle timeout.
-    # An explicit per-service setting may opt in, but the safe default is disabled.
-    mdmesh.setdefault("sablier", {"enabled": False})
+    # MDMesh must remain available for Android device check-ins and database
+    # initialization. Sablier lazy-start/idle-stop is not supported.
+    mdmesh["sablier"] = {"enabled": False}
 
     trusted_proxies = mdmesh.get("trusted_proxies", ["127.0.0.1/32", "::1/128"])
     if not isinstance(trusted_proxies, (list, tuple)) or not all(
