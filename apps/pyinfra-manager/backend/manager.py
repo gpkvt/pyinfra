@@ -29,6 +29,9 @@ def _safe_config_path(key: str) -> Path:
     if key not in CONFIG_FILES:
         raise ManagerError(f"Unknown configuration file: {key}")
     _, relative = CONFIG_FILES[key]
+    group_dir = ROOT / "group_data"
+    if group_dir.is_symlink():
+        raise ManagerError("Refusing to use a symlinked group_data directory")
     path = ROOT / relative
     if path.is_symlink():
         raise ManagerError(f"Refusing to follow symlink: {relative}")
@@ -82,10 +85,14 @@ def save_config(key: str, source: str) -> bool:
     if old == source:
         return False
 
-    backup = path.with_suffix(path.suffix + ".bak")
+    state_home = Path(os.environ.get("XDG_STATE_HOME", Path.home() / ".local/state"))
+    backup_dir = state_home / "pyinfra-manager" / "backups"
+    backup_dir.mkdir(parents=True, exist_ok=True)
+    backup = backup_dir / f"{path.name}.bak"
     if backup.exists():
-        raise ManagerError(f"Backup already exists; move it before saving: {backup.name}")
+        raise ManagerError(f"Backup already exists; move it before saving: {backup}")
     shutil.copy2(path, backup)
+    backup.chmod(0o600)
     fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
