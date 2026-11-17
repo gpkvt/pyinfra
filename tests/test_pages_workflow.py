@@ -27,8 +27,8 @@ def test_pages_workflow_does_not_publish_pull_request_builds():
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     assert "if: github.event_name != 'pull_request'" in workflow
-    assert "permissions:\\n  contents: read" in workflow
-    assert "    permissions:\\n      contents: write" in workflow
+    assert "permissions:\n  contents: read" in workflow
+    assert "    permissions:\n      contents: write" in workflow
     assert "    needs: build" in workflow
     assert "workflow_dispatch:" in workflow
 
@@ -74,7 +74,7 @@ def test_homepage_highlights_match_latest_changelog_entry():
     source = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     homepage = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
     latest = re.search(
-        r"^## \\[(\\d{2}\\.\\d{2}\\.\\d{4})\\](.*?)(?=^## \\[|\\Z)",
+        r"^## \[(\d{2}\.\d{2}\.\d{4})\](.*?)(?=^## \[|\Z)",
         source,
         re.MULTILINE | re.DOTALL,
     )
