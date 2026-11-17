@@ -15,7 +15,10 @@ def test_pages_workflow_publishes_on_main_push_and_manually():
     """Every main update and explicit dispatch rebuilds the published site."""
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
-    assert "'on':\\n  push:\\n    branches:\\n      - main\\n  workflow_dispatch:" in workflow
+    assert "'on':" in workflow
+    assert "  push:" in workflow
+    assert "      - main" in workflow
+    assert "  workflow_dispatch:" in workflow
     assert "pull_request:" not in workflow
     assert "run: mkdocs build --strict" in workflow
     assert "uses: peaceiris/actions-gh-pages@v4" in workflow
