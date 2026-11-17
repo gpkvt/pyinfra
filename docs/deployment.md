@@ -58,7 +58,7 @@ These modules are always included by `deploy.py`:
 8. `tasks/scripts.py`
 9. `tasks/mc.py`
 
-The core set can still have conditional behavior internally, but its modules are included on every deployment. `tasks/scripts.py` also deploys the `gpg-vault` utility from `files/scripts/` and creates its command link.
+The core set can still have conditional behavior internally, but its modules are included on every deployment. `tasks/scripts.py` also deploys the `gpg-vault` utility from `files/scripts/` and creates its command link. The complete inclusion matrix, including cron, Samba, Docker lifecycle and nested workstation gates, is in the [Feature reference](feature-reference.md).
 
 ### Optional tasks
 
@@ -69,12 +69,12 @@ The core set can still have conditional behavior internally, but its modules are
 | `host.data.wireguard_config` and `secrets.wireguard` are truthy, and `wireguard_enabled` is not false (defaults to true) | `tasks/wireguard.py` |
 | `host.data.syncthing` is truthy and `syncthing.enabled` is not false (defaults to true) | `tasks/syncthing.py` |
 | `local_network_cidr` and `wireguard_interface` are truthy | `tasks/vpn.py` |
-| `host.data.docker` and `host.data.caddy_config` are truthy, and `caddy_enabled` is not false (defaults to true) | `tasks/caddy.py` |
+| `host.data.docker` and `host.data.caddy_config` are truthy, and `caddy_enabled` is not false (defaults to true) | `tasks/caddy.py` and `tasks/dehydrated.py` |
 | `host.data.zsh` is truthy | `tasks/zsh.py` |
 | `host.data.tmux` is truthy | `tasks/tmux.py` |
 | `host.data.powerline` is truthy | `tasks/powerline.py` |
-| `host.data.ufw` is truthy | `tasks/ufw.py` |
-| `host.data.docker` is truthy | `tasks/docker.py`, `tasks/docker_power.py` and `tasks/docker_container.py` |
+| `host.data.ufw` is truthy and `ufw.enabled` defaults to true | `tasks/ufw.py` |
+| `host.data.docker` is truthy | `tasks/docker.py`, `tasks/docker_power.py` (unless `docker_power_monitor` is false) and `tasks/docker_container.py` |
 | `host.data.docker_sablier.enabled` is true (inside the Docker gate) | `tasks/docker_sablier.py` |
 | `host.data.apparmor_profiles` is truthy and `apparmor_enabled` is not false (defaults to true) | `tasks/apparmor.py` |
 | `workstation.limusic.enabled` is true | `tasks/workstation/limusic.py` |
@@ -102,11 +102,14 @@ The workstation role is assigned through inventory group membership, not by nami
 | `workstation.peripherals.enabled` | `tasks/workstation/peripherals.py` | Printer and scanner packages are separately controlled by `printing` and `scanning`; printing enables CUPS. |
 | `workstation.desktop.enabled` | `tasks/workstation/desktop.py` | Installs common desktop integration packages; optional `packages` replaces the defaults. |
 | `workstation.maintenance.enabled` | `tasks/workstation/maintenance.py` | Installs maintenance utilities only; no unattended upgrades or scheduled reboots. |
-| `workstation.cosmic.enabled` | `tasks/workstation/cosmic/deploy.py` | Applies enabled COSMIC appearance, panel, dock and workspace settings. |
+| `workstation.cosmic.enabled` | `tasks/workstation/cosmic/deploy.py` | Applies independently enabled appearance, window management, input, shortcuts, panel, dock, workspaces and optional config-file synchronization. Display/output settings are not managed. |
+| `workstation.limusic.enabled` | `tasks/workstation/limusic.py` | Installs the stable x86-64 AppImage after SHA-256 verification and creates its desktop launcher. |
 
 The tracked workstation example disables all workstation features by default. Audit and explicitly enable each feature before applying a deployment.
 
 ## Deployment behavior to understand
+
+For the full top-level host-data index, optional task gates, COSMIC subfeatures, Docker application catalog and every task module, see the [Complete feature and configuration reference](feature-reference.md).
 
 - `tasks/apt.py` configures configured repositories, refreshes package indexes, upgrades packages when the index update changes, and installs configured packages.
 - `tasks/system.py` can change hostname, timezone, locale, editor environment, keyboard layout, sysctl, udev and USBGuard configuration.

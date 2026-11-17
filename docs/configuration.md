@@ -399,6 +399,10 @@ The Linkwarden bookmark sync can be previewed manually from the repository root 
 
 The absence of `secrets.json.gpg` does not stop the whole deployment; `common.initialize()` sets an empty secrets dictionary. See [Secrets management](secrets.md) for the supported structure.
 
+## Complete feature index
+
+For the full list of optional task gates, workstation subfeatures, Docker applications, helper modules and configuration-key families, see the [Complete feature and configuration reference](feature-reference.md). It is maintained alongside deploy.py and the task-module inventory.
+
 ## Adding a host
 
 1. Add a target entry to `_all_hosts` in `inventory.py`.
