@@ -71,7 +71,7 @@ Git. Deployment output may contain sensitive host details and is kept local.
 - Backups are private and stored outside the repository.
 - Deployment output is not sent to telemetry or an external service.
 
-## Building
+## Building locally
 
 Install Rust/Cargo and the native libraries listed by the
 [libcosmic project](https://github.com/pop-os/libcosmic), then build:
@@ -86,3 +86,16 @@ The resulting executable is `target/release/pyinfra-manager`. Install
 `~/.local/share/applications/` to add it to the desktop launcher. The app
 expects `uv` and the Python project dependencies to be available on the
 system, and it must be pointed at a pyinfra repository checkout.
+
+## Automated Linux builds
+
+The **Build COSMIC Desktop App** workflow runs on application pull requests,
+on pushes to `main` that touch the app or workflow, and on manual dispatch.
+It checks Rust formatting, runs Clippy with warnings denied, and builds the
+release executable on Ubuntu 24.04 for x86_64.
+
+The workflow uploads a `pyinfra-manager-linux-x86_64` archive containing the
+executable, desktop entry, AppStream metadata, and application README. Download
+it from the workflow run's **Artifacts** section. This archive is not a
+self-contained installer: COSMIC system libraries and the Python runtime and
+project dependencies must be installed separately.
