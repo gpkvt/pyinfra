@@ -20,12 +20,19 @@ if not hasattr(__import__('builtins'), 'homedir'):
 flatpak_packages = host.data.get("flatpak_packages", [])
 
 
-class FlatpakRemotes(FactBase):
-    """Return configured user Flatpak remotes."""
-    command = "flatpak remotes --user --columns=name"
+class FlatpakRemoteApplications(FactBase):
+    """Return application and runtime IDs grouped by user remote in one query."""
+    command = "flatpak remote-ls --user --columns=ref,origin"
 
     def process(self, output):
-        return [line.strip() for line in output if line.strip()]
+        applications = {}
+        for line in output:
+            fields = line.split()
+            if len(fields) < 2 or fields[0].lower() == "ref":
+                continue
+            package_id = flatpak_ref_ids([fields[0]])[0]
+            applications.setdefault(fields[1], set()).add(package_id)
+        return applications
 
 
 class FlatpakUpdates(FactBase):
@@ -89,22 +96,15 @@ apt.packages(
 # Resolve each configured application or runtime to one explicit remote. This prevents Flatpak from
 # prompting when duplicate refs exist and makes Flathub the consistent default.
 if flatpak_packages:
-    remotes = host.get_fact(FlatpakRemotes, _sudo=False)
     installed = set(flatpak_ref_ids(host.get_fact(
         Command,
         command="flatpak list --user --columns=ref",
         _sudo=False,
     )))
-    available_by_remote = {}
-    for remote in remotes:
-        available_by_remote[remote] = set(flatpak_ref_ids(host.get_fact(
-            Command,
-            command=(
-                "flatpak remote-ls --user --columns=ref "
-                f"{shlex.quote(remote)}"
-            ),
-            _sudo=False,
-        )))
+    available_by_remote = host.get_fact(
+        FlatpakRemoteApplications,
+        _sudo=False,
+    )
 
     packages_by_remote = {}
     for package in dict.fromkeys(flatpak_packages):
