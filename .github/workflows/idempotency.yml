@@ -77,6 +77,27 @@ jobs:
             --verbose \
             --show-diff-on-failure
 
+  cosmic-app:
+    name: Check COSMIC desktop application
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes \
+            libexpat1-dev libfontconfig-dev libfreetype-dev \
+            libxkbcommon-dev libwayland-dev pkg-config
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check COSMIC application
+        run: cargo check --manifest-path apps/pyinfra-manager/Cargo.toml
+
   idempotency:
     name: Check deployment idempotency
     needs:
