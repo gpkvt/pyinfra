@@ -379,3 +379,19 @@ def test_adguard_home_uses_host_network_and_persistent_bind_mounts():
     assert "{{ homedir }}/.docker/adguard_home/conf:/opt/adguardhome/conf" in template
     assert "ports:" not in template
     assert "volumes:" not in template.split("services:", 1)[0]
+
+
+def test_adguard_public_dns_firewall_rule_is_documented_as_opt_in():
+    """The sample exposes an explicit, opt-in UFW rule for public DNS."""
+    example = (ROOT / "group_data/@local.py.example").read_text()
+    documentation = (ROOT / "docs/docker.md").read_text()
+    firewall_task = (ROOT / "tasks/ufw.py").read_text()
+
+    assert '"adguard-dns"' in example
+    assert '"action": "Allow"' in example
+    assert '"rule": "53"' in example
+    assert "both TCP and UDP port 53" in example
+    assert "open resolver" in example
+    assert '"rule": "53"' in documentation
+    assert "both TCP and UDP port 53" in documentation
+    assert "ufw {custom_action.lower()} {rule_arguments}" in firewall_task
