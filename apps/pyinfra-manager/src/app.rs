@@ -331,3 +331,54 @@ impl cosmic::Application for AppModel {
         Task::none()
     }
 }
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    #[test]
+    fn repository_root_rejects_an_incomplete_directory() {
+        let path = std::env::temp_dir().join(format!(
+            "pyinfra-manager-incomplete-{}",
+            std::process::id()
+        ));
+        std::fs::create_dir_all(&path).expect("create test directory");
+        let result = repository_root(&path);
+        std::fs::remove_dir_all(&path).expect("remove test directory");
+        assert!(result.is_err());
+        assert!(result.unwrap_err().contains("Not a pyinfra checkout"));
+    }
+
+    #[test]
+    fn repository_root_accepts_the_required_checkout_layout() {
+        let nonce = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("clock after epoch")
+            .as_nanos();
+        let path = std::env::temp_dir().join(format!(
+            "pyinfra-manager-valid-{}-{nonce}",
+            std::process::id()
+        ));
+        for relative in [
+            "group_data",
+            "tasks",
+            "apps/pyinfra-manager/backend",
+        ] {
+            std::fs::create_dir_all(path.join(relative)).expect("create required directory");
+        }
+        for relative in [
+            "deploy.py",
+            "inventory.py",
+            "pyproject.toml",
+            "apps/pyinfra-manager/backend/manager.py",
+        ] {
+            std::fs::write(path.join(relative), "").expect("create required file");
+        }
+
+        let result = repository_root(&path).expect("valid checkout");
+        assert_eq!(result, path.canonicalize().expect("canonical test path"));
+        std::fs::remove_dir_all(path).expect("remove test checkout");
+    }
+}

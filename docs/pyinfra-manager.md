@@ -6,7 +6,13 @@ duplicate pyinfra task logic.
 
 ## Using the application
 
-1. Start Pyinfra Manager and select the repository checkout in the path field.
+1. Start Pyinfra Manager. It first checks `PYINFRA_REPOSITORY`, the last
+   valid checkout saved under `$XDG_CONFIG_HOME/pyinfra-manager/repository`
+   (or `~/.config/pyinfra-manager/repository`), the launch directory, and
+   the executable's parent directories. You can also enter a checkout path
+   directly in the path field. A valid checkout must contain `deploy.py`,
+   `inventory.py`, `pyproject.toml`, `group_data/`, `tasks/`, and the
+   manager backend. Valid paths are remembered for the next launch.
 2. Open **Tasks** and load the catalog. It includes literal includes from
    `deploy.py`, the workstation task loop parsed from that file, and Python
    modules found below `tasks/`. The `entrypoint` field distinguishes modules
