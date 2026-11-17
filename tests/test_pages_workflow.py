@@ -29,3 +29,17 @@ def test_pages_workflow_does_not_publish_pull_request_builds():
     assert "    permissions:\n      contents: write" in workflow
     assert "    needs: build" in workflow
     assert "workflow_dispatch:" in workflow
+
+
+def test_homepage_section_headings_are_markdown_inside_html():
+    """Homepage section headings are parsed by md_in_html, not emitted as text."""
+    config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    homepage = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
+
+    assert "  - md_in_html" in config
+    for heading in (
+        "## Everything you need to manage your Linux environment.",
+        "## A workflow you can reason about.",
+        "## Go deeper.",
+    ):
+        assert heading in homepage
