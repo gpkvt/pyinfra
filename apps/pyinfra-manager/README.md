@@ -16,12 +16,10 @@ uv run python apps/pyinfra-manager/backend/manager.py run @local
 Deployments are dry-run by default. Pass `--apply` only after reviewing the
 preview.
 
-## Automated builds
+## Manual application builds
 
-GitHub Actions builds the Linux x86_64 release executable when application
-files change and supports manual builds.
-
-To create a build manually:
+GitHub Actions builds the Linux x86_64 application only when manually
+dispatched:
 
 1. Open the repository's **Actions** tab.
 2. Select **Build COSMIC Desktop App**.

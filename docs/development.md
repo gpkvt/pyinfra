@@ -32,7 +32,7 @@ Activate the created virtual environment when running commands interactively:
 source .venv/bin/activate
 ```
 
-After changing dependencies in `pyproject.toml`, run `uv lock` and `uv sync --dev` to refresh the local environment. When adding or changing runtime dependencies, also update `requirements.txt`, because the deployment CI job installs from that file. Prefer `uv add PACKAGE` for runtime dependencies and `uv add --dev PACKAGE` for development dependencies.
+After changing dependencies in `pyproject.toml`, run `uv lock` and `uv sync --dev` to refresh the local environment. When adding or changing runtime dependencies, also update `requirements.txt`, because deployment environments install from that file. Prefer `uv add PACKAGE` for runtime dependencies and `uv add --dev PACKAGE` for development dependencies.
 
 ## Makefile shortcuts
 
@@ -84,7 +84,9 @@ Run the mocked task regression tests in the synchronized development environment
 uv run pytest tests/ -v
 ```
 
-The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. Run these checks locally before submitting a pull request. The repository no longer runs automated GitHub Actions checks.
+The tests stub pyinfra host, fact and operation APIs. They check task-module evaluation and selected helper behavior without connecting to or changing a real host. Run these checks locally before submitting a pull request. GitHub Actions does not run automated test or deployment checks.
+
+The GitHub Pages workflow rebuilds and publishes the documentation after every push to `main`. The desktop application build is available as a manual workflow from the repository's **Actions** tab.
 
 The coverage inventory in `.github/ci/task_coverage.json` enumerates every Python task module and every file under `files/scripts/`. The `tests/test_task_coverage.py` checks that the inventory cannot silently omit new or removed files, that every task module is explicitly classified, and that Python and shell utility sources pass syntax validation. It also evaluates every deployment module in a mocked pyinfra context with safe fixtures and requires each module to schedule at least one operation; dispatchers must include at least one child task. The `helper` classification is reserved for shared code that does not itself schedule pyinfra operations. These module smoke tests validate deployment preparation and operation scheduling, not changes on a live host. Use a disposable target for any real deployment validation. A separate behavioral coverage map in `tests/function_coverage.json` links every Python function in `tasks/` and `files/scripts/` to one or more pytest cases. `tests/test_function_coverage.py` compares that map against the AST-discovered function inventory and verifies that mapped tests exist and assert results or expected exceptions. Keep the map synchronized when adding, removing or renaming functions. The mapping is an inventory guard, not a substitute for reviewing whether each test asserts the function's expected outputs, side effects and no-op behavior.
 
