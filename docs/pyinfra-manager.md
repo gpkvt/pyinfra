@@ -93,12 +93,12 @@ The resulting executable is `target/release/pyinfra-manager`. Install
 expects `uv` and the Python project dependencies to be available on the
 system, and it must be pointed at a pyinfra repository checkout.
 
-## Automated Linux builds
+## Manual Linux builds
 
-The **Build COSMIC Desktop App** workflow runs on application pull requests,
-on pushes to `main` that touch the app or workflow, and on manual dispatch.
-It checks Rust formatting, runs Clippy with warnings denied, and builds the
-release executable on Ubuntu 24.04 for x86_64.
+The **Build COSMIC Desktop App** workflow is available from the repository's
+Actions tab and runs only when manually dispatched. It checks Rust formatting,
+runs Clippy with warnings denied, and builds the release executable on Ubuntu
+24.04 for x86_64.
 
 The workflow uploads a `pyinfra-manager-linux-x86_64` archive containing the
 executable, desktop entry, AppStream metadata, and application README. Download
