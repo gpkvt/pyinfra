@@ -1,5 +1,7 @@
 """Regression tests for the GitHub Pages publishing workflow."""
 
+from datetime import datetime
+import re
 from pathlib import Path
 
 
@@ -61,9 +63,6 @@ def test_changelog_page_matches_repository_changelog():
 
 def test_homepage_highlights_match_latest_changelog_entry():
     """Keep the homepage's dated highlights grounded in the newest changelog entry."""
-    import re
-    from datetime import datetime
-
     source = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     homepage = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
     latest = re.search(
