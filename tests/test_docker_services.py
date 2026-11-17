@@ -419,7 +419,8 @@ def test_adguard_web_port_defaults_and_is_configurable(
         if namespace == "server" and name == "shell"
         and kwargs.get("name") == "Configure AdGuard Home web UI listen address"
     )
-    assert expected in operation["commands"][0]
+    assert expected in operation["commands"][-1]
+    assert "systemctl --user stop adguard_home" in operation["commands"][0]
     assert operation["_sudo"] is True
     assert operation["_if"]() is False  # Missing config is a no-op during first-run setup.
     assert module._ADGUARD_CONFIG_SCRIPT
