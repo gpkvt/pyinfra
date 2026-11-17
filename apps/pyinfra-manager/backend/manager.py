@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 CONFIG_FILES = {
     "local": ("group_data/@local.py.example", "group_data/@local.py"),
     "workstation": ("group_data/workstation.py.example", "group_data/workstation.py"),
@@ -131,6 +131,7 @@ def discover_tasks() -> list[dict[str, object]]:
     tree = ast.parse(source, filename="deploy.py")
     included = _literal_includes(tree)
     included.update(WORKSTATION_TASKS.values())
+    # Also expose leaf task modules dispatched by aggregate tasks (for example\n    # Docker service modules and COSMIC sub-tasks). Helpers are identified\n    # separately so the UI can label them as implementation modules.\n    all_modules = {\n        path.relative_to(ROOT).as_posix()\n        for path in (ROOT / "tasks").rglob("*.py")\n        if path.name != "__init__.py"\n    }\n    included.update(all_modules)
     tasks = []
     for relative in sorted(included):
         if not relative.startswith("tasks/") or not relative.endswith(".py"):
@@ -149,7 +150,7 @@ def discover_tasks() -> list[dict[str, object]]:
                 } else "Optional"
             ),
             "included_by_default": relative in _literal_includes(tree),
-            "available": True,
+            "available": True,\n            "entrypoint": relative in _literal_includes(tree) or relative in WORKSTATION_TASKS.values(),
         })
     return tasks
 
