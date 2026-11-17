@@ -20,18 +20,6 @@ CONFIG_FILES = {
     "local": ("group_data/@local.py.example", "group_data/@local.py"),
     "workstation": ("group_data/workstation.py.example", "group_data/workstation.py"),
 }
-WORKSTATION_TASKS = {
-    "backup": "tasks/workstation/backup.py",
-    "power": "tasks/workstation/power.py",
-    "hardware": "tasks/workstation/hardware.py",
-    "storage": "tasks/workstation/storage.py",
-    "peripherals": "tasks/workstation/peripherals.py",
-    "desktop": "tasks/workstation/desktop.py",
-    "maintenance": "tasks/workstation/maintenance.py",
-    "limusic": "tasks/workstation/limusic.py",
-    "cosmic": "tasks/workstation/cosmic/deploy.py",
-}
-
 
 class ManagerError(Exception):
     """An expected, user-displayable manager error."""
@@ -125,35 +113,63 @@ def _literal_includes(tree: ast.AST) -> set[str]:
     return found
 
 
+def _workstation_task_paths(tree: ast.AST) -> set[str]:
+    """Read the dynamic workstation task map directly from deploy.py."""
+    paths = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.For) or not isinstance(node.iter, ast.Tuple):
+            continue
+        for pair in node.iter.elts:
+            if not isinstance(pair, ast.Tuple) or len(pair.elts) != 2:
+                continue
+            feature, task = pair.elts
+            if isinstance(feature, ast.Constant) and isinstance(task, ast.Constant):
+                if isinstance(feature.value, str) and isinstance(task.value, str):
+                    paths.add(f"tasks/workstation/{task.value}")
+    return paths
+
+
 def discover_tasks() -> list[dict[str, object]]:
-    """Discover task modules from deploy.py and the workstation feature map."""
+    """Discover task and implementation modules from the repository tree."""
     source = (ROOT / "deploy.py").read_text(encoding="utf-8")
     tree = ast.parse(source, filename="deploy.py")
-    included = _literal_includes(tree)
-    included.update(WORKSTATION_TASKS.values())
-    # Also expose leaf task modules dispatched by aggregate tasks (for example\n    # Docker service modules and COSMIC sub-tasks). Helpers are identified\n    # separately so the UI can label them as implementation modules.\n    all_modules = {\n        path.relative_to(ROOT).as_posix()\n        for path in (ROOT / "tasks").rglob("*.py")\n        if path.name != "__init__.py"\n    }\n    included.update(all_modules)
+    default_includes = _literal_includes(tree)
+    workstation_paths = _workstation_task_paths(tree)
+    all_modules = {
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "tasks").rglob("*.py")
+        if path.name != "__init__.py"
+    }
+    task_paths = default_includes | workstation_paths | all_modules
+    core = {
+        "tasks/apt.py", "tasks/hosts.py", "tasks/sudo.py",
+        "tasks/system.py", "tasks/ssh_keys.py", "tasks/git.py",
+        "tasks/fonts.py", "tasks/scripts.py", "tasks/mc.py",
+    }
     tasks = []
-    for relative in sorted(included):
+    for relative in sorted(task_paths):
         if not relative.startswith("tasks/") or not relative.endswith(".py"):
             continue
         path = ROOT / relative
         if not path.is_file():
             continue
+        entrypoint = relative in default_includes or relative in workstation_paths
+        if relative in core:
+            group = "Core"
+        elif relative.startswith("tasks/workstation/"):
+            group = "Workstation"
+        elif relative.startswith("tasks/docker/"):
+            group = "Docker services"
+        else:
+            group = "Optional"
         tasks.append({
             "path": relative,
             "name": path.stem.replace("_", " ").title(),
-            "group": "Workstation" if relative.startswith("tasks/workstation/") else (
-                "Core" if relative in {
-                    "tasks/apt.py", "tasks/hosts.py", "tasks/sudo.py",
-                    "tasks/system.py", "tasks/ssh_keys.py", "tasks/git.py",
-                    "tasks/fonts.py", "tasks/scripts.py", "tasks/mc.py",
-                } else "Optional"
-            ),
-            "included_by_default": relative in _literal_includes(tree),
-            "available": True,\n            "entrypoint": relative in _literal_includes(tree) or relative in WORKSTATION_TASKS.values(),
+            "group": group,
+            "included_by_default": relative in default_includes,
+            "entrypoint": entrypoint,
         })
     return tasks
-
 
 def configured_hosts() -> list[str]:
     """Read inventory host names from its literal _all_hosts dictionary."""
