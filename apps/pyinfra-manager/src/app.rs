@@ -29,6 +29,8 @@ enum Message {
     HostChanged(String),
     LoadCatalog,
     OpenSettings,
+    OpenWorkstationSettings,
+    ValidateSettings,
     PreviewDeployment,
     RequestApply,
     ConfirmApply,
@@ -108,7 +110,8 @@ impl cosmic::Application for AppModel {
                 .push(widget::text::title2("Host and workstation settings"))
                 .push(widget::text("Choose a file to open it in your system's configured editor."))
                 .push(widget::button::text("Initialize / edit @local.py").on_press(Message::OpenSettings))
-                .push(widget::text("The backend also initializes workstation.py from its tracked example."))
+                .push(widget::button::text("Initialize / edit workstation.py").on_press(Message::OpenWorkstationSettings))
+                .push(widget::button::text("Validate both settings files").on_press(Message::ValidateSettings))
                 .into(),
             Page::Deploy => widget::column::with_capacity(5)
                 .push(widget::text::title2("Deployment"))
@@ -163,8 +166,9 @@ impl cosmic::Application for AppModel {
                     Message::BackendOutput,
                 );
             }
-            Message::OpenSettings => {
+            Message::OpenSettings | Message::OpenWorkstationSettings => {
                 let project = self.project_path.clone();
+                let config_file = if matches!(message, Message::OpenSettings) { "@local.py" } else { "workstation.py" };
                 return Task::perform(async move {
                     let result = Command::new("uv")
                         .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "init-config"])
@@ -173,10 +177,10 @@ impl cosmic::Application for AppModel {
                         .await;
                     match result {
                         Ok(output) if output.status.success() => {
-                            let path = PathBuf::from(&project).join("group_data/@local.py");
+                            let path = PathBuf::from(&project).join("group_data").join(config_file);
                             let open = Command::new("xdg-open").arg(path).spawn();
                             match open {
-                                Ok(_) => "Initialized local settings and opened @local.py.".into(),
+                                Ok(_) => format!("Initialized local settings and opened {config_file}."),
                                 Err(error) => format!("Settings initialized, but could not open editor: {error}"),
                             }
                         }
@@ -187,6 +191,24 @@ impl cosmic::Application for AppModel {
                         ),
                         Err(error) => format!("Could not initialize settings: {error}"),
                     }
+                }, Message::BackendOutput);
+            }
+            Message::ValidateSettings => {
+                let project = self.project_path.clone();
+                return Task::perform(async move {
+                    let mut messages = Vec::new();
+                    for (key, file) in [("local", "group_data/@local.py"), ("workstation", "group_data/workstation.py")] {
+                        let result = Command::new("uv")
+                            .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "validate-config", key, file])
+                            .current_dir(&project)
+                            .output()
+                            .await;
+                        match result {
+                            Ok(output) => messages.push(format!("{}: {}{}", file, String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr))),
+                            Err(error) => messages.push(format!("{file}: {error}")),
+                        }
+                    }
+                    messages.join("\n")
                 }, Message::BackendOutput);
             }
             Message::PreviewDeployment => {
