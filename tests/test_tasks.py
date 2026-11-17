@@ -272,6 +272,7 @@ def test_mdmesh_deploys_pinned_android_mdm_with_private_secrets(
             "version": "latest",
             "domain": "mdm.example.com",
             "port": 8030,
+            "sablier": {"enabled": True},
         }},
         "username": "tester",
         "usergroup": "tester",
