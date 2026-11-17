@@ -121,9 +121,24 @@ for directory in ("conf", "work"):
 # Schedule the config edit before the service deployment so its change result
 # can trigger a restart. The fact check skips missing files and already-correct
 # addresses, avoiding false change reports on first setup and repeat runs.
+adguard_uid = command_output_text(
+    host.get_fact(Command, f"id -u {shlex.quote(username)}")
+).strip()
+if not adguard_uid.isdigit():
+    raise RuntimeError(f"Unable to determine UID for AdGuard user {username!r}")
+systemctl_user = (
+    f"runuser -u {shlex.quote(username)} -- env "
+    f"XDG_RUNTIME_DIR=/run/user/{adguard_uid} "
+    f"DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/{adguard_uid}/bus "
+    "systemctl --user"
+)
+
 web_config = server.shell(
     name="Configure AdGuard Home web UI listen address",
-    commands=[apply_command],
+    commands=[
+        f"{systemctl_user} stop adguard_home",
+        apply_command,
+    ],
     _sudo=True,
     _if=lambda: command_output_text(
         host.get_fact(Command, check_command, _sudo=True)
