@@ -185,6 +185,7 @@
     <ul>
       <li>Added a native COSMIC desktop manager for browsing tasks, editing settings, validating configuration and running deployments with dry-run as the default (<a href="https://github.com/gpkvt/pyinfra/pull/351">#351</a>).</li>
       <li>Added configurable AdGuard Home web UI port handling under `docker.adguard_home.web_port`; reconcile only the listen address, preserve other settings and restart the service only when the address changes (<a href="https://github.com/gpkvt/pyinfra/pull/355">#355</a>, <a href="https://github.com/gpkvt/pyinfra/pull/356">#356</a>, <a href="https://github.com/gpkvt/pyinfra/pull/358">#358</a>).</li>
+      <li>Improved Flatpak application and runtime discovery by fetching all configured user remotes in a single query, while preserving explicit remote selection (<a href="https://github.com/gpkvt/pyinfra/pull/377">#377</a>).</li>
       <li>Improved desktop-manager checkout discovery using environment, saved configuration, launch directory and executable parent directories, with validation and persistence of usable paths (<a href="https://github.com/gpkvt/pyinfra/pull/368">#368</a>).</li>
       <li>Fixed deployment initialization by avoiding host-fact calls before pyinfra binds the host context; corrected local-host secret selection and CI shell command handling (<a href="https://github.com/gpkvt/pyinfra/pull/363">#363</a>).</li>
     </ul>
