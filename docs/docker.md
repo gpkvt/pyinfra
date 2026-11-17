@@ -184,9 +184,27 @@ The task reference explains Homepage widgets, Linkwarden bookmark synchronizatio
 
     **AdGuard Home**
 
-    Enable it by adding `"adguard_home": {}` to the `docker` mapping in `@local.py`. It runs as a Docker Compose container using host networking, which lets the DNS service bind directly to TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data are stored in `~/.docker/adguard_home/conf/` and `~/.docker/adguard_home/work/`. The default image is pinned to `adguard/adguardhome:v0.107.80`; override it with `docker.adguard_home.image` when deliberately upgrading.
+    Enable it by adding an AdGuard Home mapping to `docker` in `@local.py`. It runs as a Docker Compose container using host networking, which lets DNS listen directly on host TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data remain in the bind-mounted directories `~/.docker/adguard_home/conf/` and `~/.docker/adguard_home/work/`. The default image is pinned to `adguard/adguardhome:v0.107.80`; override it with `docker.adguard_home.image` when deliberately upgrading.
 
-    On first start, complete AdGuard Home's setup wizard at `http://<host-address>:3000`. Configure DNS to listen only on the LAN and WireGuard addresses that should serve clients, then add DNS rewrites for the desired local names and aliases. The initial setup wizard and DNS listener should normally be reachable only from trusted LAN and WireGuard networks. Host networking also means there are no Compose port mappings to restrict exposure. Check for an existing host resolver already using port 53 before enabling the container; do not disable or reconfigure the host resolver automatically. Point the FRITZ!Box DHCP DNS setting and/or WireGuard clients' `DNS` setting at the host's reachable AdGuard Home address. The container is opt-in and is not deployed unless `docker.adguard_home` is present.
+    Configure the web UI port with `docker.adguard_home.web_port`. It defaults to `3000` for compatibility; use `3001` when Forgejo already occupies host port 3000:
+
+    ```python
+    docker = {
+        "adguard_home": {
+            "image": "adguard/adguardhome:v0.107.80",
+            "web_port": 3001,
+        },
+    }
+    caddy_config = {
+        "adguard.example.com:443": {
+            "reverse_proxy": "127.0.0.1:3001",
+        },
+    }
+    ```
+
+    On first start, complete AdGuard Home's setup wizard at `http://<host-address>:3000` (the initial setup port remains AdGuard's default). After the configuration file exists, the task reconciles only `http.address` to `127.0.0.1:<web_port>`, preserving the rest of `AdGuardHome.yaml`; a change triggers an AdGuard service restart. The first-run configuration is left untouched until the setup wizard creates the file. The web UI is then loopback-only and should be reached through the configured Caddy reverse proxy. The default port remains 3000 unless explicitly overridden.
+
+    DNS continues to use host TCP/UDP port 53. Configure DNS to listen only on the LAN and WireGuard addresses that should serve clients, then add DNS rewrites for the desired local names and aliases. Host networking means there are no Compose port mappings to restrict exposure. Check for an existing host resolver already using port 53 before enabling the container; do not disable or reconfigure the host resolver automatically. Point the FRITZ!Box DHCP DNS setting and/or WireGuard clients' `DNS` setting at the host's reachable AdGuard Home address. The container is opt-in and is not deployed unless `docker.adguard_home` is present.
 
     **Optional public DNS access:** UFW custom rules can allow DNS from any source by adding `"adguard-dns": {"action": "Allow", "rule": "53"}` to the `ufw` mapping in `@local.py`. A port rule without a protocol suffix opens both TCP and UDP port 53, and UFW reports the source as `Anywhere` (including IPv6 when IPv6 support is enabled). This is intentionally not enabled by default. Exposing DNS publicly can create an open resolver and enable abuse or amplification attacks; configure AdGuard's allowed clients and recursion policy before enabling it. Do not expose the setup wizard or administration UI publicly.
 
