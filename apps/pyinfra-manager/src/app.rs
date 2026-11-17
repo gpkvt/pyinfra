@@ -10,7 +10,7 @@ pub struct AppModel {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]\nenum Page {
+enum Page {
     Overview,
     Tasks,
     Settings,
