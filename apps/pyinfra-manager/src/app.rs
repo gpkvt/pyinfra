@@ -201,7 +201,7 @@ impl cosmic::Application for AppModel {
                 .push(
                     widget::button::text("Preview (dry-run)").on_press(Message::PreviewDeployment),
                 )
-.push(widget::button::text("Apply deployment…").on_press(Message::RequestApply))
+                .push(widget::button::text("Apply deployment…").on_press(Message::RequestApply))
                 .push(if self.confirm_apply {
                     widget::row::with_capacity(2)
                         .push(widget::button::text("Confirm apply").on_press(Message::ConfirmApply))
