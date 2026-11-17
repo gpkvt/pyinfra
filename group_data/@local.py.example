@@ -378,3 +378,12 @@ ufw = {}  # UFW rules; only populate after verifying remote access and SSH allow
 #     "action": "Allow",
 #     "rule": "443/tcp"
 # } after careful review.
+# To expose AdGuard DNS to every source address, explicitly add this entry:
+# ufw = {
+#     "adguard-dns": {
+#         "action": "Allow",
+#         "rule": "53"
+#     }
+# }  # UFW opens both TCP and UDP port 53 from Anywhere.
+# Public DNS exposure can create an open resolver; restrict AdGuard's client
+# access and recursion policy before enabling this rule.
