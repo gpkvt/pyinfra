@@ -136,6 +136,23 @@ def _literal_includes(tree: ast.AST) -> set[str]:
     return found
 
 
+
+def _unconditional_includes(tree: ast.Module) -> set[str]:
+    """Find literal task includes that are direct top-level statements."""
+    found = set()
+    for node in tree.body:
+        if not isinstance(node, ast.Expr) or not isinstance(node.value, ast.Call):
+            continue
+        call = node.value
+        if not isinstance(call.func, ast.Attribute) or call.func.attr != "include":
+            continue
+        if call.args and isinstance(call.args[0], ast.Constant):
+            value = call.args[0].value
+            if isinstance(value, str):
+                found.add(value)
+    return found
+
+
 def _workstation_task_paths(tree: ast.AST) -> set[str]:
     """Read the dynamic workstation task map directly from deploy.py."""
     paths = set()
@@ -156,14 +173,15 @@ def discover_tasks() -> list[dict[str, object]]:
     """Discover task and implementation modules from the repository tree."""
     source = (ROOT / "deploy.py").read_text(encoding="utf-8")
     tree = ast.parse(source, filename="deploy.py")
-    default_includes = _literal_includes(tree)
+    all_includes = _literal_includes(tree)
+    default_includes = _unconditional_includes(tree)
     workstation_paths = _workstation_task_paths(tree)
     all_modules = {
         path.relative_to(ROOT).as_posix()
         for path in (ROOT / "tasks").rglob("*.py")
         if path.name != "__init__.py"
     }
-    task_paths = default_includes | workstation_paths | all_modules
+    task_paths = all_includes | workstation_paths | all_modules
     core = {
         "tasks/apt.py", "tasks/hosts.py", "tasks/sudo.py",
         "tasks/system.py", "tasks/ssh_keys.py", "tasks/git.py",
@@ -176,7 +194,7 @@ def discover_tasks() -> list[dict[str, object]]:
         path = ROOT / relative
         if not path.is_file():
             continue
-        entrypoint = relative in default_includes or relative in workstation_paths
+        entrypoint = relative in all_includes or relative in workstation_paths
         if relative in core:
             group = "Core"
         elif relative.startswith("tasks/workstation/"):
