@@ -14,6 +14,7 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ### Changed
 
+- Reduced Flatpak application and runtime discovery to one remote-listing query across all configured user remotes, preserving explicit remote selection ([#377](https://github.com/gpkvt/pyinfra/pull/377)).
 - Added configurable AdGuard Home web UI port handling under `docker.adguard_home.web_port`; reconcile only the listen address, preserve other settings and restart the service only when the address changes ([#355](https://github.com/gpkvt/pyinfra/pull/355), [#356](https://github.com/gpkvt/pyinfra/pull/356), [#358](https://github.com/gpkvt/pyinfra/pull/358)).
 - Improved desktop-manager checkout discovery using environment, saved configuration, launch directory and executable parent directories, with validation and persistence of usable paths ([#368](https://github.com/gpkvt/pyinfra/pull/368)).
 
