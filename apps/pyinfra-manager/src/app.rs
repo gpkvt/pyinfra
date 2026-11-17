@@ -178,14 +178,16 @@ impl cosmic::Application for AppModel {
                 .into(),
         };
 
-        let output = widget::scrollable(widget::text(self.output.as_str()))
-            .height(Length::Fill);
+        let output =
+            widget::scrollable(widget::text(self.output.as_str())).height(Length::Fill);
         widget::container(
             widget::column::with_capacity(6)
                 .push(heading)
                 .push(project_input)
                 .push(navigation)
-                .push(widget::text("────────────────────────────────────────────────"))
+                .push(widget::text(
+                    "────────────────────────────────────────────────",
+                ))
                 .push(body)
                 .push(widget::text::title3("Activity"))
                 .push(output)
@@ -212,33 +214,61 @@ impl cosmic::Application for AppModel {
                 return Task::perform(
                     backend_command(project, vec!["catalog".into()]),
                     Message::BackendOutput,
-                );
+                )
+                .map(cosmic::Action::App);
             }
             Message::OpenSettings => {
                 let project = self.project_path.clone();
-                return Task::perform(open_settings(project, "@local.py", "local"), Message::BackendOutput);
+                return Task::perform(
+                    open_settings(project, "@local.py", "local"),
+                    Message::BackendOutput,
+                )
+                .map(cosmic::Action::App);
             }
             Message::OpenWorkstationSettings => {
                 let project = self.project_path.clone();
-                return Task::perform(open_settings(project, "workstation.py", "workstation"), Message::BackendOutput);
+                return Task::perform(
+                    open_settings(project, "workstation.py", "workstation"),
+                    Message::BackendOutput,
+                )
+                .map(cosmic::Action::App);
             }
             Message::ValidateSettings => {
                 let project = self.project_path.clone();
-                return Task::perform(async move {
-                    let mut messages = Vec::new();
-                    for (key, file) in [("local", "group_data/@local.py"), ("workstation", "group_data/workstation.py")] {
-                        let result = Command::new("uv")
-                            .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "validate-config", key, file])
-                            .current_dir(&project)
-                            .output()
-                            .await;
-                        match result {
-                            Ok(output) => messages.push(format!("{}: {}{}", file, String::from_utf8_lossy(&output.stdout), String::from_utf8_lossy(&output.stderr))),
-                            Err(error) => messages.push(format!("{file}: {error}")),
+                return Task::perform(
+                    async move {
+                        let mut messages = Vec::new();
+                        for (key, file) in [
+                            ("local", "group_data/@local.py"),
+                            ("workstation", "group_data/workstation.py"),
+                        ] {
+                            let result = Command::new("uv")
+                                .args([
+                                    "run",
+                                    "python",
+                                    "apps/pyinfra-manager/backend/manager.py",
+                                    "validate-config",
+                                    key,
+                                    file,
+                                ])
+                                .current_dir(&project)
+                                .output()
+                                .await;
+                            match result {
+                                Ok(output) => messages.push(format!(
+                                    "{}: {}{}",
+                                    file,
+                                    String::from_utf8_lossy(&output.stdout),
+                                    String::from_utf8_lossy(&output.stderr)
+                                )),
+                                Err(error) => messages.push(format!("{file}: {error}")),
+                            }
                         }
-                    }
-                    messages.join("\n")
-                }, Message::BackendOutput);
+                        messages.join("\n")
+                    },
+                    Message::BackendOutput,
+                )
+                .map(cosmic::Action::App);
             }
             Message::PreviewDeployment => {
                 let project = self.project_path.clone();
@@ -247,7 +277,8 @@ impl cosmic::Application for AppModel {
                 return Task::perform(
                     backend_command(project, vec!["run".into(), host]),
                     Message::BackendOutput,
-                );
+                )
+                .map(cosmic::Action::App);
             }
             Message::RequestApply => self.confirm_apply = true,
             Message::ConfirmApply => {
@@ -257,7 +288,8 @@ impl cosmic::Application for AppModel {
                 return Task::perform(
                     backend_command(project, vec!["run".into(), host, "--apply".into()]),
                     Message::BackendOutput,
-                );
+                )
+                .map(cosmic::Action::App);
             }
             Message::CancelApply => self.confirm_apply = false,
             Message::BackendOutput(output) => self.output = output,
