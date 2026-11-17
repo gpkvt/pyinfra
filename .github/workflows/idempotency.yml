@@ -45,9 +45,9 @@ jobs:
           while IFS= read -r script; do
             bash -n "$script"
           done < <(
-            find files/scripts -type f \
-              ! -name '*.py' \
-              ! -path '*/__pycache__/*' \
+            find files/scripts -type f \\
+              ! -name '*.py' \\
+              ! -path '*/__pycache__/*' \\
               -print | sort
           )
 
@@ -78,8 +78,8 @@ jobs:
       - name: Run pre-commit hooks
         if: always()
         run: |
-          pre-commit run --all-files \
-            --verbose \
+          pre-commit run --all-files \\
+            --verbose \\
             --show-diff-on-failure
 
   cosmic-app:
@@ -94,8 +94,8 @@ jobs:
       - name: Install native build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes \
-            libexpat1-dev libfontconfig-dev libfreetype-dev \
+          sudo apt-get install --yes \\
+            libexpat1-dev libfontconfig-dev libfreetype-dev \\
             libxkbcommon-dev libwayland-dev pkg-config
 
       - name: Set up Rust
@@ -109,13 +109,19 @@ jobs:
           workspaces: apps/pyinfra-manager
 
       - name: Check Rust formatting
-        run: cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml --all -- --check
+        run: >-
+          cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml
+          --all -- --check
 
       - name: Run Clippy
-        run: cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets -- -D warnings
+        run: >-
+          cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml
+          --all-targets -- -D warnings
 
       - name: Check COSMIC application
-        run: cargo check --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets
+        run: >-
+          cargo check --manifest-path apps/pyinfra-manager/Cargo.toml
+          --all-targets
 
   idempotency:
     name: Check deployment idempotency
@@ -144,15 +150,15 @@ jobs:
 
       - name: Run deployment for the first time
         run: |
-          pyinfra .github/ci/inventory.py deploy.py --diff \
-            --group-data .github/ci/group_data \
-            --limit @local --json --yes \
+          pyinfra .github/ci/inventory.py deploy.py --diff \\
+            --group-data .github/ci/group_data \\
+            --limit @local --json --yes \\
             > first-run.json
 
       - name: Verify Docker smoke container is running
         run: |
           container_id="$(
-            docker compose -f \
+            docker compose -f \\
               "$HOME/.docker/ci-smoke/docker-compose.yml" ps -q smoke
           )"
           test -n "$container_id"
@@ -163,9 +169,9 @@ jobs:
 
       - name: Run deployment again and check for changes
         run: |
-          pyinfra .github/ci/inventory.py deploy.py --diff \
-            --group-data .github/ci/group_data \
-            --limit @local --json --yes \
+          pyinfra .github/ci/inventory.py deploy.py --diff \\
+            --group-data .github/ci/group_data \\
+            --limit @local --json --yes \\
             > second-run.json
 
           python - <<'PY'
@@ -236,8 +242,11 @@ jobs:
       - name: Verify Docker smoke container remains running
         run: |
           container_id="$(
-            docker compose -f \
+            docker compose -f \\
               "$HOME/.docker/ci-smoke/docker-compose.yml" ps -q smoke
           )"
           test -n "$container_id"
-          test "$(docker inspect --format '{{.State.Running}}' "$container_id")" = "true"
+          running="$(
+            docker inspect --format '{{.State.Running}}' "$container_id"
+          )"
+          test "$running" = "true"
