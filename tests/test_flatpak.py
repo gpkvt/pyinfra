@@ -77,6 +77,23 @@ def _install_calls(harness):
     ]
 
 
+def test_flatpak_remote_applications_groups_refs_in_one_query(
+    pyinfra_task_harness,
+):
+    """One remote-ls call discovers apps and runtimes across all user remotes."""
+    module = pyinfra_task_harness.load("flatpak.py")
+    fact = module.FlatpakRemoteApplications()
+    assert fact.command == "flatpak remote-ls --user --columns=ref,origin"
+    assert fact.process([
+        "Ref Origin",
+        "app/org.example.App/x86_64/stable flathub",
+        "runtime/org.example.Codecs/x86_64/stable other",
+    ]) == {
+        "flathub": {"org.example.App"},
+        "other": {"org.example.Codecs"},
+    }
+
+
 def test_flatpak_task_discovers_both_ref_types_and_prefers_flathub(
     pyinfra_task_harness,
 ):
@@ -91,20 +108,13 @@ def test_flatpak_task_discovers_both_ref_types_and_prefers_flathub(
         command = kwargs.get("command", "")
         if command:
             fact_commands.append(command)
-        if fact.__name__ == "FlatpakRemotes":
-            return ["flathub", "other"]
+        if fact.__name__ == "FlatpakRemoteApplications":
+            return {
+                "flathub": {"org.example.App", "org.example.Codecs"},
+                "other": {"org.example.App", "org.example.Codecs"},
+            }
         if command == "flatpak list --user --columns=ref":
             return []
-        if command.endswith(" flathub"):
-            return [
-                "app/org.example.App/x86_64/stable",
-                "runtime/org.example.Codecs/x86_64/stable",
-            ]
-        if command.endswith(" other"):
-            return [
-                "app/org.example.App/x86_64/stable",
-                "runtime/org.example.Codecs/x86_64/stable",
-            ]
         if fact.__name__ == "FlatpakUpdates":
             return []
         return []
@@ -118,12 +128,9 @@ def test_flatpak_task_discovers_both_ref_types_and_prefers_flathub(
     assert installs[0]["remote"] == "flathub"
     assert installs[0]["user"] is True
     assert "flatpak list --user --columns=ref" in fact_commands
-    assert (
-        "flatpak remote-ls --user --columns=ref flathub" in fact_commands
-    )
-    assert (
-        "flatpak remote-ls --user --columns=ref other" in fact_commands
-    )
+    assert fact_commands.count(
+        "flatpak remote-ls --user --columns=ref,origin"
+    ) == 0  # Remote discovery is requested as one dedicated fact, not Command.
 
 
 def test_flatpak_task_skips_installed_runtime_refs(pyinfra_task_harness):
@@ -132,12 +139,10 @@ def test_flatpak_task_skips_installed_runtime_refs(pyinfra_task_harness):
 
     def get_fact(fact, **kwargs):
         command = kwargs.get("command", "")
-        if fact.__name__ == "FlatpakRemotes":
-            return ["flathub"]
+        if fact.__name__ == "FlatpakRemoteApplications":
+            return {"flathub": {"org.example.Codecs"}}
         if command == "flatpak list --user --columns=ref":
             return ["org.example.Codecs/x86_64/stable"]
-        if command.endswith(" flathub"):
-            return ["runtime/org.example.Codecs/x86_64/stable"]
         if fact.__name__ in {"FlatpakUpdates", "FlatpakSystemUpdates"}:
             return []
         return []
@@ -150,7 +155,9 @@ def test_flatpak_task_skips_installed_runtime_refs(pyinfra_task_harness):
 def test_flatpak_facts_are_user_scoped(pyinfra_task_harness):
     """Remote discovery and update checks only inspect user installations."""
     module = pyinfra_task_harness.load("flatpak.py")
-    assert module.FlatpakRemotes.command == "flatpak remotes --user --columns=name"
+    assert module.FlatpakRemoteApplications.command == (
+        "flatpak remote-ls --user --columns=ref,origin"
+    )
     assert module.FlatpakUpdates.command == (
         "flatpak remote-ls --user --updates --columns=application"
     )
