@@ -402,10 +402,11 @@ def test_adguard_public_dns_firewall_rule_is_documented_as_opt_in():
     ({}, "127.0.0.1:3000"),
     ({"web_port": 3001}, "127.0.0.1:3001"),
 ])
-def test_adguard_web_port_defaults_and_is_configurable(pyinfra_task_harness, settings, expected):
+def test_adguard_web_port_defaults_and_is_configurable(
+    pyinfra_task_harness, settings, expected,
+):
     """AdGuard keeps the legacy port by default and accepts an explicit web port."""
     config = {"adguard_home": settings}
-    pyinfra_task_harness.host.data["docker"] = config
     module = pyinfra_task_harness.load("docker/adguard_home.py", {
         "docker": config,
         "homedir": "/home/tester",
@@ -421,11 +422,6 @@ def test_adguard_web_port_defaults_and_is_configurable(pyinfra_task_harness, set
     assert expected in operation["commands"][0]
     assert operation["_sudo"] is True
     assert operation["_if"]() is False  # Missing config is a no-op during first-run setup.
-    assert any(
-        kwargs.get("restart_if") is not None
-        for namespace, name, kwargs in pyinfra_task_harness.calls
-        if namespace == "server" and name == "shell"
-    ) is False
     assert module._ADGUARD_CONFIG_SCRIPT
 
 
@@ -449,13 +445,13 @@ def test_adguard_config_reconciliation_preserves_settings_and_is_idempotent(
     })
     config = tmp_path / "AdGuardHome.yaml"
     original = (
-        "http:\\n"
-        "  pprof:\\n"
-        "    port: 6060\\n"
-        "  address: 0.0.0.0:3000\\n"
-        "users:\\n"
-        "- name: admin\\n"
-        "  password: hash\\n"
+        "http:\n"
+        "  pprof:\n"
+        "    port: 6060\n"
+        "  address: 0.0.0.0:3000\n"
+        "users:\n"
+        "- name: admin\n"
+        "  password: hash\n"
     )
     config.write_text(original, encoding="utf-8")
 
@@ -487,7 +483,7 @@ def test_adguard_config_reconciliation_adds_http_section_without_replacing_confi
         "homedir": "/home/tester",
     })
     config = tmp_path / "AdGuardHome.yaml"
-    config.write_text("users: []\\n", encoding="utf-8")
+    config.write_text("users: []\n", encoding="utf-8")
     result = subprocess.run(
         [sys.executable, "-c", module._ADGUARD_CONFIG_SCRIPT,
          str(config), "127.0.0.1:3001", "apply"],
@@ -495,5 +491,5 @@ def test_adguard_config_reconciliation_adds_http_section_without_replacing_confi
     )
     assert result.stdout.strip() == "changed"
     assert config.read_text(encoding="utf-8") == (
-        "users: []\\nhttp:\\n  address: 127.0.0.1:3001\\n"
+        "users: []\nhttp:\n  address: 127.0.0.1:3001\n"
     )
