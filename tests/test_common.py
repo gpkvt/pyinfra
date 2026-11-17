@@ -62,6 +62,7 @@ def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
 def test_initialize_decrypts_and_selects_host_secrets(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_with_secrets")
+    monkeypatch.setattr(common.Path, "is_file", lambda _path: True)
     secret_data = {
         "shared": {"git_credentials": ["https://example.test/shared"]},
         "hosts": {
