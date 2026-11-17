@@ -33,6 +33,17 @@ def test_pages_workflow_does_not_publish_pull_request_builds():
     assert "workflow_dispatch:" in workflow
 
 
+def test_pages_workflow_isolates_pull_request_concurrency_from_publication():
+    """PR validation cannot cancel a main-branch documentation deployment."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "  group: >-" in workflow
+    assert "github.event_name == 'pull_request'" in workflow
+    assert "format('pr-{0}', github.event.pull_request.number)" in workflow
+    assert "|| 'publish' }}" in workflow
+    assert "cancel-in-progress: true" in workflow
+
+
 def test_homepage_section_headings_are_markdown_inside_html():
     """Homepage section headings are parsed by md_in_html, not emitted as text."""
     config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
