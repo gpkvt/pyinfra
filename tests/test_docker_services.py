@@ -406,6 +406,9 @@ def test_adguard_web_port_defaults_and_is_configurable(
     pyinfra_task_harness, settings, expected,
 ):
     """AdGuard keeps the legacy port by default and accepts an explicit web port."""
+    if not settings:
+        pyinfra_task_harness.host.data.pop("web_port", None)
+
     module = pyinfra_task_harness.load("docker/adguard_home.py", {
         **settings,
         "docker": {"adguard_home": {}},
