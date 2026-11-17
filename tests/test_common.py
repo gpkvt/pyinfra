@@ -123,6 +123,76 @@ def test_select_host_secrets_recursively_merges_host_over_shared(monkeypatch):
     assert common.select_host_secrets(data, "host-b") == data["shared"]
 
 
+def test_select_host_secrets_falls_back_to_inventory_alias(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_inventory_alias")
+    data = {
+        "shared": {"docker": {"miniflux": {"shared_value": "shared"}}},
+        "hosts": {
+            "@local": {
+                "docker": {
+                    "miniflux": {
+                        "postgres_password": "local-db-password",
+                        "admin_username": "local-admin",
+                        "admin_password": "local-admin-password",
+                    }
+                }
+            }
+        },
+    }
+
+    selected = common.select_host_secrets(data, "chao", "@local")
+
+    assert selected["docker"]["miniflux"] == {
+        "shared_value": "shared",
+        "postgres_password": "local-db-password",
+        "admin_username": "local-admin",
+        "admin_password": "local-admin-password",
+    }
+
+
+def test_select_host_secrets_prefers_hostname_over_inventory_alias(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_hostname_precedence")
+    data = {
+        "hosts": {
+            "chao": {"docker": {"miniflux": {"admin_username": "hostname-user"}}},
+            "@local": {"docker": {"miniflux": {"admin_username": "alias-user"}}},
+        }
+    }
+
+    selected = common.select_host_secrets(data, "chao", "@local")
+
+    assert selected["docker"]["miniflux"]["admin_username"] == "hostname-user"
+
+
+def test_select_host_secrets_uses_alias_during_initialize(monkeypatch):
+    install_pyinfra_fact_stubs(monkeypatch)
+    common = load_module("common.py", "tested_common_initialize_alias")
+    monkeypatch.setattr(common.Path, "is_file", lambda _path: True)
+    secret_data = {"hosts": {"@local": {"docker": {"miniflux": {
+        "postgres_password": "db-password",
+        "admin_username": "admin",
+        "admin_password": "admin-password",
+    }}}}}
+    host = types.SimpleNamespace(
+        name="@local",
+        get_fact=lambda *_args, **_kwargs: True,
+        data={"hostname": "chao"},
+    )
+    monkeypatch.setattr(
+        subprocess,
+        "run",
+        lambda *_args, **_kwargs: types.SimpleNamespace(stdout=json.dumps(secret_data)),
+    )
+
+    common.initialize(host)
+
+    assert builtins.secrets["docker"]["miniflux"]["postgres_password"] == "db-password"
+    assert builtins.secrets["docker"]["miniflux"]["admin_username"] == "admin"
+    assert builtins.secrets["docker"]["miniflux"]["admin_password"] == "admin-password"
+
+
 def test_select_host_secrets_preserves_legacy_flat_structure(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_legacy")

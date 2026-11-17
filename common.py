@@ -45,13 +45,13 @@ def merge_secrets(shared, host_secrets):
     return result
 
 
-def select_host_secrets(data, hostname):
+def select_host_secrets(data, hostname, inventory_name=None):
     """
-    Resolve secrets for one inventory host.
+    Resolve secrets using the configured hostname, then inventory alias.
 
     The legacy flat structure remains supported. In the multi-host
-    structure, shared values are inherited by every host and values
-    under hosts[hostname] override matching shared values.
+    structure, shared values are inherited by every host. An explicit
+    hostname entry takes precedence over the inventory-name fallback.
     """
     if not isinstance(data, dict):
         raise ValueError("Invalid secrets.json structure: expected a JSON object")
@@ -68,9 +68,18 @@ def select_host_secrets(data, hostname):
     if not isinstance(hosts, dict):
         raise ValueError("Invalid secrets.json structure: 'hosts' must be an object")
 
-    host_secrets = hosts.get(hostname, {})
+    if hostname in hosts:
+        host_secrets = hosts[hostname]
+        selected_name = hostname
+    elif inventory_name and inventory_name in hosts:
+        host_secrets = hosts[inventory_name]
+        selected_name = inventory_name
+    else:
+        host_secrets = {}
+        selected_name = hostname
+
     if not isinstance(host_secrets, dict):
-        raise ValueError(f"Invalid secrets for host: {hostname}")
+        raise ValueError(f"Invalid secrets for host: {selected_name}")
 
     return merge_secrets(shared, host_secrets)
 
@@ -102,7 +111,11 @@ def initialize(host, check_flatpak=False):
         )
         decrypted_secrets = json.loads(result.stdout)
         hostname = host.data.get("hostname") or socket.gethostname()
-        builtins.secrets = select_host_secrets(decrypted_secrets, hostname)
+        builtins.secrets = select_host_secrets(
+            decrypted_secrets,
+            hostname,
+            getattr(host, "name", None),
+        )
         print(f"    Loading Secrets: Decrypted successfully for {hostname}")
     else:
         builtins.secrets = {}
