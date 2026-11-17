@@ -67,3 +67,30 @@ def test_backup_config_creates_timestamped_private_backup(monkeypatch, tmp_path)
     assert backup.is_file()
     assert backup.read_text(encoding="utf-8") == "hostname = 'private'\n"
     assert backup.stat().st_mode & 0o777 == 0o600
+
+
+def test_deployment_defaults_to_dry_run_and_uses_argument_list(monkeypatch):
+    captured = {}
+
+    def fake_run(command, **kwargs):
+        captured["command"] = command
+        captured.update(kwargs)
+        return type("Result", (), {
+            "returncode": 0,
+            "stdout": "preview",
+            "stderr": "",
+        })()
+
+    monkeypatch.setattr(manager, "configured_hosts", lambda: ["@local"])
+    monkeypatch.setattr(manager.subprocess, "run", fake_run)
+    result = manager.run_deployment("@local")
+    assert result["dry_run"] is True
+    assert "--dry" in captured["command"]
+    assert captured["shell"] if "shell" in captured else True
+    assert captured["cwd"] == manager.ROOT
+
+
+def test_deployment_rejects_hosts_outside_inventory(monkeypatch):
+    monkeypatch.setattr(manager, "configured_hosts", lambda: ["@local"])
+    with pytest.raises(manager.ManagerError, match="Unknown inventory host"):
+        manager.run_deployment("untrusted-host")
