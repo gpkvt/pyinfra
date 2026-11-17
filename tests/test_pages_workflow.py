@@ -37,9 +37,12 @@ def test_homepage_section_headings_are_markdown_inside_html():
     homepage = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
 
     assert "  - md_in_html" in config
-    for heading in (
-        "## Everything you need to manage your Linux environment.",
-        "## A workflow you can reason about.",
-        "## Go deeper.",
-    ):
-        assert heading in homepage
+    headings = (
+        "Everything you need to manage your Linux environment.",
+        "A workflow you can reason about.",
+        "Go deeper.",
+    )
+    assert homepage.count('<div class="section-head" markdown>') == len(headings)
+    for heading in headings:
+        assert f"## {heading}" in homepage
+        assert f"<h2>{heading}</h2>" not in homepage
