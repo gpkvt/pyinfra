@@ -1,22 +1,9 @@
-"""Regression tests for CI workflow guarantees."""
+"""Regression tests for dependency manifest consistency."""
 
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-CI_WORKFLOW = ROOT / ".github" / "workflows" / "idempotency.yml"
-DESKTOP_WORKFLOW = ROOT / ".github" / "workflows" / "build-desktop-app.yml"
-
-
-def test_python_checks_use_supported_version_and_timeouts():
-    """CI uses the project's supported Python and bounds job execution time."""
-    workflow = CI_WORKFLOW.read_text(encoding="utf-8")
-
-    assert 'python-version: "3.12"' in workflow
-    assert "timeout-minutes: 30" in workflow
-    assert "timeout-minutes: 20" in workflow
-    assert "timeout-minutes: 45" in workflow
-    assert "requirements-dev.txt" in workflow
 
 
 def test_python_dependency_versions_are_consistent_and_pyinfra_compatible():

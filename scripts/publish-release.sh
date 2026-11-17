@@ -91,5 +91,5 @@ if ! git push origin "refs/tags/$release_tag"; then
 fi
 
 echo "Release tag pushed successfully."
-echo "GitHub Actions will now publish the GitHub Release."
-echo "https://github.com/gpkvt/pyinfra/actions/workflows/release.yml"
+echo "Create the GitHub Release manually from this tag."
+echo "https://github.com/gpkvt/pyinfra/releases/new?tag=$release_tag"
