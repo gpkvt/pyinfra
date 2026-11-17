@@ -406,9 +406,9 @@ def test_adguard_web_port_defaults_and_is_configurable(
     pyinfra_task_harness, settings, expected,
 ):
     """AdGuard keeps the legacy port by default and accepts an explicit web port."""
-    config = {"adguard_home": settings}
     module = pyinfra_task_harness.load("docker/adguard_home.py", {
-        "docker": config,
+        **settings,
+        "docker": {"adguard_home": {}},
         "homedir": "/home/tester",
         "username": "tester",
         "usergroup": "tester",
@@ -431,7 +431,8 @@ def test_adguard_rejects_invalid_web_ports(pyinfra_task_harness, web_port):
     """Invalid ports fail before scheduling changes."""
     with pytest.raises(ValueError, match="web_port must be an integer"):
         pyinfra_task_harness.load("docker/adguard_home.py", {
-            "docker": {"adguard_home": {"web_port": web_port}},
+            "web_port": web_port,
+            "docker": {"adguard_home": {}},
             "homedir": "/home/tester",
         })
 
@@ -441,7 +442,8 @@ def test_adguard_config_reconciliation_preserves_settings_and_is_idempotent(
 ):
     """Only http.address changes; a second reconciliation is a no-op."""
     module = pyinfra_task_harness.load("docker/adguard_home.py", {
-        "docker": {"adguard_home": {"web_port": 3001}},
+        "web_port": 3001,
+        "docker": {"adguard_home": {}},
         "homedir": "/home/tester",
     })
     config = tmp_path / "AdGuardHome.yaml"
