@@ -15,7 +15,7 @@ pub struct AppModel {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum Page {
+pub enum Page {
     Overview,
     Tasks,
     Settings,
@@ -23,7 +23,7 @@ enum Page {
 }
 
 #[derive(Debug, Clone)]
-enum Message {
+pub enum Message {
     Navigate(Page),
     ProjectPathChanged(String),
     HostChanged(String),
