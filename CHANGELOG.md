@@ -4,6 +4,32 @@ All notable changes to this project are documented in this file.
 
 Changes are tracked in date-based entries in this changelog and published as GitHub Releases from semantic-version tags. See [Releasing](docs/releasing.md).
 
+## [17.11.2026]
+
+### Added
+
+- Added a native COSMIC desktop manager for browsing tasks, editing settings, validating configuration and running deployments with dry-run as the default ([#351](https://github.com/gpkvt/pyinfra/pull/351)).
+- Added a Linux x86_64 build workflow for the COSMIC desktop manager, packaging the executable, desktop entry and AppStream metadata as a downloadable archive ([#352](https://github.com/gpkvt/pyinfra/pull/352)).
+- Added an opt-in UFW example for public AdGuard Home DNS access, documenting TCP/UDP, IPv6 and open-resolver risks while keeping public access disabled by default ([#354](https://github.com/gpkvt/pyinfra/pull/354)).
+
+### Changed
+
+- Added configurable AdGuard Home web UI port handling under `docker.adguard_home.web_port`; reconcile only the listen address, preserve other settings and restart the service only when the address changes ([#355](https://github.com/gpkvt/pyinfra/pull/355), [#356](https://github.com/gpkvt/pyinfra/pull/356), [#358](https://github.com/gpkvt/pyinfra/pull/358)).
+- Improved desktop-manager checkout discovery using environment, saved configuration, launch directory and executable parent directories, with validation and persistence of usable paths ([#368](https://github.com/gpkvt/pyinfra/pull/368)).
+
+### Fixed
+
+- Fixed deployment initialization by avoiding host-fact calls before pyinfra binds the host context; corrected local-host secret selection and CI shell command handling ([#363](https://github.com/gpkvt/pyinfra/pull/363)).
+- Fixed host-secret lookup to fall back to the inventory alias when no explicit/system-hostname entry exists, while preserving explicit-hostname precedence and shared-secret merging ([#364](https://github.com/gpkvt/pyinfra/pull/364)).
+- Fixed MkDocs homepage heading rendering and strict documentation builds, including nested HTML/Markdown sections ([#361](https://github.com/gpkvt/pyinfra/pull/361), [#366](https://github.com/gpkvt/pyinfra/pull/366), [#367](https://github.com/gpkvt/pyinfra/pull/367)).
+
+### Documentation
+
+- Added a Docker guide covering services, endpoints, storage, deployment lifecycle and security; expanded the task reference and homepage navigation ([#331](https://github.com/gpkvt/pyinfra/pull/331), [#333](https://github.com/gpkvt/pyinfra/pull/333)).
+- Added a MkDocs-based project website and GitHub Pages publishing workflow, with strict build validation and PR builds that do not publish ([#322](https://github.com/gpkvt/pyinfra/pull/322), [#337](https://github.com/gpkvt/pyinfra/pull/337)).
+- Added GitHub issue forms for bug reports and feature requests, and documented safe reporting and contribution guidance ([#321](https://github.com/gpkvt/pyinfra/pull/321), [#371](https://github.com/gpkvt/pyinfra/pull/371)).
+- Documented GitHub Releases for semantic-version tags and the manual release process ([#338](https://github.com/gpkvt/pyinfra/pull/338)).
+
 ## [14.11.2026]
 
 ### Added
