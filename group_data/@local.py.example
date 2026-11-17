@@ -197,6 +197,7 @@ docker_power_monitor = True  # Deploy the Docker battery monitor when Docker ser
 docker = {
     # "adguard_home": {  # Local DNS resolver and DNS rewrites for LAN/WireGuard clients.
     #     "image": "adguard/adguardhome:v0.107.80",  # Pin the AdGuard Home release.
+    #     "web_port": 3001,  # Optional loopback-only web UI port; defaults to 3000.
     #
     # },
     # "mdmesh": {  # Android device management; requires encrypted secrets below.

@@ -4,6 +4,7 @@ import ast
 import builtins
 import json
 import re
+import subprocess
 import sys
 import types
 
@@ -395,3 +396,101 @@ def test_adguard_public_dns_firewall_rule_is_documented_as_opt_in():
     assert '"rule": "53"' in documentation
     assert "both TCP and UDP port 53" in documentation
     assert "ufw {custom_action.lower()} {rule_arguments}" in firewall_task
+
+
+@pytest.mark.parametrize(("settings", "expected"), [
+    ({}, "127.0.0.1:3000"),
+    ({"web_port": 3001}, "127.0.0.1:3001"),
+])
+def test_adguard_web_port_defaults_and_is_configurable(
+    pyinfra_task_harness, settings, expected,
+):
+    """AdGuard keeps the legacy port by default and accepts an explicit web port."""
+    config = {"adguard_home": settings}
+    module = pyinfra_task_harness.load("docker/adguard_home.py", {
+        "docker": config,
+        "homedir": "/home/tester",
+        "username": "tester",
+        "usergroup": "tester",
+    })
+
+    operation = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Configure AdGuard Home web UI listen address"
+    )
+    assert expected in operation["commands"][-1]
+    assert "systemctl --user stop adguard_home" in operation["commands"][0]
+    assert operation["_sudo"] is True
+    assert operation["_if"]() is False  # Missing config is a no-op during first-run setup.
+    assert module._ADGUARD_CONFIG_SCRIPT
+
+
+@pytest.mark.parametrize("web_port", [0, 65536, True, "3001", 1.5])
+def test_adguard_rejects_invalid_web_ports(pyinfra_task_harness, web_port):
+    """Invalid ports fail before scheduling changes."""
+    with pytest.raises(ValueError, match="web_port must be an integer"):
+        pyinfra_task_harness.load("docker/adguard_home.py", {
+            "docker": {"adguard_home": {"web_port": web_port}},
+            "homedir": "/home/tester",
+        })
+
+
+def test_adguard_config_reconciliation_preserves_settings_and_is_idempotent(
+    pyinfra_task_harness, tmp_path,
+):
+    """Only http.address changes; a second reconciliation is a no-op."""
+    module = pyinfra_task_harness.load("docker/adguard_home.py", {
+        "docker": {"adguard_home": {"web_port": 3001}},
+        "homedir": "/home/tester",
+    })
+    config = tmp_path / "AdGuardHome.yaml"
+    original = (
+        "http:\n"
+        "  pprof:\n"
+        "    port: 6060\n"
+        "  address: 0.0.0.0:3000\n"
+        "users:\n"
+        "- name: admin\n"
+        "  password: hash\n"
+    )
+    config.write_text(original, encoding="utf-8")
+
+    def run(mode):
+        return subprocess.run(
+            [sys.executable, "-c", module._ADGUARD_CONFIG_SCRIPT,
+             str(config), "127.0.0.1:3001", mode],
+            check=True, capture_output=True, text=True,
+        ).stdout.strip()
+
+    assert run("check") == "change"
+    assert run("apply") == "changed"
+    updated = config.read_text(encoding="utf-8")
+    assert updated == original.replace(
+        "  address: 0.0.0.0:3000",
+        "  address: 127.0.0.1:3001",
+    )
+    assert run("check") == "unchanged"
+    assert run("apply") == "unchanged"
+    assert config.read_text(encoding="utf-8") == updated
+
+
+def test_adguard_config_reconciliation_adds_http_section_without_replacing_config(
+    pyinfra_task_harness, tmp_path,
+):
+    """A config without an http section gets one appended with other data intact."""
+    module = pyinfra_task_harness.load("docker/adguard_home.py", {
+        "docker": {"adguard_home": {"web_port": 3001}},
+        "homedir": "/home/tester",
+    })
+    config = tmp_path / "AdGuardHome.yaml"
+    config.write_text("users: []\n", encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, "-c", module._ADGUARD_CONFIG_SCRIPT,
+         str(config), "127.0.0.1:3001", "apply"],
+        check=True, capture_output=True, text=True,
+    )
+    assert result.stdout.strip() == "changed"
+    assert config.read_text(encoding="utf-8") == (
+        "users: []\nhttp:\n  address: 127.0.0.1:3001\n"
+    )
