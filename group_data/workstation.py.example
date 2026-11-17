@@ -7,42 +7,42 @@ specific hardware or that a desktop session is installed.
 """
 
 workstation = {
-    "backup": {
+    "backup": {  # Optional Borgmatic backup tooling and configuration.
         "enabled": False,  # Installs backup tooling and renders Borgmatic configuration; does not run backups.
     },
-    "power": {
+    "power": {  # Select and configure one power-management daemon.
         "enabled": False,  # Installs and configures the selected power-management daemon.
         "manager": "power-profiles-daemon",  # Selects "power-profiles-daemon" or "tlp".
     },
-    "hardware": {
+    "hardware": {  # Firmware tooling and optional CPU microcode.
         "enabled": False,  # Installs firmware management and optional CPU microcode packages.
         "cpu_vendor": None,  # Set to "intel" or "amd" to install matching microcode; None skips microcode.
     },
-    "storage": {
+    "storage": {  # Storage inspection utilities.
         "enabled": False,  # Installs SMART and NVMe command-line monitoring tools; no polling is configured.
     },
-    "peripherals": {
+    "peripherals": {  # Printer and scanner support.
         "enabled": False,  # Enables the optional printer/scanner package group.
         "printing": False,  # Installs printer support and enables CUPS when True.
         "scanning": False,  # Installs scanner support packages when True.
     },
-    "desktop": {
+    "desktop": {  # Common desktop integration packages.
         "enabled": False,  # Installs common desktop integration utilities.
         # "packages": [
 #             "example-package"
 #         ],  # Optional replacement package list; omit to use task defaults.
     },
-    "maintenance": {
+    "maintenance": {  # Interactive system maintenance utilities.
         "enabled": False,  # Installs interactive maintenance tools; does not enable unattended upgrades or reboots.
     },
-    "cosmic": {
+    "cosmic": {  # COSMIC desktop appearance, input, layout and applet settings.
         "enabled": False,  # Master switch for all COSMIC desktop configuration below.
 
-        "appearance": {
+        "appearance": {  # Theme appearance configuration.
             "enabled": False,  # Applies the selected COSMIC appearance mode.
             "mode": "dark",  # COSMIC theme mode: "dark" or "light".
         },
-        "window_management": {
+        "window_management": {  # COSMIC window focus, tiling and snapping behavior.
             "enabled": False,  # Applies COSMIC window-management preferences.
             "autotile": False,  # Enables automatic tiling of windows.
             "autotile_behavior": "PerWorkspace",  # Controls whether autotiling is shared or tracked per workspace.
@@ -50,20 +50,20 @@ workstation = {
             "cursor_follows_focus": False,  # Moves the pointer when keyboard focus changes.
             "edge_snap_threshold": 10,  # Distance in logical pixels used for edge snapping.
         },
-        "input": {
+        "input": {  # Raw mouse and touchpad settings in RON syntax.
             "enabled": False,  # Applies raw COSMIC mouse/touchpad settings.
             # "default": "<RON mouse settings>",  # Raw RON settings for the default mouse device.
             # "touchpad": "<RON touchpad settings>",  # Raw RON settings for touchpad devices.
         },
-        "shortcuts": {
+        "shortcuts": {  # Custom keyboard shortcut map.
             "enabled": False,  # Applies the custom COSMIC keyboard shortcut map.
             # "ron": "<COSMIC custom shortcut map in RON syntax>",  # Complete shortcut configuration as RON.
         },
-        "workspaces": {
+        "workspaces": {  # Custom workspace layout and behavior.
             "enabled": False,  # Applies custom COSMIC workspace configuration.
             # "ron": "<COSMIC workspace configuration in RON syntax>",  # Complete workspace configuration as RON.
         },
-        "panel": {
+        "panel": {  # COSMIC panel position, size, visibility and applets.
             "enabled": False,  # Configures the COSMIC top/bottom panel.
 #             "position": "top",  # Panel edge: "top",
 #             "bottom",
@@ -96,7 +96,7 @@ workstation = {
             #
 #             },
         },
-        "dock": {
+        "dock": {  # COSMIC dock position, size, visibility and applets.
             "enabled": False,  # Configures the COSMIC dock.
             "position": "bottom",  # Dock edge: "top", "bottom", "left" or "right".
             "size": "small",  # Dock icon size preset.
@@ -132,7 +132,7 @@ workstation = {
 
         # Display/output configuration is intentionally not managed by these tasks.
     },
-    "limusic": {
+    "limusic": {  # Optional LiMusic AppImage and COSMIC launcher.
         "enabled": False,  # Installs the latest stable x86-64 LiMusic AppImage and COSMIC desktop launcher.
     },
 }
