@@ -22,6 +22,24 @@ def test_pages_workflow_builds_html_and_publishes_to_gh_pages():
     assert "github_token: ${{ secrets.GITHUB_TOKEN }}" in workflow
 
 
+def test_pages_workflow_deletes_old_branch_after_build_before_publish():
+    """The old site is removed only after a successful build is ready."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    build = workflow.index("run: mkdocs build --strict")
+    artifact = workflow.index("uses: actions/download-artifact@v6")
+    deletion = workflow.index("- name: Delete previous gh-pages branch")
+    publish = workflow.index("- name: Publish HTML to gh-pages")
+
+    assert build < artifact < deletion < publish
+    assert "git ls-remote --exit-code --heads origin gh-pages" in workflow
+    assert "git push origin --delete gh-pages" in workflow
+    assert 'elif [ "$status" -eq 2 ]; then' in workflow
+    assert "gh-pages does not exist; nothing to delete." in workflow
+    assert "Unable to inspect the gh-pages branch" in workflow
+    assert "force_orphan: true" in workflow
+
+
 def test_pages_workflow_does_not_publish_pull_request_builds():
     """Pull requests validate the site without changing the published branch."""
     workflow = WORKFLOW.read_text(encoding="utf-8")
