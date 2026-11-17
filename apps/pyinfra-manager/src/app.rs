@@ -55,7 +55,11 @@ async fn backend_command(project: String, args: Vec<String>) -> String {
     }
 }
 
-async fn open_settings(project: String, config_file: &'static str) -> String {
+async fn open_settings(
+    project: String,
+    config_file: &'static str,
+    config_key: &'static str,
+) -> String {
     let result = Command::new("uv")
         .args(["run", "python", "apps/pyinfra-manager/backend/manager.py", "init-config"])
         .current_dir(&project)
@@ -63,10 +67,31 @@ async fn open_settings(project: String, config_file: &'static str) -> String {
         .await;
     match result {
         Ok(output) if output.status.success() => {
-            let path = PathBuf::from(&project).join("group_data").join(config_file);
-            match Command::new("xdg-open").arg(path).spawn() {
-                Ok(_) => format!("Initialized local settings and opened {config_file}."),
-                Err(error) => format!("Settings initialized, but could not open editor: {error}"),
+            let backup = Command::new("uv")
+                .args([
+                    "run", "python", "apps/pyinfra-manager/backend/manager.py",
+                    "backup-config", config_key,
+                ])
+                .current_dir(&project)
+                .output()
+                .await;
+            match backup {
+                Ok(backup) if backup.status.success() => {
+                    let backup_info = String::from_utf8_lossy(&backup.stdout);
+                    let path = PathBuf::from(&project).join("group_data").join(config_file);
+                    match Command::new("xdg-open").arg(path).spawn() {
+                        Ok(_) => format!(
+                            "Opened {config_file}. A private backup was created first: {backup_info}"
+                        ),
+                        Err(error) => format!("Backup created, but could not open editor: {error}"),
+                    }
+                }
+                Ok(backup) => format!(
+                    "Could not create a settings backup: {}{}",
+                    String::from_utf8_lossy(&backup.stdout),
+                    String::from_utf8_lossy(&backup.stderr),
+                ),
+                Err(error) => format!("Could not start the backup operation: {error}"),
             }
         }
         Ok(output) => format!(
@@ -191,11 +216,11 @@ impl cosmic::Application for AppModel {
             }
             Message::OpenSettings => {
                 let project = self.project_path.clone();
-                return Task::perform(open_settings(project, "@local.py"), Message::BackendOutput);
+                return Task::perform(open_settings(project, "@local.py", "local"), Message::BackendOutput);
             }
             Message::OpenWorkstationSettings => {
                 let project = self.project_path.clone();
-                return Task::perform(open_settings(project, "workstation.py"), Message::BackendOutput);
+                return Task::perform(open_settings(project, "workstation.py", "workstation"), Message::BackendOutput);
             }
             Message::ValidateSettings => {
                 let project = self.project_path.clone();
