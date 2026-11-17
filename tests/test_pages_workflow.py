@@ -1,7 +1,7 @@
 """Regression tests for documentation publishing and feature coverage."""
 
-from pathlib import Path
 import ast
+from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]

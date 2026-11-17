@@ -167,8 +167,8 @@
     <a href="deployment/"><span>03</span><strong>Deployment</strong><small>Preview, target and apply operations</small><b>↗</b></a>
     <a href="tasks/"><span>04</span><strong>Task reference</strong><small>Reusable modules and managed services</small><b>↗</b></a>
     <a href="feature-reference/"><span>05</span><strong>Feature reference</strong><small>All features, task gates and configuration keys</small><b>↗</b></a>
-    <a href="secrets/"><span>05</span><strong>Secrets</strong><small>Encrypted credentials and vault workflows</small><b>↗</b></a>
-    <a href="development/"><span>06</span><strong>Development</strong><small>Tests, checks and contribution guide</small><b>↗</b></a>
+    <a href="secrets/"><span>06</span><strong>Secrets</strong><small>Encrypted credentials and vault workflows</small><b>↗</b></a>
+    <a href="development/"><span>07</span><strong>Development</strong><small>Tests, checks and contribution guide</small><b>↗</b></a>
   </div>
 </section>
 
