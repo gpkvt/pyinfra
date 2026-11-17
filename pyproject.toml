@@ -1,7 +1,7 @@
 [project]
 name = "pyinfra-repo"
 version = "0.1.0"
-description = "A configuration-driven automation repository built on pyinfra."
+description = "A configuration-driven automation repository built with pyinfra."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -29,7 +29,7 @@ dependencies = [
     "pygments==2.21.0",
     "pyinfra==3.11.1",
     "pynacl==1.6.2",
-    "python-dateutil==4.0.0",
+    "python-dateutil==2.9.0.post0",
     "rich-rst==2.2.0",
     "rich==15.0.0",
     "six==1.17.0",
