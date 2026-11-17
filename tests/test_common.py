@@ -46,6 +46,7 @@ def test_command_output_text_normalizes_fact_lines_and_empty_values(monkeypatch)
 def test_initialize_without_secrets_sets_empty_dictionary(monkeypatch):
     install_pyinfra_fact_stubs(monkeypatch)
     common = load_module("common.py", "tested_common_no_secrets")
+    monkeypatch.setattr(common.Path, "is_file", lambda _path: False)
     host = types.SimpleNamespace(
         name="test-host",
         get_fact=lambda *_args, **_kwargs: None,
