@@ -36,6 +36,7 @@ jobs:
             libexpat1-dev \
             libfontconfig-dev \
             libfreetype-dev \
+            libwayland-dev \
             libxkbcommon-dev \
             pkgconf
 
