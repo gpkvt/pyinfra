@@ -55,3 +55,14 @@ def test_save_config_refuses_to_overwrite_existing_backup(monkeypatch, tmp_path)
     monkeypatch.setattr(manager, "_safe_config_path", lambda _key: target)
     with pytest.raises(manager.ManagerError, match="Backup already exists"):
         manager.save_config("workstation", "workstation = {'cosmic': {}}\n")
+
+
+def test_backup_config_creates_timestamped_private_backup(monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    target = tmp_path / "@local.py"
+    target.write_text("hostname = 'private'\n", encoding="utf-8")
+    monkeypatch.setattr(manager, "_safe_config_path", lambda _key: target)
+    backup = Path(manager.backup_config("local"))
+    assert backup.is_file()
+    assert backup.read_text(encoding="utf-8") == "hostname = 'private'\n"
+    assert backup.stat().st_mode & 0o777 == 0o600
