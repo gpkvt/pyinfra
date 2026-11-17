@@ -43,6 +43,7 @@ def test_homepage_section_headings_are_markdown_inside_html():
         "Go deeper.",
     )
     assert homepage.count('<div class="section-head" markdown>') == len(headings)
+    assert homepage.count('<div class="section-kicker" markdown>') == len(headings)
     for heading in headings:
         assert f"## {heading}" in homepage
         assert f"<h2>{heading}</h2>" not in homepage
