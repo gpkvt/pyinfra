@@ -27,10 +27,18 @@ def test_pages_workflow_does_not_publish_pull_request_builds():
     workflow = WORKFLOW.read_text(encoding="utf-8")
 
     assert "if: github.event_name != 'pull_request'" in workflow
-    assert "permissions:\n  contents: read" in workflow
-    assert "    permissions:\n      contents: write" in workflow
+    assert "permissions:\\n  contents: read" in workflow
+    assert "    permissions:\\n      contents: write" in workflow
     assert "    needs: build" in workflow
     assert "workflow_dispatch:" in workflow
+
+
+def test_pages_workflow_isolates_pull_request_concurrency_from_publication():
+    """PR validation cannot cancel a main-branch documentation deployment."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+
+    assert "group: pages-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || 'publish' }}" in workflow
+    assert "cancel-in-progress: true" in workflow
 
 
 def test_homepage_section_headings_are_markdown_inside_html():
@@ -66,7 +74,7 @@ def test_homepage_highlights_match_latest_changelog_entry():
     source = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     homepage = (ROOT / "docs" / "index.md").read_text(encoding="utf-8")
     latest = re.search(
-        r"^## \[(\d{2}\.\d{2}\.\d{4})\](.*?)(?=^## \[|\Z)",
+        r"^## \\[(\\d{2}\\.\\d{2}\\.\\d{4})\\](.*?)(?=^## \\[|\\Z)",
         source,
         re.MULTILINE | re.DOTALL,
     )
