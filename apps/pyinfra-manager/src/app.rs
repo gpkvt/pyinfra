@@ -109,22 +109,30 @@ impl cosmic::Application for AppModel {
     type Message = Message;
     const APP_ID: &'static str = "org.pyinfra.Manager";
 
-    fn core(&self) -> &cosmic::Core { &self.core }
-    fn core_mut(&mut self) -> &mut cosmic::Core { &mut self.core }
+    fn core(&self) -> &cosmic::Core {
+        &self.core
+    }
+
+    fn core_mut(&mut self) -> &mut cosmic::Core {
+        &mut self.core
+    }
 
     fn init(core: cosmic::Core, _flags: ()) -> (Self, Task<cosmic::Action<Message>>) {
         let project_path = std::env::current_dir()
             .unwrap_or_else(|_| PathBuf::from("."))
             .display()
             .to_string();
-        (Self {
-            core,
-            page: Page::Overview,
-            project_path,
-            host: "@local".into(),
-            output: "Choose your pyinfra checkout, then load its task catalog.".into(),
-            confirm_apply: false,
-        }, Task::none())
+        (
+            Self {
+                core,
+                page: Page::Overview,
+                project_path,
+                host: "@local".into(),
+                output: "Choose your pyinfra checkout, then load its task catalog.".into(),
+                confirm_apply: false,
+            },
+            Task::none(),
+        )
     }
 
     fn nav_model(&self) -> Option<&cosmic::widget::nav_bar::Model> {
@@ -151,22 +159,38 @@ impl cosmic::Application for AppModel {
                 .into(),
             Page::Tasks => widget::column::with_capacity(3)
                 .push(widget::text::title2("Task catalog"))
-                .push(widget::text("Catalog includes task modules discovered from deploy.py and tasks/."))
+                .push(widget::text(
+                    "Catalog includes task modules discovered from deploy.py and tasks/.",
+                ))
                 .push(widget::button::text("Refresh task catalog").on_press(Message::LoadCatalog))
                 .into(),
             Page::Settings => widget::column::with_capacity(4)
                 .push(widget::text::title2("Host and workstation settings"))
                 .push(widget::text("Choose a file to open it in your system's configured editor."))
                 .push(widget::button::text("Initialize / edit @local.py").on_press(Message::OpenSettings))
-                .push(widget::button::text("Initialize / edit workstation.py").on_press(Message::OpenWorkstationSettings))
-                .push(widget::button::text("Validate both settings files").on_press(Message::ValidateSettings))
+                .push(
+                    widget::button::text("Initialize / edit workstation.py")
+                        .on_press(Message::OpenWorkstationSettings),
+                )
+                .push(
+                    widget::button::text("Validate both settings files")
+                        .on_press(Message::ValidateSettings),
+                )
                 .into(),
             Page::Deploy => widget::column::with_capacity(5)
                 .push(widget::text::title2("Deployment"))
-                .push(widget::text_input("Inventory host (for example @local)", &self.host)
-                    .on_input(Message::HostChanged))
-                .push(widget::button::text("Preview (dry-run)").on_press(Message::PreviewDeployment))
-                .push(widget::button::text("Apply deployment…").on_press(Message::RequestApply))
+                .push(
+                    widget::text_input("Inventory host (for example @local)", &self.host)
+                        .on_input(Message::HostChanged),
+                )
+                .push(
+                    widget::button::text("Preview (dry-run)")
+                        .on_press(Message::PreviewDeployment),
+                )
+                .push(
+                    widget::button::text("Apply deployment…")
+                        .on_press(Message::RequestApply),
+                )
                 .push(if self.confirm_apply {
                     widget::row::with_capacity(2)
                         .push(widget::button::text("Confirm apply").on_press(Message::ConfirmApply))
@@ -178,8 +202,7 @@ impl cosmic::Application for AppModel {
                 .into(),
         };
 
-        let output =
-            widget::scrollable(widget::text(self.output.as_str())).height(Length::Fill);
+        let output = widget::scrollable(widget::text(self.output.as_str())).height(Length::Fill);
         widget::container(
             widget::column::with_capacity(6)
                 .push(heading)
