@@ -160,6 +160,7 @@ A dry run is an important review step, not a substitute for backups, testing or 
 │   └── workstation/           # Optional workstation tasks
 ├── templates/                 # Jinja2 configuration templates
 ├── files/                     # Scripts, dotfiles and static assets
+├── apps/pyinfra-manager/     # Native COSMIC desktop deployment manager
 ├── vscode/gpg-vault/          # VS Code GPG Vault extension
 ├── docs/                      # Detailed documentation
 └── tests/                     # Mocked task regression tests
@@ -205,6 +206,7 @@ Treat decrypted values and terminal output as sensitive. Protect the GPG key and
 | [Templates and files](docs/templates.md) | Jinja2 templates and static assets |
 | [System configuration](docs/system.md) | System-level settings and behavior |
 | [Development](docs/development.md) | Local setup, tests and contribution workflow |
+| [Pyinfra Manager](docs/pyinfra-manager.md) | Native COSMIC desktop application, settings and deployment safety |
 | [Releasing](docs/releasing.md) | Version tags and GitHub Releases |
 | [VS Code GPG Vault](vscode/gpg-vault/README.md) | Extension setup and usage |
 
@@ -221,7 +223,7 @@ Run the checks before submitting a change:
 
 ```bash
 pre-commit run --all-files
-python -m pytest tests/ -v
+uv run pytest tests/ -v
 ```
 
 The pytest suite mocks pyinfra APIs; it does not deploy to or modify a real host. CI runs the regression suite for pushes and pull requests targeting `main`.
