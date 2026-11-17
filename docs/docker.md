@@ -186,13 +186,14 @@ The task reference explains Homepage widgets, Linkwarden bookmark synchronizatio
 
     Enable it by adding an AdGuard Home mapping to `docker` in `@local.py`. It runs as a Docker Compose container using host networking, which lets DNS listen directly on host TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data remain in the bind-mounted directories `~/.docker/adguard_home/conf/` and `~/.docker/adguard_home/work/`. The default image is pinned to `adguard/adguardhome:v0.107.80`; override it with `docker.adguard_home.image` when deliberately upgrading.
 
-    Configure the web UI port with `docker.adguard_home.web_port`. It defaults to `3000` for compatibility; use `3001` when Forgejo already occupies host port 3000:
+    Configure the web UI port with the top-level `web_port` setting in `@local.py`. It defaults to `3000` when omitted; set it to `3001` when Forgejo already occupies host port 3000:
 
     ```python
+    web_port = 3001
+
     docker = {
         "adguard_home": {
             "image": "adguard/adguardhome:v0.107.80",
-            "web_port": 3001,
         },
     }
     caddy_config = {
