@@ -41,6 +41,7 @@ def test_homepage_section_headings_are_markdown_inside_html():
         "Everything you need to manage your Linux environment.",
         "A workflow you can reason about.",
         "Go deeper.",
+        "What's new in pyinfra.",
     )
     assert homepage.count('<div class="section-head" markdown>') == len(headings)
     assert homepage.count('<div class="section-kicker" markdown>') == len(headings)
@@ -58,7 +59,6 @@ def test_changelog_page_matches_repository_changelog():
     assert "  - Changelog: changelog.md" in (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
 
 
-
 def test_homepage_highlights_match_latest_changelog_entry():
     """Keep the homepage's dated highlights grounded in the newest changelog entry."""
     import re
@@ -74,7 +74,7 @@ def test_homepage_highlights_match_latest_changelog_entry():
     assert latest is not None
 
     date = datetime.strptime(latest.group(1), "%d.%m.%Y")
-    displayed_date = date.strftime("%-d %B %Y")
+    displayed_date = date.strftime("%d %B %Y").lstrip("0")
     section = re.search(
         r'<section class="changelog-section" markdown>(.*?)</section>',
         homepage,
