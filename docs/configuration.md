@@ -231,7 +231,7 @@ samba = {
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The supported keys are `appflowy`, `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it` and `wg-easy`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
+`docker` is a mapping of service names to service-specific settings. The supported keys are `adguard_home`, `appflowy`, `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it`, `mdmesh` and `wg-easy`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
 
 All current services persist application data through host bind mounts below the configured user's home directory:
 
@@ -398,6 +398,10 @@ The Linkwarden bookmark sync can be previewed manually from the repository root 
 - Vaultwarden optionally uses `secrets.docker.vaultwarden.admin_token` for its Argon2 PHC admin-token hash.
 
 The absence of `secrets.json.gpg` does not stop the whole deployment; `common.initialize()` sets an empty secrets dictionary. See [Secrets management](secrets.md) for the supported structure.
+
+## Complete feature index
+
+For the full list of optional task gates, workstation subfeatures, Docker applications, helper modules and configuration-key families, see the [Complete feature and configuration reference](feature-reference.md). It is maintained alongside deploy.py and the task-module inventory.
 
 ## Complete feature index
 

@@ -62,31 +62,32 @@ The core set can still have conditional behavior internally, but its modules are
 
 ### Optional tasks
 
-| Inclusion condition in `deploy.py` | Module |
-| --- | --- |
-| Flatpak executable detected by `Which` | `tasks/flatpak.py` |
-| `host.data.ssh_config` is truthy | `tasks/ssh_config.py` |
-| `host.data.wireguard_config` and `secrets.wireguard` are truthy, and `wireguard_enabled` is not false (defaults to true) | `tasks/wireguard.py` |
-| `host.data.syncthing` is truthy and `syncthing.enabled` is not false (defaults to true) | `tasks/syncthing.py` |
-| `local_network_cidr` and `wireguard_interface` are truthy | `tasks/vpn.py` |
-| `host.data.docker` and `host.data.caddy_config` are truthy, and `caddy_enabled` is not false (defaults to true) | `tasks/caddy.py` and `tasks/dehydrated.py` |
-| `host.data.zsh` is truthy | `tasks/zsh.py` |
-| `host.data.tmux` is truthy | `tasks/tmux.py` |
-| `host.data.powerline` is truthy | `tasks/powerline.py` |
-| `host.data.ufw` is truthy and `ufw.enabled` defaults to true | `tasks/ufw.py` |
-| `host.data.docker` is truthy | `tasks/docker.py`, `tasks/docker_power.py` (unless `docker_power_monitor` is false) and `tasks/docker_container.py` |
-| `host.data.docker_sablier.enabled` is true (inside the Docker gate) | `tasks/docker_sablier.py` |
-| `host.data.apparmor_profiles` is truthy and `apparmor_enabled` is not false (defaults to true) | `tasks/apparmor.py` |
-| `workstation.limusic.enabled` is true | `tasks/workstation/limusic.py` |
-| `workstation.cosmic.enabled` is true | `tasks/workstation/cosmic/deploy.py` |
-| `host.data.mullvad_extensions` is truthy | `tasks/mullvad_extensions.py` |
-| `host.data.vscodium` is truthy | `tasks/vscodium.py` |
-| `host.data.proton` is truthy | `tasks/proton.py` |
+The optional modules are included only when the relevant configuration and runtime prerequisites are satisfied. The full inclusion matrix is maintained in the [Feature reference](feature-reference.md).
 
-`tasks/docker.py` installs Docker and defines the shared service deployment helper. Caddy's Dehydrated DNS-01 flow is part of `tasks/caddy.py` and requires `secrets.dehydrated.hetzner_api_token`; there is no separate Dehydrated task gate in `deploy.py`. `tasks/docker_container.py` dispatches to service modules for the configured keys: `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it` and `wg-easy`. `tasks/docker_power.py` deploys the Docker battery monitor; when Sablier is enabled it restores containers previously stopped by the battery saver and disables that monitor. `tasks/docker_sablier.py` is included only when `docker_sablier.enabled` is true, before application service dispatch. Sablier and the battery monitor are mutually exclusive.
+| Feature | Inclusion condition | Module(s) |
+| --- | --- | --- |
+| Cron | Non-empty `cron_jobs` | `tasks/cron.py` |
+| Flatpak | Flatpak executable detected during initialization | `tasks/flatpak.py` |
+| SSH client | Truthy `ssh_config` | `tasks/ssh_config.py` |
+| WireGuard config | Truthy `wireguard_config` and `secrets.wireguard`; `wireguard_enabled` defaults true | `tasks/wireguard.py` |
+| VPN activation | `local_network_cidr` and `wireguard_interface`; `vpn_enabled` defaults true | `tasks/vpn.py` |
+| Syncthing | Truthy `syncthing`; nested `enabled` defaults true | `tasks/syncthing.py` |
+| Shell/terminal | Truthy `zsh`, `tmux` or `powerline` respectively | `tasks/zsh.py`, `tasks/tmux.py`, `tasks/powerline.py` |
+| Samba | Truthy `samba`; nested `enabled` defaults false | `tasks/samba.py` |
+| UFW | Truthy `ufw`; nested `enabled` defaults true | `tasks/ufw.py` |
+| Docker | Truthy `docker` | `tasks/docker.py`, `tasks/docker_container.py` |
+| Docker battery monitor | Docker enabled; `docker_power_monitor` defaults true | `tasks/docker_power.py` |
+| Sablier | Docker enabled and `docker_sablier.enabled` true | `tasks/docker_sablier.py` |
+| Caddy/certificates | Docker enabled, truthy `caddy_config`, and `caddy_enabled` defaults true | `tasks/caddy.py`, `tasks/dehydrated.py` |
+| AppArmor | Truthy `apparmor_profiles`; `apparmor_enabled` defaults true | `tasks/apparmor.py` |
+| Mullvad extensions | Truthy `mullvad_extensions`; `mullvad_browser_enabled` defaults true | `tasks/mullvad_extensions.py` |
+| VSCodium extensions | Truthy `vscodium`; `vscodium_enabled` defaults true | `tasks/vscodium.py` |
+| Proton applications | Truthy `proton` | `tasks/proton.py` |
 
-A truthy dictionary or list is a common activation mechanism; these settings are not necessarily Boolean switches. The exact expected structure is described in [Configuration](configuration.md) and [Task reference](tasks.md).
+Docker service dispatch is configuration-key based. Supported application keys include `adguard_home`, `appflowy`, `firefly-iii`, `forgejo`, `grav`, `homepage`, `linkwarden`, `mdmesh`, `miniflux`, `nocodb`, `paperless`, `portainer`, `snipe-it`, `tasmoadmin`, `timetagger`, `vaultwarden`, `wallabag` and `wg-easy`. See [Docker services](docker.md) and the [Feature reference](feature-reference.md) for the application catalog.
 
+Sablier and the Docker battery monitor are mutually exclusive. When Sablier is enabled, the battery monitor is disabled and containers it previously stopped are restored. Caddy's Dehydrated DNS-01 flow requires `secrets.dehydrated.hetzner_api_token`.
+ 
 ### Workstation role tasks
 
 The workstation role is assigned through inventory group membership, not by naming a host `workstation`. In the supplied inventory, `workstation = ["@local"]` assigns the local target to the group; its shared settings are in `group_data/workstation.py`.
@@ -103,6 +104,7 @@ The workstation role is assigned through inventory group membership, not by nami
 | `workstation.desktop.enabled` | `tasks/workstation/desktop.py` | Installs common desktop integration packages; optional `packages` replaces the defaults. |
 | `workstation.maintenance.enabled` | `tasks/workstation/maintenance.py` | Installs maintenance utilities only; no unattended upgrades or scheduled reboots. |
 | `workstation.cosmic.enabled` | `tasks/workstation/cosmic/deploy.py` | Applies independently enabled appearance, window management, input, shortcuts, panel, dock, workspaces and optional config-file synchronization. Display/output settings are not managed. |
+| `workstation.limusic.enabled` | `tasks/workstation/limusic.py` | Installs the latest stable x86-64 AppImage after SHA-256 verification and creates a desktop launcher. |
 | `workstation.limusic.enabled` | `tasks/workstation/limusic.py` | Installs the stable x86-64 AppImage after SHA-256 verification and creates its desktop launcher. |
 
 The tracked workstation example disables all workstation features by default. Audit and explicitly enable each feature before applying a deployment.
