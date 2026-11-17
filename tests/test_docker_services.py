@@ -426,7 +426,7 @@ def test_adguard_web_port_defaults_and_is_configurable(
     assert "systemctl --user stop adguard_home" in operation["commands"][0]
     assert operation["_sudo"] is True
     assert operation["_if"]() is False  # Missing config is a no-op during first-run setup.
-    assert module._ADGUARD_CONFIG_SCRIPT
+    assert getattr(module, "_ADGUARD_CONFIG_SCRIPT")
 
 
 @pytest.mark.parametrize("web_port", [0, 65536, True, "3001", 1.5])
@@ -463,7 +463,7 @@ def test_adguard_config_reconciliation_preserves_settings_and_is_idempotent(
 
     def run(mode):
         return subprocess.run(
-            [sys.executable, "-c", module._ADGUARD_CONFIG_SCRIPT,
+            [sys.executable, "-c", getattr(module, "_ADGUARD_CONFIG_SCRIPT"),
              str(config), "127.0.0.1:3001", mode],
             check=True, capture_output=True, text=True,
         ).stdout.strip()
@@ -491,7 +491,7 @@ def test_adguard_config_reconciliation_adds_http_section_without_replacing_confi
     config = tmp_path / "AdGuardHome.yaml"
     config.write_text("users: []\n", encoding="utf-8")
     result = subprocess.run(
-        [sys.executable, "-c", module._ADGUARD_CONFIG_SCRIPT,
+        [sys.executable, "-c", getattr(module, "_ADGUARD_CONFIG_SCRIPT"),
          str(config), "127.0.0.1:3001", "apply"],
         check=True, capture_output=True, text=True,
     )
