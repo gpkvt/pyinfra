@@ -1,40 +1,41 @@
 # Upstream pyinfra
 
-## The engine behind this repository
+## Project relationship
 
-[pyinfra](https://pyinfra.com/) is an open-source infrastructure automation tool. The upstream project is maintained separately at [pyinfra-dev/pyinfra on GitHub](https://github.com/pyinfra-dev/pyinfra), with its own releases, documentation and community.
+[pyinfra](https://pyinfra.com/) is an open-source infrastructure automation tool maintained separately in the [pyinfra-dev/pyinfra repository](https://github.com/pyinfra-dev/pyinfra).
 
-**This repository, `gpkvt/pyinfra`, is a deployment configuration built on top of that engine.** It contains inventory, host data, reusable task modules, templates, scripts and application-specific integration. It is not the upstream engine source tree.
+This repository, `gpkvt/pyinfra`, contains deployment configuration built on that tool. It is not the upstream engine source tree and does not define upstream pyinfra behavior.
 
-## What upstream pyinfra provides
+## Upstream concepts used here
 
-- **Python deploys:** write automation as normal Python code.
-- **Inventory and data:** select hosts and organize them into groups with shared or host-specific values.
-- **Operations and facts:** describe desired state and inspect the current target state.
-- **Connectors:** execute locally or connect to remote systems, including SSH and supported container targets.
-- **Preview and execution:** inspect planned changes with `--dry`, then execute operations.
-- **Extensibility:** use Python packages and custom operations for project-specific behavior.
+- **Inventory** selects target hosts and organizes them into groups.
+- **Host and group data** supplies configuration values to deploy code.
+- **Deploys** compose Python code into a deployment.
+- **Facts** inspect the current state of target systems.
+- **Operations** describe changes to files, packages, services and other resources.
+- **Connectors** provide local and remote execution mechanisms.
+- **Dry runs** display the planned operations before execution.
 
-Upstream declarative operations compare current and desired state and only emit commands when needed. Imperative commands are also available, but they run when explicitly requested.
+The upstream documentation describes the supported interfaces and behavior in detail.
 
-## How this repository uses it
+## Mapping to this repository
 
-| Upstream concept | This repository |
+| Upstream concept | Location in this repository |
 | --- | --- |
-| Inventory | `inventory.py` selects local and remote targets |
-| Host/group data | `group_data/` holds machine and role configuration |
-| Deploy code | `deploy.py` selects baseline and optional task modules |
-| Operations | `tasks/` manages packages, files, services and applications |
-| Templates and assets | `templates/` and `files/` provide deployed content |
-| Secrets | GPG-encrypted JSON supplies credentials to selected tasks |
+| Inventory | `inventory.py` |
+| Host and group data | `group_data/` |
+| Deploy code | `deploy.py` |
+| Operations and custom task logic | `tasks/` |
+| Templates and deployed assets | `templates/` and `files/` |
+| Encrypted credentials | GPG-encrypted secrets data |
 
-## Learn from upstream
+## Upstream documentation
 
-- [Official website](https://pyinfra.com/)
+- [Project website](https://pyinfra.com/)
 - [Documentation](https://docs.pyinfra.com/)
 - [Getting started](https://docs.pyinfra.com/en/3.x/getting-started.html)
 - [Operations](https://docs.pyinfra.com/en/3.x/using-operations.html)
 - [Connectors](https://docs.pyinfra.com/en/3.x/connectors.html)
-- [Upstream source code](https://github.com/pyinfra-dev/pyinfra)
+- [Source code](https://github.com/pyinfra-dev/pyinfra)
 
-The project targets Python 3.12+ and Debian/Ubuntu hosts; those are choices made by this repository, not a statement of upstream pyinfra's full platform support.
+The Python version and target operating systems listed in this repository's requirements describe this deployment configuration. They should not be interpreted as a complete statement of upstream pyinfra's platform support.
