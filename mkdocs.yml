@@ -41,7 +41,6 @@ theme:
 
 extra_css:
   - stylesheets/extra.css
-  - stylesheets/task-hub.css
 
 extra_javascript:
   - javascripts/collapsible-state.js
