@@ -1,209 +1,90 @@
 # pyinfra
 
-<a id="top"></a>
-
-<div class="landing" markdown>
-
-<div class="hero" markdown>
-<div class="hero-copy">
-  <div class="eyebrow">PYINFRA · LINUX INFRASTRUCTURE AUTOMATION</div>
-
-  <h1>Infrastructure,<br><span>without surprises.</span></h1>
-
-  <p class="lead">Automate Linux servers and workstations with reusable Python tasks, declarative host data and idempotent deployments. See what will change, apply it deliberately, and keep every run predictable.</p>
-
-  <div class="actions">
-    <a class="action primary" href="deployment/">Get started <span>↗</span></a>
-    <a class="action secondary" href="https://github.com/gpkvt/pyinfra">Explore on GitHub <span>↗</span></a>
-  </div>
-
-  <div class="hero-meta">
-    <span><i></i> Debian &amp; Ubuntu</span>
-    <span><i></i> Python 3.12+</span>
-    <span><i></i> Open source</span>
-  </div>
+<div class="site-hero" markdown>
+  <div class="site-eyebrow">A PRACTICAL PYINFRA DEPLOYMENT</div>
+  <h1>One repo.<br><span>Linux, under control.</span></h1>
+  <p class="site-lead">A reusable automation toolkit for Debian and Ubuntu servers, Docker applications and Linux workstations — built with Python and upstream pyinfra.</p>
+  <p><a class="site-button" href="deployment/">Get started</a> <a class="site-button site-button-secondary" href="https://github.com/gpkvt/pyinfra">View source on GitHub</a></p>
+  <div class="site-meta">Python 3.12+ · Debian &amp; Ubuntu · MIT · SSH or local execution</div>
 </div>
 
-<div class="hero-visual" aria-label="Illustration of a pyinfra deployment plan">
-  <div class="visual-glow"></div>
-  <div class="terminal-window">
-    <div class="terminal-bar"><span class="window-dots">● ● ●</span><span>deployment · preview</span><span class="terminal-status">READY</span></div>
-    <div class="terminal-body">
-      <div class="terminal-line"><span class="prompt">$</span> pyinfra inventory.py deploy.py --dry --diff</div>
-      <div class="terminal-muted">--> Preparing operations</div>
-      <div class="terminal-task"><span class="ok">✓</span><span>apt.packages</span><span class="task-state">in sync</span></div>
-      <div class="terminal-task"><span class="ok">✓</span><span>files.directory</span><span class="task-state">in sync</span></div>
-      <div class="terminal-task"><span class="change">◇</span><span>systemd.service</span><span class="task-pending">would change</span></div>
-      <div class="terminal-task"><span class="ok">✓</span><span>users.user</span><span class="task-state">in sync</span></div>
-      <div class="terminal-divider"></div>
-      <div class="terminal-summary"><span>4 operations reviewed</span><strong>1 proposed change</strong></div>
-      <div class="terminal-foot"><span class="pulse"></span> Dry run · no changes applied</div>
-    </div>
-  </div>
-  <div class="floating-card inventory-card"><span class="mini-label">INVENTORY</span><strong>workstation</strong><small>group · @local</small></div>
-  <div class="floating-card state-card"><span class="state-check">✓</span><span><strong>Idempotent by design</strong><small>Only change what needs changing</small></span></div>
-</div>
-</div>
+## What this repository is
 
-<div class="trustline">
-  <span>ONE CONFIGURATION</span><b>·</b><span>REUSABLE TASKS</span><b>·</b><span>REVIEWABLE CHANGES</span><b>·</b><span>REPEATABLE RESULTS</span>
-</div>
+This repository is an opinionated collection of deploys, task modules, templates and host data. It is **not** the upstream pyinfra project and it is not a prebuilt server image. You choose the target, configure the features, preview the plan and apply it.
 
-<section class="intro-section" markdown>
-  <div class="section-head" markdown>
-    <div class="section-kicker" markdown>01 / THE TOOLKIT</div>
-    ## One toolkit. Your entire Linux environment.
-    <p>From the first package to a complete application stack, pyinfra brings infrastructure and workstation automation into one maintainable workflow.</p>
-  </div>
-  <div class="feature-grid">
-    <a class="feature-card" href="system/">
-      <div class="feature-icon mint">⌘</div>
-      <h3>System configuration</h3>
-      <p>Packages, repositories, users, SSH, networking, firewall rules and system services.</p>
-      <span class="card-link">Explore system tasks ↗</span>
-    </a>
-    <a class="feature-card" href="docker/">
-      <div class="feature-icon blue">▦</div>
-      <h3>Docker services</h3>
-      <p>Explore container stacks, ports, persistent storage, reverse proxies and on-demand startup.</p>
-      <span class="card-link">Explore Docker deployments ↗</span>
-    </a>
-    <a class="feature-card" href="configuration/">
-      <div class="feature-icon violet">◈</div>
-      <h3>Workstations</h3>
-      <p>Manage desktop applications, COSMIC settings, Flatpak, fonts and user environments.</p>
-      <span class="card-link">Explore configuration ↗</span>
-    </a>
-    <a class="feature-card" href="secrets/">
-      <div class="feature-icon amber">⌑</div>
-      <h3>Secrets &amp; security</h3>
-      <p>Keep credentials out of tracked configuration with GPG-encrypted data and vault workflows.</p>
-      <span class="card-link">Read secrets guide ↗</span>
-    </a>
-    <a class="feature-card" href="templates/">
-      <div class="feature-icon blue">⌁</div>
-      <h3>Reusable templates</h3>
-      <p>Generate consistent configuration files from Jinja templates and host-specific data.</p>
-      <span class="card-link">Explore templates ↗</span>
-    </a>
-    <a class="feature-card" href="architecture/">
-      <div class="feature-icon mint">◎</div>
-      <h3>Clear architecture</h3>
-      <p>Separate inventory, host data, orchestration and task modules for easier maintenance.</p>
-      <span class="card-link">Understand the design ↗</span>
-    </a>
-  </div>
-</section>
-
-<section class="showcase-section" markdown>
-  <div class="section-head" markdown>
-    <div class="section-kicker" markdown>02 / HOW IT WORKS</div>
-    ## From configuration to a predictable result.
-    <p>Define the desired state, inspect the operations, and apply only after you understand the plan.</p>
-  </div>
-  <div class="workflow">
-    <div class="workflow-step"><span>01</span><div class="workflow-symbol">⌗</div><h3>Inventory</h3><p>Choose the hosts and connection settings.</p></div>
-    <div class="workflow-connector">→</div>
-    <div class="workflow-step"><span>02</span><div class="workflow-symbol">◇</div><h3>Configuration</h3><p>Describe roles, features and host-specific data.</p></div>
-    <div class="workflow-connector">→</div>
-    <div class="workflow-step"><span>03</span><div class="workflow-symbol">⌘</div><h3>Tasks</h3><p>Run reusable operations and render templates.</p></div>
-    <div class="workflow-connector">→</div>
-    <div class="workflow-step"><span>04</span><div class="workflow-symbol">✓</div><h3>Converge</h3><p>Review the diff, then apply the desired state.</p></div>
-  </div>
-  <div class="code-showcase">
-    <div class="code-copy">
-      <div class="section-kicker">PREVIEW BEFORE YOU APPLY</div>
-      <h3>Know what will change. Before it changes.</h3>
-      <p>Dry runs and diffs make operations reviewable. Idempotent tasks avoid unnecessary work and keep repeated deployments quiet.</p>
-      <ul class="check-list">
-        <li>Inspect planned operations</li>
-        <li>Review file and configuration diffs</li>
-        <li>Run again without noisy false changes</li>
-      </ul>
-      <a class="text-link" href="deployment/">Read the deployment guide ↗</a>
-    </div>
-    <div class="code-panel">
-      <div class="code-panel-head"><span>TERMINAL</span><span>bash</span></div>
-      <pre><code><span class="code-comment"># Preview operations and diffs</span>
-<span class="code-prompt">$</span> pyinfra inventory.py deploy.py --dry --diff
-
-<span class="code-comment"># Apply after reviewing the plan</span>
-<span class="code-prompt">$</span> pyinfra inventory.py deploy.py --diff</code></pre>
-      <div class="code-panel-foot"><span class="pulse"></span> Review first · Apply deliberately</div>
-    </div>
-  </div>
-</section>
-
-<section class="install-section" markdown>
-  <div class="install-copy">
-    <div class="section-kicker">03 / GET STARTED</div>
-    <h2>Build a better baseline. Then keep it.</h2>
-    <p>Clone the repository, prepare your local host configuration, and inspect the first run. Start with a non-production target and adapt the examples before deploying.</p>
-    <a class="action primary" href="configuration/">Read the getting-started guide <span>↗</span></a>
-  </div>
-  <div class="install-terminal">
-    <div class="code-panel-head"><span>QUICK START</span><span>bash</span></div>
-    <pre><code><span class="code-prompt">$</span> git clone https://github.com/gpkvt/pyinfra.git
-<span class="code-prompt">$</span> cd pyinfra
-<span class="code-prompt">$</span> cp group_data/@local.py.example group_data/@local.py
-<span class="code-prompt">$</span> uv sync
-<span class="code-prompt">$</span> source .venv/bin/activate
-<span class="code-prompt">$</span> pyinfra inventory.py deploy.py --dry --diff</code></pre>
-  </div>
-</section>
-
-<div class="safety-note">
-  <span class="safety-icon">!</span>
-  <div><strong>Review before deploying.</strong><p>Example configuration contains machine-specific assumptions. Replace placeholders and inspect enabled features. Deployments can install packages, modify system files, networking, services and security policies.</p></div>
+<div class="site-cards" markdown>
+  <a href="docker/" class="site-card">
+    <span class="site-number">01 / FEATURED</span>
+    <h3>Docker applications</h3>
+    <p>Compose stacks, host-side persistent data, systemd lifecycle, reverse proxy integration and optional on-demand startup.</p>
+    <strong>Explore Docker →</strong>
+  </a>
+  <a href="tasks-overview/" class="site-card">
+    <span class="site-number">02 / TASK LIBRARY</span>
+    <h3>Linux system &amp; workstation</h3>
+    <p>Packages, SSH, users, firewall, VPN, Flatpak, COSMIC, power, backups, hardware and developer tools.</p>
+    <strong>Explore tasks →</strong>
+  </a>
+  <a href="configuration/" class="site-card">
+    <span class="site-number">03 / CONFIGURATION</span>
+    <h3>One configuration model</h3>
+    <p>Python inventory, host/group data, feature gates, Jinja templates and encrypted secrets.</p>
+    <strong>Configure a host →</strong>
+  </a>
 </div>
 
-<section class="docs-section" markdown>
-  <div class="section-head" markdown>
-    <div class="section-kicker" markdown>04 / DOCUMENTATION</div>
-    ## Go deeper.
-    <p>Find the details you need, from the architecture to individual task modules.</p>
-  </div>
-  <div class="docs-grid">
-    <a href="architecture/"><span>01</span><strong>Architecture</strong><small>Repository layers and execution lifecycle</small><b>↗</b></a>
-    <a href="configuration/"><span>02</span><strong>Configuration</strong><small>Host data, roles and feature flags</small><b>↗</b></a>
-    <a href="deployment/"><span>03</span><strong>Deployment</strong><small>Preview, target and apply operations</small><b>↗</b></a>
-    <a href="tasks/"><span>04</span><strong>Task reference</strong><small>Reusable modules and managed services</small><b>↗</b></a>
-    <a href="feature-reference/"><span>05</span><strong>Feature reference</strong><small>All features, task gates and configuration keys</small><b>↗</b></a>
-    <a href="secrets/"><span>06</span><strong>Secrets</strong><small>Encrypted credentials and vault workflows</small><b>↗</b></a>
-    <a href="development/"><span>07</span><strong>Development</strong><small>Tests, checks and contribution guide</small><b>↗</b></a>
-  </div>
-</section>
+## Docker, without hidden storage
 
-<section class="changelog-section" markdown>
-  <div class="section-head" markdown>
-    <div class="section-kicker" markdown>05 / PROJECT HISTORY</div>
-    ## What's new in pyinfra.
-    <p>A quick look at the latest improvements. The full history remains available in the changelog.</p>
-  </div>
-  <div class="changelog-card">
-    <div class="changelog-meta">
-      <span class="changelog-date">17 November 2026</span>
-      <span class="changelog-label">LATEST UPDATE</span>
-    </div>
-    <ul>
-      <li>Added a native COSMIC desktop manager for browsing tasks, editing settings, validating configuration and running deployments with dry-run as the default (<a href="https://github.com/gpkvt/pyinfra/pull/351">#351</a>).</li>
-      <li>Added configurable AdGuard Home web UI port handling under `docker.adguard_home.web_port`; reconcile only the listen address, preserve other settings and restart the service only when the address changes (<a href="https://github.com/gpkvt/pyinfra/pull/355">#355</a>, <a href="https://github.com/gpkvt/pyinfra/pull/356">#356</a>, <a href="https://github.com/gpkvt/pyinfra/pull/358">#358</a>).</li>
-      <li>Improved Flatpak application and runtime discovery by fetching all configured user remotes in a single query, while preserving explicit remote selection (<a href="https://github.com/gpkvt/pyinfra/pull/377">#377</a>).</li>
-      <li>Improved desktop-manager checkout discovery using environment, saved configuration, launch directory and executable parent directories, with validation and persistence of usable paths (<a href="https://github.com/gpkvt/pyinfra/pull/368">#368</a>).</li>
-      <li>Fixed deployment initialization by avoiding host-fact calls before pyinfra binds the host context; corrected local-host secret selection and CI shell command handling (<a href="https://github.com/gpkvt/pyinfra/pull/363">#363</a>).</li>
-    </ul>
-    <a class="text-link" href="changelog/">Explore the complete changelog ↗</a>
-  </div>
-</section>
+The Docker tasks deploy opt-in Compose applications and keep their configuration and persistent data below `~/.docker/<service>/` for the configured user.
 
-<div class="final-cta">
-  <div class="eyebrow">PYINFRA · OPEN SOURCE</div>
-  <h2>Make infrastructure<br><span>predictable.</span></h2>
-  <p>Explore the code, inspect the tasks, and shape a Linux environment that stays the way you intend.</p>
-  <div class="actions">
-    <a class="action primary" href="https://github.com/gpkvt/pyinfra">View the repository ↗</a>
-    <a class="action secondary" href="https://github.com/gpkvt/pyinfra/issues">Report an issue</a>
-  </div>
+- **Host bind mounts** for persistent application data; no Docker-managed named volumes.
+- **Loopback-first ports** for web interfaces, intended for a trusted reverse proxy or VPN.
+- **systemd user services** for predictable start, stop and restart behavior.
+- **Change-aware reconciliation** so unchanged Compose files do not trigger unnecessary image pulls.
+- **Encrypted credentials** supplied from the GPG secrets file, not committed host data.
+
+The catalog currently documents 18 services, including Forgejo, Homepage, Linkwarden, Paperless-ngx, Firefly III, AppFlowy, MDMesh, AdGuard Home, Vaultwarden and WG-Easy. See the [Docker guide](docker/) for ports, storage paths, prerequisites and service-specific settings.
+
+## How it fits together
+
+<div class="site-flow" markdown>
+  <div><b>1 · Inventory</b><span>Choose local or SSH targets</span></div>
+  <div><b>2 · Host data</b><span>Set desired state and feature flags</span></div>
+  <div><b>3 · Deploy</b><span>Compose reusable Python tasks</span></div>
+  <div><b>4 · Review &amp; apply</b><span>Preview changes, then converge</span></div>
 </div>
 
+```bash
+# Install the project environment
+uv sync
+source .venv/bin/activate
+
+# Review the proposed changes first
+pyinfra inventory.py deploy.py --dry --diff
+
+# Apply only after checking the plan
+pyinfra inventory.py deploy.py --diff
+```
+
+Tasks are designed to be idempotent: a second run against an already-correct host should not report changes or repeat unnecessary work. Dry runs are a review aid, not a replacement for backups or testing.
+
+## The engine: upstream pyinfra
+
+[pyinfra](https://pyinfra.com/) is the independent, open-source Python automation engine maintained at [pyinfra-dev/pyinfra](https://github.com/pyinfra-dev/pyinfra). It turns Python deploy code into commands for local machines and remote hosts, using inventory, facts, operations and connectors.
+
+This repository uses that engine; it does not fork or redefine it. Learn the distinction and find upstream documentation on the [Upstream pyinfra page](upstream/).
+
+## Find your way
+
+- [Task overview](tasks-overview/) — the main task families.
+- [Complete feature reference](feature-reference/) — every task module and feature gate.
+- [Docker services](docker/) — service catalog, ports, storage and lifecycle.
+- [Configuration](configuration/) — inventory and host/group settings.
+- [Deployment](deployment/) — safe preview and execution.
+- [Secrets](secrets/) — GPG-encrypted credentials.
+- [Architecture](architecture/) — repository structure and execution flow.
+- [Changelog](changelog/) — project changes.
+
+<div class="site-warning" markdown>
+**Before deploying:** the example inventory and host data are templates, not production-ready settings. Review target hosts, SSH access, firewall rules, ports, secrets and every proposed diff. Some tasks can change networking or security policy and may interrupt access.
 </div>
