@@ -328,3 +328,33 @@ code, pre, .mono { font-family: "DM Mono", ui-monospace, monospace; }
 @media (max-width: 550px) {
   .changelog-card { padding: 21px; }
 }
+
+
+/* Product-style navigation and page chrome, aligned with the pyinfra landing page. */
+.md-header__inner { max-width: var(--landing-max); margin: 0 auto; padding-inline: 24px; }
+.md-header__title { font-weight: 800; letter-spacing: -.04em; }
+.md-tabs__inner { max-width: var(--landing-max); margin: 0 auto; padding-inline: 24px; }
+.md-tabs__link { color: var(--landing-muted); font-size: .72rem; font-weight: 700; }
+.md-tabs__link--active, .md-tabs__link:hover { color: var(--landing-mint); }
+.md-search__form { border: 1px solid #ffffff16; border-radius: 999px; background: #ffffff08; }
+.md-search__input { font-size: .75rem; }
+.md-typeset .md-button { border-radius: 999px; font-weight: 800; }
+.md-typeset .md-button--primary { border-color: var(--landing-mint); background: var(--landing-mint); color: #0c211b; }
+.md-typeset .highlight pre, .md-typeset pre > code { border-radius: 14px; }
+.md-footer-meta { background: #070a10; }
+.md-footer__inner { max-width: var(--landing-max); margin: 0 auto; }
+.md-typeset .landing section { scroll-margin-top: 100px; }
+.md-typeset .landing a:focus-visible, .md-tabs__link:focus-visible, .md-header a:focus-visible {
+  outline: 2px solid var(--landing-mint);
+  outline-offset: 4px;
+  border-radius: 5px;
+}
+@media (max-width: 760px) {
+  .md-header__inner, .md-tabs__inner { padding-inline: 16px; }
+  .md-tabs { overflow-x: auto; }
+  .md-tabs__list { gap: 5px; }
+  .md-tabs__link { padding-inline: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .feature-card, .action, .task-hub-grid > a { transition: none !important; }
+}
