@@ -1,14 +1,16 @@
 # pyinfra
 
+<a id="top"></a>
+
 <div class="landing" markdown>
 
 <div class="hero" markdown>
 <div class="hero-copy">
   <div class="eyebrow">PYINFRA · LINUX INFRASTRUCTURE AUTOMATION</div>
 
-  <h1>Your infrastructure.<br><span>In perfect order.</span></h1>
+  <h1>Infrastructure,<br><span>without surprises.</span></h1>
 
-  <p class="lead">A predictable way to configure Linux servers and workstations. Reusable Python tasks, declarative host data, and idempotent deployments — all in your hands.</p>
+  <p class="lead">Automate Linux servers and workstations with reusable Python tasks, declarative host data and idempotent deployments. See what will change, apply it deliberately, and keep every run predictable.</p>
 
   <div class="actions">
     <a class="action primary" href="deployment/">Get started <span>↗</span></a>
@@ -50,7 +52,7 @@
 <section class="intro-section" markdown>
   <div class="section-head" markdown>
     <div class="section-kicker" markdown>01 / THE TOOLKIT</div>
-    ## Everything you need to manage your Linux environment.
+    ## One toolkit. Your entire Linux environment.
     <p>From the first package to a complete application stack, pyinfra brings infrastructure and workstation automation into one maintainable workflow.</p>
   </div>
   <div class="feature-grid">
@@ -96,7 +98,7 @@
 <section class="showcase-section" markdown>
   <div class="section-head" markdown>
     <div class="section-kicker" markdown>02 / HOW IT WORKS</div>
-    ## A workflow you can reason about.
+    ## From configuration to a predictable result.
     <p>Define the desired state, inspect the operations, and apply only after you understand the plan.</p>
   </div>
   <div class="workflow">
@@ -135,7 +137,7 @@
 <section class="install-section" markdown>
   <div class="install-copy">
     <div class="section-kicker">03 / GET STARTED</div>
-    <h2>Your next deployment starts here.</h2>
+    <h2>Build a better baseline. Then keep it.</h2>
     <p>Clone the repository, prepare your local host configuration, and inspect the first run. Start with a non-production target and adapt the examples before deploying.</p>
     <a class="action primary" href="configuration/">Read the getting-started guide <span>↗</span></a>
   </div>

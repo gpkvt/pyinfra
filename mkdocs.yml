@@ -16,10 +16,18 @@ theme:
   language: en
   features:
     - navigation.instant
+    - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
+    - navigation.indexes
     - navigation.top
+    - navigation.footer
+    - toc.follow
     - content.code.copy
     - content.action.edit
+  font:
+    text: Manrope
+    code: DM Mono
   palette:
     - scheme: slate
       primary: teal
