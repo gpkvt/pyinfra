@@ -19,20 +19,21 @@ def test_mkdocs_uses_product_style_navigation_and_typography():
     assert "text: Manrope" in config
     assert "code: DM Mono" in config
     assert "stylesheets/extra.css" in config
+    assert "Upstream pyinfra: upstream.md" in config
+    assert "Docker: docker.md" in config
 
 
-def test_homepage_contains_product_landing_sections():
-    """The homepage introduces the toolkit, workflow, install and docs."""
+def test_homepage_contains_concise_project_sections():
+    """The homepage explains the repository, Docker focus and upstream engine."""
     homepage = HOMEPAGE.read_text(encoding="utf-8")
 
     for section in (
-        "Infrastructure,",
-        "THE TOOLKIT",
-        "HOW IT WORKS",
-        "GET STARTED",
-        "DOCUMENTATION",
-        "PROJECT HISTORY",
-        "Make infrastructure",
+        "A PRACTICAL PYINFRA DEPLOYMENT",
+        "What this repository is",
+        "Docker, without hidden storage",
+        "How it fits together",
+        "The engine: upstream pyinfra",
+        "Find your way",
     ):
         assert section in homepage
 
@@ -43,5 +44,7 @@ def test_stylesheet_supports_responsive_and_accessible_navigation():
 
     assert ".md-tabs__link--active" in stylesheet
     assert ".md-typeset .landing a:focus-visible" in stylesheet
+    assert ".site-hero" in stylesheet
+    assert ".site-cards" in stylesheet
     assert "@media (max-width: 760px)" in stylesheet
     assert "@media (prefers-reduced-motion: reduce)" in stylesheet
