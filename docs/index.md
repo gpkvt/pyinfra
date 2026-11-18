@@ -1,90 +1,72 @@
-# pyinfra
+# gpkvt/pyinfra
 
-<div class="site-hero" markdown>
-  <div class="site-eyebrow">A PRACTICAL PYINFRA DEPLOYMENT</div>
-  <h1>One repo.<br><span>Linux, under control.</span></h1>
-  <p class="site-lead">A reusable automation toolkit for Debian and Ubuntu servers, Docker applications and Linux workstations — built with Python and upstream pyinfra.</p>
-  <p><a class="site-button" href="deployment/">Get started</a> <a class="site-button site-button-secondary" href="https://github.com/gpkvt/pyinfra">View source on GitHub</a></p>
-  <div class="site-meta">Python 3.12+ · Debian &amp; Ubuntu · MIT · SSH or local execution</div>
-</div>
+This repository contains a pyinfra deployment configuration for Debian and Ubuntu systems. It includes inventory, host and group data, deployment entry points, reusable task modules, templates, files and scripts.
 
-## What this repository is
+It uses the separate [upstream pyinfra automation tool](https://github.com/pyinfra-dev/pyinfra) to execute operations on local and remote machines. This repository is deployment code; it is not the upstream pyinfra engine.
 
-This repository is an opinionated collection of deploys, task modules, templates and host data. It is **not** the upstream pyinfra project and it is not a prebuilt server image. You choose the target, configure the features, preview the plan and apply it.
+## Repository contents
 
-<div class="site-cards" markdown>
-  <a href="docker/" class="site-card">
-    <span class="site-number">01 / FEATURED</span>
-    <h3>Docker applications</h3>
-    <p>Compose stacks, host-side persistent data, systemd lifecycle, reverse proxy integration and optional on-demand startup.</p>
-    <strong>Explore Docker →</strong>
-  </a>
-  <a href="tasks-overview/" class="site-card">
-    <span class="site-number">02 / TASK LIBRARY</span>
-    <h3>Linux system &amp; workstation</h3>
-    <p>Packages, SSH, users, firewall, VPN, Flatpak, COSMIC, power, backups, hardware and developer tools.</p>
-    <strong>Explore tasks →</strong>
-  </a>
-  <a href="configuration/" class="site-card">
-    <span class="site-number">03 / CONFIGURATION</span>
-    <h3>One configuration model</h3>
-    <p>Python inventory, host/group data, feature gates, Jinja templates and encrypted secrets.</p>
-    <strong>Configure a host →</strong>
-  </a>
-</div>
+| Area | What it manages | Documentation |
+| --- | --- | --- |
+| System | Packages, users, SSH, host configuration, storage and services | [Task reference](tasks/) |
+| Docker | Compose applications, persistent data, systemd user services and integrations | [Docker guide](docker/) |
+| Network | VPN, Samba, Syncthing, firewall and proxy-related services | [Task overview](tasks-overview/) |
+| Workstation | COSMIC, Flatpak, power management, hardware and desktop tools | [Feature reference](feature-reference/#workstation-role-features) |
+| Configuration | Inventory, host/group data, feature flags and encrypted credentials | [Configuration](configuration/) |
 
-## Docker, without hidden storage
+Optional features are selected through deployment code and host or group data. They are not all enabled on every target.
 
-The Docker tasks deploy opt-in Compose applications and keep their configuration and persistent data below `~/.docker/<service>/` for the configured user.
+## Requirements
 
-- **Host bind mounts** for persistent application data; no Docker-managed named volumes.
-- **Loopback-first ports** for web interfaces, intended for a trusted reverse proxy or VPN.
-- **systemd user services** for predictable start, stop and restart behavior.
-- **Change-aware reconciliation** so unchanged Compose files do not trigger unnecessary image pulls.
-- **Encrypted credentials** supplied from the GPG secrets file, not committed host data.
+- Python 3.12 or newer for the project environment.
+- Debian or Ubuntu target systems, as configured by this repository.
+- SSH access and suitable privileges for remote deployments.
+- Docker Engine and the Compose plugin for Docker tasks.
 
-The catalog currently documents 18 services, including Forgejo, Homepage, Linkwarden, Paperless-ngx, Firefly III, AppFlowy, MDMesh, AdGuard Home, Vaultwarden and WG-Easy. See the [Docker guide](docker/) for ports, storage paths, prerequisites and service-specific settings.
+See [development](development/) for the project environment and [configuration](configuration/) for inventory and host data.
 
-## How it fits together
+## Deployment
 
-<div class="site-flow" markdown>
-  <div><b>1 · Inventory</b><span>Choose local or SSH targets</span></div>
-  <div><b>2 · Host data</b><span>Set desired state and feature flags</span></div>
-  <div><b>3 · Deploy</b><span>Compose reusable Python tasks</span></div>
-  <div><b>4 · Review &amp; apply</b><span>Preview changes, then converge</span></div>
-</div>
+Install the Python environment, review the inventory and host data, then preview the deployment:
 
 ```bash
-# Install the project environment
 uv sync
-source .venv/bin/activate
-
-# Review the proposed changes first
 pyinfra inventory.py deploy.py --dry --diff
+```
 
-# Apply only after checking the plan
+Review the proposed operations before applying them:
+
+```bash
 pyinfra inventory.py deploy.py --diff
 ```
 
-Tasks are designed to be idempotent: a second run against an already-correct host should not report changes or repeat unnecessary work. Dry runs are a review aid, not a replacement for backups or testing.
+A dry run is a review step, not a substitute for backups or testing. Some tasks modify networking, firewall rules, authentication or running services and can interrupt access.
 
-## The engine: upstream pyinfra
+## Docker storage and lifecycle
 
-[pyinfra](https://pyinfra.com/) is the independent, open-source Python automation engine maintained at [pyinfra-dev/pyinfra](https://github.com/pyinfra-dev/pyinfra). It turns Python deploy code into commands for local machines and remote hosts, using inventory, facts, operations and connectors.
+Docker tasks are opt-in through the `docker` host-data configuration. The repository uses these conventions:
 
-This repository uses that engine; it does not fork or redefine it. Learn the distinction and find upstream documentation on the [Upstream pyinfra page](upstream/).
+- Compose project files and persistent application data are stored below `~/.docker/<service>/` for the configured user.
+- Persistent application data uses host bind mounts. Docker-managed named volumes are not used.
+- Web interfaces bind to loopback by default where applicable.
+- systemd user units manage Compose project lifecycle.
+- Credentials are read from the configured encrypted secrets source where supported.
 
-## Find your way
+The Docker guide documents the service catalog, ports, storage paths, prerequisites and service-specific settings.
 
-- [Task overview](tasks-overview/) — the main task families.
-- [Complete feature reference](feature-reference/) — every task module and feature gate.
-- [Docker services](docker/) — service catalog, ports, storage and lifecycle.
+## Upstream pyinfra
+
+[Upstream pyinfra](https://pyinfra.com/) is maintained separately at [pyinfra-dev/pyinfra](https://github.com/pyinfra-dev/pyinfra). It provides the automation engine, inventory handling, facts, operations and connectors used by this repository.
+
+See [Upstream pyinfra](upstream/) for the relationship between the engine and this deployment repository, and links to the upstream documentation.
+
+## Reference
+
+- [Task overview](tasks-overview/) — task families and optional feature selection.
+- [Complete feature reference](feature-reference/) — task modules, feature gates and limitations.
+- [Docker services](docker/) — supported applications and their configuration.
 - [Configuration](configuration/) — inventory and host/group settings.
-- [Deployment](deployment/) — safe preview and execution.
-- [Secrets](secrets/) — GPG-encrypted credentials.
+- [Deployment](deployment/) — previewing and applying changes.
+- [Secrets](secrets/) — encrypted credentials.
 - [Architecture](architecture/) — repository structure and execution flow.
 - [Changelog](changelog/) — project changes.
-
-<div class="site-warning" markdown>
-**Before deploying:** the example inventory and host data are templates, not production-ready settings. Review target hosts, SSH access, firewall rules, ports, secrets and every proposed diff. Some tasks can change networking or security policy and may interrupt access.
-</div>
