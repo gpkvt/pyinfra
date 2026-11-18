@@ -1,8 +1,8 @@
 ---
 site_name: pyinfra
 site_description: >-
-  Configuration-driven Linux infrastructure and workstation automation for
-  Debian and Ubuntu.
+  A practical pyinfra deployment for Debian and Ubuntu servers, Docker services
+  and Linux workstations.
 site_url: https://gpkvt.github.io/pyinfra/
 repo_url: https://github.com/gpkvt/pyinfra
 repo_name: gpkvt/pyinfra
@@ -60,16 +60,19 @@ plugins:
 nav:
   - Home: index.md
   - Tasks: tasks-overview.md
-  - Task reference: tasks.md
-  - Feature reference: feature-reference.md
-  - Architecture: architecture.md
-  - Configuration: configuration.md
-  - Deployment: deployment.md
-  - Pyinfra Manager: pyinfra-manager.md
   - Docker: docker.md
-  - Secrets: secrets.md
-  - System: system.md
-  - Samba: samba.md
-  - Templates: templates.md
-  - Development: development.md
-  - Changelog: changelog.md
+  - Reference:
+      - Feature reference: feature-reference.md
+      - Task reference: tasks.md
+      - Configuration: configuration.md
+      - Deployment: deployment.md
+  - Project:
+      - Upstream pyinfra: upstream.md
+      - Architecture: architecture.md
+      - Pyinfra Manager: pyinfra-manager.md
+      - Secrets: secrets.md
+      - System: system.md
+      - Samba: samba.md
+      - Templates: templates.md
+      - Development: development.md
+      - Changelog: changelog.md

@@ -1,44 +1,48 @@
-# Tasks
+# Task library
 
-<div class="task-hub" markdown>
+This repository groups reusable pyinfra tasks into four practical areas. Most optional features are selected through host or group data; they are not all enabled by default.
 
-<div class="task-hub-hero" markdown>
-  <div class="task-hub-eyebrow">PYINFRA · TASK LIBRARY</div>
-  <h2>Infrastructure work, ready to reuse.</h2>
-  <p>Explore the task modules that configure Linux hosts, provision Docker services and tailor workstation environments. Core tasks establish the baseline; optional tasks are enabled through host and group data.</p>
-  <a class="task-hub-primary" href="../tasks/">Browse the complete task reference ↗</a>
-</div>
-
-<div class="task-hub-grid">
-  <a href="tasks.md#core-tasks">
-    <span class="task-hub-index">01 / ALWAYS INCLUDED</span>
-    <strong>Core system tasks</strong>
-    <p>APT, hosts, sudo, system settings, SSH keys, Git, fonts, scripts and Midnight Commander.</p>
-    <b>Explore core tasks ↗</b>
+<div class="site-cards" markdown>
+  <a href="tasks/#core-tasks" class="site-card">
+    <span class="site-number">01 / BASELINE</span>
+    <h3>System foundations</h3>
+    <p>APT, hosts, sudo, hostname, locale, sysctl, udev, SSH keys, Git, fonts and user scripts.</p>
+    <strong>Core task reference →</strong>
   </a>
-  <a href="tasks.md#optional-tasks">
-    <span class="task-hub-index">02 / FEATURE GATED</span>
-    <strong>Optional features</strong>
-    <p>WireGuard, VPN, Syncthing, firewall, Docker, AppArmor, Flatpak, Proton and more.</p>
-    <b>Explore optional tasks ↗</b>
+  <a href="docker/" class="site-card">
+    <span class="site-number">02 / CONTAINERS</span>
+    <h3>Docker applications</h3>
+    <p>18 documented Compose services with bind-mounted state, systemd lifecycle and optional integrations.</p>
+    <strong>Docker service catalog →</strong>
   </a>
-  <a href="tasks.md#workstation-role-tasks">
-    <span class="task-hub-index">03 / WORKSTATION ROLE</span>
-    <strong>Desktop &amp; hardware</strong>
-    <p>Power, backup, firmware, storage, peripherals, desktop integration and COSMIC.</p>
-    <b>Explore workstation tasks ↗</b>
+  <a href="tasks/#optional-tasks" class="site-card">
+    <span class="site-number">03 / OPTIONAL</span>
+    <h3>Network &amp; services</h3>
+    <p>WireGuard, conditional VPN, Syncthing, Samba, UFW, Caddy, Dehydrated, AppArmor and Flatpak.</p>
+    <strong>Optional task reference →</strong>
   </a>
-  <a href="tasks.md#docker-services">
-    <span class="task-hub-index">04 / CONTAINER STACKS</span>
-    <strong>Docker services</strong>
-    <p>Compose projects, persistent bind-mounted data, systemd lifecycle and service-specific settings.</p>
-    <b>Explore Docker tasks ↗</b>
+  <a href="feature-reference/#workstation-role-features" class="site-card">
+    <span class="site-number">04 / WORKSTATION</span>
+    <h3>Desktop &amp; hardware</h3>
+    <p>COSMIC settings, backups, power management, firmware, storage, peripherals, LiMusic and developer tools.</p>
+    <strong>Workstation features →</strong>
   </a>
 </div>
 
-<div class="task-hub-note">
-  <strong>Designed for repeatable deployments.</strong>
-  <p>Optional modules are gated by configuration, and tasks should avoid reporting changes when the target is already in the desired state. Review dry-run output before applying changes.</p>
-</div>
+## Docker at a glance
 
-</div>
+Docker is a major part of this repository. Set the `docker` host-data mapping to opt in. The shared tasks install/configure Docker and dispatch the service modules selected in that mapping.
+
+- Compose files and persistent data live under `~/.docker/<service>/`.
+- Persistent storage uses host bind mounts; Docker-managed named volumes are not used.
+- Web interfaces bind to loopback by default where applicable.
+- User systemd units manage Compose project lifecycle.
+- Sablier can provide on-demand startup; a separate battery monitor can stop/restore selected containers. They are mutually exclusive.
+
+See [Docker services](docker/) for the service catalog, ports, data paths, secrets and operational behavior.
+
+## Configuration and safety
+
+Optional task inclusion is controlled by `deploy.py` and host/group data. Start with the [configuration guide](configuration/), inspect the [complete feature reference](feature-reference/) and run a [dry deployment](deployment/) before applying changes.
+
+The [complete feature reference](feature-reference/) indexes every Python module under `tasks/`, including feature gates and important limitations. It is the detailed index; this page is the short orientation.
