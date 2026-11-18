@@ -1,8 +1,6 @@
 ---
-site_name: pyinfra
-site_description: >-
-  A practical pyinfra deployment for Debian and Ubuntu servers, Docker services
-  and Linux workstations.
+site_name: gpkvt/pyinfra
+site_description: Deployment configuration and task modules using upstream pyinfra.
 site_url: https://gpkvt.github.io/pyinfra/
 repo_url: https://github.com/gpkvt/pyinfra
 repo_name: gpkvt/pyinfra
@@ -25,17 +23,24 @@ theme:
     - toc.follow
     - content.code.copy
     - content.action.edit
-  font:
-    text: Manrope
-    code: DM Mono
   palette:
-    - scheme: slate
-      primary: teal
-      accent: teal
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue
+      accent: blue
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
 
 extra_css:
   - stylesheets/extra.css
-  - stylesheets/task-hub.css
 
 extra_javascript:
   - javascripts/collapsible-state.js
@@ -58,21 +63,21 @@ plugins:
   - search
 
 nav:
-  - Home: index.md
+  - Overview: index.md
   - Tasks: tasks-overview.md
   - Docker: docker.md
+  - Configuration: configuration.md
+  - Deployment: deployment.md
   - Reference:
       - Feature reference: feature-reference.md
       - Task reference: tasks.md
-      - Configuration: configuration.md
-      - Deployment: deployment.md
-  - Project:
-      - Upstream pyinfra: upstream.md
       - Architecture: architecture.md
-      - Pyinfra Manager: pyinfra-manager.md
-      - Secrets: secrets.md
       - System: system.md
       - Samba: samba.md
       - Templates: templates.md
+  - Project:
+      - Upstream pyinfra: upstream.md
+      - Pyinfra Manager: pyinfra-manager.md
+      - Secrets: secrets.md
       - Development: development.md
       - Changelog: changelog.md
