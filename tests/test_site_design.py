@@ -1,4 +1,4 @@
-"""Regression tests for the product-style documentation website."""
+"""Regression tests for the technical documentation website."""
 
 from pathlib import Path
 
@@ -9,42 +9,50 @@ HOMEPAGE = ROOT / "docs" / "index.md"
 STYLESHEET = ROOT / "docs" / "stylesheets" / "extra.css"
 
 
-def test_mkdocs_uses_product_style_navigation_and_typography():
-    """The published documentation uses the shared product navigation."""
+def test_mkdocs_uses_documentation_navigation_and_system_theme():
+    """The site uses standard documentation navigation and light/dark schemes."""
     config = MKDOCS.read_text(encoding="utf-8")
 
     assert "navigation.tabs" in config
-    assert "navigation.tabs.sticky" in config
     assert "navigation.footer" in config
-    assert "text: Manrope" in config
-    assert "code: DM Mono" in config
-    assert "stylesheets/extra.css" in config
-    assert "Upstream pyinfra: upstream.md" in config
+    assert 'scheme: default' in config
+    assert 'scheme: slate' in config
+    assert "Overview: index.md" in config
     assert "Docker: docker.md" in config
+    assert "Configuration: configuration.md" in config
+    assert "Upstream pyinfra: upstream.md" in config
+    assert "Manrope" not in config
+    assert "DM Mono" not in config
 
 
-def test_homepage_contains_concise_project_sections():
-    """The homepage explains the repository, Docker focus and upstream engine."""
+def test_homepage_is_a_technical_repository_overview():
+    """The homepage documents scope, requirements, execution and storage."""
     homepage = HOMEPAGE.read_text(encoding="utf-8")
 
     for section in (
-        "A PRACTICAL PYINFRA DEPLOYMENT",
-        "What this repository is",
-        "Docker, without hidden storage",
-        "How it fits together",
-        "The engine: upstream pyinfra",
-        "Find your way",
+        "# gpkvt/pyinfra",
+        "## Repository contents",
+        "## Requirements",
+        "## Deployment",
+        "## Docker storage and lifecycle",
+        "## Upstream pyinfra",
+        "## Reference",
     ):
         assert section in homepage
 
+    assert "site-hero" not in homepage
+    assert "terminal-window" not in homepage
+    assert "Infrastructure, without surprises" not in homepage
 
-def test_stylesheet_supports_responsive_and_accessible_navigation():
-    """Navigation and landing components remain usable on smaller screens."""
+
+def test_stylesheet_contains_documentation_styles_not_landing_page_artwork():
+    """Styles focus on docs, tables and technical page introductions."""
     stylesheet = STYLESHEET.read_text(encoding="utf-8")
 
-    assert ".md-tabs__link--active" in stylesheet
-    assert ".md-typeset .landing a:focus-visible" in stylesheet
-    assert ".site-hero" in stylesheet
-    assert ".site-cards" in stylesheet
-    assert "@media (max-width: 760px)" in stylesheet
-    assert "@media (prefers-reduced-motion: reduce)" in stylesheet
+    assert ".md-content__inner" in stylesheet
+    assert ".docker-stats" in stylesheet
+    assert ".page-intro {" in stylesheet
+    assert ".page-intro-grid {" in stylesheet
+    assert ".site-hero" not in stylesheet
+    assert ".terminal-window" not in stylesheet
+    assert "@media (max-width: 600px)" in stylesheet
