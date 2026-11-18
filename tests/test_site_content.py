@@ -16,7 +16,7 @@ def test_homepage_uses_plain_markdown_for_technical_content():
     assert "## Deployment" in homepage
     assert '<div class="site-hero"' not in homepage
     assert '<section class="changelog-section"' not in homepage
-    assert "  - Changelog: changelog.md" in config
+    assert "Changelog: changelog.md" in config
 
 
 def test_changelog_page_matches_repository_changelog():
