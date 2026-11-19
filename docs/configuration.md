@@ -237,6 +237,7 @@ All current services persist application data through host bind mounts below the
 
 | Service | Persistent host path | Default loopback port |
 | --- | --- | --- |
+| Huginn | `~/.docker/huginn/postgres/` (PostgreSQL database) | `8028` |
 | Miniflux | `~/.docker/miniflux/db/` (PostgreSQL database) | `8080` |
 | TimeTagger | `~/.docker/timetagger/` | `8080` |
 | Grav | `~/.docker/grav/data/` | `8080` |
