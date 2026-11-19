@@ -81,7 +81,7 @@ These task modules are included on every full deployment.
 
 | Module | Inclusion condition | Responsibility |
 | --- | --- | --- |
-| `tasks/flatpak.py` | Flatpak executable detected during initialization | Installs configured Flatpak application IDs exclusively in the user's Flatpak installation, explicitly preferring the user-scoped Flathub remote when an app is available from multiple remotes; uses a sole alternative user remote when necessary, skips already-installed user apps, and updates/cleans up only user-scoped applications and runtimes. |
+| `tasks/flatpak.py` | Flatpak executable detected during initialization | Installs configured Flatpak application IDs exclusively in the user's Flatpak installation, explicitly preferring the user-scoped Flathub remote when an app is available from multiple remotes; uses a sole alternative user remote when necessary, skips already-installed user apps, and updates/cleans up only user-scoped applications and runtimes. Install/update operations retry up to three times and allow subsequent deployment tasks to proceed after failures; failed downloads remain reported and are retried on a future run. |
 | `tasks/ssh_config.py` | `ssh_config` | Renders the user's SSH client configuration with a hardened global baseline followed by configured host entries. |
 | `tasks/wireguard.py` | `wireguard_config` and `secrets.wireguard` | Installs WireGuard and writes `/etc/wireguard/<interface>.conf`; does not start the service. |
 | `tasks/vpn.py` | `local_network_cidr` and `wireguard_interface` | Enables/starts `wg-quick@<interface>` when the host is outside the configured IPv4 network. |
