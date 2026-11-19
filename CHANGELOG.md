@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file.
 
 Changes are tracked in date-based entries in this changelog and published as GitHub Releases from semantic-version tags. See [Releasing](docs/releasing.md).
 
+## [19.11.2026]
+
+### Fixed
+
+- Flatpak install and update operations retry transient failures and do not abort unrelated deployment tasks after retries are exhausted. Failed downloads remain visible and are not reported as successful.
+
 ## [17.11.2026]
 
 ### Added
