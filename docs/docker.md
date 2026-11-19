@@ -18,7 +18,7 @@ The ports below are the documented defaults. Web interfaces generally bind to lo
 | Miniflux | `127.0.0.1:8080` | `miniflux/db/` |
 | TimeTagger | `127.0.0.1:8080` | `timetagger/` |
 | Grav | `127.0.0.1:8080` | `grav/data/` |
-| Forgejo | Web `:3000`, SSH `:2222` | `forgejo/data/` |
+| Forgejo | Web `127.0.0.1:8027`, SSH `127.0.0.1:2222` | `forgejo/data/` |
 | Portainer | `127.0.0.1:9000` | `portainer/data/` |
 | TasmoAdmin | `127.0.0.1:8016` | `tasmoadmin/data/` |
 | Wallabag | `127.0.0.1:8017` | `wallabag/data/`, `wallabag/images/` |
@@ -104,7 +104,7 @@ The task reference explains Homepage widgets, Linkwarden bookmark synchronizatio
     - **Miniflux** uses a PostgreSQL companion container. Its database is persisted in `~/.docker/miniflux/db/`; administrator and database credentials are read from `secrets.docker.miniflux`.
     - **TimeTagger** stores its data in `~/.docker/timetagger/`, mounted at the container's `/root/_timetagger` directory.
     - **Grav** persists the complete web application data directory in `~/.docker/grav/data/`. Its `setup`, `scheduler` and `fix_permissions` options are configurable.
-    - **Forgejo** persists application data in `~/.docker/forgejo/data/`. Its web and SSH ports bind to loopback by default; the public domain is configurable.
+    - **Forgejo** persists application data in `~/.docker/forgejo/data/`. Its web and SSH ports bind to loopback by default; the public domain is configurable. The HTTP host port defaults to `8027` while the container continues listening on `3000`. Override it with `docker.forgejo.port` if needed, and point the corresponding Caddy `reverse_proxy` to the same loopback host port (for example `127.0.0.1:8027`). Existing explicit `port: 3000` host settings are not migrated automatically; update that setting and the Caddy route together to resolve a conflict.
     - **Portainer** persists data in `~/.docker/portainer/data/` and mounts `/var/run/docker.sock`. Access to Portainer effectively grants administrative control over the Docker host; expose it only through a trusted, authenticated reverse proxy.
     - **TasmoAdmin** mounts `~/.docker/tasmoadmin/data/` at `/data/tasmoadmin`, matching its `TASMO_DATADIR` setting.
     - **Wallabag** uses SQLite and persists its database/application data and article images in the two host directories shown above. The directories are mounted into the container paths used by Wallabag's `www-data` process. The supplied local Caddy configuration publishes it as `wallabag.21x9.org`; the initial credentials are `wallabag` / `wallabag`, which must be changed after first login.
@@ -186,14 +186,13 @@ The task reference explains Homepage widgets, Linkwarden bookmark synchronizatio
 
     Enable it by adding an AdGuard Home mapping to `docker` in `@local.py`. It runs as a Docker Compose container using host networking, which lets DNS listen directly on host TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data remain in the bind-mounted directories `~/.docker/adguard_home/conf/` and `~/.docker/adguard_home/work/`. The default image is pinned to `adguard/adguardhome:v0.107.80`; override it with `docker.adguard_home.image` when deliberately upgrading.
 
-    Configure the web UI port with `docker.adguard_home.web_port` in `@local.py`. It defaults to `3000` when omitted; set it to `3001` when Forgejo already occupies host port 3000:
+    Configure the web UI port with `docker.adguard_home.web_port` in `@local.py`. It defaults to `3000` when omitted; set it to `3001` if another service already occupies host port 3000. Forgejo now defaults to host port `8027`:
 
     ```python
-    web_port = 3001
-
     docker = {
         "adguard_home": {
-            "image": "adguard/adguardhome:v0.107.80",
+            "image": "adguard/adguardhome:v0.107.80",  # Pinned container image.
+            "web_port": 3001,  # Host web UI port, different from another listener on 3000.
         },
     }
     caddy_config = {
