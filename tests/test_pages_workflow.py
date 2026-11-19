@@ -57,9 +57,9 @@ def test_pages_publication_is_manual_and_builds_main_before_publishing():
 
 
 def test_readme_badges_link_to_main_branch_check_results():
-    """Every validation workflow has a live GitHub Actions status badge."""
+    """Every workflow has a live GitHub Actions status badge."""
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    for filename in CHECK_COMMANDS:
+    for filename in (*CHECK_COMMANDS, "publish-pages.yml"):
         url = f"https://github.com/gpkvt/pyinfra/actions/workflows/{filename}"
         assert f"{url}/badge.svg?branch=main" in readme
         assert f"]({url})" in readme
