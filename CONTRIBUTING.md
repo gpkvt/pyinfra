@@ -89,8 +89,9 @@ uv run pytest tests/ -v
 ```
 
 The test suite mocks pyinfra host, fact and operation APIs; it does not deploy
-to a real host. No GitHub Actions workflows run the checks automatically.
-Run pre-commit and pytest locally, and use a disposable target for a two-pass
+to a real host. GitHub Actions runs pytest, pre-commit and a strict MkDocs
+build on pull requests and changes to `main`. Run pre-commit and pytest
+locally, and use a disposable target for a two-pass
 idempotency deployment review. See [Development](docs/development.md) for the
 complete check inventory.
 
