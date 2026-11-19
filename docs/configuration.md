@@ -150,7 +150,7 @@ The VPN task currently checks globally scoped IPv4 addresses only. It starts/ena
 
 - `apt_packages`: list of Debian package names installed by `tasks/apt.py`.
 - `apt_sources`: mapping of repository identifiers to signing-key and APT source definitions. The task uses `apt.key` to install/dearmor signing keys and creates `.list` source files. Keyring paths must end in `.gpg` and must match each repository's `signed-by` option.
-- `flatpak_packages`: list of Flatpak application IDs. `tasks/flatpak.py` is included only when the Flatpak executable is detected.
+- `flatpak_packages`: list of Flatpak application IDs. `tasks/flatpak.py` is included only when the Flatpak executable is detected. Flatpak installations and updates retry failures three times with five seconds between retries, then allow the remaining deployment tasks to continue if the remote remains unavailable. Errors remain visible; unsuccessful packages are not considered installed and must be retried later.
 
 Example:
 
