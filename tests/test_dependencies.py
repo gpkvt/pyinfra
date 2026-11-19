@@ -24,7 +24,7 @@ def test_python_dependency_versions_are_consistent_and_pyinfra_compatible():
         pins = {}
         for package in ("pyinfra", *PYINFRA_REQUIREMENTS):
             matches = re.findall(
-                rf"\\b{re.escape(package)}==([0-9][0-9A-Za-z.+-]*)",
+                rf"\b{re.escape(package)}==([0-9][0-9A-Za-z.+-]*)",
                 content,
             )
             assert len(matches) == 1, f"{filename}: expected one {package} pin"
