@@ -41,6 +41,7 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ### Documentation
 
+- Added a complete feature and configuration reference indexing every task module, optional inclusion gate, workstation/COSMIC feature, Docker application and top-level configuration family; restored automatic GitHub Pages publishing on every main update.
 - Added a Docker guide covering services, endpoints, storage, deployment lifecycle and security; expanded the task reference and homepage navigation ([#331](https://github.com/gpkvt/pyinfra/pull/331), [#333](https://github.com/gpkvt/pyinfra/pull/333)).
 - Added a MkDocs-based project website and GitHub Pages publishing workflow, with strict build validation and PR builds that do not publish ([#322](https://github.com/gpkvt/pyinfra/pull/322), [#337](https://github.com/gpkvt/pyinfra/pull/337)).
 - Added GitHub issue forms for bug reports and feature requests, and documented safe reporting and contribution guidance ([#321](https://github.com/gpkvt/pyinfra/pull/321), [#371](https://github.com/gpkvt/pyinfra/pull/371)).
