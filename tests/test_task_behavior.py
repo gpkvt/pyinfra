@@ -163,6 +163,10 @@ def test_flatpak_update_skips_only_lock_contention_and_propagates_failures(
     assert "if ! flock -n 9; then" in command
     assert "flatpak update --user -y" in command
     assert '|| echo "Flatpak update already running. Skipping."' not in command
+    assert update["_retries"] == 3
+    assert update["_retry_delay"] == 5
+    assert update["_ignore_errors"] is True
+    assert update["_if"]() is True
 
 def test_flatpak_uninstall_operation_reports_only_real_removals(
     pyinfra_task_harness, monkeypatch
