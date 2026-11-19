@@ -25,6 +25,7 @@
   "tasks/docker/forgejo.py": "deployment",
   "tasks/docker/grav.py": "deployment",
   "tasks/docker/homepage.py": "deployment",
+  "tasks/docker/huginn.py": "deployment",
   "tasks/docker/linkwarden.py": "deployment",
   "tasks/docker/linkwarden_bookmarks.py": "utility",
   "tasks/docker/mdmesh.py": "deployment",
