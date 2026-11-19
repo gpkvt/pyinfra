@@ -240,7 +240,7 @@ All current services persist application data through host bind mounts below the
 | Miniflux | `~/.docker/miniflux/db/` (PostgreSQL database) | `8080` |
 | TimeTagger | `~/.docker/timetagger/` | `8080` |
 | Grav | `~/.docker/grav/data/` | `8080` |
-| Forgejo | `~/.docker/forgejo/data/` | `3000` (HTTP), `2222` (SSH) |
+| Forgejo | `~/.docker/forgejo/data/` | `8027` (HTTP), `2222` (SSH) |
 | Portainer | `~/.docker/portainer/data/` | `9000` |
 | TasmoAdmin | `~/.docker/tasmoadmin/data/` | `8016` |
 | Wallabag | `~/.docker/wallabag/data/`, `~/.docker/wallabag/images/` | `8017` |
@@ -263,7 +263,7 @@ Service-specific behavior:
 - **Miniflux** runs with a PostgreSQL companion container. Set `docker.miniflux.postgres_version` explicitly and optionally configure `port`; credentials are supplied through `secrets.docker.miniflux`. Deployment fails if the PostgreSQL version is missing or invalid.
 - **TimeTagger** mounts its persistent directory at the container's `/root/_timetagger`.
 - **Grav** supports `image`, `port`, `channel`, `setup`, `scheduler` and `fix_permissions` options.
-- **Forgejo** supports `image`, `port`, `ssh_port`, `ssh_server` and `domain`. HTTP and SSH bind to loopback by default.
+- **Forgejo** supports `image`, `port`, `ssh_port`, `ssh_server` and `domain`. HTTP and SSH bind to loopback by default. The configurable HTTP host port defaults to `8027` and maps to container port `3000`. If an existing host sets `docker.forgejo.port` explicitly, update it and the corresponding Caddy `reverse_proxy` target together.
 - **Portainer** mounts the Docker socket, giving it administrative control over the Docker host. Keep its interface private or protect the reverse-proxy route with strong authentication.
 - **TasmoAdmin** mounts its data at `/data/tasmoadmin` inside the container, matching `TASMO_DATADIR`.
 - **Wallabag** uses SQLite, stores its database/application data and article images in the two host directories above, and disables public registration. Change the initial `wallabag` / `wallabag` account password immediately. The supplied local configuration publishes it through Caddy at `wallabag.21x9.org`.

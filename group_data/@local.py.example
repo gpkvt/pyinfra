@@ -216,7 +216,7 @@ docker = {
     # },
     # "forgejo": {  # Self-hosted Git service; secrets are not stored here.
     #     "image": "codeberg.org/forgejo/forgejo:17",  # Container image/tag.
-    #     "port": 3000,  # Web interface port published on the host.
+    #     "port": 8027,  # HTTP host port (container listens on 3000).
     #     "ssh_port": 2222,  # SSH clone port published on the host.
     #     "ssh_server": False,  # Expose the container's SSH server when True.
     #     "domain": "git.example.com",  # Public URL used by the service/reverse proxy.
