@@ -11,6 +11,14 @@ updates:
       time: "08:00"
       timezone: Europe/Amsterdam
     open-pull-requests-limit: 5
+    # pyinfra 3.11.1 requires cyclopts 4.x and python-dateutil 2.x.
+    ignore:
+      - dependency-name: cyclopts
+        update-types:
+          - version-update:semver-major
+      - dependency-name: python-dateutil
+        update-types:
+          - version-update:semver-major
     groups:
       python-dependencies:
         patterns:
