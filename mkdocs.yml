@@ -1,6 +1,7 @@
 ---
 site_name: gpkvt/pyinfra
-site_description: Deployment configuration and task modules using upstream pyinfra.
+site_description: >-
+  Deployment configuration and task modules using upstream pyinfra.
 site_url: https://gpkvt.github.io/pyinfra/
 repo_url: https://github.com/gpkvt/pyinfra
 repo_name: gpkvt/pyinfra
