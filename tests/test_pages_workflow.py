@@ -40,12 +40,12 @@ def test_actions_workflows_run_validation_on_prs_and_main():
 
 
 def test_pages_publication_is_manual_and_builds_main_before_publishing():
-    """Publication requires an explicit dispatch and an immutable main checkout."""
+    """Publication requires explicit dispatch and a main-branch checkout."""
     workflow = (WORKFLOWS / "publish-pages.yml").read_text(encoding="utf-8")
-    assert "'on':\\n  workflow_dispatch:" in workflow
+    assert "'on':\n  workflow_dispatch:" in workflow
     assert "  push:" not in workflow
     assert "  pull_request:" not in workflow
-    assert "    permissions:\\n      contents: write" in workflow
+    assert "    permissions:\n      contents: write" in workflow
     assert "  contents: read" in workflow
     assert "ref: main" in workflow
     assert "group: pages-publish" in workflow
