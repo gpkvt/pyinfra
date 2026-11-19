@@ -1,0 +1,2269 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Deployment configuration and task modules using upstream pyinfra.">
+      
+      
+      
+        <link rel="canonical" href="https://gpkvt.github.io/pyinfra/configuration/">
+      
+      
+        <link rel="prev" href="../docker/">
+      
+      
+        <link rel="next" href="../deployment/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Configuration - gpkvt/pyinfra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#host-configuration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="gpkvt/pyinfra" class="md-header__button md-logo" aria-label="gpkvt/pyinfra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            gpkvt/pyinfra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Configuration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gpkvt/pyinfra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gpkvt/pyinfra
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tasks-overview/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tasks
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../docker/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Docker
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Configuration
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../deployment/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Deployment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../feature-reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../upstream/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="gpkvt/pyinfra" class="md-nav__button md-logo" aria-label="gpkvt/pyinfra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    gpkvt/pyinfra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gpkvt/pyinfra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gpkvt/pyinfra
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#which-files-are-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which files are used?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workstation-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workstation role
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-and-name-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network and name resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packages-and-repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packages and repositories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-hardening-and-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System hardening and access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-user-and-desktop-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional user and desktop features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-demand-samba-file-exchange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On-demand Samba file exchange
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caddy-and-sablier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caddy and Sablier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#syncthing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Syncthing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firewall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firewall
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets-dependent-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets-dependent configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-feature-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete feature index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-feature-index_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete feature index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ssh-client-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSH client configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../samba/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Samba
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upstream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upstream pyinfra
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyinfra-manager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pyinfra Manager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#which-files-are-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which files are used?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common settings
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workstation-role" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workstation role
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-and-name-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network and name resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packages-and-repositories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packages and repositories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-hardening-and-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        System hardening and access
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-user-and-desktop-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional user and desktop features
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-demand-samba-file-exchange" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        On-demand Samba file exchange
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Service configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caddy-and-sablier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caddy and Sablier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#syncthing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Syncthing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#firewall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Firewall
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#secrets-dependent-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secrets-dependent configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-feature-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete feature index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-feature-index_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete feature index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adding-a-host" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a host
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ssh-client-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SSH client configuration
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/gpkvt/pyinfra/edit/main/docs/configuration.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="host-configuration">Host configuration</h1>
+<div class="page-intro">
+<div class="page-intro-copy">
+    <span class="page-eyebrow">DEFINE THE DESIRED STATE</span>
+    <p class="page-lead">Configure each machine with tracked examples and private local data. Keep feature choices readable, credentials protected and task logic reusable.</p>
+  </div>
+<div class="page-intro-grid">
+<div class="page-intro-item"><strong>group_data/</strong><span>Host and role settings</span></div>
+<div class="page-intro-item"><strong>workstation</strong><span>Opt-in desktop features</span></div>
+<div class="page-intro-item"><strong>secrets</strong><span>Encrypted credentials</span></div>
+</div>
+</div>
+<p>Host-specific desired state is stored as Python data in <code>group_data/</code>. pyinfra exposes the values for a target through <code>host.data</code>. Real machine configuration is intentionally untracked: <code>.gitignore</code> excludes <code>group_data/@local.py</code> and <code>group_data/workstation.py</code>. The repository tracks portable templates at <code>group_data/@local.py.example</code> and <code>group_data/workstation.py.example</code> instead.</p>
+<p>After cloning, create local copies before deploying:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>cp<span class="w"> </span>group_data/@local.py.example<span class="w"> </span>group_data/@local.py
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>cp<span class="w"> </span>group_data/workstation.py.example<span class="w"> </span>group_data/workstation.py
+</code></pre></div>
+<p>Edit both files for the target machine. Replace every identity placeholder, verify hardware and network settings, and explicitly enable only the workstation features required on that host. Keep credentials, private keys, USB device rules, real hostnames, IP addresses and other machine-specific data in the ignored local files. Do not force-add these files to Git.</p>
+<h2 id="which-files-are-used">Which files are used?</h2>
+<p>The inventory target name determines its host-data file: the local target uses the ignored <code>group_data/@local.py</code>, and a target named <code>web01</code> uses <code>group_data/web01.py</code>. Inventory groups can add shared configuration for a role or class of hosts. For example, <code>workstation = ["@local"]</code> in <code>inventory.py</code> makes <code>@local</code> a member of the <code>workstation</code> group, so pyinfra also loads the ignored <code>group_data/workstation.py</code>. Group data and host data are both available through <code>host.data</code>; keep role-wide defaults in the workstation file and host-specific overrides in the local file.</p>
+<p>The workstation group is optional. Add a host to the <code>workstation</code> inventory group only if it should receive that role's configuration and eligible workstation tasks.</p>
+<p>Keep configuration data separate from task logic. Put private keys, passwords, API tokens and credential-bearing URLs in the encrypted secrets file, not in group data. Use the deployed <code>gpg-vault</code> command to manage that file without routinely handling plaintext manually. See <a href="../secrets/">Secrets management</a>.</p>
+<h2 id="common-settings">Common settings</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Purpose</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hostname</code></td>
+<td>System hostname</td>
+<td>Managed by <code>tasks/system.py</code>.</td>
+</tr>
+<tr>
+<td><code>username</code></td>
+<td>Primary user</td>
+<td>Used by user-scoped tasks; some tasks default to <code>root</code> if omitted.</td>
+</tr>
+<tr>
+<td><code>usergroup</code></td>
+<td>Primary group</td>
+<td>Used by user-scoped tasks; some tasks default to <code>root</code>.</td>
+</tr>
+<tr>
+<td><code>homedir</code></td>
+<td>User home directory</td>
+<td>Also published as <code>builtins.homedir</code>; defaults to <code>/root/</code> in <code>common.initialize()</code>.</td>
+</tr>
+<tr>
+<td><code>timezone</code></td>
+<td>System timezone</td>
+<td>Use a valid zoneinfo identifier.</td>
+</tr>
+<tr>
+<td><code>locale</code></td>
+<td>System locale</td>
+<td>Defaults to <code>en_US.UTF-8</code> in the system task; set to <code>None</code> to skip locale management.</td>
+</tr>
+<tr>
+<td><code>keyboard</code></td>
+<td>XKB keyboard configuration</td>
+<td>Empty dictionary disables management.</td>
+</tr>
+<tr>
+<td><code>editor</code> / <code>visual_editor</code></td>
+<td>Default editors</td>
+<td><code>visual_editor</code> falls back to <code>editor</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">hostname</span> <span class="o">=</span> <span class="s2">"workstation"</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">username</span> <span class="o">=</span> <span class="s2">"deploy"</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">usergroup</span> <span class="o">=</span> <span class="s2">"deploy"</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">homedir</span> <span class="o">=</span> <span class="s2">"/home/deploy"</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">timezone</span> <span class="o">=</span> <span class="s2">"Etc/UTC"</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">locale</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">editor</span> <span class="o">=</span> <span class="s2">"vim"</span>
+</code></pre></div>
+<h2 id="workstation-role">Workstation role</h2>
+<p>The tracked <code>group_data/workstation.py.example</code> defines a shared, nested <code>workstation</code> configuration. Copy it to the ignored <code>group_data/workstation.py</code> and edit it locally. <code>deploy.py</code> checks each feature's <code>enabled</code> flag and includes its corresponding task only when that flag is true. The example disables every feature until explicitly enabled.</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default in tracked example</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>workstation.backup.enabled</code></td>
+<td><code>False</code></td>
+<td>Installs Restic, Borg, rsync and Borgmatic, and renders <code>/etc/borgmatic/config.yaml</code>. It does not create or run a backup job; repository locations, credentials, sources, retention and restore testing still need configuration.</td>
+</tr>
+<tr>
+<td><code>workstation.power.enabled</code></td>
+<td><code>False</code></td>
+<td>Installs and enables the selected power manager. <code>manager</code> must be <code>tlp</code> or <code>power-profiles-daemon</code>; the other manager is removed.</td>
+</tr>
+<tr>
+<td><code>workstation.hardware.enabled</code></td>
+<td><code>False</code></td>
+<td>Installs <code>fwupd</code> and, when selected, CPU microcode (<code>intel</code> or <code>amd</code>). Firmware updates are not applied automatically.</td>
+</tr>
+<tr>
+<td><code>workstation.storage.enabled</code></td>
+<td><code>False</code></td>
+<td>Installs <code>smartmontools</code> and <code>nvme-cli</code>; no monitoring schedule or alerting is configured.</td>
+</tr>
+<tr>
+<td><code>workstation.peripherals.enabled</code></td>
+<td><code>False</code></td>
+<td>Enables optional printer/scanner support. Set <code>printing</code> and/or <code>scanning</code> to true; CUPS is enabled when printing is selected.</td>
+</tr>
+<tr>
+<td><code>workstation.desktop.enabled</code></td>
+<td><code>False</code></td>
+<td>Installs common desktop integration utilities. <code>packages</code> can replace the default package list.</td>
+</tr>
+<tr>
+<td><code>workstation.maintenance.enabled</code></td>
+<td><code>False</code></td>
+<td>Installs <code>needrestart</code>, <code>debian-goodies</code> and <code>apt-file</code>; no unattended upgrades or automatic reboots are enabled.</td>
+</tr>
+</tbody>
+</table>
+<p>Example role configuration:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">workstation</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    <span class="s2">"backup"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    <span class="s2">"power"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"manager"</span><span class="p">:</span> <span class="s2">"tlp"</span><span class="p">},</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    <span class="s2">"hardware"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"cpu_vendor"</span><span class="p">:</span> <span class="s2">"amd"</span><span class="p">},</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    <span class="s2">"storage"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    <span class="s2">"peripherals"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>        <span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>        <span class="s2">"printing"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>        <span class="s2">"scanning"</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="p">},</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="s2">"desktop"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="s2">"maintenance"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="p">}</span>
+</code></pre></div>
+<p>COSMIC configuration is nested exclusively under <code>workstation.cosmic</code>; do not define a separate top-level <code>cosmic</code> variable in per-host data. The COSMIC deployment includes independently gated appearance, window management, input, shortcuts, panel, dock and workspace modules. Display/output settings are intentionally excluded.</p>
+<p>Optional custom COSMIC configuration directories can be synchronized with <code>workstation.cosmic.config_files</code>. Each entry is a mapping with a repository-relative <code>src</code> directory and a destination <code>dest</code> relative to the configured user's home directory:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">workstation</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>    <span class="s2">"cosmic"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>        <span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>        <span class="s2">"config_files"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>            <span class="s2">"appearance"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>                <span class="s2">"src"</span><span class="p">:</span> <span class="s2">"files/cosmic/local/appearance/"</span><span class="p">,</span>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>                <span class="s2">"dest"</span><span class="p">:</span> <span class="s2">".config/cosmic/com.system76.CosmicTheme.Mode/v1/"</span><span class="p">,</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>            <span class="p">},</span>
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>            <span class="s2">"panel"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>                <span class="s2">"src"</span><span class="p">:</span> <span class="s2">"files/cosmic/local/panel/"</span><span class="p">,</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>                <span class="s2">"dest"</span><span class="p">:</span> <span class="s2">".config/cosmic/com.system76.CosmicPanel.Panel/v1/"</span><span class="p">,</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>            <span class="p">},</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>            <span class="s2">"dock"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>                <span class="s2">"src"</span><span class="p">:</span> <span class="s2">"files/cosmic/local/dock/"</span><span class="p">,</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>                <span class="s2">"dest"</span><span class="p">:</span> <span class="s2">".config/cosmic/com.system76.CosmicPanel.Dock/v1/"</span><span class="p">,</span>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>            <span class="p">},</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>        <span class="p">},</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>    <span class="p">},</span>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="p">}</span>
+</code></pre></div>
+<p>The source directories are synchronized as supplied, with files owned by the configured user and group. Keep machine-specific files and secrets out of tracked source directories. Do not put display/output configuration in these directories if the goal is to keep display layouts machine-specific.</p>
+<p>The tracked workstation example disables all features by default. Review each feature's requirements before enabling it. In particular, the backup task only installs tools and deploys a Borgmatic configuration template; it does not configure repository credentials or schedule backups. The current Borgmatic template also contains a literal fallback encryption passphrase (<code>B0rgm4t1C!</code>) and the generated file is mode <code>0600</code>; do not use that fallback for real backups. See <a href="../templates/">Templates and static assets</a> for the security caveat.</p>
+<h2 id="network-and-name-resolution">Network and name resolution</h2>
+<p><code>hostnames</code> maps IP addresses to one or more hostnames and is consumed by <code>tasks/hosts.py</code> to manage <code>/etc/hosts</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">hostnames</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>    <span class="s2">"127.0.0.1"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"localhost"</span><span class="p">],</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="s2">"::1"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"localhost"</span><span class="p">],</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="s2">"192.0.2.10"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"app.example.test"</span><span class="p">,</span> <span class="s2">"app"</span><span class="p">],</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="p">}</span>
+</code></pre></div>
+<p>Each IP address must map to a list; space-separated strings are no longer
+accepted. Convert an old value such as <code>"app.example.test app"</code> to
+<code>["app.example.test", "app"]</code>. An empty list removes all entries for that IP
+address from <code>/etc/hosts</code>.</p>
+<p>VPN-related settings:</p>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>local_network_cidr</code></td>
+<td>IPv4 CIDR used to detect whether the host is on the trusted/local network.</td>
+</tr>
+<tr>
+<td><code>wireguard_interface</code></td>
+<td>Interface name used by the VPN service task.</td>
+</tr>
+<tr>
+<td><code>wireguard_config</code></td>
+<td>Mapping of interface names to WireGuard interface settings.</td>
+</tr>
+</tbody>
+</table>
+<p>The VPN task currently checks globally scoped IPv4 addresses only. It starts/enables <code>wg-quick@&lt;wireguard_interface&gt;</code> when none belongs to the configured local CIDR. It does not evaluate IPv6 network membership.</p>
+<h2 id="packages-and-repositories">Packages and repositories</h2>
+<ul>
+<li><code>apt_packages</code>: list of Debian package names installed by <code>tasks/apt.py</code>.</li>
+<li><code>apt_sources</code>: mapping of repository identifiers to signing-key and APT source definitions. The task uses <code>apt.key</code> to install/dearmor signing keys and creates <code>.list</code> source files. Keyring paths must end in <code>.gpg</code> and must match each repository's <code>signed-by</code> option.</li>
+<li><code>flatpak_packages</code>: list of Flatpak application IDs. <code>tasks/flatpak.py</code> is included only when the Flatpak executable is detected. Flatpak installations and updates retry failures three times with five seconds between retries, then allow the remaining deployment tasks to continue if the remote remains unavailable. Errors remain visible; unsuccessful packages are not considered installed and must be retried later.</li>
+</ul>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">apt_packages</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"curl"</span><span class="p">,</span> <span class="s2">"git"</span><span class="p">,</span> <span class="s2">"rsync"</span><span class="p">]</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">flatpak_packages</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"org.mozilla.firefox"</span><span class="p">]</span>
+</code></pre></div>
+<p>Review third-party repository URLs, distributions, architectures and signing-key sources before enabling them.</p>
+<h2 id="system-hardening-and-access">System hardening and access</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Consumed by</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sysctl</code></td>
+<td><code>tasks/system.py</code></td>
+<td>Kernel parameters, applied immediately and persisted in <code>/etc/sysctl.d/99-local.conf</code>.</td>
+</tr>
+<tr>
+<td><code>udev</code></td>
+<td><code>tasks/system.py</code></td>
+<td>Mapping of <code>.rules</code> filenames to rule contents.</td>
+</tr>
+<tr>
+<td><code>usbguard</code></td>
+<td><code>tasks/system.py</code></td>
+<td>Daemon policy and explicit device authorization rules.</td>
+</tr>
+<tr>
+<td><code>sudoers_rules</code></td>
+<td><code>tasks/sudo.py</code></td>
+<td>Custom sudoers lines installed after <code>visudo</code> validation.</td>
+</tr>
+<tr>
+<td><code>ssh_keys</code></td>
+<td><code>tasks/ssh_keys.py</code></td>
+<td>SSH keypair definitions to generate when absent.</td>
+</tr>
+<tr>
+<td><code>ssh_authorized_keys</code></td>
+<td><code>tasks/ssh_keys.py</code></td>
+<td>Mapping of users to authorized public keys.</td>
+</tr>
+<tr>
+<td><code>ssh_config</code></td>
+<td><code>tasks/ssh_config.py</code></td>
+<td>SSH client configuration rendered from a template.</td>
+</tr>
+<tr>
+<td><code>apparmor_profiles</code></td>
+<td><code>tasks/apparmor.py</code></td>
+<td>Profiles to enforce.</td>
+</tr>
+</tbody>
+</table>
+<p>For detailed validation, file paths and safety considerations, see <a href="../system/">System configuration</a> and <a href="../tasks/">Task reference</a>.</p>
+<h2 id="optional-user-and-desktop-features">Optional user and desktop features</h2>
+<table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Module</th>
+<th>Expected content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>zsh</code></td>
+<td><code>tasks/zsh.py</code></td>
+<td>Truthy enablement value; includes the Zsh dotfiles and generates <code>.zshrc</code>.</td>
+</tr>
+<tr>
+<td><code>zshrc_imports</code></td>
+<td><code>tasks/zsh.py</code></td>
+<td>Optional list of additional Zsh configuration files or import statements inserted into the generated <code>.zshrc</code>; defaults to an empty list.</td>
+</tr>
+<tr>
+<td><code>zplug_plugins</code></td>
+<td><code>tasks/zsh.py</code></td>
+<td>Optional list of zplug plugin definitions; defaults to an empty list.</td>
+</tr>
+<tr>
+<td><code>tmux</code></td>
+<td><code>tasks/tmux.py</code></td>
+<td>Truthy enablement value.</td>
+</tr>
+<tr>
+<td><code>powerline</code></td>
+<td><code>tasks/powerline.py</code></td>
+<td>Truthy enablement value.</td>
+</tr>
+<tr>
+<td><code>powerline_fonts</code></td>
+<td><code>tasks/fonts.py</code></td>
+<td>Boolean-like flag for optional patched fonts.</td>
+</tr>
+<tr>
+<td><code>workstation.cosmic</code></td>
+<td><code>tasks/workstation/cosmic/deploy.py</code></td>
+<td>COSMIC desktop settings, enabled only through the workstation role. Display/output settings are deliberately excluded.</td>
+</tr>
+<tr>
+<td><code>workstation.cosmic.window_management</code></td>
+<td><code>tasks/workstation/cosmic/window_management.py</code></td>
+<td>Optional <code>autotile</code>, <code>autotile_behavior</code> (<code>PerWorkspace</code> or <code>Global</code>), <code>focus_follows_cursor</code>, <code>cursor_follows_focus</code>, <code>edge_snap_threshold</code> value.</td>
+</tr>
+<tr>
+<td><code>workstation.cosmic.input</code></td>
+<td><code>tasks/workstation/cosmic/input.py</code></td>
+<td>Optional raw COSMIC RON strings for <code>default</code> (mouse) and <code>touchpad</code>; hardware-specific settings must be supplied explicitly.</td>
+</tr>
+<tr>
+<td><code>workstation.cosmic.shortcuts</code></td>
+<td><code>tasks/workstation/cosmic/shortcuts.py</code></td>
+<td>Optional raw RON map for <code>com.system76.CosmicSettings.Shortcuts/v1/custom</code>.</td>
+</tr>
+<tr>
+<td><code>vscodium</code></td>
+<td><code>tasks/vscodium.py</code></td>
+<td>Extension configuration dictionary.</td>
+</tr>
+<tr>
+<td><code>mullvad_extensions</code></td>
+<td><code>tasks/mullvad_extensions.py</code></td>
+<td>Extension IDs and download URLs.</td>
+</tr>
+<tr>
+<td><code>mullvad_browser_dir</code></td>
+<td><code>tasks/mullvad_extensions.py</code></td>
+<td>Browser distribution directory; task default is <code>/usr/lib/mullvad-browser/distribution</code>.</td>
+</tr>
+<tr>
+<td><code>proton</code></td>
+<td><code>tasks/proton.py</code></td>
+<td>Proton application selection and options.</td>
+</tr>
+</tbody>
+</table>
+<p>When Proton Drive CLI installation is enabled, set <code>proton.drive_cli_version</code> explicitly to the release to install. There is no fallback version.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">zsh</span> <span class="o">=</span> <span class="kc">True</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="n">zshrc_imports</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    <span class="s2">"source ~/.config/zsh/local.zsh"</span><span class="p">,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>    <span class="s2">"source ~/.config/zsh/secrets.zsh"</span><span class="p">,</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="p">]</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="n">zplug_plugins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"zsh-users/zsh-autosuggestions"</span><span class="p">,</span> <span class="s2">"zsh-users/zsh-syntax-highlighting"</span><span class="p">]</span>
+</code></pre></div>
+<p><code>zshrc_imports</code> entries are rendered into the generated <code>.zshrc</code>; ensure referenced files exist for the configured user. Keep credentials out of these files unless they are protected separately.</p>
+<h2 id="on-demand-samba-file-exchange">On-demand Samba file exchange</h2>
+<p>The optional top-level <code>samba</code> mapping enables a guest-accessible LAN/VPN file exchange server. It provides a shared writable <code>Upload</code> dropbox and a read-only <code>Download</code> share. The task installs and configures Samba but leaves <code>smbd</code> stopped and masked; use the deployed <code>samba-start</code> and <code>samba-stop</code> commands to open/close TCP 445 in UFW and start/stop the service. Configure trusted CIDRs explicitly. Upload guests share one Unix identity and can manage one another's files; this is a convenience dropbox, not private per-device storage. See <a href="../samba/">Samba documentation</a> for the full configuration and security model.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="n">samba</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>    <span class="s2">"enabled"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="s2">"interface"</span><span class="p">:</span> <span class="s2">"enp3s0"</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>    <span class="s2">"allowed_networks"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"192.168.1.0/24"</span><span class="p">],</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>    <span class="s2">"idle_timeout"</span><span class="p">:</span> <span class="mi">3600</span><span class="p">,</span>  <span class="c1"># 0 disables automatic shutdown</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>    <span class="s2">"upload"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"path"</span><span class="p">:</span> <span class="s2">"/srv/samba/upload"</span><span class="p">},</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="s2">"download"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"path"</span><span class="p">:</span> <span class="s2">"/srv/samba/download"</span><span class="p">},</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="p">}</span>
+</code></pre></div>
+<h2 id="service-configuration">Service configuration</h2>
+<h3 id="docker">Docker</h3>
+<p><code>docker</code> is a mapping of service names to service-specific settings. The supported keys are <code>adguard_home</code>, <code>appflowy</code>, <code>miniflux</code>, <code>timetagger</code>, <code>grav</code>, <code>forgejo</code>, <code>portainer</code>, <code>tasmoadmin</code>, <code>wallabag</code>, <code>vaultwarden</code>, <code>nocodb</code>, <code>linkwarden</code>, <code>homepage</code>, <code>paperless</code>, <code>firefly-iii</code>, <code>snipe-it</code>, <code>mdmesh</code> and <code>wg-easy</code>. Each service has its own options; inspect its module under <code>tasks/docker/</code> and its Compose template under <code>templates/docker/&lt;service&gt;/</code> before adding keys.</p>
+<p>All current services persist application data through host bind mounts below the configured user's home directory:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Persistent host path</th>
+<th>Default loopback port</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Miniflux</td>
+<td><code>~/.docker/miniflux/db/</code> (PostgreSQL database)</td>
+<td><code>8080</code></td>
+</tr>
+<tr>
+<td>TimeTagger</td>
+<td><code>~/.docker/timetagger/</code></td>
+<td><code>8080</code></td>
+</tr>
+<tr>
+<td>Grav</td>
+<td><code>~/.docker/grav/data/</code></td>
+<td><code>8080</code></td>
+</tr>
+<tr>
+<td>Forgejo</td>
+<td><code>~/.docker/forgejo/data/</code></td>
+<td><code>8027</code> (HTTP), <code>2222</code> (SSH)</td>
+</tr>
+<tr>
+<td>Portainer</td>
+<td><code>~/.docker/portainer/data/</code></td>
+<td><code>9000</code></td>
+</tr>
+<tr>
+<td>TasmoAdmin</td>
+<td><code>~/.docker/tasmoadmin/data/</code></td>
+<td><code>8016</code></td>
+</tr>
+<tr>
+<td>Wallabag</td>
+<td><code>~/.docker/wallabag/data/</code>, <code>~/.docker/wallabag/images/</code></td>
+<td><code>8017</code></td>
+</tr>
+<tr>
+<td>Vaultwarden</td>
+<td><code>~/.docker/vaultwarden/</code></td>
+<td><code>8018</code></td>
+</tr>
+<tr>
+<td>NocoDB</td>
+<td><code>~/.docker/nocodb/data/</code></td>
+<td><code>8019</code></td>
+</tr>
+<tr>
+<td>Homepage</td>
+<td><code>~/.docker/homepage/config/</code></td>
+<td><code>8020</code></td>
+</tr>
+<tr>
+<td>Paperless-ngx</td>
+<td><code>~/.docker/paperless/postgres/</code>, <code>data/</code>, <code>media/</code>, <code>consume/</code>, <code>export/</code></td>
+<td><code>8022</code></td>
+</tr>
+<tr>
+<td>Linkwarden</td>
+<td><code>~/.docker/linkwarden/postgres/</code>, <code>data/</code>, <code>meili/</code></td>
+<td><code>8021</code></td>
+</tr>
+<tr>
+<td>Firefly III</td>
+<td><code>~/.docker/firefly-iii/database/</code>, <code>upload/</code>, <code>fints/</code></td>
+<td><code>8023</code> (FinTS importer: <code>8024</code>)</td>
+</tr>
+<tr>
+<td>Snipe-IT</td>
+<td><code>~/.docker/snipe-it/database/</code>, <code>storage/</code></td>
+<td><code>8025</code></td>
+</tr>
+<tr>
+<td>AppFlowy</td>
+<td><code>~/.docker/appflowy/postgres/</code>, <code>minio/</code>, <code>search/</code></td>
+<td><code>8026</code></td>
+</tr>
+<tr>
+<td>WG-Easy</td>
+<td><code>~/.docker/wg-easy/</code></td>
+<td>UI <code>51821</code>; WireGuard UDP <code>51820</code></td>
+</tr>
+</tbody>
+</table>
+<p>The interfaces bind to <code>127.0.0.1</code> by default, except explicitly published protocol ports such as WG-Easy WireGuard UDP. All persistent service data uses direct host bind mounts below <code>~/.docker/</code>, not Docker-managed named volumes. The shared Docker helper renders Compose files under <code>~/.docker/&lt;service&gt;/</code> and user-level systemd units under <code>~/.config/systemd/user/</code>. A changed Compose file triggers an image pull and container preparation; unchanged Compose files do not trigger a pull. User-level systemd units manage the Compose projects, while Sablier can start labelled services on demand when enabled.</p>
+<p>Service-specific behavior:</p>
+<ul>
+<li>
+<p><strong>AppFlowy</strong> deploys the official AppFlowy Self-Hosted Commercial Compose stack behind the existing Caddy instance. The public hostname is <code>appflowy.21x9.org</code>; Nginx publishes only <code>127.0.0.1:8026</code>. PostgreSQL, MinIO and Search persist in <code>~/.docker/appflowy/postgres/</code>, <code>minio/</code> and <code>search/</code> using host bind mounts. The task creates <code>~/.docker/appflowy/.env</code> with mode <code>0600</code> from encrypted secrets. Configure <code>secrets.docker.appflowy.postgres_password</code>, <code>admin_password</code>, <code>jwt_secret</code>, <code>minio_access_key</code> and <code>minio_secret_key</code>. The initial administrator password must be at least 16 URL-safe characters. Generate the PostgreSQL password, JWT secret and MinIO secret key with <code>openssl rand -hex 32</code>; generate the exactly 20-character MinIO access key with <code>openssl rand -hex 10</code>. The first GoTrue administrator is created from <code>docker.appflowy.admin_email</code> (default <code>admin@appflowy.21x9.org</code>) and the encrypted <code>admin_password</code>. Change the initial password after first login. Cloud, AI, Worker and Search receive their respective Redis connection URLs from the generated environment file and connect to the Compose <code>redis</code> service, never container-local <code>localhost</code>. Redis follows the upstream ephemeral configuration and has no persistent data mount or AOF; pending queue state may not survive Redis replacement. SMTP and AI provider keys are optional and remain unset by default. AppFlowy is the commercial self-hosted distribution; review the upstream license before deployment. Homepage only links to AppFlowy and does not call its authenticated API.</p>
+</li>
+<li>
+<p><strong>Miniflux</strong> runs with a PostgreSQL companion container. Set <code>docker.miniflux.postgres_version</code> explicitly and optionally configure <code>port</code>; credentials are supplied through <code>secrets.docker.miniflux</code>. Deployment fails if the PostgreSQL version is missing or invalid.</p>
+</li>
+<li><strong>TimeTagger</strong> mounts its persistent directory at the container's <code>/root/_timetagger</code>.</li>
+<li><strong>Grav</strong> supports <code>image</code>, <code>port</code>, <code>channel</code>, <code>setup</code>, <code>scheduler</code> and <code>fix_permissions</code> options.</li>
+<li><strong>Forgejo</strong> supports <code>image</code>, <code>port</code>, <code>ssh_port</code>, <code>ssh_server</code> and <code>domain</code>. HTTP and SSH bind to loopback by default. The configurable HTTP host port defaults to <code>8027</code> and maps to container port <code>3000</code>. If an existing host sets <code>docker.forgejo.port</code> explicitly, update it and the corresponding Caddy <code>reverse_proxy</code> target together.</li>
+<li><strong>Portainer</strong> mounts the Docker socket, giving it administrative control over the Docker host. Keep its interface private or protect the reverse-proxy route with strong authentication.</li>
+<li><strong>TasmoAdmin</strong> mounts its data at <code>/data/tasmoadmin</code> inside the container, matching <code>TASMO_DATADIR</code>.</li>
+<li><strong>Wallabag</strong> uses SQLite, stores its database/application data and article images in the two host directories above, and disables public registration. Change the initial <code>wallabag</code> / <code>wallabag</code> account password immediately. The supplied local configuration publishes it through Caddy at <code>wallabag.21x9.org</code>.</li>
+<li><strong>Vaultwarden</strong> disables public signups and invitations. Its optional <code>admin_token</code> secret must contain an Argon2 PHC hash, generated with <code>docker run --rm -it vaultwarden/server:latest /vaultwarden hash</code>. The supplied local configuration publishes it through Caddy at <code>vaultwarden.21x9.org</code>.</li>
+<li><strong>NocoDB</strong> persists its application data in <code>~/.docker/nocodb/data/</code>, mounted at <code>/usr/app/data</code>. It supports <code>image</code>, <code>port</code> and <code>domain</code>; the supplied local configuration publishes it through Caddy at <code>nocodb.21x9.org</code>.</li>
+<li><strong>Homepage</strong> persists its configuration in <code>~/.docker/homepage/config/</code>, mounted at <code>/app/config</code>. It supports <code>image</code>, <code>port</code> and <code>domain</code>; <code>domain</code> is passed to <code>HOMEPAGE_ALLOWED_HOSTS</code> and must contain the hostname (and port, if applicable), not a URL scheme. The supplied local configuration publishes it through Caddy at <code>homepage.21x9.org</code>. Docker socket integration is not enabled by default. Since widgets can display sensitive data, protect the dashboard with reverse-proxy authentication, Homepage authentication, or a VPN.</li>
+<li><strong>Paperless-ngx</strong> runs PostgreSQL 17, Valkey, Gotenberg and Tika alongside the web application. PostgreSQL and Paperless application directories are mounted directly from <code>~/.docker/paperless/</code> on the host. Set <code>uid</code> and <code>gid</code> to the numeric user/group IDs that should own Paperless data (defaults to <code>1000:1000</code>); PostgreSQL storage is owned by UID/GID <code>70:70</code>. Configure <code>postgres_password</code> (URL-safe) and <code>secret_key</code> in <code>secrets.docker.paperless</code>. The web interface binds to loopback port <code>8022</code> and the supplied local Caddy hostname is <code>paperless.21x9.org</code>.</li>
+<li><strong>WG-Easy</strong> stores WireGuard configuration in the host bind-mounted directory <code>~/.docker/wg-easy/</code>. Its web UI binds to <code>127.0.0.1:51821</code> by default and is published through Caddy at <code>vpn.21x9.org</code>; WireGuard listens on public UDP port <code>51820</code>. The first visit opens the WG-Easy setup wizard: configure the public endpoint as <code>vpn.21x9.org</code> and create the administrator account there. The Compose configuration sets <code>INSECURE=true</code> because Caddy terminates HTTPS and proxies to the local HTTP UI. Keep the UI behind Caddy and do not expose port <code>51821</code> publicly.</li>
+</ul>
+<p>Homepage configuration is managed through the <code>docker.homepage</code> dictionary in the host's <code>group_data/&lt;host&gt;.py</code> (for example, the ignored local copy <code>group_data/@local.py</code>). Each configuration area is optional and is rendered into its own YAML file:</p>
+<table>
+<thead>
+<tr>
+<th>Host-data key</th>
+<th>Generated file</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>settings</code></td>
+<td><code>settings.yaml</code></td>
+<td>Dashboard title, theme, layout and global settings</td>
+</tr>
+<tr>
+<td><code>services</code></td>
+<td><code>services.yaml</code></td>
+<td>Service cards and nested service groups</td>
+</tr>
+<tr>
+<td><code>bookmarks</code></td>
+<td><code>bookmarks.yaml</code></td>
+<td>Bookmark groups and links</td>
+</tr>
+<tr>
+<td><code>widgets</code></td>
+<td><code>widgets.yaml</code></td>
+<td>Global and service widget definitions</td>
+</tr>
+<tr>
+<td><code>docker</code></td>
+<td><code>docker.yaml</code></td>
+<td>Docker integration configuration</td>
+</tr>
+<tr>
+<td><code>kubernetes</code></td>
+<td><code>kubernetes.yaml</code></td>
+<td>Kubernetes integration configuration</td>
+</tr>
+<tr>
+<td><code>proxmox</code></td>
+<td><code>proxmox.yaml</code></td>
+<td>Proxmox integration configuration</td>
+</tr>
+</tbody>
+</table>
+<p>The templates serialize supplied Python dictionaries and lists as JSON, which is valid YAML. Use the structure and option names from the <a href="https://gethomepage.dev/configs/">Homepage configuration documentation</a>. Nested service groups and their layout can be expressed directly in host data:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">docker</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>    <span class="s2">"homepage"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>        <span class="s2">"image"</span><span class="p">:</span> <span class="s2">"ghcr.io/gethomepage/homepage:latest"</span><span class="p">,</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>        <span class="s2">"port"</span><span class="p">:</span> <span class="mi">8020</span><span class="p">,</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>        <span class="s2">"domain"</span><span class="p">:</span> <span class="s2">"homepage.21x9.org"</span><span class="p">,</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>        <span class="s2">"settings"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>            <span class="s2">"title"</span><span class="p">:</span> <span class="s2">"Local Dashboard"</span><span class="p">,</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>            <span class="s2">"layout"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>                <span class="s2">"Infrastructure"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>                    <span class="s2">"style"</span><span class="p">:</span> <span class="s2">"row"</span><span class="p">,</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>                    <span class="s2">"columns"</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>                    <span class="s2">"Server"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"style"</span><span class="p">:</span> <span class="s2">"row"</span><span class="p">,</span> <span class="s2">"columns"</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a>                    <span class="s2">"Network"</span><span class="p">:</span> <span class="p">{</span><span class="s2">"style"</span><span class="p">:</span> <span class="s2">"row"</span><span class="p">,</span> <span class="s2">"columns"</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>                <span class="p">},</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a>            <span class="p">},</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>        <span class="p">},</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="s2">"services"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>            <span class="p">{</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>                <span class="s2">"Infrastructure"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>                    <span class="p">{</span>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>                        <span class="s2">"Server"</span><span class="p">:</span> <span class="p">[</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>                            <span class="p">{</span><span class="s2">"Portainer"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>                                <span class="s2">"href"</span><span class="p">:</span> <span class="s2">"https://portainer.21x9.org"</span><span class="p">,</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>                                <span class="s2">"description"</span><span class="p">:</span> <span class="s2">"Docker management"</span><span class="p">,</span>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a>                            <span class="p">}},</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>                        <span class="p">],</span>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a>                    <span class="p">},</span>
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>                <span class="p">],</span>
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a>            <span class="p">},</span>
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>        <span class="p">],</span>
+<a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a>    <span class="p">},</span>
+<a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a><span class="p">}</span>
+</code></pre></div>
+<p>Only keys present in <code>docker.homepage</code> are rendered. Omitted sections are not generated or removed; to clear a previously managed section, provide an empty list or dictionary as appropriate. The files are managed declaratively: manual edits to generated files are replaced on the next deployment.</p>
+<p><strong>Migration note:</strong> The current templates use host bind mounts. If a host was deployed while an earlier Wallabag or Vaultwarden template used Docker-managed named volumes, Compose does not migrate that data automatically. Back up and copy the named-volume contents into the corresponding host directory before switching. Data already present in the host directories is retained.</p>
+<p><code>docker</code> service configuration is independent of encrypted credentials. Put Miniflux credentials and the optional Vaultwarden admin-token hash in the encrypted secrets file; see <a href="../secrets/">Secrets management</a>.</p>
+<h3 id="caddy-and-sablier">Caddy and Sablier</h3>
+<p>Software release pins are configurable in the local host data. Set
+<code>caddy_versions.version</code>, <code>caddy_versions.sablier_plugin</code>, and
+<code>caddy_versions.dehydrated</code> to select the Caddy image, Sablier Caddy plugin,
+and Dehydrated release used to build the custom Caddy image. The Sablier
+server image is selected with <code>docker_sablier.version</code>. All four values are
+required when their corresponding feature is enabled; no software-version
+fallbacks are used. Keep these pins in <code>group_data/@local.py</code> (or the
+appropriate host/group inventory data) rather than editing task or Dockerfile
+sources.</p>
+<p><code>caddy_config</code> maps site addresses to Caddy directives consumed by <code>tasks/caddy.py</code>. Caddy is deployed inside the Docker feature gate when both <code>docker</code> and <code>caddy_config</code> are truthy. Dehydrated uses Hetzner DNS-01 credentials when at least one certificate is configured.</p>
+<p>Migration from <code>dehydrated_domains</code>: move ordinary certificate names into <code>hostnames</code>, configure their parent zones in <code>dehydrated_zones</code>, and move any manually requested wildcard certificate (including its SANs) into <code>dehydrated_wildcards</code>. The old <code>dehydrated_domains</code> setting is no longer consumed. Certificate names are derived from the list-based <code>hostnames</code> mapping only when they are fully qualified names inside <code>dehydrated_zones</code>. Configure this explicit zone allowlist; no DNS lookup or IP-address classification is performed. Private, reserved and public IP addresses are treated identically, which supports NAT and split-horizon DNS. Add internal-only names or IP addresses to <code>dehydrated_blacklist</code> to exclude them manually. An IP entry excludes every hostname mapped to that address; a hostname entry excludes only that name. Wildcard blacklist entries match exactly one label. A wildcard certificate is an explicit request covering its entire matching namespace; configuration fails if it overlaps a blacklisted hostname.</p>
+<p>Use <code>dehydrated_wildcards</code> for explicitly requested wildcard certificates, for example <code>[["example.com", "*.example.com"]]</code>; each inner list is one certificate and may include additional SANs. A flat list such as <code>["*.example.com"]</code>, an empty inner list, or another malformed entry is rejected; the error reports the offending certificate index, value and Python type to make host-data configuration mistakes easier to locate. Wildcards must fall within an allowlisted zone and suppress matching automatically derived names (one DNS label only). The <code>dehydrated_auto_domains</code> setting defaults to <code>True</code>; set it to <code>False</code> to disable automatic discovery entirely while retaining explicitly configured wildcard certificates. With no resulting certificate definitions, the Hetzner API token is not required and the generated Dehydrated domains file is empty. When certificates are configured, ensure <code>secrets.dehydrated.hetzner_api_token</code> is present and scope that token to the required Hetzner DNS zones where possible.</p>
+<p><code>docker_sablier</code> is an optional mapping. Set <code>enabled: True</code> to deploy Sablier before service Compose projects are prepared. The supplied local configuration uses <code>default_duration: "10m"</code>, <code>blocking_timeout: "10m"</code>, and <code>stop_dependencies: True</code>. Caddy uses the dynamic strategy by default, with <code>default_theme: "ghost"</code>, <code>show_details: True</code>, and <code>refresh_frequency: "5s"</code>; per-service overrides live under <code>docker.&lt;service&gt;.sablier</code>. <code>strategy: "blocking"</code> is available for clients that cannot use the dynamic loading page. <code>blocking_timeout</code> applies only to blocking mode.</p>
+<p><code>docker_power_save</code> lists containers managed by the battery monitor. <code>tasks/docker_power.py</code> deploys the monitor and its systemd unit; the monitor is disabled while Sablier is enabled and re-enabled when Sablier is disabled. The two mechanisms are mutually exclusive.</p>
+<h3 id="syncthing">Syncthing</h3>
+<p>Set <code>syncthing</code> to a dictionary to install Syncthing and enable its per-user systemd service (<code>syncthing@&lt;username&gt;</code>). The task uses the top-level <code>username</code> setting to select the service account and configures the GUI listen address through the Syncthing CLI. The GUI defaults to loopback-only (<code>127.0.0.1:8384</code>); change this only when remote access is deliberately secured, for example behind an authenticated reverse proxy or VPN.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="n">syncthing</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>    <span class="s2">"gui_address"</span><span class="p">:</span> <span class="s2">"127.0.0.1:8384"</span><span class="p">,</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">}</span>
+</code></pre></div>
+<p>The package creates the device identity and initial configuration on first start. Add remote devices and shared folders through the Syncthing GUI or its CLI/API; this task does not replace the generated device identity or overwrite the complete <code>config.xml</code>.</p>
+<h3 id="firewall">Firewall</h3>
+<p>UFW supports the application/service keys <code>chromecast-dlna</code>, <code>kdeconnect</code>, <code>localsend</code> and <code>ssh</code> (TCP port 22), with <code>Allow</code> or <code>Deny</code> string values. It also accepts custom rules as dictionaries containing an <code>action</code> and a <code>rule</code> argument string. Custom rules are checked against <code>ufw show added</code> before they are applied, including normalization of UFW's optional <code>in</code> token, so repeated deployments do not add duplicate rules. Unsupported keys and invalid values are ignored.</p>
+<p>For example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">ufw</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>    <span class="s2">"ssh"</span><span class="p">:</span> <span class="s2">"Allow"</span><span class="p">,</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>    <span class="s2">"kdeconnect"</span><span class="p">:</span> <span class="s2">"Allow"</span><span class="p">,</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>    <span class="s2">"docker-host-https"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>        <span class="s2">"action"</span><span class="p">:</span> <span class="s2">"Allow"</span><span class="p">,</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>        <span class="s2">"rule"</span><span class="p">:</span> <span class="s2">"in from 172.16.0.0/12 to 172.17.0.1 port 443 proto tcp"</span><span class="p">,</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>    <span class="p">},</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="p">}</span>
+</code></pre></div>
+<p>The task sets default incoming policy to deny and outgoing policy to allow, applies configured rules, and enables UFW. Review the effective policy and ensure an independent recovery path before applying firewall changes remotely. Set firewall policy deliberately in the ignored local host configuration; the tracked example leaves UFW configuration empty.</p>
+<h2 id="secrets-dependent-configuration">Secrets-dependent configuration</h2>
+<p>The following features combine host data with encrypted secrets:</p>
+<ul>
+<li>WireGuard requires <code>wireguard_config</code> plus matching <code>secrets.wireguard</code> entries.</li>
+<li>Caddy's Dehydrated DNS-01 certificate workflow requires <code>secrets.dehydrated.hetzner_api_token</code> when Docker and <code>caddy_config</code> enable the Caddy task.</li>
+<li>Git credentials are deployed only when <code>secrets.git_credentials</code> is present.</li>
+<li>SSH key generation can use <code>secrets.ssh</code> passphrases.</li>
+<li>Miniflux uses <code>secrets.docker.miniflux</code> for administrator and PostgreSQL credentials.</li>
+<li>Paperless-ngx requires <code>secrets.docker.paperless.postgres_password</code> and <code>secret_key</code>.</li>
+<li>Firefly III requires database credentials, <code>app_key</code> and a 32-character <code>cron_token</code> under <code>secrets.docker.firefly-iii</code>.</li>
+<li>Snipe-IT requires database credentials and a persistent Laravel <code>app_key</code> under <code>secrets.docker.snipe-it</code>.</li>
+<li>Linkwarden requires PostgreSQL, NextAuth and Meilisearch secrets under <code>secrets.docker.linkwarden</code>. The bookmark synchronizer reuses <code>secrets.docker.homepage.environment.HOMEPAGE_VAR_LINKWARDEN_API_KEY</code>, the same bearer token already supplied to Homepage’s Linkwarden widget; no separate token is required.
+The Linkwarden bookmark sync can be previewed manually from the repository root with <code>python tasks/docker/linkwarden_bookmarks.py --dry-run</code>; this does not download favicons or modify files. Omit <code>--dry-run</code> to apply the sync. The command decrypts <code>secrets.json.gpg</code> with GPG and reuses the Homepage API key.\n- Homepage can receive widget API keys through <code>secrets.docker.homepage.environment</code>; these values override matching host-data environment defaults.</li>
+<li>Vaultwarden optionally uses <code>secrets.docker.vaultwarden.admin_token</code> for its Argon2 PHC admin-token hash.</li>
+</ul>
+<p>The absence of <code>secrets.json.gpg</code> does not stop the whole deployment; <code>common.initialize()</code> sets an empty secrets dictionary. See <a href="../secrets/">Secrets management</a> for the supported structure.</p>
+<h2 id="complete-feature-index">Complete feature index</h2>
+<p>For the full list of optional task gates, workstation subfeatures, Docker applications, helper modules and configuration-key families, see the <a href="../feature-reference/">Complete feature and configuration reference</a>. It is maintained alongside deploy.py and the task-module inventory.</p>
+<h2 id="complete-feature-index_1">Complete feature index</h2>
+<p>For the full list of optional task gates, workstation subfeatures, Docker applications, helper modules and configuration-key families, see the <a href="../feature-reference/">Complete feature and configuration reference</a>. It is maintained alongside deploy.py and the task-module inventory.</p>
+<h2 id="adding-a-host">Adding a host</h2>
+<ol>
+<li>Add a target entry to <code>_all_hosts</code> in <code>inventory.py</code>.</li>
+<li>Add its name to <code>disabled_hosts</code> until it is ready, if you want to prevent accidental selection through <code>production</code>.</li>
+<li>Create <code>group_data/&lt;host&gt;.py</code> with only the settings needed by that host.</li>
+<li>Verify SSH and privilege escalation.</li>
+<li>Run a dry deployment with a host limit and review every proposed operation.</li>
+</ol>
+<h2 id="ssh-client-configuration">SSH client configuration</h2>
+<p>Set <code>ssh_config</code> to a mapping of OpenSSH <code>Host</code> patterns to configuration lines. The <code>tasks/ssh_config.py</code> task renders these entries into the configured user's <code>~/.ssh/config</code>.</p>
+<p>The generated file begins with a hardened <code>Host *</code> baseline that applies to all destinations:</p>
+<ul>
+<li><code>HashKnownHosts yes</code> hashes hostnames in <code>known_hosts</code>.</li>
+<li><code>StrictHostKeyChecking accept-new</code> accepts and records new host keys, but rejects changed keys.</li>
+<li><code>UpdateHostKeys yes</code> allows OpenSSH to learn additional host keys after a trusted connection.</li>
+<li><code>PubkeyAuthentication yes</code> and <code>IdentitiesOnly yes</code> prefer explicitly configured public-key identities.</li>
+<li><code>ForwardAgent no</code>, <code>ForwardX11 no</code>, <code>PermitLocalCommand no</code> and <code>ClearAllForwardings yes</code> disable common forwarding and local-command features.</li>
+<li><code>ConnectTimeout 15</code>, <code>ServerAliveInterval 60</code> and <code>ServerAliveCountMax 3</code> bound connection setup and detect unresponsive peers.</li>
+</ul>
+<p>The baseline is intentionally rendered before custom host entries. OpenSSH uses the first obtained value for most options, so later entries cannot override these baseline values. Other per-host settings remain available:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="n">ssh_config</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>    <span class="s2">"github.com"</span><span class="p">:</span> <span class="s2">"""</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="s2">  HostName github.com</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="s2">  IdentityFile ~/.ssh/id_github</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="s2">  User git</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="s2">    """</span><span class="p">,</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>    <span class="s2">"192.0.2.*"</span><span class="p">:</span> <span class="s2">"""</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="s2">  User deploy</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="s2">  Port 2222</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="s2">    """</span><span class="p">,</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="p">}</span>
+</code></pre></div>
+<p>When connecting to a new host, verify its fingerprint through a trusted channel where practical. <code>accept-new</code> protects against changed keys, but the first connection still relies on trusting the key presented at that time.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../docker/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Docker">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Docker
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../deployment/" class="md-footer__link md-footer__link--next" aria-label="Next: Deployment">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Deployment
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../javascripts/collapsible-state.js"></script>
+      
+    
+  </body>
+</html>

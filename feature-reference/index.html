@@ -1,0 +1,2393 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Deployment configuration and task modules using upstream pyinfra.">
+      
+      
+      
+        <link rel="canonical" href="https://gpkvt.github.io/pyinfra/feature-reference/">
+      
+      
+        <link rel="prev" href="../deployment/">
+      
+      
+        <link rel="next" href="../tasks/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Feature reference - gpkvt/pyinfra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#complete-feature-and-configuration-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="gpkvt/pyinfra" class="md-header__button md-logo" aria-label="gpkvt/pyinfra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            gpkvt/pyinfra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Feature reference
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gpkvt/pyinfra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gpkvt/pyinfra
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tasks-overview/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tasks
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../docker/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Docker
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../configuration/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Configuration
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../deployment/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Deployment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../upstream/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="gpkvt/pyinfra" class="md-nav__button md-logo" aria-label="gpkvt/pyinfra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    gpkvt/pyinfra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gpkvt/pyinfra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gpkvt/pyinfra
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature reference
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#repository-and-deployment-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository and deployment model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-tasks-always-included" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core tasks: always included
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-feature-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional feature gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workstation-role-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workstation role features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workstation role features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cosmic-subfeatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        COSMIC subfeatures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-application-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker application catalog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docker application catalog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-helper-and-lifecycle-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker helper and lifecycle modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-task-module-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete task-module inventory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-key-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration key index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-safety-and-idempotency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational safety and idempotency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related guides
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../samba/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Samba
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upstream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upstream pyinfra
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyinfra-manager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pyinfra Manager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#repository-and-deployment-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository and deployment model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-tasks-always-included" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core tasks: always included
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-feature-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional feature gates
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workstation-role-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workstation role features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workstation role features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cosmic-subfeatures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        COSMIC subfeatures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docker-application-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker application catalog
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Docker application catalog">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#docker-helper-and-lifecycle-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker helper and lifecycle modules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#complete-task-module-inventory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete task-module inventory
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-key-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration key index
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-safety-and-idempotency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational safety and idempotency
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related guides
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/gpkvt/pyinfra/edit/main/docs/feature-reference.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="complete-feature-and-configuration-reference">Complete feature and configuration reference</h1>
+<p>This page indexes every deployment feature and Python task module. It explains what is always included, what is optional, which host/group settings enable it, and where to find operational detail.</p>
+<p>Use this page to discover capabilities; use <a href="../configuration/">Host configuration</a>, <a href="../tasks/">Task reference</a>, <a href="../docker/">Docker services</a>, <a href="../system/">System configuration</a>, <a href="../samba/">Samba</a>, and <a href="../secrets/">Secrets management</a> for detailed settings and safety notes. The current implementation in deploy.py, each task module and its template remains authoritative.</p>
+<h2 id="repository-and-deployment-model">Repository and deployment model</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>File or directory</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Inventory</td>
+<td>inventory.py</td>
+<td>Targets, SSH connection options, privilege escalation and inventory groups.</td>
+</tr>
+<tr>
+<td>Host/group data</td>
+<td>group_data/</td>
+<td>Desired state for a host or role, exposed together through host.data.</td>
+</tr>
+<tr>
+<td>Orchestration</td>
+<td>deploy.py</td>
+<td>Shared initialization, baseline task inclusion and optional feature gates.</td>
+</tr>
+<tr>
+<td>Shared initialization</td>
+<td>common.py</td>
+<td>Home directory, encrypted secrets selection and Flatpak detection.</td>
+</tr>
+<tr>
+<td>Task modules</td>
+<td>tasks/</td>
+<td>Install packages, manage files/services and reconcile applications.</td>
+</tr>
+<tr>
+<td>Templates</td>
+<td>templates/</td>
+<td>Jinja2 templates for generated configuration and service definitions.</td>
+</tr>
+<tr>
+<td>Static assets</td>
+<td>files/</td>
+<td>Files copied or synchronized by tasks.</td>
+</tr>
+<tr>
+<td>Secrets</td>
+<td>secrets.json.gpg</td>
+<td>Encrypted credentials and private keys, selected by inventory hostname.</td>
+</tr>
+</tbody>
+</table>
+<p>A feature is selected through host/group data, not by editing deploy.py. A non-empty mapping/list is not always equivalent to a Boolean. The tracked examples are conservative; workstation features and Samba are disabled by default.</p>
+<h2 id="core-tasks-always-included">Core tasks: always included</h2>
+<p>These modules are included by every full deploy.py run. Individual operations inside a module can still be conditional on configuration or target facts.</p>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>What it manages</th>
+<th>Main inputs / notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tasks/apt.py</td>
+<td>APT repositories, signing keys, package indexes, upgrades and packages.</td>
+<td>apt_sources, apt_packages.</td>
+</tr>
+<tr>
+<td>tasks/hosts.py</td>
+<td>Managed /etc/hosts entries.</td>
+<td>hostnames maps IP addresses to lists of names.</td>
+</tr>
+<tr>
+<td>tasks/sudo.py</td>
+<td>Custom sudoers drop-in, validation and permissions.</td>
+<td>sudoers_rules; validated with visudo.</td>
+</tr>
+<tr>
+<td>tasks/system.py</td>
+<td>Hostname, timezone, locale, editor environment, keyboard, sysctl, udev and USBGuard.</td>
+<td>See <a href="../system/">System configuration</a>.</td>
+</tr>
+<tr>
+<td>tasks/ssh_keys.py</td>
+<td>SSH key generation when absent and authorized-key reconciliation.</td>
+<td>ssh_keys, ssh_authorized_keys, ssh_authorized_keys_enabled, secrets.ssh; existing private keys are not overwritten.</td>
+</tr>
+<tr>
+<td>tasks/git.py</td>
+<td>Git installation/configuration and credential integration.</td>
+<td>Git host data and secrets.git_credentials.</td>
+</tr>
+<tr>
+<td>tasks/fonts.py</td>
+<td>Font packages and optional Powerline-patched fonts.</td>
+<td>powerline_fonts.</td>
+</tr>
+<tr>
+<td>tasks/scripts.py</td>
+<td>User scripts and command links, including gpg-vault.</td>
+<td>username, usergroup; see <a href="../secrets/">Secrets</a>.</td>
+</tr>
+<tr>
+<td>tasks/mc.py</td>
+<td>Midnight Commander installation and user configuration.</td>
+<td>username, usergroup.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="optional-feature-gates">Optional feature gates</h2>
+<p>These are the inclusion conditions currently evaluated by deploy.py. “Truthy” means present and non-empty unless a Boolean/default is stated.</p>
+<table>
+<thead>
+<tr>
+<th>Feature / module</th>
+<th>Gate</th>
+<th>Defaults and behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flatpak — tasks/flatpak.py</td>
+<td>Flatpak executable detected by common.initialize(check_flatpak=True).</td>
+<td>Skipped when Flatpak is absent. Uses user-scoped remotes/apps; flatpak_packages supplies application IDs.</td>
+</tr>
+<tr>
+<td>Cron — tasks/cron.py</td>
+<td>cron_jobs is non-empty.</td>
+<td>Installs/enables cron and manages named user/root jobs. Each job needs a name, command and schedule. See <a href="../tasks/#cron-jobs">Cron jobs</a>.</td>
+</tr>
+<tr>
+<td>SSH client — tasks/ssh_config.py</td>
+<td>ssh_config is truthy.</td>
+<td>Renders the configured user's SSH client configuration and hardened baseline.</td>
+</tr>
+<tr>
+<td>WireGuard — tasks/wireguard.py</td>
+<td>wireguard_config, secrets.wireguard, and wireguard_enabled (default true).</td>
+<td>Installs WireGuard and writes interface configuration; does not start the interface.</td>
+</tr>
+<tr>
+<td>Automatic VPN — tasks/vpn.py</td>
+<td>local_network_cidr and wireguard_interface, plus vpn_enabled (default true).</td>
+<td>Starts/enables wg-quick when no global IPv4 address is in the local CIDR. IPv6 is not considered.</td>
+</tr>
+<tr>
+<td>Syncthing — tasks/syncthing.py</td>
+<td>syncthing is truthy and syncthing.enabled (default true).</td>
+<td>Installs/enables the configured user's service. GUI binds to loopback by default; sharing is configured in Syncthing.</td>
+</tr>
+<tr>
+<td>Zsh — tasks/zsh.py</td>
+<td>zsh is truthy.</td>
+<td>Deploys Zsh configuration, imports/plugins and the LiMusic-aware HyFetch helper.</td>
+</tr>
+<tr>
+<td>tmux — tasks/tmux.py</td>
+<td>tmux is truthy.</td>
+<td>Deploys tmux configuration.</td>
+</tr>
+<tr>
+<td>Powerline — tasks/powerline.py</td>
+<td>powerline is truthy.</td>
+<td>Deploys Powerline prompt configuration.</td>
+</tr>
+<tr>
+<td>Samba — tasks/samba.py</td>
+<td>samba is truthy and samba.enabled (default false).</td>
+<td>Installs on-demand LAN/VPN shares; Samba remains stopped/masked until explicitly started. See <a href="../samba/">Samba</a>.</td>
+</tr>
+<tr>
+<td>UFW — tasks/ufw.py</td>
+<td>ufw is truthy and ufw.enabled (default true).</td>
+<td>Applies firewall policy and rules. Review remote SSH access before enabling.</td>
+</tr>
+<tr>
+<td>Docker — tasks/docker.py, tasks/docker_container.py</td>
+<td>docker is truthy.</td>
+<td>Installs/configures Docker and dispatches Compose services. Persistent data uses host bind mounts below the configured home directory's .docker/.</td>
+</tr>
+<tr>
+<td>Docker battery monitor — tasks/docker_power.py</td>
+<td>Docker is enabled and docker_power_monitor (default true).</td>
+<td>Battery-aware container stop/restore behavior; mutually exclusive with Sablier.</td>
+</tr>
+<tr>
+<td>Sablier — tasks/docker_sablier.py</td>
+<td>Docker is enabled and docker_sablier.enabled is true.</td>
+<td>On-demand container startup; disables the battery monitor and restores containers previously stopped by it.</td>
+</tr>
+<tr>
+<td>Caddy/Dehydrated — tasks/caddy.py, tasks/dehydrated.py</td>
+<td>Docker, caddy_config and caddy_enabled (default true).</td>
+<td>Docker Caddy reverse proxy and DNS-01 certificate support. Hetzner API token required for that DNS challenge.</td>
+</tr>
+<tr>
+<td>AppArmor — tasks/apparmor.py</td>
+<td>apparmor_profiles is truthy and apparmor_enabled (default true).</td>
+<td>Loads/enforces configured profiles.</td>
+</tr>
+<tr>
+<td>Mullvad extensions — tasks/mullvad_extensions.py</td>
+<td>mullvad_extensions is truthy and mullvad_browser_enabled (default true).</td>
+<td>Installs configured browser extensions and policy.</td>
+</tr>
+<tr>
+<td>VSCodium extensions — tasks/vscodium.py</td>
+<td>vscodium is truthy and vscodium_enabled (default true).</td>
+<td>Installs configured extension IDs that are not already installed.</td>
+</tr>
+<tr>
+<td>Proton — tasks/proton.py</td>
+<td>proton is truthy.</td>
+<td>Selects Proton applications and installation sources. Drive CLI requires explicit drive_cli_version.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="workstation-role-features">Workstation role features</h2>
+<p>Workstation tasks require the host to receive workstation group data and the matching nested enabled: true flag. The sample inventory assigns @local to the workstation group. Every feature is disabled in group_data/workstation.py.example.</p>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Module</th>
+<th>Configuration</th>
+<th>Effect / limitations</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backup tools</td>
+<td>tasks/workstation/backup.py</td>
+<td>workstation.backup.enabled</td>
+<td>Installs Borg, Restic, rsync and Borgmatic and renders Borgmatic config. Does not configure repositories/credentials or run/schedule backups.</td>
+</tr>
+<tr>
+<td>Power management</td>
+<td>tasks/workstation/power.py</td>
+<td>workstation.power.enabled, manager</td>
+<td>Selects tlp or power-profiles-daemon and removes the conflicting manager.</td>
+</tr>
+<tr>
+<td>Firmware/microcode</td>
+<td>tasks/workstation/hardware.py</td>
+<td>workstation.hardware.enabled, cpu_vendor</td>
+<td>Installs fwupd and optional Intel/AMD microcode; does not apply firmware updates.</td>
+</tr>
+<tr>
+<td>Storage inspection</td>
+<td>tasks/workstation/storage.py</td>
+<td>workstation.storage.enabled</td>
+<td>Installs SMART/NVMe tools; no polling or alerting is configured.</td>
+</tr>
+<tr>
+<td>Printers/scanners</td>
+<td>tasks/workstation/peripherals.py</td>
+<td>workstation.peripherals.enabled, printing, scanning</td>
+<td>Installs selected packages; CUPS is enabled when printing is selected.</td>
+</tr>
+<tr>
+<td>Desktop utilities</td>
+<td>tasks/workstation/desktop.py</td>
+<td>workstation.desktop.enabled, optional packages</td>
+<td>Installs default or supplied integration packages.</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td>tasks/workstation/maintenance.py</td>
+<td>workstation.maintenance.enabled</td>
+<td>Installs interactive maintenance tools; no unattended upgrades or reboot schedule.</td>
+</tr>
+<tr>
+<td>LiMusic</td>
+<td>tasks/workstation/limusic.py</td>
+<td>workstation.limusic.enabled</td>
+<td>Installs latest stable x86-64 AppImage, verifies SHA-256 and creates icon/desktop launcher.</td>
+</tr>
+<tr>
+<td>COSMIC desktop</td>
+<td>tasks/workstation/cosmic/deploy.py</td>
+<td>workstation.cosmic.enabled</td>
+<td>Master switch for appearance, window management, input, shortcuts, panel, dock, workspaces and optional config-file sync. Display/output layout is not managed.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cosmic-subfeatures">COSMIC subfeatures</h3>
+<p>All subfeatures are nested below workstation.cosmic and have their own enabled flag.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Module</th>
+<th>Settings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>appearance</td>
+<td>tasks/workstation/cosmic/appearance.py</td>
+<td>mode: dark or light.</td>
+</tr>
+<tr>
+<td>window_management</td>
+<td>tasks/workstation/cosmic/window_management.py</td>
+<td>autotile, autotile_behavior (PerWorkspace/Global), focus_follows_cursor, cursor_follows_focus, edge_snap_threshold.</td>
+</tr>
+<tr>
+<td>input</td>
+<td>tasks/workstation/cosmic/input.py</td>
+<td>Raw RON strings for default mouse and touchpad settings.</td>
+</tr>
+<tr>
+<td>shortcuts</td>
+<td>tasks/workstation/cosmic/shortcuts.py</td>
+<td>Complete custom shortcut RON map.</td>
+</tr>
+<tr>
+<td>panel</td>
+<td>tasks/workstation/cosmic/panel.py</td>
+<td>Position, size, autohide, extend, anchor gap and optional left/center/right applet lists.</td>
+</tr>
+<tr>
+<td>dock</td>
+<td>tasks/workstation/cosmic/dock.py</td>
+<td>Position, size, autohide, extend, anchor gap and optional applet lists.</td>
+</tr>
+<tr>
+<td>workspaces</td>
+<td>tasks/workstation/cosmic/workspaces.py</td>
+<td>Custom workspace RON configuration.</td>
+</tr>
+<tr>
+<td>config_files</td>
+<td>tasks/workstation/cosmic/config_files.py</td>
+<td>Named directory mappings with repository-relative src and home-relative dest.</td>
+</tr>
+</tbody>
+</table>
+<p>The live COSMIC exporter is files/scripts/export_cosmic_config.py. Use --dry-run to preview supported settings before updating host data. It preserves management flags and unrelated values and leaves unsupported settings unchanged.</p>
+<h2 id="docker-application-catalog">Docker application catalog</h2>
+<p>Enable Docker applications by adding a non-empty mapping below docker. Each service has its own module and usually a Compose template. Check the module/template for accepted keys and required secrets; do not assume every service accepts the same generic options.</p>
+<table>
+<thead>
+<tr>
+<th>Configuration key</th>
+<th>Module</th>
+<th>Application / notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>adguard_home</td>
+<td>tasks/docker/adguard_home.py</td>
+<td>AdGuard Home DNS filtering; host networking and firewall review required.</td>
+</tr>
+<tr>
+<td>appflowy</td>
+<td>tasks/docker/appflowy.py</td>
+<td>AppFlowy workspace; PostgreSQL, MinIO, Search and private environment file.</td>
+</tr>
+<tr>
+<td>firefly-iii</td>
+<td>tasks/docker/firefly-iii.py</td>
+<td>Personal finance manager; database/application secrets.</td>
+</tr>
+<tr>
+<td>forgejo</td>
+<td>tasks/docker/forgejo.py</td>
+<td>Git hosting; web and optional SSH clone endpoint.</td>
+</tr>
+<tr>
+<td>grav</td>
+<td>tasks/docker/grav.py</td>
+<td>Grav CMS; image/channel/setup/scheduler options.</td>
+</tr>
+<tr>
+<td>homepage</td>
+<td>tasks/docker/homepage.py</td>
+<td>Service dashboard, widgets, services, bookmarks and icon synchronization.</td>
+</tr>
+<tr>
+<td>linkwarden</td>
+<td>tasks/docker/linkwarden.py</td>
+<td>Bookmark manager; PostgreSQL, Meilisearch and app secret.</td>
+</tr>
+<tr>
+<td>mdmesh</td>
+<td>tasks/docker/mdmesh.py</td>
+<td>Android-only MDM; PostgreSQL, server, edge and supervisor.</td>
+</tr>
+<tr>
+<td>miniflux</td>
+<td>tasks/docker/miniflux.py</td>
+<td>RSS reader with PostgreSQL companion and explicit database major version.</td>
+</tr>
+<tr>
+<td>nocodb</td>
+<td>tasks/docker/nocodb.py</td>
+<td>No-code database frontend.</td>
+</tr>
+<tr>
+<td>paperless</td>
+<td>tasks/docker/paperless.py</td>
+<td>Paperless-ngx; database, data/media/consume/export directories and secrets.</td>
+</tr>
+<tr>
+<td>portainer</td>
+<td>tasks/docker/portainer.py</td>
+<td>Docker management UI; privileged host control.</td>
+</tr>
+<tr>
+<td>snipe-it</td>
+<td>tasks/docker/snipe-it.py</td>
+<td>IT asset management; database and Laravel secrets.</td>
+</tr>
+<tr>
+<td>tasmoadmin</td>
+<td>tasks/docker/tasmoadmin.py</td>
+<td>Tasmota device management.</td>
+</tr>
+<tr>
+<td>timetagger</td>
+<td>tasks/docker/timetagger.py</td>
+<td>Time tracking; credentials stored in mode-0600 environment file.</td>
+</tr>
+<tr>
+<td>vaultwarden</td>
+<td>tasks/docker/vaultwarden.py</td>
+<td>Bitwarden-compatible password manager; admin token in encrypted secrets.</td>
+</tr>
+<tr>
+<td>wallabag</td>
+<td>tasks/docker/wallabag.py</td>
+<td>Read-it-later application.</td>
+</tr>
+<tr>
+<td>wg-easy</td>
+<td>tasks/docker/wg-easy.py</td>
+<td>WireGuard web administration and UDP endpoint.</td>
+</tr>
+</tbody>
+</table>
+<p>All persistent service state is stored in host directories under the configured user's .docker/<service>/. These are bind mounts, not Docker-managed named volumes. Supporting containers may intentionally use ephemeral storage; inspect Compose templates before relying on data durability. Most web interfaces bind to loopback for Caddy; AdGuard and VPN protocol ports are deliberate exceptions. See <a href="../docker/">Docker services</a> for ports, storage, Caddy, Sablier and lifecycle behavior.</p>
+<h3 id="docker-helper-and-lifecycle-modules">Docker helper and lifecycle modules</h3>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tasks/docker.py</td>
+<td>Docker installation and shared Compose/systemd deployment helper.</td>
+</tr>
+<tr>
+<td>tasks/docker_container.py</td>
+<td>Configured service dispatcher.</td>
+</tr>
+<tr>
+<td>tasks/docker_power.py</td>
+<td>Battery-aware container monitor and restore logic.</td>
+</tr>
+<tr>
+<td>tasks/docker_sablier.py</td>
+<td>Sablier server and on-demand startup labels.</td>
+</tr>
+<tr>
+<td>tasks/caddy.py</td>
+<td>Caddy reverse proxy deployment.</td>
+</tr>
+<tr>
+<td>tasks/dehydrated.py</td>
+<td>Certificate renewal helper/timer.</td>
+</tr>
+<tr>
+<td>tasks/homepage_config.py</td>
+<td>Homepage configuration support.</td>
+</tr>
+<tr>
+<td>tasks/docker/linkwarden_bookmarks.py</td>
+<td>Controller-side Linkwarden-to-Homepage bookmark synchronization.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="complete-task-module-inventory">Complete task-module inventory</h2>
+<p>This list includes implementation, nested feature, helper and test-fixture modules. Helper modules are not necessarily included directly by deploy.py.</p>
+<table>
+<thead>
+<tr>
+<th>Python module</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tasks/apparmor.py</td>
+<td>AppArmor profile enforcement.</td>
+</tr>
+<tr>
+<td>tasks/apt.py</td>
+<td>APT repositories and packages.</td>
+</tr>
+<tr>
+<td>tasks/caddy.py</td>
+<td>Caddy reverse proxy and certificate integration.</td>
+</tr>
+<tr>
+<td>tasks/cron.py</td>
+<td>Named cron jobs.</td>
+</tr>
+<tr>
+<td>tasks/dehydrated.py</td>
+<td>Certificate renewal timer/service.</td>
+</tr>
+<tr>
+<td>tasks/docker.py</td>
+<td>Shared Docker installation and Compose helper.</td>
+</tr>
+<tr>
+<td>tasks/docker/adguard_home.py</td>
+<td>AdGuard Home.</td>
+</tr>
+<tr>
+<td>tasks/docker/appflowy.py</td>
+<td>AppFlowy.</td>
+</tr>
+<tr>
+<td>tasks/docker/ci-smoke.py</td>
+<td>CI-only Compose smoke fixture, not a production service.</td>
+</tr>
+<tr>
+<td>tasks/docker/firefly-iii.py</td>
+<td>Firefly III.</td>
+</tr>
+<tr>
+<td>tasks/docker/forgejo.py</td>
+<td>Forgejo.</td>
+</tr>
+<tr>
+<td>tasks/docker/grav.py</td>
+<td>Grav.</td>
+</tr>
+<tr>
+<td>tasks/docker/homepage.py</td>
+<td>Homepage.</td>
+</tr>
+<tr>
+<td>tasks/docker/linkwarden.py</td>
+<td>Linkwarden.</td>
+</tr>
+<tr>
+<td>tasks/docker/linkwarden_bookmarks.py</td>
+<td>Bookmark synchronization helper.</td>
+</tr>
+<tr>
+<td>tasks/docker/mdmesh.py</td>
+<td>MDMesh Android MDM.</td>
+</tr>
+<tr>
+<td>tasks/docker/miniflux.py</td>
+<td>Miniflux.</td>
+</tr>
+<tr>
+<td>tasks/docker/nocodb.py</td>
+<td>NocoDB.</td>
+</tr>
+<tr>
+<td>tasks/docker/paperless.py</td>
+<td>Paperless-ngx.</td>
+</tr>
+<tr>
+<td>tasks/docker/portainer.py</td>
+<td>Portainer.</td>
+</tr>
+<tr>
+<td>tasks/docker/snipe-it.py</td>
+<td>Snipe-IT.</td>
+</tr>
+<tr>
+<td>tasks/docker/tasmoadmin.py</td>
+<td>TasmoAdmin.</td>
+</tr>
+<tr>
+<td>tasks/docker/timetagger.py</td>
+<td>TimeTagger.</td>
+</tr>
+<tr>
+<td>tasks/docker/vaultwarden.py</td>
+<td>Vaultwarden.</td>
+</tr>
+<tr>
+<td>tasks/docker/wallabag.py</td>
+<td>Wallabag.</td>
+</tr>
+<tr>
+<td>tasks/docker/wg-easy.py</td>
+<td>WG-Easy.</td>
+</tr>
+<tr>
+<td>tasks/docker_container.py</td>
+<td>Docker service dispatcher.</td>
+</tr>
+<tr>
+<td>tasks/docker_power.py</td>
+<td>Docker battery monitor.</td>
+</tr>
+<tr>
+<td>tasks/docker_sablier.py</td>
+<td>Sablier deployment.</td>
+</tr>
+<tr>
+<td>tasks/flatpak.py</td>
+<td>User-scoped Flatpak management.</td>
+</tr>
+<tr>
+<td>tasks/fonts.py</td>
+<td>Fonts.</td>
+</tr>
+<tr>
+<td>tasks/git.py</td>
+<td>Git configuration.</td>
+</tr>
+<tr>
+<td>tasks/homepage_config.py</td>
+<td>Homepage configuration helpers.</td>
+</tr>
+<tr>
+<td>tasks/hosts.py</td>
+<td>/etc/hosts entries.</td>
+</tr>
+<tr>
+<td>tasks/mc.py</td>
+<td>Midnight Commander.</td>
+</tr>
+<tr>
+<td>tasks/mullvad_extensions.py</td>
+<td>Mullvad Browser extensions.</td>
+</tr>
+<tr>
+<td>tasks/powerline.py</td>
+<td>Powerline prompt.</td>
+</tr>
+<tr>
+<td>tasks/proton.py</td>
+<td>Proton applications.</td>
+</tr>
+<tr>
+<td>tasks/samba.py</td>
+<td>On-demand Samba file exchange.</td>
+</tr>
+<tr>
+<td>tasks/scripts.py</td>
+<td>User scripts and command links.</td>
+</tr>
+<tr>
+<td>tasks/ssh_config.py</td>
+<td>SSH client configuration.</td>
+</tr>
+<tr>
+<td>tasks/ssh_keys.py</td>
+<td>SSH keys and authorized keys.</td>
+</tr>
+<tr>
+<td>tasks/sudo.py</td>
+<td>Sudoers configuration.</td>
+</tr>
+<tr>
+<td>tasks/syncthing.py</td>
+<td>Syncthing.</td>
+</tr>
+<tr>
+<td>tasks/system.py</td>
+<td>Host/system configuration and hardening.</td>
+</tr>
+<tr>
+<td>tasks/tmux.py</td>
+<td>tmux configuration.</td>
+</tr>
+<tr>
+<td>tasks/ufw.py</td>
+<td>UFW firewall.</td>
+</tr>
+<tr>
+<td>tasks/vpn.py</td>
+<td>Conditional WireGuard activation.</td>
+</tr>
+<tr>
+<td>tasks/vscodium.py</td>
+<td>VSCodium extensions.</td>
+</tr>
+<tr>
+<td>tasks/wireguard.py</td>
+<td>WireGuard installation/configuration.</td>
+</tr>
+<tr>
+<td>tasks/workstation/backup.py</td>
+<td>Workstation backup tools.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/appearance.py</td>
+<td>COSMIC theme appearance.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/config.py</td>
+<td>COSMIC settings helpers.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/config_files.py</td>
+<td>COSMIC config directory synchronization.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/deploy.py</td>
+<td>COSMIC subtask orchestration.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/dock.py</td>
+<td>COSMIC dock.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/input.py</td>
+<td>COSMIC mouse/touchpad input.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/panel.py</td>
+<td>COSMIC panel and applets.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/shortcuts.py</td>
+<td>COSMIC shortcuts.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/window_management.py</td>
+<td>COSMIC window-management preferences.</td>
+</tr>
+<tr>
+<td>tasks/workstation/cosmic/workspaces.py</td>
+<td>COSMIC workspace layout.</td>
+</tr>
+<tr>
+<td>tasks/workstation/desktop.py</td>
+<td>Desktop integration packages.</td>
+</tr>
+<tr>
+<td>tasks/workstation/hardware.py</td>
+<td>Firmware tools and CPU microcode.</td>
+</tr>
+<tr>
+<td>tasks/workstation/limusic.py</td>
+<td>LiMusic AppImage and launcher.</td>
+</tr>
+<tr>
+<td>tasks/workstation/maintenance.py</td>
+<td>Interactive maintenance tools.</td>
+</tr>
+<tr>
+<td>tasks/workstation/peripherals.py</td>
+<td>Printer/scanner support.</td>
+</tr>
+<tr>
+<td>tasks/workstation/power.py</td>
+<td>Workstation power manager.</td>
+</tr>
+<tr>
+<td>tasks/workstation/storage.py</td>
+<td>SMART/NVMe utilities.</td>
+</tr>
+<tr>
+<td>tasks/zsh.py</td>
+<td>Zsh and shell helper.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="configuration-key-index">Configuration key index</h2>
+<p>The host schema is group_data/@local.py.example; the workstation schema is group_data/workstation.py.example. Copy them to ignored local files and customize them.</p>
+<table>
+<thead>
+<tr>
+<th>Configuration keys</th>
+<th>Purpose</th>
+<th>Detailed reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>hostname, username, usergroup, homedir</td>
+<td>Host identity and user paths.</td>
+<td><a href="../configuration/#common-settings">Common settings</a></td>
+</tr>
+<tr>
+<td>timezone, locale, keyboard, editor, visual_editor</td>
+<td>OS defaults and environment.</td>
+<td><a href="../configuration/#common-settings">Common settings</a>, <a href="../system/">System</a></td>
+</tr>
+<tr>
+<td>hostnames</td>
+<td>Managed hosts-file mappings.</td>
+<td><a href="../configuration/#network-and-name-resolution">Network</a></td>
+</tr>
+<tr>
+<td>local_network_cidr, wireguard_interface, wireguard_enabled, vpn_enabled, wireguard_config</td>
+<td>WireGuard and VPN activation.</td>
+<td><a href="../configuration/#network-and-name-resolution">Network</a></td>
+</tr>
+<tr>
+<td>apt_packages, apt_sources, flatpak_packages</td>
+<td>Package sources and application IDs.</td>
+<td><a href="../configuration/#packages-and-repositories">Packages</a></td>
+</tr>
+<tr>
+<td>sysctl, udev, usbguard, sudoers_rules</td>
+<td>Kernel, device, USB and privilege policy.</td>
+<td><a href="../system/">System</a></td>
+</tr>
+<tr>
+<td>ssh_keys, ssh_authorized_keys, ssh_authorized_keys_enabled, ssh_config</td>
+<td>SSH identities, access and client defaults.</td>
+<td><a href="../configuration/#ssh-client-configuration">SSH client configuration</a></td>
+</tr>
+<tr>
+<td>zsh, zshrc_imports, zplug_plugins, tmux, powerline, powerline_fonts</td>
+<td>Shell, terminal and prompt.</td>
+<td><a href="../configuration/#optional-user-and-desktop-features">Optional user features</a></td>
+</tr>
+<tr>
+<td>cron_jobs</td>
+<td>Named user/root cron entries.</td>
+<td><a href="../tasks/#cron-jobs">Cron jobs</a></td>
+</tr>
+<tr>
+<td>samba</td>
+<td>On-demand LAN/VPN shares and idle timeout.</td>
+<td><a href="../samba/">Samba</a></td>
+</tr>
+<tr>
+<td>syncthing</td>
+<td>User-level Syncthing and GUI address.</td>
+<td><a href="../configuration/#syncthing">Syncthing</a></td>
+</tr>
+<tr>
+<td>ufw</td>
+<td>Firewall defaults and rules.</td>
+<td><a href="../configuration/#firewall">Firewall</a></td>
+</tr>
+<tr>
+<td>docker_install, docker_power_monitor, docker, docker_power_save</td>
+<td>Docker installation, services and battery-aware containers.</td>
+<td><a href="../docker/">Docker</a></td>
+</tr>
+<tr>
+<td>docker_sablier</td>
+<td>On-demand container sessions and provider strategy.</td>
+<td><a href="../docker/#optional-lifecycle-integrations">Docker/Sablier</a></td>
+</tr>
+<tr>
+<td>caddy_config, caddy_enabled, caddy_versions</td>
+<td>Reverse proxy and Caddy plugin.</td>
+<td><a href="../docker/">Docker</a>, <a href="../configuration/#caddy-and-sablier">Caddy/Sablier</a></td>
+</tr>
+<tr>
+<td>dehydrated_auto_domains, dehydrated_zones, dehydrated_blacklist, dehydrated_wildcards</td>
+<td>Certificate discovery/enrollment policy.</td>
+<td><a href="../configuration/#caddy-and-sablier">Caddy/Sablier</a></td>
+</tr>
+<tr>
+<td>apparmor_profiles, apparmor_enabled</td>
+<td>AppArmor profiles and master gate.</td>
+<td><a href="../system/">System</a></td>
+</tr>
+<tr>
+<td>mullvad_extensions, mullvad_browser_dir, mullvad_browser_enabled</td>
+<td>Browser extensions and policy location.</td>
+<td><a href="../configuration/#optional-user-and-desktop-features">Optional user features</a></td>
+</tr>
+<tr>
+<td>vscodium, vscodium_enabled</td>
+<td>VSCodium extensions and master gate.</td>
+<td><a href="../configuration/#optional-user-and-desktop-features">Optional user features</a></td>
+</tr>
+<tr>
+<td>proton</td>
+<td>Proton components and Drive CLI version.</td>
+<td><a href="../configuration/#optional-user-and-desktop-features">Optional user features</a></td>
+</tr>
+<tr>
+<td>workstation</td>
+<td>Opt-in workstation features and COSMIC subfeatures.</td>
+<td><a href="../configuration/#workstation-role">Workstation role</a></td>
+</tr>
+<tr>
+<td>secrets.json.gpg</td>
+<td>Host-scoped/shared credentials and private keys.</td>
+<td><a href="../secrets/">Secrets</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="operational-safety-and-idempotency">Operational safety and idempotency</h2>
+<ul>
+<li>Run a dry deployment and inspect the diff before applying changes.</li>
+<li>Keep real host data and secrets out of Git. Tracked .example files are templates, not production configuration.</li>
+<li>Review firewall, VPN, SSH, Samba, Docker socket and reverse-proxy changes for lockout or exposure risk.</li>
+<li>Tasks should check current state before changing it. An identical second deployment should not report changes or restart services without a real reason.</li>
+<li>Docker persistence uses explicit host bind mounts below the configured home directory's .docker/; Docker-managed named volumes are not used.</li>
+<li>Installing backup tools is not a backup strategy: configure repositories, encryption credentials, schedules and restore tests separately.</li>
+<li>A dry run is a planning aid, not rollback. Back up important state and retain console/out-of-band access for network changes.</li>
+</ul>
+<h2 id="related-guides">Related guides</h2>
+<ul>
+<li><a href="../architecture/">Architecture</a> — repository structure and runtime lifecycle.</li>
+<li><a href="../configuration/">Host configuration</a> — field-level host and role settings.</li>
+<li><a href="../deployment/">Deployment</a> — preview and apply.</li>
+<li><a href="../tasks/">Task reference</a> — detailed task behavior and examples.</li>
+<li><a href="../docker/">Docker</a> — service ports, storage and lifecycle.</li>
+<li><a href="../secrets/">Secrets</a> — encrypted credential schema and tools.</li>
+<li><a href="../templates/">Templates</a> — generated files and static payloads.</li>
+<li><a href="../development/">Development</a> — tests, linting and contribution workflow.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../deployment/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Deployment">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Deployment
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../tasks/" class="md-footer__link md-footer__link--next" aria-label="Next: Task reference">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Task reference
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../javascripts/collapsible-state.js"></script>
+      
+    
+  </body>
+</html>

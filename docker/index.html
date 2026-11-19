@@ -1,0 +1,1664 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Deployment configuration and task modules using upstream pyinfra.">
+      
+      
+      
+        <link rel="canonical" href="https://gpkvt.github.io/pyinfra/docker/">
+      
+      
+        <link rel="prev" href="../tasks-overview/">
+      
+      
+        <link rel="next" href="../configuration/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Docker - gpkvt/pyinfra</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#docker-services" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow md-header--lifted" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="gpkvt/pyinfra" class="md-header__button md-logo" aria-label="gpkvt/pyinfra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            gpkvt/pyinfra
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Docker
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m17.75 4.09-2.53 1.94.91 3.06-2.63-1.81-2.63 1.81.91-3.06-2.53-1.94L12.44 4l1.06-3 1.06 3zm3.5 6.91-1.64 1.25.59 1.98-1.7-1.17-1.7 1.17.59-1.98L15.75 11l2.06-.05L18.5 9l.69 1.95zm-2.28 4.95c.83-.08 1.72 1.1 1.19 1.85-.32.45-.66.87-1.08 1.27C15.17 23 8.84 23 4.94 19.07c-3.91-3.9-3.91-10.24 0-14.14.4-.4.82-.76 1.27-1.08.75-.53 1.93.36 1.85 1.19-.27 2.86.69 5.83 2.89 8.02a9.96 9.96 0 0 0 8.02 2.89m-1.64 2.02a12.08 12.08 0 0 1-7.8-3.47c-2.17-2.19-3.33-5-3.49-7.82-2.81 3.14-2.7 7.96.31 10.98 3.02 3.01 7.84 3.12 10.98.31"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="blue" data-md-color-accent="blue"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 7a5 5 0 0 1 5 5 5 5 0 0 1-5 5 5 5 0 0 1-5-5 5 5 0 0 1 5-5m0 2a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3m0-7 2.39 3.42C13.65 5.15 12.84 5 12 5s-1.65.15-2.39.42zM3.34 7l4.16-.35A7.2 7.2 0 0 0 5.94 8.5c-.44.74-.69 1.5-.83 2.29zm.02 10 1.76-3.77a7.131 7.131 0 0 0 2.38 4.14zM20.65 7l-1.77 3.79a7.02 7.02 0 0 0-2.38-4.15zm-.01 10-4.14.36c.59-.51 1.12-1.14 1.54-1.86.42-.73.69-1.5.83-2.29zM12 22l-2.41-3.44c.74.27 1.55.44 2.41.44.82 0 1.63-.17 2.37-.44z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/gpkvt/pyinfra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gpkvt/pyinfra
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+    
+      
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../tasks-overview/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Tasks
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Docker
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../configuration/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Configuration
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../deployment/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Deployment
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../feature-reference/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../upstream/" class="md-tabs__link">
+          
+  
+  
+    
+  
+  Project
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+    
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="gpkvt/pyinfra" class="md-nav__button md-logo" aria-label="gpkvt/pyinfra" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    gpkvt/pyinfra
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/gpkvt/pyinfra" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    gpkvt/pyinfra
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks-overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tasks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#service-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-deployment-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How deployment works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage and security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-lifecycle-integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional lifecycle integrations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optional lifecycle integrations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sablier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sablier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Power
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-configuration-and-operational-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service configuration and operational notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deployment
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../feature-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Feature reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Task reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../samba/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Samba
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../templates/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Templates
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upstream/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Upstream pyinfra
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyinfra-manager/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pyinfra Manager
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../secrets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Secrets
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#service-catalog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service catalog
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-deployment-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How deployment works
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-and-security" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage and security
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#optional-lifecycle-integrations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optional lifecycle integrations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Optional lifecycle integrations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sablier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sablier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#docker-power" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docker Power
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#service-configuration-and-operational-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service configuration and operational notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+    <a href="https://github.com/gpkvt/pyinfra/edit/main/docs/docker.md" title="Edit this page" class="md-content__button md-icon" rel="edit">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4zm10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1z"/></svg>
+    </a>
+  
+  
+
+
+<h1 id="docker-services">Docker services</h1>
+<p>Deploy and operate containerized applications with a shared Compose and systemd workflow. Each service is opt-in through <code>host.data.docker</code>; persistent state lives in the configured user's home directory.</p>
+<div class="docker-stats">
+<div class="docker-stat"><span class="docker-stat-value">18</span><span class="docker-stat-label">documented services</span></div>
+<div class="docker-stat"><span class="docker-stat-value">~/.docker/</span><span class="docker-stat-label">persistent host storage</span></div>
+<div class="docker-stat"><span class="docker-stat-value">127.0.0.1</span><span class="docker-stat-label">default web binding</span></div>
+<div class="docker-stat"><span class="docker-stat-value">systemd</span><span class="docker-stat-label">user service lifecycle</span></div>
+</div>
+
+<h2 id="service-catalog">Service catalog</h2>
+<p>The ports below are the documented defaults. Web interfaces generally bind to loopback and are intended to be published through the configured reverse proxy. AdGuard Home uses host networking; WG-Easy additionally publishes its WireGuard UDP endpoint.</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Default host endpoint</th>
+<th>Persistent host data</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Miniflux</td>
+<td><code>127.0.0.1:8080</code></td>
+<td><code>miniflux/db/</code></td>
+</tr>
+<tr>
+<td>TimeTagger</td>
+<td><code>127.0.0.1:8080</code></td>
+<td><code>timetagger/</code></td>
+</tr>
+<tr>
+<td>Grav</td>
+<td><code>127.0.0.1:8080</code></td>
+<td><code>grav/data/</code></td>
+</tr>
+<tr>
+<td>Forgejo</td>
+<td>Web <code>127.0.0.1:8027</code>, SSH <code>127.0.0.1:2222</code></td>
+<td><code>forgejo/data/</code></td>
+</tr>
+<tr>
+<td>Portainer</td>
+<td><code>127.0.0.1:9000</code></td>
+<td><code>portainer/data/</code></td>
+</tr>
+<tr>
+<td>TasmoAdmin</td>
+<td><code>127.0.0.1:8016</code></td>
+<td><code>tasmoadmin/data/</code></td>
+</tr>
+<tr>
+<td>Wallabag</td>
+<td><code>127.0.0.1:8017</code></td>
+<td><code>wallabag/data/</code>, <code>wallabag/images/</code></td>
+</tr>
+<tr>
+<td>Vaultwarden</td>
+<td><code>127.0.0.1:8018</code></td>
+<td><code>vaultwarden/</code></td>
+</tr>
+<tr>
+<td>NocoDB</td>
+<td><code>127.0.0.1:8019</code></td>
+<td><code>nocodb/data/</code></td>
+</tr>
+<tr>
+<td>Homepage</td>
+<td><code>127.0.0.1:8020</code></td>
+<td><code>homepage/config/</code></td>
+</tr>
+<tr>
+<td>Linkwarden</td>
+<td><code>127.0.0.1:8021</code></td>
+<td><code>linkwarden/postgres/</code>, <code>data/</code>, <code>meili/</code></td>
+</tr>
+<tr>
+<td>WG-Easy</td>
+<td>UI <code>:51821</code>, WireGuard UDP <code>:51820</code></td>
+<td><code>wg-easy/</code></td>
+</tr>
+<tr>
+<td>Paperless-ngx</td>
+<td><code>127.0.0.1:8022</code></td>
+<td><code>paperless/postgres/</code>, <code>data/</code>, <code>media/</code>, <code>consume/</code>, <code>export/</code></td>
+</tr>
+<tr>
+<td>Firefly III</td>
+<td>App <code>127.0.0.1:8023</code>, FinTS <code>:8024</code></td>
+<td><code>firefly-iii/</code></td>
+</tr>
+<tr>
+<td>Snipe-IT</td>
+<td><code>127.0.0.1:8025</code></td>
+<td><code>snipe-it/database/</code>, <code>storage/</code></td>
+</tr>
+<tr>
+<td>AppFlowy</td>
+<td><code>127.0.0.1:8026</code></td>
+<td><code>appflowy/postgres/</code>, <code>minio/</code>, <code>search/</code></td>
+</tr>
+<tr>
+<td>MDMesh</td>
+<td><code>127.0.0.1:8030</code></td>
+<td><code>mdmesh/postgres/</code>, <code>server/</code>, <code>caddy/</code>, <code>backups/</code></td>
+</tr>
+<tr>
+<td>AdGuard Home</td>
+<td>Host network; DNS TCP/UDP <code>:53</code>, setup <code>:3000</code></td>
+<td><code>adguard_home/conf/</code>, <code>work/</code></td>
+</tr>
+</tbody>
+</table>
+<p>All paths in the table are relative to <code>~/.docker/</code>. Services use host-directory bind mounts; Docker-managed named volumes are not used. Some supporting containers intentionally use ephemeral storage (for example, AppFlowy's Redis queue).</p>
+<h2 id="how-deployment-works">How deployment works</h2>
+<div class="docker-flow">
+<div><b>01 · Configure</b><p>Add the service key below <code>docker</code> in host data. Secrets belong in the encrypted secrets file.</p></div>
+<div><b>02 · Render</b><p>Compose is written to <code>~/.docker/&lt;service&gt;/docker-compose.yml</code>; its user systemd unit is written under <code>~/.config/systemd/user/</code>.</p></div>
+<div><b>03 · Reconcile</b><p>Changed Compose configuration triggers an image pull and service reconciliation. Unchanged files do not cause an image pull.</p></div>
+<div><b>04 · Operate</b><p>systemd manages start, restart and stop. Registered assets can trigger a restart only when they actually change.</p></div>
+</div>
+
+<ul>
+<li>Enable Docker services by setting <code>docker</code> to a truthy mapping. <code>tasks/docker.py</code> installs Docker and defines the shared deployment helper; <code>tasks/docker_container.py</code> dispatches configured service modules.</li>
+<li>Compose projects run as the configured user. Without Sablier, deployment uses <code>docker compose up -d</code>; with Sablier, it prepares containers using <code>docker compose up --no-start</code>.</li>
+<li><code>stop_dependencies</code> controls whether stopping a systemd unit stops the complete Compose project or only its configured <code>app_services</code>.</li>
+<li>Image updates are change-triggered. To update an image without changing configuration, run an intentional manual pull for that service.</li>
+<li>Service modules can register extra restart triggers for generated assets. Homepage, for example, is restarted when synchronized public icons change.</li>
+</ul>
+<h2 id="storage-and-security">Storage and security</h2>
+<div class="docker-info-grid">
+<div class="docker-info-card">
+<strong><code>~/.docker/&lt;service&gt;/</code></strong>
+<p>Compose files, environment files and persistent application data stay grouped per service.</p>
+</div>
+<div class="docker-info-card">
+<strong>Host bind mounts only</strong>
+<p>Data is visible and backup-friendly on the host. No Docker-managed named volumes are used.</p>
+</div>
+<div class="docker-info-card">
+<strong>Encrypted secrets</strong>
+<p>Passwords, API keys and signing secrets belong in <code>secrets.json.gpg</code>, not tracked host data.</p>
+</div>
+<div class="docker-info-card">
+<strong>Loopback by default</strong>
+<p>Publish web interfaces through a trusted reverse proxy or VPN rather than exposing container ports publicly.</p>
+</div>
+</div>
+
+<div class="admonition warning">
+<p class="admonition-title">Before enabling a service</p>
+<p>Check for existing listeners and reverse-proxy routes, configure strong secrets, and review the Compose template. Portainer, MDMesh's supervisor and other Docker-socket consumers can control the Docker host and must be treated as privileged components.</p>
+</div>
+<h2 id="optional-lifecycle-integrations">Optional lifecycle integrations</h2>
+<h3 id="sablier">Sablier</h3>
+<p>Sablier can start or resume labelled application containers on demand. It is enabled separately with <code>docker_sablier.enabled</code>; the tracked example disables it. Dynamic mode serves a waiting page while a service starts. The default provider strategy is <code>pause</code>, which preserves memory usage while idle; <code>stop</code> releases memory but causes a cold start. Sablier and the Docker battery monitor are mutually exclusive.</p>
+<h3 id="docker-power">Docker Power</h3>
+<p>The optional battery monitor can stop configured containers to reduce power use. When Sablier is enabled, the monitor is disabled and containers it previously stopped are restored. See <a href="../tasks/#docker-services">Task reference</a> for the task gates and implementation details.</p>
+<h2 id="service-configuration-and-operational-notes">Service configuration and operational notes</h2>
+<p>The task reference explains Homepage widgets, Linkwarden bookmark synchronization, Caddy/Dehydrated integration, AdGuard setup, MDMesh bootstrap behavior, service secrets and per-service configuration.</p>
+<details class="info">
+<summary>Detailed service notes and integration configuration</summary>
+<p><strong>Service-specific notes</strong></p>
+<ul>
+<li><strong>MDMesh</strong> is an Android-only MDM (it does not manage Linux endpoints) and is optional: it is deployed only when <code>docker.mdmesh.domain</code> is configured; leave the key unset to skip it. It deploys the upstream PostgreSQL 14, server, web-edge and supervisor images at the resolved <code>docker.mdmesh.version</code> (defaults to <code>"latest"</code>; a semantic version can be pinned). The web edge binds only to <code>127.0.0.1:8030</code> by default; add the public hostname to <code>caddy_config</code>, for example <code>"mdm.example.com:443": {"reverse_proxy": "127.0.0.1:8030"}</code>, so the existing Caddy instance terminates HTTPS. Set <code>docker.mdmesh.domain</code> to the same hostname. All persistent data, including PostgreSQL, server state, Caddy state/configuration and supervisor backups, uses host bind mounts under <code>~/.docker/mdmesh/</code>; there are no Docker-managed named volumes. Store <code>database_password</code>, <code>hash_secret</code> and <code>admin_password</code> under <code>secrets.docker.mdmesh</code> in the encrypted secrets file; each must be at least 32 characters and must not contain quotes, backslashes or line breaks. The initial administrator is <code>admin_email</code> (default <code>admin@&lt;domain&gt;</code>) and must change the configured initial password at first sign-in. The task downloads the database seed and repair scripts from the same tagged MDMesh release, seeds only a fresh database, refuses an inconsistent database, and checks enrollment defaults before skipping the bootstrap operation on later runs. The supervisor mounts the Docker socket and can control host containers; treat it as a privileged component. Set <code>trusted_proxies</code> only to the actual CIDRs used by the existing reverse proxy. MDMesh's signed release/update mechanism is retained, but automatic updates are disabled; with <code>version: "latest"</code>, the task resolves the latest stable release on each deployment and reconciles the images and bootstrap assets together. Pin a semantic version when a fixed release is required. Sablier is forcibly disabled for MDMesh, even when the global integration or a per-service opt-in is enabled: Android devices need an always-available management endpoint, and Sablier's lazy-start preparation leaves its containers created but stopped.</li>
+<li>
+<p><strong>AppFlowy</strong> deploys the current AppFlowy Self-Hosted Commercial Compose stack (Cloud, GoTrue, PostgreSQL/pgvector, Redis, MinIO, AI, Worker, Search, Web, Admin and Nginx). Nginx binds only to <code>127.0.0.1:8026</code> and Caddy publishes <code>appflowy.21x9.org</code>. PostgreSQL, MinIO and Search data use direct bind mounts under <code>~/.docker/appflowy/</code>; no Docker-managed named volumes are used. The task renders a private <code>~/.docker/appflowy/.env</code> (mode <code>0600</code>) from encrypted <code>secrets.docker.appflowy</code> values. Set <code>postgres_password</code>, <code>admin_password</code>, <code>jwt_secret</code>, <code>minio_access_key</code> and <code>minio_secret_key</code>; URL-interpolated secrets must use the documented URL-safe formats. Change the initial administrator password after first login. Cloud uses <code>APPFLOWY_REDIS_URI</code>, AI uses <code>AI_REDIS_URL</code>, Worker uses <code>APPFLOWY_WORKER_REDIS_URL</code>, and Search receives both <code>APPFLOWY_INDEXER_REDIS_URL</code> and <code>APPFLOWY_SEARCH_REDIS_URL</code>, mapped to the same Compose <code>redis</code> service endpoint rather than container-local <code>localhost</code>. Redis follows the upstream ephemeral configuration and has no persistent data mount or AOF; pending queue state may not survive Redis replacement. AppFlowy Self-Hosted Commercial is distributed under AppFlowy's commercial self-hosted license; review its terms before deployment. Homepage receives only a normal link, not an API widget or authenticated exporter.</p>
+</li>
+<li>
+<p><strong>Paperless-ngx</strong> runs with PostgreSQL 17, Valkey, Gotenberg and Tika. PostgreSQL data and Paperless data, media, consume and export directories are host bind mounts under <code>~/.docker/paperless/</code>; no Docker named volumes are used. The directories are created idempotently with PostgreSQL ownership <code>70:70</code> and Paperless ownership controlled by <code>docker.paperless.uid</code> / <code>gid</code> (defaults to <code>1000:1000</code>). Its web interface binds to <code>127.0.0.1:8022</code> and the supplied local Caddy configuration publishes <code>paperless.21x9.org</code>. Store <code>postgres_password</code> (URL-safe) and <code>secret_key</code> under <code>secrets.docker.paperless</code> in the encrypted secrets file. Generate a strong secret key and do not leave the example placeholders in place. The host import directory <code>~/Paperless</code> is a symlink to <code>~/.docker/paperless/consume</code>; place documents there to import them.</p>
+</li>
+<li>
+<p><strong>Firefly III</strong> runs with MariaDB, an Alpine cron container and the FinTS importer. The application binds to <code>127.0.0.1:8023</code> (<code>firefly.21x9.org</code>) and the importer UI to <code>127.0.0.1:8024</code> (<code>fints.21x9.org</code>). Database files, Firefly uploads and importer configurations are host bind mounts under <code>~/.docker/firefly-iii/</code>; no named volumes are used. Store <code>database_password</code>, <code>mysql_root_password</code>, <code>app_key</code> and the exactly 32-character <code>cron_token</code> under <code>secrets.docker.firefly-iii</code> in the encrypted secrets file. Use a Laravel-compatible application key (for example, a <code>base64:</code>-prefixed 32-byte key). The importer is the community <code>benkl/firefly-iii-fints-importer</code> image; after first start, open its UI, set the Firefly III URL to <code>http://app:8080</code> from within the Compose network, and provide a Firefly III personal access token. The importer stores its bank connection configurations under <code>~/.docker/firefly-iii/fints/</code>. FinTS authentication data is sensitive; protect access to the importer hostname and host directory accordingly.</p>
+</li>
+<li>
+<p><strong>Snipe-IT</strong> runs with MariaDB 11.4 and the official <code>snipe/snipe-it</code> image. Its database and application storage use direct host bind mounts from <code>~/.docker/snipe-it/database/</code> and <code>~/.docker/snipe-it/storage/</code>, respectively. The backing directories are prepared idempotently with MariaDB ownership <code>999:999</code> and Snipe-IT ownership <code>10000:50</code>. The application binds to <code>127.0.0.1:8025</code> and the supplied local Caddy hostname is <code>snipeit.21x9.org</code>. Store <code>database_password</code>, <code>mysql_root_password</code> and a generated Laravel <code>app_key</code> under <code>secrets.docker.snipe-it</code> in the encrypted secrets file. Generate the key with <code>docker compose run --rm app php artisan key:generate --show</code>; keep the same key for the lifetime of the installation.</p>
+</li>
+<li><strong>Miniflux</strong> uses a PostgreSQL companion container. Its database is persisted in <code>~/.docker/miniflux/db/</code>; administrator and database credentials are read from <code>secrets.docker.miniflux</code>.</li>
+<li><strong>TimeTagger</strong> stores its data in <code>~/.docker/timetagger/</code>, mounted at the container's <code>/root/_timetagger</code> directory.</li>
+<li><strong>Grav</strong> persists the complete web application data directory in <code>~/.docker/grav/data/</code>. Its <code>setup</code>, <code>scheduler</code> and <code>fix_permissions</code> options are configurable.</li>
+<li><strong>Forgejo</strong> persists application data in <code>~/.docker/forgejo/data/</code>. Its web and SSH ports bind to loopback by default; the public domain is configurable. The HTTP host port defaults to <code>8027</code> while the container continues listening on <code>3000</code>. Override it with <code>docker.forgejo.port</code> if needed, and point the corresponding Caddy <code>reverse_proxy</code> to the same loopback host port (for example <code>127.0.0.1:8027</code>). Existing explicit <code>port: 3000</code> host settings are not migrated automatically; update that setting and the Caddy route together to resolve a conflict.</li>
+<li><strong>Portainer</strong> persists data in <code>~/.docker/portainer/data/</code> and mounts <code>/var/run/docker.sock</code>. Access to Portainer effectively grants administrative control over the Docker host; expose it only through a trusted, authenticated reverse proxy.</li>
+<li><strong>TasmoAdmin</strong> mounts <code>~/.docker/tasmoadmin/data/</code> at <code>/data/tasmoadmin</code>, matching its <code>TASMO_DATADIR</code> setting.</li>
+<li><strong>Wallabag</strong> uses SQLite and persists its database/application data and article images in the two host directories shown above. The directories are mounted into the container paths used by Wallabag's <code>www-data</code> process. The supplied local Caddy configuration publishes it as <code>wallabag.21x9.org</code>; the initial credentials are <code>wallabag</code> / <code>wallabag</code>, which must be changed after first login.</li>
+<li><strong>Vaultwarden</strong> persists its data in <code>~/.docker/vaultwarden/</code>. Public signups and invitations are disabled. An optional Argon2 PHC admin-token hash is read from <code>secrets.docker.vaultwarden.admin_token</code>; generate it with <code>docker run --rm -it vaultwarden/server:latest /vaultwarden hash</code>. Its supplied local Caddy hostname is <code>vaultwarden.21x9.org</code>.</li>
+<li><strong>NocoDB</strong> persists application data in <code>~/.docker/nocodb/data/</code>, mounted at <code>/usr/app/data</code>. Its HTTP interface binds to loopback on port <code>8019</code> by default; the supplied local Caddy hostname is <code>nocodb.21x9.org</code>.</li>
+<li><strong>Linkwarden</strong> uses PostgreSQL 16 and Meilisearch alongside the application. Three host bind mounts store PostgreSQL data, Linkwarden archives/uploads and the Meilisearch index in <code>~/.docker/linkwarden/postgres/</code>, <code>~/.docker/linkwarden/data/</code> and <code>~/.docker/linkwarden/meili/</code>, respectively. Its web interface binds to loopback on port <code>8021</code>; the supplied local Caddy hostname is <code>linkwarden.21x9.org</code>. Database, NextAuth and Meilisearch secrets are read from <code>secrets.docker.linkwarden</code>; use distinct, URL-safe values for all three secrets. <code>NEXTAUTH_URL</code> is generated as <code>https://linkwarden.21x9.org/api/v1/auth</code> (or the configured domain). All three directories are mounted directly from the host. The manual Homepage bookmark synchronizer supports <code>docker.linkwarden.blacklist</code> for bookmark IDs and <code>docker.linkwarden.exclude_categories</code> for collection names; category matching ignores case and surrounding whitespace. Both lists default to empty. Run <code>python tasks/docker/linkwarden_bookmarks.py --dry-run</code> to preview the result before synchronization. Run <code>python tasks/docker/linkwarden_bookmarks.py --list-links</code> to print every Linkwarden link ID, category, title and URL in a tab-separated table for copying IDs into the blacklist. Listing is read-only and does not download favicons or modify files.</li>
+<li><strong>WG-Easy</strong> stores WireGuard configuration in a host bind mount at <code>~/.docker/wg-easy/</code>; it publishes UDP <code>51820</code> for VPN traffic and binds its administration UI to <code>127.0.0.1:51821</code>. The UI is reverse-proxied through Caddy at <code>vpn.21x9.org</code>. Complete the initial setup wizard to set the public endpoint to <code>vpn.21x9.org</code> and create the administrator account. <code>INSECURE=true</code> is set only for the HTTP connection between the container and the local Caddy reverse proxy; do not publish the UI port directly.</li>
+<li><strong>Homepage</strong> stores its configuration in <code>~/.docker/homepage/config/</code>, mounted at <code>/app/config</code>. It binds to loopback on port <code>8020</code> and sets <code>HOMEPAGE_ALLOWED_HOSTS</code> to the configured hostname; the supplied local Caddy hostname is <code>homepage.21x9.org</code>. Optional host-data keys <code>settings</code>, <code>services</code>, <code>bookmarks</code>, <code>widgets</code>, <code>docker</code>, <code>kubernetes</code> and <code>proxmox</code> are rendered to their matching <code>*.yaml</code> files. Each file is rendered only when its key is present; omitted sections are left untouched. The supplied <code>group_data/@local.py</code> includes service links to locally deployed applications and grouped bookmarks. Bookmark categories include Misc (GitHub, Kachelmannwetter, dict.leo, docsbot and lookscanned), Social (Reddit, Mastodon, Discord and LinkedIn), Entertainment (YouTube, Last.fm and Letterboxd), and Proton (Mail, Calendar, Drive, Docs, Sheets, VPN, Pass, Authenticator, Wallet, Meet and Lumo). Icons are referenced as local files under <code>/icons/</code>; they are not fetched from third-party favicon URLs at dashboard runtime. The icons are stored in <code>files/homepage/icons/</code> and synchronized idempotently to <code>~/.docker/homepage/public/icons/</code>; synchronization does not delete destination files, so local-only icons are preserved. Homepage is restarted only when this synchronization changes files, ensuring newly deployed icons are picked up without causing unnecessary restarts on unchanged runs. The public asset directories use mode <code>0755</code>; icon synchronization does not enforce per-file ownership or permissions, avoiding repeated metadata changes if the Homepage container adjusts mounted asset metadata. The Compose service mounts the icon and image directories separately at <code>/app/public/icons</code> and <code>/app/public/images</code>. Set each service's <code>icon</code> to a path such as <code>/icons/miniflux.png</code>. Configure the dashboard background under <code>docker.homepage.settings.background</code>; the local example uses the official Homepage sample image hosted by Unsplash. Replace the URL or use a local image such as <code>/images/background.jpg</code> stored in <code>~/.docker/homepage/public/images/</code>. Homepage also supports <code>blur</code>, <code>saturate</code> and <code>brightness</code> background options. The local example configures <code>settings.layout.Services</code> with <code>style: row</code> and <code>columns: 3</code>, arranging service cards in three columns. Adjust the column count in host data to suit the display. Docker socket access is not enabled by default. Homepage dashboards may expose sensitive widget data, so protect access with a trusted reverse proxy authentication policy, Homepage authentication, or a VPN.</li>
+</ul>
+<p>Homepage supports two distinct widget types: service widgets are configured inside each service entry in services.yaml, while header/info widgets are configured in widgets.yaml. Both are supplied through the docker.homepage.services and docker.homepage.widgets host-data keys. The local example enables:
+- <strong>FRITZ!Box</strong> status, uptime and transfer rates at 192.168.42.1. Enable <em>Allow access for applications</em> and <em>Transmit status information over UPnP</em> in the FRITZ!Box network settings. The widget does not require credentials and supports at most four fields.
+- <strong>Miniflux</strong> unread/read article counts. Create an API key under Miniflux Settings → API keys.
+- <strong>Forgejo</strong> repository, notification, issue and pull-request counts using Homepage's Gitea-compatible widget. Create an API token with notifications, repository and issue permissions.
+- <strong>Portainer</strong> running/stopped/total container counts. Create an API access token and verify the environment ID (1 in the supplied example) in Portainer.
+- <strong>OpenWeatherMap</strong> current weather and forecast for Cologne, Germany, configured with metric units and a five-minute cache. Homepage reads the API key from the shared <code>settings.providers.openweathermap</code> entry, which resolves <code>HOMEPAGE_VAR_OPENWEATHERMAP_API_KEY</code> from the container environment. Store the key under <code>secrets.docker.homepage.environment</code> in <code>secrets.json.gpg</code>; an OpenWeatherMap One Call API subscription/key is required. See the <a href="https://gethomepage.dev/widgets/info/openweathermap/">OpenWeatherMap widget documentation</a>.
+- <strong>Glances</strong> host metrics (CPU, memory, CPU temperature, uptime and the <code>/</code> filesystem). The Homepage task manages a system-level <code>glances-web.service</code> running as the configured deployment user; this avoids depending on an interactive user session or user D-Bus. When the unit changes, it restarts the service and removes only a stale Glances web-server process matching the configured user, bind address and port before starting the managed instance; the separate Glances server mode (<code>-s</code>) is not affected. Glances listens on Docker's host-gateway address (default <code>172.17.0.1:61208</code>) and is reached using the Compose <code>host.docker.internal:host-gateway</code> mapping. The Homepage network's own gateway (for example <code>172.27.0.1</code>) is not the address used by <code>host.docker.internal</code>. UFW access is managed centrally through the <code>ufw</code> configuration in <code>group_data/@local.py</code>: <code>docker-host-glances</code> allows the Homepage Docker subnet (<code>172.27.0.0/16</code>) to reach the Glances listener at the Docker host-gateway address (<code>172.17.0.1:61208</code>). The Homepage task does not add firewall rules itself. The API port is not published by Compose or opened to arbitrary source networks. If the Docker subnet, host-gateway address, Glances bind address or port changes, update the corresponding custom UFW rule to match <code>docker.homepage.glances.bind_address</code> and <code>docker.homepage.glances.port</code>.
+- A date/time widget using the German locale and 24-hour time format, and DuckDuckGo search. CPU, memory and filesystem metrics are provided by Glances to avoid duplicate resource displays.</p>
+<p>The Miniflux, Forgejo and Portainer service widgets use their public HTTPS hostnames (<code>rss.21x9.org</code>, <code>forgejo.21x9.org</code> and <code>portainer.21x9.org</code>) as API URLs. The Homepage Compose template maps these names to Docker's <code>host-gateway</code> address with <code>extra_hosts</code>; this prevents container DNS from resolving a public hostname to the host's loopback address (<code>127.0.0.1</code>). Caddy receives the HTTPS requests on the host gateway and routes them by hostname to the services bound to host loopback ports. Keep Caddy reachable on the host-gateway interface on port 443. The <code>host.docker.internal</code> mapping remains available separately for host services such as Glances. Homepage substitutes <code>{{HOMEPAGE_VAR_*}}</code> placeholders from its environment. The example <code>secrets.json.gpg.example</code> documents <code>HOMEPAGE_VAR_MINIFLUX_API_KEY</code>, <code>HOMEPAGE_VAR_FORGEJO_API_KEY</code>, <code>HOMEPAGE_VAR_PORTAINER_API_KEY</code> and <code>HOMEPAGE_VAR_OPENWEATHERMAP_API_KEY</code> under <code>hosts.@local.docker.homepage.environment</code>; <code>tasks/docker/homepage.py</code> merges this secret mapping into the container environment, with secret values taking precedence. Keep the actual API keys only in the encrypted secrets file, never in <code>@local.py</code>. The Portainer widget's <code>env: 1</code> refers to the example environment ID; change it if the Portainer environment has a different ID.</p>
+<p><strong>Optional integrations:</strong> Homepage also supports widgets for WGEasy, Grafana, Home Assistant and Paperless-ngx. These applications are not deployed by this repository's Docker service tasks (Grafana, Home Assistant and Paperless-ngx are referenced only as external LAN services; WG-Easy is deployed by this repository, but its Homepage widget is not enabled in the supplied local configuration). Add them as service entries only when the corresponding application is reachable from the Homepage container. For WGEasy v15 and newer, use widget type wgeasy, version 2, and the configured username/password; older releases use API version 1. See the <a href="https://gethomepage.dev/widgets/services/wgeasy/">WGEasy widget documentation</a>. The FRITZ!Box, Miniflux, Forgejo/Gitea and Portainer widget schemas are documented in the <a href="https://gethomepage.dev/widgets/services/">Homepage service widget reference</a>.</p>
+<p>Example optional service entries (add them to a group in docker.homepage.services and replace the URLs and credentials with values reachable from the Homepage container):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="p">{</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="s2">"WG-Easy"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>        <span class="s2">"href"</span><span class="p">:</span> <span class="s2">"https://wg-easy.example.org"</span><span class="p">,</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>        <span class="s2">"widget"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"wgeasy"</span><span class="p">,</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>            <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"http://wg-easy:51821"</span><span class="p">,</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>            <span class="s2">"version"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>  <span class="c1"># WGEasy v15+</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"{{HOMEPAGE_VAR_WGEASY_USERNAME}}"</span><span class="p">,</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>            <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"{{HOMEPAGE_VAR_WGEASY_PASSWORD}}"</span><span class="p">,</span>        <span class="p">},</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    <span class="p">},</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="p">},</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="p">{</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>    <span class="s2">"Grafana"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>        <span class="s2">"href"</span><span class="p">:</span> <span class="s2">"https://grafana.example.org"</span><span class="p">,</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>        <span class="s2">"widget"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"grafana"</span><span class="p">,</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>            <span class="s2">"version"</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>  <span class="c1"># Grafana &gt; 10.4</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a>            <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"http://grafana:3000"</span><span class="p">,</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>            <span class="s2">"username"</span><span class="p">:</span> <span class="s2">"{{HOMEPAGE_VAR_GRAFANA_USERNAME}}"</span><span class="p">,</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a>            <span class="s2">"password"</span><span class="p">:</span> <span class="s2">"{{HOMEPAGE_VAR_GRAFANA_PASSWORD}}"</span><span class="p">,</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a>        <span class="p">},</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a>    <span class="p">},</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="p">},</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="p">{</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a>    <span class="s2">"Home Assistant"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a>        <span class="s2">"href"</span><span class="p">:</span> <span class="s2">"https://ha.example.org"</span><span class="p">,</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a>        <span class="s2">"widget"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a>            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"homeassistant"</span><span class="p">,</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a>            <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"http://homeassistant:8123"</span><span class="p">,</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a>            <span class="s2">"key"</span><span class="p">:</span> <span class="s2">"{{HOMEPAGE_VAR_HOME_ASSISTANT_TOKEN}}"</span><span class="p">,</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a>        <span class="p">},</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a>    <span class="p">},</span>
+<a id="__codelineno-0-33" name="__codelineno-0-33" href="#__codelineno-0-33"></a><span class="p">},</span>
+<a id="__codelineno-0-34" name="__codelineno-0-34" href="#__codelineno-0-34"></a><span class="p">{</span>
+<a id="__codelineno-0-35" name="__codelineno-0-35" href="#__codelineno-0-35"></a>    <span class="s2">"Paperless-ngx"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-36" name="__codelineno-0-36" href="#__codelineno-0-36"></a>        <span class="s2">"href"</span><span class="p">:</span> <span class="s2">"https://paperless.example.org"</span><span class="p">,</span>
+<a id="__codelineno-0-37" name="__codelineno-0-37" href="#__codelineno-0-37"></a>        <span class="s2">"widget"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-0-38" name="__codelineno-0-38" href="#__codelineno-0-38"></a>            <span class="s2">"type"</span><span class="p">:</span> <span class="s2">"paperlessngx"</span><span class="p">,</span>
+<a id="__codelineno-0-39" name="__codelineno-0-39" href="#__codelineno-0-39"></a>            <span class="s2">"url"</span><span class="p">:</span> <span class="s2">"http://paperless:8000"</span><span class="p">,</span>
+<a id="__codelineno-0-40" name="__codelineno-0-40" href="#__codelineno-0-40"></a>            <span class="s2">"key"</span><span class="p">:</span> <span class="s2">"{{HOMEPAGE_VAR_PAPERLESS_TOKEN}}"</span><span class="p">,</span>
+<a id="__codelineno-0-41" name="__codelineno-0-41" href="#__codelineno-0-41"></a>            <span class="s2">"fields"</span><span class="p">:</span> <span class="p">[</span><span class="s2">"total"</span><span class="p">,</span> <span class="s2">"inbox"</span><span class="p">],</span>
+<a id="__codelineno-0-42" name="__codelineno-0-42" href="#__codelineno-0-42"></a>        <span class="p">},</span>
+<a id="__codelineno-0-43" name="__codelineno-0-43" href="#__codelineno-0-43"></a>    <span class="p">},</span>
+<a id="__codelineno-0-44" name="__codelineno-0-44" href="#__codelineno-0-44"></a><span class="p">},</span>
+</code></pre></div>
+<p>The local Homepage configuration declares the Miniflux, Forgejo and Portainer API-key environment variables with empty defaults. Store their actual values in <code>secrets.docker.homepage.environment</code> in <code>secrets.json.gpg</code>; <code>tasks/docker/homepage.py</code> merges that mapping over <code>docker.homepage.environment</code>, so secret values always take precedence. Do not put real credentials in tracked host-data files. For WGEasy v15 and newer, use widget type wgeasy and version 2; older releases use API version 1. See the <a href="https://gethomepage.dev/widgets/services/wgeasy/">WGEasy widget documentation</a>, <a href="https://gethomepage.dev/widgets/services/grafana/">Grafana</a>, <a href="https://gethomepage.dev/widgets/services/homeassistant/">Home Assistant</a> and <a href="https://gethomepage.dev/widgets/services/paperlessngx/">Paperless-ngx</a> documentation.</p>
+<p>Header widgets and service widgets can expose network and application data. Keep Homepage behind trusted authentication, a VPN, or an authenticated reverse proxy. API keys must have only the permissions needed for read-only dashboard access.</p>
+<p><strong>AdGuard Home</strong></p>
+<p>Enable it by adding an AdGuard Home mapping to <code>docker</code> in <code>@local.py</code>. It runs as a Docker Compose container using host networking, which lets DNS listen directly on host TCP/UDP port 53 without Docker port publishing. Persistent configuration and query data remain in the bind-mounted directories <code>~/.docker/adguard_home/conf/</code> and <code>~/.docker/adguard_home/work/</code>. The default image is pinned to <code>adguard/adguardhome:v0.107.80</code>; override it with <code>docker.adguard_home.image</code> when deliberately upgrading.</p>
+<p>Configure the web UI port with <code>docker.adguard_home.web_port</code> in <code>@local.py</code>. It defaults to <code>3000</code> when omitted; set it to <code>3001</code> if another service already occupies host port 3000. Forgejo now defaults to host port <code>8027</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">docker</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    <span class="s2">"adguard_home"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>        <span class="s2">"image"</span><span class="p">:</span> <span class="s2">"adguard/adguardhome:v0.107.80"</span><span class="p">,</span>  <span class="c1"># Pinned container image.</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>        <span class="s2">"web_port"</span><span class="p">:</span> <span class="mi">3001</span><span class="p">,</span>  <span class="c1"># Host web UI port, different from another listener on 3000.</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    <span class="p">},</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="p">}</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">caddy_config</span> <span class="o">=</span> <span class="p">{</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="s2">"adguard.example.com:443"</span><span class="p">:</span> <span class="p">{</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>        <span class="s2">"reverse_proxy"</span><span class="p">:</span> <span class="s2">"127.0.0.1:3001"</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="p">},</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="p">}</span>
+</code></pre></div>
+<p>On first start, complete AdGuard Home's setup wizard at <code>http://&lt;host-address&gt;:3000</code> (the initial setup port remains AdGuard's default). After the configuration file exists, the task stops AdGuard before reconciling only <code>http.address</code> to <code>127.0.0.1:&lt;docker.adguard_home.web_port&gt;</code>, preserving the rest of <code>AdGuardHome.yaml</code>; the normal deployment then restarts the service when the address changes. The first-run configuration is left untouched until the setup wizard creates the file. The web UI is then loopback-only and should be reached through the configured Caddy reverse proxy. The default port remains 3000 unless explicitly overridden.</p>
+<p>DNS continues to use host TCP/UDP port 53. Configure DNS to listen only on the LAN and WireGuard addresses that should serve clients, then add DNS rewrites for the desired local names and aliases. Host networking means there are no Compose port mappings to restrict exposure. Check for an existing host resolver already using port 53 before enabling the container; do not disable or reconfigure the host resolver automatically. Point the FRITZ!Box DHCP DNS setting and/or WireGuard clients' <code>DNS</code> setting at the host's reachable AdGuard Home address. The container is opt-in and is not deployed unless <code>docker.adguard_home</code> is present.</p>
+<p><strong>Optional public DNS access:</strong> UFW custom rules can allow DNS from any source by adding <code>"adguard-dns": {"action": "Allow", "rule": "53"}</code> to the <code>ufw</code> mapping in <code>@local.py</code>. A port rule without a protocol suffix opens both TCP and UDP port 53, and UFW reports the source as <code>Anywhere</code> (including IPv6 when IPv6 support is enabled). This is intentionally not enabled by default. Exposing DNS publicly can create an open resolver and enable abuse or amplification attacks; configure AdGuard's allowed clients and recursion policy before enabling it. Do not expose the setup wizard or administration UI publicly.</p>
+<p><strong>Storage migration</strong></p>
+<p>All configured services use direct host bind mounts below <code>~/.docker/</code>; no Docker-managed named volumes are used. When changing a service's storage definition, Docker Compose does not automatically migrate existing data. Back up the source and migrate its contents before switching templates. Existing data already in the documented host directories remains in place.</p>
+<p><code>tasks/docker/</code> contains the service-specific configuration and <code>templates/docker/</code> contains the corresponding Compose files. Consult both before changing a service's supported host-data keys or storage layout.</p>
+</details>
+<h2 id="implementation">Implementation</h2>
+<ul>
+<li>Service modules: <code>tasks/docker/</code></li>
+<li>Compose templates: <code>templates/docker/</code></li>
+<li>Shared deployment helper: <code>tasks/docker.py</code></li>
+<li>Service dispatcher: <code>tasks/docker_container.py</code></li>
+</ul>
+<p>See <a href="../tasks/#docker-services">Task reference</a> for the concise task summary and <a href="../configuration/">Configuration</a> for host-data structure.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    
+      
+      <nav class="md-footer__inner md-grid" aria-label="Footer" >
+        
+          
+          <a href="../tasks-overview/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Tasks">
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Tasks
+              </div>
+            </div>
+          </a>
+        
+        
+          
+          <a href="../configuration/" class="md-footer__link md-footer__link--next" aria-label="Next: Configuration">
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              <div class="md-ellipsis">
+                Configuration
+              </div>
+            </div>
+            <div class="md-footer__button md-icon">
+              
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11z"/></svg>
+            </div>
+          </a>
+        
+      </nav>
+    
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tabs", "navigation.tabs.sticky", "navigation.sections", "navigation.indexes", "navigation.top", "navigation.footer", "toc.follow", "content.code.copy", "content.action.edit"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+        <script src="../javascripts/collapsible-state.js"></script>
+      
+    
+  </body>
+</html>
