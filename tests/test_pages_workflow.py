@@ -22,7 +22,7 @@ def test_actions_workflows_run_validation_on_prs_and_main():
     """Checks run on PRs and main without deploying or publishing."""
     found = {path.name for path in WORKFLOWS.glob("*.yml")}
     found.update(path.name for path in WORKFLOWS.glob("*.yaml"))
-    assert found == set(CHECK_COMMANDS)
+    assert found == set(CHECK_COMMANDS) | {"publish-pages.yml"}
 
     for filename, command in CHECK_COMMANDS.items():
         workflow = (WORKFLOWS / filename).read_text(encoding="utf-8")
@@ -37,6 +37,23 @@ def test_actions_workflows_run_validation_on_prs_and_main():
         assert command in workflow
         assert "peaceiris/actions-gh-pages" not in workflow
         assert "pyinfra inventory.py deploy.py" not in workflow
+
+
+def test_pages_publication_is_manual_and_builds_main_before_publishing():
+    """Publication requires an explicit dispatch and an immutable main checkout."""
+    workflow = (WORKFLOWS / "publish-pages.yml").read_text(encoding="utf-8")
+    assert "'on':\\n  workflow_dispatch:" in workflow
+    assert "  push:" not in workflow
+    assert "  pull_request:" not in workflow
+    assert "    permissions:\\n      contents: write" in workflow
+    assert "  contents: read" in workflow
+    assert "ref: main" in workflow
+    assert "group: pages-publish" in workflow
+    assert "cancel-in-progress: false" in workflow
+    assert "run: mkdocs build --strict" in workflow
+    assert "uses: peaceiris/actions-gh-pages@v4" in workflow
+    assert "publish_branch: gh-pages" in workflow
+    assert "publish_dir: ./site" in workflow
 
 
 def test_readme_badges_link_to_main_branch_check_results():
