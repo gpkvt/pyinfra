@@ -231,12 +231,13 @@ samba = {
 
 ### Docker
 
-`docker` is a mapping of service names to service-specific settings. The supported keys are `adguard_home`, `appflowy`, `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it`, `mdmesh` and `wg-easy`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
+`docker` is a mapping of service names to service-specific settings. The supported keys are `adguard_home`, `appflowy`, `huginn`, `miniflux`, `timetagger`, `grav`, `forgejo`, `portainer`, `tasmoadmin`, `wallabag`, `vaultwarden`, `nocodb`, `linkwarden`, `homepage`, `paperless`, `firefly-iii`, `snipe-it`, `mdmesh` and `wg-easy`. Each service has its own options; inspect its module under `tasks/docker/` and its Compose template under `templates/docker/<service>/` before adding keys.
 
 All current services persist application data through host bind mounts below the configured user's home directory:
 
 | Service | Persistent host path | Default loopback port |
 | --- | --- | --- |
+| Huginn | `~/.docker/huginn/postgres/` (PostgreSQL database) | `8028` |
 | Miniflux | `~/.docker/miniflux/db/` (PostgreSQL database) | `8080` |
 | TimeTagger | `~/.docker/timetagger/` | `8080` |
 | Grav | `~/.docker/grav/data/` | `8080` |
@@ -260,6 +261,7 @@ Service-specific behavior:
 
 - **AppFlowy** deploys the official AppFlowy Self-Hosted Commercial Compose stack behind the existing Caddy instance. The public hostname is `appflowy.21x9.org`; Nginx publishes only `127.0.0.1:8026`. PostgreSQL, MinIO and Search persist in `~/.docker/appflowy/postgres/`, `minio/` and `search/` using host bind mounts. The task creates `~/.docker/appflowy/.env` with mode `0600` from encrypted secrets. Configure `secrets.docker.appflowy.postgres_password`, `admin_password`, `jwt_secret`, `minio_access_key` and `minio_secret_key`. The initial administrator password must be at least 16 URL-safe characters. Generate the PostgreSQL password, JWT secret and MinIO secret key with `openssl rand -hex 32`; generate the exactly 20-character MinIO access key with `openssl rand -hex 10`. The first GoTrue administrator is created from `docker.appflowy.admin_email` (default `admin@appflowy.21x9.org`) and the encrypted `admin_password`. Change the initial password after first login. Cloud, AI, Worker and Search receive their respective Redis connection URLs from the generated environment file and connect to the Compose `redis` service, never container-local `localhost`. Redis follows the upstream ephemeral configuration and has no persistent data mount or AOF; pending queue state may not survive Redis replacement. SMTP and AI provider keys are optional and remain unset by default. AppFlowy is the commercial self-hosted distribution; review the upstream license before deployment. Homepage only links to AppFlowy and does not call its authenticated API.
 
+- **Huginn** requires `docker.huginn.domain` (public hostname without scheme), and defaults to loopback HTTP port `8028`. Optional settings are `image`, `postgres_image`, `port`, `seed_username` and `enable_smokescreen` (defaults to `true`). It deploys web, background worker and PostgreSQL containers; PostgreSQL data is bound below `~/.docker/huginn/postgres/`, with a private `.env` containing `secrets.docker.huginn.postgres_password`, `app_secret_token`, `seed_password` and `invitation_code`. All four secrets are required and should be distinct random URL-safe values. Configure HTTPS separately via `caddy_config`, for example `"huginn.example.com:443": {"reverse_proxy": "127.0.0.1:8028"}`. Keep the application secret stable to preserve login sessions and the password stable for the seeded account. PostgreSQL major upgrades require data migration; agent scheduling requires the worker to keep running.
 - **Miniflux** runs with a PostgreSQL companion container. Set `docker.miniflux.postgres_version` explicitly and optionally configure `port`; credentials are supplied through `secrets.docker.miniflux`. Deployment fails if the PostgreSQL version is missing or invalid.
 - **TimeTagger** mounts its persistent directory at the container's `/root/_timetagger`.
 - **Grav** supports `image`, `port`, `channel`, `setup`, `scheduler` and `fix_permissions` options.
@@ -389,6 +391,7 @@ The following features combine host data with encrypted secrets:
 - Caddy's Dehydrated DNS-01 certificate workflow requires `secrets.dehydrated.hetzner_api_token` when Docker and `caddy_config` enable the Caddy task.
 - Git credentials are deployed only when `secrets.git_credentials` is present.
 - SSH key generation can use `secrets.ssh` passphrases.
+- Huginn requires `secrets.docker.huginn` for PostgreSQL, application session, seed login and invitation code credentials.
 - Miniflux uses `secrets.docker.miniflux` for administrator and PostgreSQL credentials.
 - Paperless-ngx requires `secrets.docker.paperless.postgres_password` and `secret_key`.
 - Firefly III requires database credentials, `app_key` and a 32-character `cron_token` under `secrets.docker.firefly-iii`.

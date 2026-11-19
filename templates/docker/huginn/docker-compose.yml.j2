@@ -1,0 +1,70 @@
+services:
+  db:
+    image: {{ postgres_image }}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: huginn
+      POSTGRES_USER: huginn
+      POSTGRES_PASSWORD: "${HUGINN_POSTGRES_PASSWORD:?}"
+    volumes:
+      - "{{ homedir }}/.docker/huginn/postgres:/var/lib/postgresql/data"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U huginn -d huginn"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  web:
+    image: {{ image }}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:{{ port }}:3000"
+    environment:
+      RAILS_ENV: production
+      DOMAIN: "{{ domain }}"
+      PORT: "3000"
+      FORCE_SSL: "false"
+      DATABASE_ADAPTER: postgresql
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: huginn
+      DATABASE_USERNAME: huginn
+      DATABASE_PASSWORD: "${HUGINN_POSTGRES_PASSWORD:?}"
+      APP_SECRET_TOKEN: "${HUGINN_APP_SECRET_TOKEN:?}"
+      SEED_USERNAME: "{{ seed_username }}"
+      SEED_PASSWORD: "${HUGINN_SEED_PASSWORD:?}"
+      INVITATION_CODE: "${HUGINN_INVITATION_CODE:?}"
+      SKIP_INVITATION_CODE: "false"
+      DO_NOT_CREATE_DATABASE: "true"
+      ENABLE_SMOKESCREEN: "{{ enable_smokescreen }}"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  threaded:
+    image: {{ image }}
+    restart: unless-stopped
+    command: /scripts/init bin/threaded.rb
+    environment:
+      RAILS_ENV: production
+      DOMAIN: "{{ domain }}"
+      PORT: "3000"
+      FORCE_SSL: "false"
+      DATABASE_ADAPTER: postgresql
+      DATABASE_HOST: db
+      DATABASE_PORT: "5432"
+      DATABASE_NAME: huginn
+      DATABASE_USERNAME: huginn
+      DATABASE_PASSWORD: "${HUGINN_POSTGRES_PASSWORD:?}"
+      APP_SECRET_TOKEN: "${HUGINN_APP_SECRET_TOKEN:?}"
+      SEED_USERNAME: "{{ seed_username }}"
+      SEED_PASSWORD: "${HUGINN_SEED_PASSWORD:?}"
+      INVITATION_CODE: "${HUGINN_INVITATION_CODE:?}"
+      SKIP_INVITATION_CODE: "false"
+      DO_NOT_CREATE_DATABASE: "true"
+      ENABLE_SMOKESCREEN: "{{ enable_smokescreen }}"
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_started

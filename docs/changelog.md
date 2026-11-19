@@ -6,6 +6,10 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ## [19.11.2026]
 
+### Added
+
+- Added an opt-in Huginn Docker task with separate web/worker containers, PostgreSQL 16 Alpine, host bind-mounted database storage under `~/.docker/huginn/`, encrypted secret configuration, validation, Caddy routing guidance and tests. The HTTP endpoint is loopback-only on port `8028`, and agent egress uses Smokescreen by default.
+
 ### Fixed
 
 - Restored `cyclopts==4.25.3` and `python-dateutil==2.9.0.post0` across Python dependency manifests after incompatible Dependabot major upgrades broke dependency resolution. Added manifest compatibility tests and excluded unsupported major upgrades while `pyinfra==3.11.1` remains pinned.

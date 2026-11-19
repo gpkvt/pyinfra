@@ -174,6 +174,8 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
         docker_config = {service: {}}
         if service == "miniflux":
             docker_config[service] = {"postgres_version": 12}
+        if service == "huginn":
+            docker_config[service] = {"domain": "huginn.example.com"}
         if service == "mdmesh":
             docker_config[service] = {
                 "version": "0.5.0",
@@ -207,6 +209,12 @@ def test_every_task_module_evaluates_in_a_pyinfra_context(
                         "postgres_password": "ci-linkwarden-db",
                         "nextauth_secret": "ci-linkwarden-nextauth",
                         "meili_master_key": "ci-linkwarden-meili",
+                    },
+                    "huginn": {
+                        "postgres_password": "a" * 32,
+                        "app_secret_token": "b" * 64,
+                        "seed_password": "c" * 32,
+                        "invitation_code": "d" * 32,
                     },
                     "miniflux": {
                         "postgres_password": "ci-miniflux-db",
