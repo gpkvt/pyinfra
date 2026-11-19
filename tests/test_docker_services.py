@@ -363,7 +363,6 @@ def test_empty_private_environment_removes_stale_credentials(pyinfra_task_harnes
     assert removal["present"] is False
 
 
-
 @pytest.mark.parametrize(("settings", "expected"), [
     ({}, 8027),
     ({"port": 3000}, 3000),
