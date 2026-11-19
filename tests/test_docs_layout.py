@@ -32,5 +32,5 @@ def test_shared_page_intro_styles_are_responsive():
     stylesheet = (DOCS / "stylesheets" / "extra.css").read_text()
     assert ".page-intro {" in stylesheet
     assert ".page-intro-grid {" in stylesheet
-    assert "@media (max-width: 760px)" in stylesheet
-    assert "@media (max-width: 480px)" in stylesheet
+    assert "@media (max-width: 850px)" in stylesheet
+    assert "@media (max-width: 600px)" in stylesheet

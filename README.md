@@ -4,6 +4,10 @@
 [![Issues](https://img.shields.io/github/issues/gpkvt/pyinfra?logo=github)](https://github.com/gpkvt/pyinfra/issues)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Platforms](https://img.shields.io/badge/platforms-Debian%20%7C%20Ubuntu-A81D33?logo=debian&logoColor=white)](https://www.debian.org/)
+[![Pytest](https://github.com/gpkvt/pyinfra/actions/workflows/pytest.yml/badge.svg?branch=main)](https://github.com/gpkvt/pyinfra/actions/workflows/pytest.yml)
+[![Pre-commit](https://github.com/gpkvt/pyinfra/actions/workflows/pre-commit.yml/badge.svg?branch=main)](https://github.com/gpkvt/pyinfra/actions/workflows/pre-commit.yml)
+[![Docs](https://github.com/gpkvt/pyinfra/actions/workflows/docs.yml/badge.svg?branch=main)](https://github.com/gpkvt/pyinfra/actions/workflows/docs.yml)
+[![Publish Pages](https://github.com/gpkvt/pyinfra/actions/workflows/publish-pages.yml/badge.svg?branch=main)](https://github.com/gpkvt/pyinfra/actions/workflows/publish-pages.yml)
 
 **Declarative Linux infrastructure and workstation automation, powered by [pyinfra](https://pyinfra.com/).**
 
