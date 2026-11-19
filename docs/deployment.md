@@ -87,7 +87,7 @@ The optional modules are included only when the relevant configuration and runti
 Docker service dispatch is configuration-key based. Supported application keys include `adguard_home`, `appflowy`, `firefly-iii`, `forgejo`, `grav`, `homepage`, `linkwarden`, `mdmesh`, `miniflux`, `nocodb`, `paperless`, `portainer`, `snipe-it`, `tasmoadmin`, `timetagger`, `vaultwarden`, `wallabag` and `wg-easy`. See [Docker services](docker.md) and the [Feature reference](feature-reference.md) for the application catalog.
 
 Sablier and the Docker battery monitor are mutually exclusive. When Sablier is enabled, the battery monitor is disabled and containers it previously stopped are restored. Caddy's Dehydrated DNS-01 flow requires `secrets.dehydrated.hetzner_api_token`.
- 
+
 ### Workstation role tasks
 
 The workstation role is assigned through inventory group membership, not by naming a host `workstation`. In the supplied inventory, `workstation = ["@local"]` assigns the local target to the group; its shared settings are in `group_data/workstation.py`.
