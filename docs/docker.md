@@ -15,6 +15,7 @@ The ports below are the documented defaults. Web interfaces generally bind to lo
 
 | Service | Default host endpoint | Persistent host data |
 | --- | --- | --- |
+| Huginn | `127.0.0.1:8028` | `huginn/postgres/` |
 | Miniflux | `127.0.0.1:8080` | `miniflux/db/` |
 | TimeTagger | `127.0.0.1:8080` | `timetagger/` |
 | Grav | `127.0.0.1:8080` | `grav/data/` |
