@@ -1,4 +1,4 @@
-"""Regression tests for the prominent task documentation hub."""
+"""Regression tests for the technical task overview."""
 
 from pathlib import Path
 
@@ -6,22 +6,33 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_task_hub_highlights_all_major_task_categories():
-    """The task landing page links directly to each task-reference section."""
+def test_task_overview_links_to_every_major_category():
+    """The overview routes readers to the task, Docker and workstation references."""
     page = (ROOT / "docs" / "tasks-overview.md").read_text(encoding="utf-8")
 
-    assert "Core system tasks" in page
-    assert "Optional features" in page
-    assert "Desktop &amp; hardware" in page
-    assert "Docker services" in page
-    assert "tasks.md#core-tasks" in page
-    assert "tasks.md#optional-tasks" in page
-    assert "tasks.md#workstation-role-tasks" in page
-    assert "tasks.md#docker-services" in page
+    for category in (
+        "System foundations",
+        "Docker applications",
+        "Network and services",
+        "Workstation",
+    ):
+        assert f"| {category} |" in page
+
+    for target in (
+        "[Core task reference](tasks/#core-tasks)",
+        "[Optional task reference](tasks/#optional-tasks)",
+        "[Docker guide](docker/)",
+        "[Workstation features](feature-reference/#workstation-role-features)",
+    ):
+        assert target in page
 
 
-def test_task_hub_styles_are_registered():
-    """The responsive task hub stylesheet is loaded by MkDocs."""
+def test_task_overview_uses_shared_documentation_styles():
+    """The site includes the shared styling used by documentation pages."""
     config = (ROOT / "mkdocs.yml").read_text(encoding="utf-8")
+    stylesheet = (
+        ROOT / "docs" / "stylesheets" / "extra.css"
+    ).read_text(encoding="utf-8")
 
-    assert "stylesheets/task-hub.css" in config
+    assert "stylesheets/extra.css" in config
+    assert ".page-intro {" in stylesheet
