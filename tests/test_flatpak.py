@@ -129,6 +129,9 @@ def test_flatpak_task_discovers_both_ref_types_and_prefers_flathub(
     assert installs[0]["packages"] == ["org.example.App", "org.example.Codecs"]
     assert installs[0]["remote"] == "flathub"
     assert installs[0]["user"] is True
+    assert installs[0]["_retries"] == 3
+    assert installs[0]["_retry_delay"] == 5
+    assert installs[0]["_ignore_errors"] is True
     assert "flatpak list --user --columns=ref" in fact_commands
     assert fact_names.count("FlatpakRemoteApplications") == 1
 
