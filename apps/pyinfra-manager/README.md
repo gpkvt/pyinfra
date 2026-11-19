@@ -16,18 +16,19 @@ uv run python apps/pyinfra-manager/backend/manager.py run @local
 Deployments are dry-run by default. Pass `--apply` only after reviewing the
 preview.
 
-## Manual application builds
+## Local application builds
 
-GitHub Actions builds the Linux x86_64 application only when manually
-dispatched:
+There is no GitHub Actions build workflow or automatically published desktop
+artifact. Install Rust/Cargo and the required COSMIC development libraries,
+then run these commands from the repository root:
 
-1. Open the repository's **Actions** tab.
-2. Select **Build COSMIC Desktop App**.
-3. Select **Run workflow**.
-4. Download the `pyinfra-manager-linux-x86_64` artifact after completion.
+```bash
+cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml --all -- --check
+cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets -- -D warnings
+cargo build --manifest-path apps/pyinfra-manager/Cargo.toml --release
+```
 
-Extract the archive and run `./pyinfra-manager`.
-
-The artifact contains the executable, desktop entry, AppStream metadata, and
-this README. It is a build artifact, not a self-contained installer; Rust and
-COSMIC system dependencies are not bundled.
+The executable is `apps/pyinfra-manager/target/release/pyinfra-manager`.
+Desktop entry and AppStream metadata remain under `resources/`. The executable
+is not a self-contained installer; COSMIC system libraries and the Python
+project environment must be installed separately.
