@@ -363,6 +363,53 @@ def test_empty_private_environment_removes_stale_credentials(pyinfra_task_harnes
     assert removal["present"] is False
 
 
+
+@pytest.mark.parametrize(("settings", "expected"), [
+    ({}, 8027),
+    ({"port": 3000}, 3000),
+    ({"port": 8099}, 8099),
+])
+def test_forgejo_http_host_port_defaults_and_can_be_overridden(
+    pyinfra_task_harness, monkeypatch, settings, expected,
+):
+    """Forgejo's HTTP host port is distinct from the container's port 3000."""
+    deployed = []
+    docker_module = types.ModuleType("tasks.docker")
+    docker_module.deploy_docker_service = lambda **kwargs: deployed.append(kwargs)
+    monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
+
+    pyinfra_task_harness.load("docker/forgejo.py", {
+        "docker": {"forgejo": settings},
+        "homedir": "/home/tester",
+        "username": "tester",
+        "usergroup": "tester",
+    })
+
+    assert len(deployed) == 1
+    assert deployed[0]["port"] == expected
+    assert deployed[0]["ssh_port"] == 2222
+    template = (ROOT / "templates/docker/forgejo/docker-compose.yml.j2").read_text()
+    assert '"127.0.0.1:{{ port }}:3000"' in template
+    assert "FORGEJO__server__HTTP_PORT=3000" in template
+
+
+@pytest.mark.parametrize("port", [0, -1, 65536, True, "8027", 8027.0, None])
+def test_forgejo_rejects_invalid_http_host_ports(
+    pyinfra_task_harness, monkeypatch, port,
+):
+    """Reject invalid ports before scheduling any deployment operations."""
+    docker_module = types.ModuleType("tasks.docker")
+    docker_module.deploy_docker_service = lambda **_kwargs: None
+    monkeypatch.setitem(sys.modules, "tasks.docker", docker_module)
+
+    with pytest.raises(ValueError, match="docker.forgejo.port must be an integer"):
+        pyinfra_task_harness.load("docker/forgejo.py", {
+            "docker": {"forgejo": {"port": port}},
+            "homedir": "/home/tester",
+        })
+    assert not pyinfra_task_harness.calls
+
+
 def test_adguard_home_is_dispatched_only_when_configured():
     """AdGuard Home remains opt-in through the docker host-data mapping."""
     source = (ROOT / "tasks/docker_container.py").read_text()
