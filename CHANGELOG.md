@@ -6,6 +6,10 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ## [19.11.2026]
 
+### Fixed
+
+- Restored `cyclopts==4.25.3` and `python-dateutil==2.9.0.post0` across Python dependency manifests after incompatible Dependabot major upgrades broke dependency resolution. Added manifest compatibility tests and excluded unsupported major upgrades while `pyinfra==3.11.1` remains pinned.
+
 ### Added
 
 - Added GitHub Actions checks for pytest, pre-commit and strict MkDocs builds on pull requests and `main`, with live README status badges. Added a separate **manual-only** GitHub Pages publishing workflow that validates documentation before updating `gh-pages`; no automatic publishing was restored.
