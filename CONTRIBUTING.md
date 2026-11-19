@@ -24,7 +24,7 @@ source .venv/bin/activate
 
 After changing dependencies, update the local environment with `uv lock`
 and `uv sync --dev`. When adding or changing a runtime dependency, also
-update `requirements.txt`, which is used by the deployment CI job.
+update `requirements.txt`, which is used to install deployment dependencies.
 
 ## Repository structure
 
@@ -39,7 +39,7 @@ update `requirements.txt`, which is used by the deployment CI job.
 | `templates/` | Jinja2 configuration templates |
 | `apps/pyinfra-manager/` | Native COSMIC desktop deployment manager |
 | `vscode/gpg-vault/` | VS Code extension for GPG-based vault workflows |
-| `.github/` | CI workflows and coverage inventories |
+| `.github/` | GitHub configuration and task coverage inventories |
 | `tests/` | Mocked task and helper regression tests |
 
 ## Contribution principles
@@ -89,9 +89,10 @@ uv run pytest tests/ -v
 ```
 
 The test suite mocks pyinfra host, fact and operation APIs; it does not deploy
-to a real host. The CI workflow also checks task-module coverage and performs
-a two-pass idempotency deployment against an isolated GitHub Actions runner.
-See [Development](docs/development.md) for the complete check inventory.
+to a real host. No GitHub Actions workflows run the checks automatically.
+Run pre-commit and pytest locally, and use a disposable target for a two-pass
+idempotency deployment review. See [Development](docs/development.md) for the
+complete check inventory.
 
 For deployment-related changes, review a dry run against a disposable or
 otherwise recoverable target before applying anything:

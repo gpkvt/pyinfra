@@ -93,15 +93,19 @@ The resulting executable is `target/release/pyinfra-manager`. Install
 expects `uv` and the Python project dependencies to be available on the
 system, and it must be pointed at a pyinfra repository checkout.
 
-## Manual Linux builds
+## Local build checks
 
-The **Build COSMIC Desktop App** workflow is available from the repository's
-Actions tab and runs only when manually dispatched. It checks Rust formatting,
-runs Clippy with warnings denied, and builds the release executable on Ubuntu
-24.04 for x86_64.
+The repository has no GitHub Actions desktop-build workflow or downloadable
+Actions build artifact. Before building locally, check formatting and Clippy
+from the repository root:
 
-The workflow uploads a `pyinfra-manager-linux-x86_64` archive containing the
-executable, desktop entry, AppStream metadata, and application README. Download
-it from the workflow run's **Artifacts** section. This archive is not a
-self-contained installer: COSMIC system libraries and the Python runtime and
-project dependencies must be installed separately.
+```bash
+cargo fmt --manifest-path apps/pyinfra-manager/Cargo.toml --all -- --check
+cargo clippy --manifest-path apps/pyinfra-manager/Cargo.toml --all-targets -- -D warnings
+```
+
+Use the `cargo build --release` command above to create the Linux executable
+locally. Desktop entry and AppStream metadata are stored in
+`apps/pyinfra-manager/resources/`. The executable depends on installed COSMIC
+system libraries and the project's Python environment; it is not a
+self-contained installer.

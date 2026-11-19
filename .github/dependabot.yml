@@ -16,20 +16,6 @@ updates:
         patterns:
           - "*"
 
-  # GitHub Actions (only relevant if you use GitHub Actions)
-  - package-ecosystem: github-actions
-    directory: "/"
-    schedule:
-      interval: weekly
-      day: monday
-      time: "08:00"
-      timezone: Europe/Amsterdam
-    open-pull-requests-limit: 5
-    groups:
-      github-actions:
-        patterns:
-          - "*"
-
   # Docker images
   - package-ecosystem: docker
     directory: "/"

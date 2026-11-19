@@ -1,40 +1,20 @@
-"""Regression tests for documentation publishing and feature coverage."""
+"""Regression tests for repository workflow policy and feature coverage."""
 
 import ast
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW = ROOT / ".github" / "workflows" / "pages.yml"
+WORKFLOWS = ROOT / ".github" / "workflows"
 FEATURE_REFERENCE = ROOT / "docs" / "feature-reference.md"
 MKDOCS = ROOT / "mkdocs.yml"
 DEPLOY = ROOT / "deploy.py"
 
 
-def test_pages_workflow_publishes_on_main_push_and_manually():
-    """Every main update and explicit dispatch rebuilds the published site."""
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-
-    assert "'on':" in workflow
-    assert "  push:" in workflow
-    assert "      - main" in workflow
-    assert "  workflow_dispatch:" in workflow
-    assert "pull_request:" not in workflow
-    assert "run: mkdocs build --strict" in workflow
-    assert "uses: peaceiris/actions-gh-pages@v4" in workflow
-    assert "publish_branch: gh-pages" in workflow
-    assert "publish_dir: ./site" in workflow
-    assert "force_orphan: true" in workflow
-
-
-def test_pages_workflow_serializes_publications_without_cancelling_them():
-    """A newer main push must not cancel an active publication."""
-    workflow = WORKFLOW.read_text(encoding="utf-8")
-
-    assert "group: pages-publish" in workflow
-    assert "cancel-in-progress: false" in workflow
-    assert "contents: write" in workflow
-    assert "git push origin --delete gh-pages" not in workflow
+def test_repository_does_not_define_github_actions_workflows():
+    """Avoid unintentionally restoring automatic or manual GitHub Actions jobs."""
+    assert not list(WORKFLOWS.glob("*.yml"))
+    assert not list(WORKFLOWS.glob("*.yaml"))
 
 
 def test_feature_reference_covers_every_task_python_module():
