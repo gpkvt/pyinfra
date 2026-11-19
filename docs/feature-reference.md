@@ -153,6 +153,7 @@ This list includes implementation, nested feature, helper and test-fixture modul
 | tasks/docker/firefly-iii.py | Firefly III. |
 | tasks/docker/forgejo.py | Forgejo. |
 | tasks/docker/grav.py | Grav. |
+| tasks/docker/huginn.py | Huginn event automation and PostgreSQL. |
 | tasks/docker/homepage.py | Homepage. |
 | tasks/docker/linkwarden.py | Linkwarden. |
 | tasks/docker/linkwarden_bookmarks.py | Bookmark synchronization helper. |
