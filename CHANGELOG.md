@@ -6,6 +6,10 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ## [19.11.2026]
 
+### Added
+
+- Added GitHub Actions checks for pytest, pre-commit and strict MkDocs builds on pull requests and `main`, with live README status badges. Added a separate **manual-only** GitHub Pages publishing workflow that validates documentation before updating `gh-pages`; no automatic publishing was restored.
+
 ### Removed
 
 - Removed all repository GitHub Actions workflows (automatic GitHub Pages publishing and manual COSMIC desktop application builds), along with obsolete workflow tests and GitHub Actions Dependabot updates. Documentation checks and application builds now require local execution.
