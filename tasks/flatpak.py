@@ -118,6 +118,9 @@ if flatpak_packages:
             remote=remote,
             user=True,
             _sudo=False,
+            _retries=3,
+            _retry_delay=5,
+            _ignore_errors=True,
         )
 
 
@@ -139,6 +142,9 @@ server.shell(
         """
     ],
     _sudo=False,
+    _retries=3,
+    _retry_delay=5,
+    _ignore_errors=True,
     _if=lambda: bool(host.get_fact(FlatpakUpdates, _sudo=False)),
 )
 
