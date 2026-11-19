@@ -105,6 +105,7 @@ Enable Docker applications by adding a non-empty mapping below docker. Each serv
 | firefly-iii | tasks/docker/firefly-iii.py | Personal finance manager; database/application secrets. |
 | forgejo | tasks/docker/forgejo.py | Git hosting; web and optional SSH clone endpoint. |
 | grav | tasks/docker/grav.py | Grav CMS; image/channel/setup/scheduler options. |
+| huginn | tasks/docker/huginn.py | Automation agents; PostgreSQL, web process, worker and encrypted secrets. |
 | homepage | tasks/docker/homepage.py | Service dashboard, widgets, services, bookmarks and icon synchronization. |
 | linkwarden | tasks/docker/linkwarden.py | Bookmark manager; PostgreSQL, Meilisearch and app secret. |
 | mdmesh | tasks/docker/mdmesh.py | Android-only MDM; PostgreSQL, server, edge and supervisor. |
