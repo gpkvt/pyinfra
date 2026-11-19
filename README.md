@@ -49,7 +49,7 @@ The repository is organized into reusable task modules. Optional components are 
 <summary><strong>Networking and services</strong></summary>
 
 - WireGuard configuration and conditional VPN activation
-- Docker Compose applications, including AppFlowy, Homepage, Linkwarden, Paperless-ngx, Firefly III, Snipe-IT and WG-Easy
+- Docker Compose applications, including Huginn, AppFlowy, Homepage, Linkwarden, Paperless-ngx, Firefly III, Snipe-IT and WG-Easy
 - Caddy and Sablier for reverse-proxy and on-demand service startup
 - Dehydrated with Hetzner DNS-01 certificate automation
 - Syncthing and optional Samba upload/download shares
