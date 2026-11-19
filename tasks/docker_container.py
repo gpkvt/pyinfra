@@ -10,6 +10,9 @@ if "ci-smoke" in container:
 if "miniflux" in container:
     local.include("tasks/docker/miniflux.py")
 
+if "huginn" in container:
+    local.include("tasks/docker/huginn.py")
+
 if "timetagger" in container:
     local.include("tasks/docker/timetagger.py")
 
