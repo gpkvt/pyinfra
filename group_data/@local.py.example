@@ -229,6 +229,15 @@ docker = {
     #     "blacklist": [],  # Linkwarden bookmark IDs omitted from Homepage bookmark synchronization.
     #
     # },
+    # "huginn": {  # Event-driven automation; credentials belong in encrypted secrets.
+    #     "domain": "huginn.example.com",  # Required public hostname used in application links.
+    #     "port": 8028,  # Loopback HTTP host port; the container listens on 3000.
+    #     "image": "ghcr.io/huginn/huginn-single-process:latest",  # Web/worker image; pin for repeatable upgrades.
+    #     "postgres_image": "postgres:16-alpine",  # Database image; major upgrades need dump/restore.
+    #     "seed_username": "admin",  # Initial administrator login on a fresh database.
+    #     "enable_smokescreen": True,  # Block outbound requests to private/link-local networks.
+    #
+    # },
     # "miniflux": {  # RSS reader; administrator/database passwords belong in secrets.
     #     "postgres_version": 12,  # Required PostgreSQL major version used by the database container.
     #     "port": 8080,  # Web interface port published on the host.
