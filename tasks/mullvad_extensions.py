@@ -109,8 +109,9 @@ for name, extension in extensions.items():
     installed_source_hash = command_output(
         host,
         f"cat {shlex.quote(source_marker)} 2>/dev/null || true",
+        _sudo=True,
     ).strip()
-    extension_exists = host.get_fact(File, path=extension_path)
+    extension_exists = host.get_fact(File, path=extension_path, _sudo=True)
 
     if installed_source_hash != source_hash or not extension_exists:
         temporary_path = f"{extension_path}.download"
@@ -137,12 +138,14 @@ for name, extension in extensions.items():
             f"then echo 'Downloaded {name}'; "
             f"else rm -f {shlex.quote(temporary_path)} "
             f"{shlex.quote(temporary_marker)}; "
-            f"echo 'WARNING: Could not download {name}; keeping the existing extension and retrying on the next deployment'; "
-            f"fi"
+            f"echo 'WARNING: Could not download {name}; keeping the existing extension and retrying on the next deployment' >&2; "
+            f"false; fi"
         )
         server.shell(
             name=f"Download {name}",
             commands=[download_command],
+            _sudo=True,
+            _ignore_errors=True,
         )
 
 files.put(
