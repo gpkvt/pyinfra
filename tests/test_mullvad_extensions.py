@@ -251,4 +251,3 @@ def test_mullvad_rejects_invalid_preferences(pyinfra_task_harness, config):
             "mullvad_extensions": {},
             "mullvad_browser_prefs": config,
         })
-
