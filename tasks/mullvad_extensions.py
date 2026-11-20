@@ -102,6 +102,9 @@ for name, extension in extensions.items():
     if not valid_url:
         raise ValueError(f"Invalid Mullvad extension URL for {name!r}")
 
+    if any(existing_id == extension_id for _, existing_id, *_ in extension_specs):
+        raise ValueError(f"Duplicate Mullvad extension ID: {extension_id!r}")
+
     extension_path = f"{extensions_dir}/{extension_id}.xpi"
     source_marker = f"{extension_path}.source-sha256"
     source_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
