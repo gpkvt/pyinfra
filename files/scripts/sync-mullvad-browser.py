@@ -8,14 +8,26 @@ metadata. Never invent extension download URLs or export arbitrary prefs.js.
 import argparse
 import ast
 import json
+import os
 import pprint
 import re
 import sys
+import tempfile
 from pathlib import Path
 from urllib.parse import urlsplit
 
 
-ROOT = Path(__file__).resolve().parents[2]
+def find_repository_root():
+    """Find the working checkout when invoked from ~/scripts or source."""
+    candidates = (Path.cwd(), *Path.cwd().parents,
+                  *Path(__file__).resolve().parents, Path.home() / "pyinfra")
+    for root in candidates:
+        if (root / "group_data").is_dir() and (root / "deploy.py").is_file():
+            return root
+    return Path.cwd()
+
+
+ROOT = find_repository_root()
 DEFAULT_DISTRIBUTION = Path("/usr/lib/mullvad-browser/distribution")
 PREF = re.compile(r'^\s*user_pref\(\s*("(?:\\.|[^"\\])*")\s*,\s*(.+?)\s*\);\s*$')
 EXTENSION_ID = re.compile(r"(?:[A-Za-z0-9._@+-]+|\{[0-9A-Fa-f-]{36}\})\Z")
@@ -208,7 +220,18 @@ def main(argv=None):
         if updated == original:
             print("No changes.")
         elif args.write:
-            destination.write_text(updated, encoding="utf-8")
+            # Atomically replace the inventory file; retain its current mode.
+            descriptor, tmp_name = tempfile.mkstemp(
+                prefix=f".{destination.name}.", dir=str(destination.parent)
+            )
+            try:
+                os.fchmod(descriptor, destination.stat().st_mode & 0o777)
+                with os.fdopen(descriptor, "w", encoding="utf-8") as stream:
+                    stream.write(updated)
+                os.replace(tmp_name, destination)
+            finally:
+                if os.path.exists(tmp_name):
+                    os.unlink(tmp_name)
             print(f"Updated {destination}")
         else:
             import difflib
