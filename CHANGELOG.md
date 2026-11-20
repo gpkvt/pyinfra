@@ -6,6 +6,10 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ## [19.11.2026]
 
+### Changed
+
+- Speed up Mullvad Browser extension reconciliation by checking all configured XPI files and URL markers in one privileged, read-only remote query instead of two queries per extension. Download only missing or outdated files; reject duplicate extension IDs and preserve retry/error behavior.
+
 ### Fixed
 
 - Preserve Sablier-managed containers that are intentionally paused, stopped or merely created, instead of restarting them because a normal Compose `up -d` dry-run would start them. Still reconcile changed configuration, missing containers and label drift.
