@@ -126,13 +126,13 @@ def test_mullvad_batch_query_executes_against_real_local_files(
     current_xpi = extension_dir / "current@example.invalid.xpi"
     current_xpi.write_bytes(b"valid xpi contents")
     (extension_dir / "current@example.invalid.xpi.source-sha256").write_text(
-        hashlib.sha256(current_url.encode("utf-8")).hexdigest() + "\\n",
+        hashlib.sha256(current_url.encode("utf-8")).hexdigest() + "\n",
         encoding="utf-8",
     )
     stale_xpi = extension_dir / "stale@example.invalid.xpi"
     stale_xpi.write_bytes(b"old xpi contents")
     (extension_dir / "stale@example.invalid.xpi.source-sha256").write_text(
-        "outdated hash\\n", encoding="utf-8"
+        "outdated hash\n", encoding="utf-8"
     )
 
     calls = []
