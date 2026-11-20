@@ -173,10 +173,50 @@ def test_main_is_preview_only_until_write(tmp_path, capsys):
     assert "No changes." in capsys.readouterr().out
 
 
-def test_main_rejects_profile_prefs_js(tmp_path):
+def test_profile_prefs_js_only_exports_safe_allowlisted_values(tmp_path):
+    """Import UI/privacy toggles, never arbitrary private profile metadata."""
     sync = load_sync_module()
-    with pytest.raises(SystemExit):
-        sync.main(["--prefs-file", str(tmp_path / "prefs.js")])
+    prefs = tmp_path / "prefs.js"
+    prefs.write_text(
+        'user_pref("privacy.resistFingerprinting", true);\\n'
+        'user_pref("browser.tabs.warnOnClose", false);\\n'
+        'user_pref("browser.startup.homepage", "https://personal.example");\\n'
+        'user_pref("extensions.someAddon.token", "private");\\n'
+        'user_pref("network.proxy.http", "internal.example");\\n',
+        encoding="utf-8",
+    )
+    assert sync.browser_preferences(prefs) == {
+        "privacy.resistFingerprinting": True,
+        "browser.tabs.warnOnClose": False,
+    }
+
+
+def test_profile_sync_keeps_other_explicit_preferences(tmp_path):
+    """Incomplete prefs.js never erases inventory preferences."""
+    sync = load_sync_module()
+    distro = fixture_browser(tmp_path)
+    profile = tmp_path / "profile"
+    profile.mkdir()
+    (profile / "prefs.js").write_text(
+        'user_pref("privacy.resistFingerprinting", false);\\n'
+        'user_pref("browser.startup.homepage", "https://personal.example");\\n',
+        encoding="utf-8",
+    )
+    inventory = tmp_path / "workstation.py"
+    inventory.write_text(
+        'mullvad_extensions = {}\\n'
+        'mullvad_browser_prefs = {"browser.tabs.minWidth": 88}\\n',
+        encoding="utf-8",
+    )
+    sync.main([
+        "--profile", str(profile), "--distribution", str(distro),
+        "--inventory", str(inventory), "--write",
+    ])
+    values = sync.literal_assignments(inventory.read_text(encoding="utf-8"))
+    assert values["mullvad_browser_prefs"] == {
+        "browser.tabs.minWidth": 88,
+        "privacy.resistFingerprinting": False,
+    }
 
 
 def test_example_inventory_contains_optional_managed_preferences():
