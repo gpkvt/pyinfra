@@ -1,6 +1,7 @@
 """Behavioral tests for Mullvad Browser extension reconciliation."""
 
 import hashlib
+import subprocess
 
 import pytest
 
@@ -111,6 +112,54 @@ def test_mullvad_checks_multiple_extensions_with_one_remote_fact(
         and kwargs.get("name", "").startswith("Download ")
     ]
     assert downloads == ["Download Second"]
+
+
+def test_mullvad_batch_query_executes_against_real_local_files(
+    pyinfra_task_harness, tmp_path,
+):
+    """The generated shell command recognizes current and stale XPIs."""
+    profile = tmp_path / "profile"
+    extension_dir = profile / "extensions"
+    extension_dir.mkdir(parents=True)
+    current_url = "https://addons.example.invalid/current.xpi"
+    stale_url = "https://addons.example.invalid/stale.xpi"
+    current_xpi = extension_dir / "current@example.invalid.xpi"
+    current_xpi.write_bytes(b"valid xpi contents")
+    (extension_dir / "current@example.invalid.xpi.source-sha256").write_text(
+        hashlib.sha256(current_url.encode("utf-8")).hexdigest() + "\\n",
+        encoding="utf-8",
+    )
+    stale_xpi = extension_dir / "stale@example.invalid.xpi"
+    stale_xpi.write_bytes(b"old xpi contents")
+    (extension_dir / "stale@example.invalid.xpi.source-sha256").write_text(
+        "outdated hash\\n", encoding="utf-8"
+    )
+
+    calls = []
+
+    def get_fact(fact, command="", **kwargs):
+        assert fact.__name__ == "Command"
+        assert kwargs == {"_sudo": True}
+        calls.append(command)
+        return subprocess.run(
+            ["sh", "-c", command], check=True, capture_output=True, text=True,
+        ).stdout
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    pyinfra_task_harness.load("mullvad_extensions.py", {
+        "mullvad_browser_dir": str(profile),
+        "mullvad_extensions": {
+            "Current": {"id": "current@example.invalid", "url": current_url},
+            "Stale": {"id": "stale@example.invalid", "url": stale_url},
+        },
+    })
+    assert len(calls) == 1
+    downloads = [
+        kwargs["name"] for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name", "").startswith("Download ")
+    ]
+    assert downloads == ["Download Stale"]
 
 
 def test_mullvad_skips_remote_check_without_extensions(pyinfra_task_harness):
