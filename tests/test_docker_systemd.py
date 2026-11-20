@@ -247,8 +247,8 @@ def test_compose_configuration_ignores_non_container_dry_run_actions():
         def get_fact(self, _fact, command, **_kwargs):
             assert "--dry-run up --no-deps -d" in command
             return (
-                "DRY-RUN MODE - Network app_default Created\\n"
-                "DRY-RUN MODE - Container app-web-1 Running\\n"
+                "DRY-RUN MODE - Network app_default Created\n"
+                "DRY-RUN MODE - Container app-web-1 Running\n"
                 "DRY-RUN MODE - Container app-db-1 Healthy"
             )
 
@@ -276,7 +276,7 @@ def test_compose_configuration_recognizes_started_and_recreating_containers():
         class FakeHost:
             def get_fact(self, _fact, _command, expected=action, **_kwargs):
                 return (
-                    "DRY-RUN MODE - Network app_default Created\\n"
+                    "DRY-RUN MODE - Network app_default Created\n"
                     f"DRY-RUN MODE - Container app-web-1 {expected}"
                 )
 
