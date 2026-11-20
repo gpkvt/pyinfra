@@ -178,11 +178,11 @@ def test_profile_prefs_js_only_exports_safe_allowlisted_values(tmp_path):
     sync = load_sync_module()
     prefs = tmp_path / "prefs.js"
     prefs.write_text(
-        'user_pref("privacy.resistFingerprinting", true);\\n'
-        'user_pref("browser.tabs.warnOnClose", false);\\n'
-        'user_pref("browser.startup.homepage", "https://personal.example");\\n'
-        'user_pref("extensions.someAddon.token", "private");\\n'
-        'user_pref("network.proxy.http", "internal.example");\\n',
+        'user_pref("privacy.resistFingerprinting", true);\n'
+        'user_pref("browser.tabs.warnOnClose", false);\n'
+        'user_pref("browser.startup.homepage", "https://personal.example");\n'
+        'user_pref("extensions.someAddon.token", "private");\n'
+        'user_pref("network.proxy.http", "internal.example");\n',
         encoding="utf-8",
     )
     assert sync.browser_preferences(prefs) == {
@@ -198,14 +198,14 @@ def test_profile_sync_keeps_other_explicit_preferences(tmp_path):
     profile = tmp_path / "profile"
     profile.mkdir()
     (profile / "prefs.js").write_text(
-        'user_pref("privacy.resistFingerprinting", false);\\n'
-        'user_pref("browser.startup.homepage", "https://personal.example");\\n',
+        'user_pref("privacy.resistFingerprinting", false);\n'
+        'user_pref("browser.startup.homepage", "https://personal.example");\n',
         encoding="utf-8",
     )
     inventory = tmp_path / "workstation.py"
     inventory.write_text(
-        'mullvad_extensions = {}\\n'
-        'mullvad_browser_prefs = {"browser.tabs.minWidth": 88}\\n',
+        'mullvad_extensions = {}\n'
+        'mullvad_browser_prefs = {"browser.tabs.minWidth": 88}\n',
         encoding="utf-8",
     )
     sync.main([
