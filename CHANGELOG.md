@@ -6,6 +6,10 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ## [19.11.2026]
 
+### Fixed
+
+- Avoid unnecessary Docker Compose/systemd service restarts when a dry-run reports network or image progress while all existing application containers are already running; only planned container lifecycle changes require reconciliation.
+
 ### Added
 
 - Added an opt-in Huginn Docker task with separate web/worker containers, PostgreSQL 16 Alpine, host bind-mounted database storage under `~/.docker/huginn/`, encrypted secret configuration, validation, Caddy routing guidance and tests. The HTTP endpoint is loopback-only on port `8028`, and agent egress uses Smokescreen by default.
