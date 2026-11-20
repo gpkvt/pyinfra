@@ -118,7 +118,7 @@ def browser_extensions(directory, profile):
     return extension_ids
 
 
-def browser_preferences(path):
+def browser_preferences(path):  # pylint: disable=R0916
     """Read user.js or allowlisted preferences from a profile prefs.js."""
     if not path.is_file():
         return {}
