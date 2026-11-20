@@ -81,7 +81,7 @@ for name, extension in extensions.items():
     if (
         not isinstance(extension_id, str)
         or not re.fullmatch(
-            r"(?:[A-Za-z0-9._@+-]+|\\{[0-9A-Fa-f-]{36}\\})",
+            r"(?:[A-Za-z0-9._@+-]+|\{[0-9A-Fa-f-]{36}\})",
             extension_id,
         )
     ):
@@ -114,15 +114,15 @@ for name, extension in extensions.items():
 # root-owned distribution directories and takes one remote round trip.
 check_commands = [
     f"if test -s {shlex.quote(path)} "
-    f"&& test \\"$(cat {shlex.quote(marker)} 2>/dev/null)\\" "
+    f"&& test \"$(cat {shlex.quote(marker)} 2>/dev/null)\" "
     f"= {shlex.quote(source_hash)}; then "
-    f"printf '%s\\\\n' {shlex.quote(extension_id)}; fi"
+    f"printf '%s\\n' {shlex.quote(extension_id)}; fi"
     for _, extension_id, _, path, marker, source_hash in extension_specs
 ]
 current_extensions = set()
 if check_commands:
     current_extensions = set(
-        command_output(host, "\\n".join(check_commands), _sudo=True).splitlines()
+        command_output(host, "\n".join(check_commands), _sudo=True).splitlines()
     )
 
 # Only stale or missing extensions need a download. Failed downloads preserve
