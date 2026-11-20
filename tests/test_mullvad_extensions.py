@@ -35,6 +35,9 @@ def test_mullvad_extension_downloads_when_source_marker_is_missing(
     assert "keeping the existing extension" in command
     assert "then echo 'Downloaded Example'" in command
     assert "else rm -f" in command
+    assert "retrying on the next deployment' >&2; false; fi" in command
+    assert download["_ignore_errors"] is True
+    assert download["_sudo"] is True
     assert "/opt/mullvad/extensions/example@example.invalid.xpi.source-sha256" in command
     assert hashlib.sha256(url.encode("utf-8")).hexdigest() in command
     assert preferences["dest"] == "/opt/mullvad/user.js"
@@ -53,7 +56,13 @@ def test_mullvad_extension_skips_download_when_source_is_unchanged(
             return True
         return None
 
-    pyinfra_task_harness.host.get_fact = get_fact
+    queries = []
+
+    def privileged_fact(fact, command=None, **kwargs):
+        queries.append((fact.__name__, kwargs))
+        return get_fact(fact, command, **kwargs)
+
+    pyinfra_task_harness.host.get_fact = privileged_fact
     pyinfra_task_harness.load("mullvad_extensions.py", {
         "mullvad_browser_dir": "/opt/mullvad",
         "mullvad_extensions": {
@@ -61,6 +70,9 @@ def test_mullvad_extension_skips_download_when_source_is_unchanged(
         },
     })
 
+    assert ("Command", {"_sudo": True}) in queries
+    assert ("File", {"path": "/opt/mullvad/extensions/example@example.invalid.xpi",
+                     "_sudo": True}) in queries
     assert not any(
         (namespace == "files" and name == "download")
         or (namespace == "server" and name == "shell"
