@@ -33,6 +33,21 @@ DEFAULT_DISTRIBUTION = Path("/usr/lib/mullvad-browser/distribution")
 PREF = re.compile(r'^\s*user_pref\(\s*("(?:\\.|[^"\\])*")\s*,\s*(.+?)\s*\);\s*$')
 EXTENSION_ID = re.compile(r"(?:[A-Za-z0-9._@+-]+|\{[0-9A-Fa-f-]{36}\})\Z")
 
+# A profile's prefs.js includes URLs and extension state. Import only an
+# explicit list of ordinary UI/privacy settings from that sensitive file.
+SAFE_PROFILE_PREFS = frozenset({
+    "browser.tabs.warnOnClose",
+    "browser.tabs.loadInBackground",
+    "browser.search.suggest.enabled",
+    "browser.urlbar.suggest.searches",
+    "privacy.resistFingerprinting",
+    "privacy.trackingprotection.enabled",
+    "privacy.donottrackheader.enabled",
+    "privacy.firstparty.isolate",
+    "network.cookie.cookieBehavior",
+    "dom.security.https_only_mode",
+})
+
 
 def literal_assignments(source):
     """Return literal top-level inventory values without executing Python."""
@@ -104,7 +119,7 @@ def browser_extensions(directory, profile):
 
 
 def browser_preferences(path):
-    """Read explicit user.js values only; never export a profile's prefs.js."""
+    """Read user.js or allowlisted preferences from a profile prefs.js."""
     if not path.is_file():
         return {}
     result = {}
@@ -120,6 +135,7 @@ def browser_preferences(path):
         if (
             isinstance(key, str) and re.fullmatch(r"[A-Za-z0-9._-]+", key)
             and isinstance(value, (str, bool, int, float))
+            and (path.name != "prefs.js" or key in SAFE_PROFILE_PREFS)
             and not any(word in key.lower() for word in (
                 "password", "secret", "token", "credential", "proxy",
                 "homepage", "username", "identity",
@@ -188,10 +204,14 @@ def synchronize(directory, profile, preferences_file, destination, prune=False):
     old_prefs = current.get("mullvad_browser_prefs", {})
     if not isinstance(old_prefs, dict):
         raise ValueError("mullvad_browser_prefs must be a literal mapping")
-    # Avoid destroying existing settings when no user.js is present.
+    # Merge allowlisted profile values with existing inventory preferences,
+    # rather than deleting settings the browser does not expose in prefs.js.
     changes = {"mullvad_extensions": updated}
     if preferences_file.is_file():
-        changes["mullvad_browser_prefs"] = prefs
+        changes["mullvad_browser_prefs"] = (
+            {**old_prefs, **prefs}
+            if preferences_file.name == "prefs.js" else prefs
+        )
     return original, replace_assignments(original, changes), unresolved
 
 
@@ -201,7 +221,7 @@ def main(argv=None):
     parser.add_argument("--target", choices=("local", "workstation"), default="local")
     parser.add_argument("--distribution", type=Path, default=DEFAULT_DISTRIBUTION)
     parser.add_argument("--profile", type=Path, help="Optional Mullvad Browser profile directory")
-    parser.add_argument("--prefs-file", type=Path, help="Explicit user.js file, not prefs.js")
+    parser.add_argument("--prefs-file", type=Path, help="Explicit user.js or allowlisted prefs.js source")
     parser.add_argument("--inventory", type=Path, help="Override group_data destination")
     parser.add_argument("--prune", action="store_true", help="Remove absent extensions with known URLs")
     parser.add_argument("--write", action="store_true", help="Write changed inventory; default is preview")
@@ -209,9 +229,9 @@ def main(argv=None):
     destination = args.inventory or ROOT / "group_data" / (
         "@local.py" if args.target == "local" else "workstation.py"
     )
-    prefs_file = args.prefs_file or args.distribution / "user.js"
-    if prefs_file.name == "prefs.js":
-        parser.error("Refusing prefs.js: it may contain private browser state; supply user.js")
+    prefs_file = args.prefs_file or (
+        args.profile / "prefs.js" if args.profile else args.distribution / "user.js"
+    )
     try:
         original, updated, unresolved = synchronize(
             args.distribution, args.profile, prefs_file, destination, args.prune
