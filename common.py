@@ -151,9 +151,25 @@ def compose_configuration_matches(host, compose_command):
     ):
         return False
 
-    # A no-op reports existing containers as Running/Healthy. Any planned
-    # lifecycle or image action means the deployed project needs reconciliation.
-    return not re.search(
-        r"\b(?:Created|Recreated|Started|Pulled|Built|Removed|Pulling|Building)\b",
+    # Docker Compose's dry-run output includes non-container resources such
+    # as networks and images. In particular, "Network ... Created" does not
+    # mean that an already-running service container needs to restart.
+    # Only a planned *container* lifecycle change requires reconciliation.
+    container_change = re.search(
+        r"\\bContainer\\s+\\S+\\s+"
+        r"(?:Creating|Created|Recreating|Recreated|Starting|Started|"
+        r"Stopping|Stopped|Removing|Removed)\\b",
         output,
+        re.IGNORECASE,
     )
+    if container_change:
+        return False
+
+    # Do not accept an arbitrary successful command message as proof of a
+    # converged project. The planner must positively identify containers
+    # that are already running/healthy (or deliberately paused by Sablier).
+    return bool(re.search(
+        r"\\bContainer\\s+\\S+\\s+(?:Running|Healthy|Paused)\\b",
+        output,
+        re.IGNORECASE,
+    ))
