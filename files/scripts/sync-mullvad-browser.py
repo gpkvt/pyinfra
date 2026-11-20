@@ -6,6 +6,7 @@ metadata. Never invent extension download URLs or export arbitrary prefs.js.
 """
 
 import argparse
+import difflib
 import ast
 import json
 import os
@@ -149,7 +150,7 @@ def replace_assignments(source, changes):
     return result
 
 
-def synchronize(directory, profile, preferences_file, destination, prune=False):
+def synchronize(directory, profile, preferences_file, destination, prune=False):  # pylint: disable=R0914
     """Return updated inventory text and unresolved extension IDs."""
     if not destination.is_file():
         raise FileNotFoundError(f"Inventory file not found: {destination}")
@@ -234,7 +235,6 @@ def main(argv=None):
                     os.unlink(tmp_name)
             print(f"Updated {destination}")
         else:
-            import difflib
             print("".join(difflib.unified_diff(
                 original.splitlines(keepends=True), updated.splitlines(keepends=True),
                 fromfile=str(destination), tofile=str(destination) + " (proposed)"
