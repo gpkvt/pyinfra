@@ -240,6 +240,51 @@ def test_compose_configuration_matches_when_dry_run_is_a_noop():
     assert compose_configuration_matches(FakeHost(), "docker compose -f compose.yml")
 
 
+def test_compose_configuration_ignores_non_container_dry_run_actions():
+    """Network setup output must not restart already converged services."""
+
+    class FakeHost:
+        def get_fact(self, _fact, command, **_kwargs):
+            assert "--dry-run up --no-deps -d" in command
+            return (
+                "DRY-RUN MODE - Network app_default Created\n"
+                "DRY-RUN MODE - Container app-web-1 Running\n"
+                "DRY-RUN MODE - Container app-db-1 Healthy"
+            )
+
+    assert compose_configuration_matches(
+        FakeHost(), "docker compose -f docker-compose.yml"
+    )
+
+
+def test_compose_configuration_requires_container_status_evidence():
+    """Unrelated successful planner output cannot hide a missing container."""
+
+    class FakeHost:
+        def get_fact(self, _fact, _command, **_kwargs):
+            return "DRY-RUN MODE - Network app_default Created"
+
+    assert not compose_configuration_matches(
+        FakeHost(), "docker compose -f docker-compose.yml"
+    )
+
+
+def test_compose_configuration_recognizes_started_and_recreating_containers():
+    """Genuine container lifecycle changes still require reconciliation."""
+
+    for action in ("Creating", "Recreating", "Starting", "Removing"):
+        class FakeHost:
+            def get_fact(self, _fact, _command, expected=action, **_kwargs):
+                return (
+                    "DRY-RUN MODE - Network app_default Created\n"
+                    f"DRY-RUN MODE - Container app-web-1 {expected}"
+                )
+
+        assert not compose_configuration_matches(
+            FakeHost(), "docker compose -f docker-compose.yml"
+        )
+
+
 def test_compose_configuration_detects_recreation_in_dry_run():
     """Compose's own planner identifies stale service configuration."""
 

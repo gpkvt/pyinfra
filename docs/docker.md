@@ -51,6 +51,7 @@ All paths in the table are relative to `~/.docker/`. Services use host-directory
 - `stop_dependencies` controls whether stopping a systemd unit stops the complete Compose project or only its configured `app_services`.
 - Image updates are change-triggered. To update an image without changing configuration, run an intentional manual pull for that service.
 - Service modules can register extra restart triggers for generated assets. Homepage, for example, is restarted when synchronized public icons change.
+- The Compose dry-run comparison only treats planned **container** lifecycle changes as drift. Cosmetic network/image progress output does not restart an already-converged systemd service; real create/start/recreate actions still do.
 
 ## Storage and security
 
