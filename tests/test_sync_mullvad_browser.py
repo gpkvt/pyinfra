@@ -4,7 +4,6 @@ import importlib.util
 import json
 import runpy
 
-import pytest
 
 from conftest import ROOT
 
