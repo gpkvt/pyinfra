@@ -90,7 +90,7 @@ def test_mullvad_checks_multiple_extensions_with_one_remote_fact(
 
     def get_fact(fact, command="", **kwargs):
         queries.append((fact.__name__, command, kwargs))
-        return "first@example.invalid\\nthird@example.invalid"
+        return "first@example.invalid\nthird@example.invalid"
 
     pyinfra_task_harness.host.get_fact = get_fact
     pyinfra_task_harness.load("mullvad_extensions.py", {
