@@ -118,7 +118,7 @@ def browser_extensions(directory, profile):
     return extension_ids
 
 
-def browser_preferences(path):  # pylint: disable=R0916
+def browser_preferences(path):
     """Read user.js or allowlisted preferences from a profile prefs.js."""
     if not path.is_file():
         return {}
@@ -132,16 +132,18 @@ def browser_preferences(path):  # pylint: disable=R0916
             value = json.loads(match.group(2))
         except json.JSONDecodeError:
             continue
-        if (
-            isinstance(key, str) and re.fullmatch(r"[A-Za-z0-9._-]+", key)
-            and isinstance(value, (str, bool, int, float))
-            and (path.name != "prefs.js" or key in SAFE_PROFILE_PREFS)
-            and not any(word in key.lower() for word in (
-                "password", "secret", "token", "credential", "proxy",
-                "homepage", "username", "identity",
-            ))
-        ):
-            result[key] = value
+        if not isinstance(key, str) or not re.fullmatch(r"[A-Za-z0-9._-]+", key):
+            continue
+        if not isinstance(value, (str, bool, int, float)):
+            continue
+        if path.name == "prefs.js" and key not in SAFE_PROFILE_PREFS:
+            continue
+        if any(word in key.lower() for word in (
+            "password", "secret", "token", "credential", "proxy",
+            "homepage", "username", "identity",
+        )):
+            continue
+        result[key] = value
     return result
 
 
