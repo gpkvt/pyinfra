@@ -33,6 +33,34 @@
     "test_update_local_config_preserves_other_sections_and_management_flags",
     "test_update_local_config_is_idempotent"
   ],
+  "files/scripts/sync-mullvad-browser.py:addon_sources": [
+    "test_browser_extensions_and_metadata"
+  ],
+  "files/scripts/sync-mullvad-browser.py:browser_extensions": [
+    "test_browser_extensions_and_metadata"
+  ],
+  "files/scripts/sync-mullvad-browser.py:browser_preferences": [
+    "test_browser_preferences_skip_sensitive_and_unknown_values"
+  ],
+  "files/scripts/sync-mullvad-browser.py:find_repository_root": [
+    "test_main_is_preview_only_until_write"
+  ],
+  "files/scripts/sync-mullvad-browser.py:literal_assignments": [
+    "test_literal_assignments_do_not_evaluate_python"
+  ],
+  "files/scripts/sync-mullvad-browser.py:main": [
+    "test_main_is_preview_only_until_write",
+    "test_profile_sync_keeps_other_explicit_preferences"
+  ],
+  "files/scripts/sync-mullvad-browser.py:replace_assignments": [
+    "test_replace_assignments_preserves_other_top_level_configuration"
+  ],
+  "files/scripts/sync-mullvad-browser.py:synchronize": [
+    "test_synchronize_preserves_known_urls_and_reports_unknown"
+  ],
+  "files/scripts/sync-mullvad-browser.py:valid_url": [
+    "test_valid_url_rejects_http_and_credentials"
+  ],
   "files/scripts/translate.py:is_audio_descriptor": [
     "test_is_audio_descriptor_respects_configuration"
   ],

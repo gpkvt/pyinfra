@@ -6,6 +6,10 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ## [19.11.2026]
 
+### Added
+
+- Added `sync-mullvad-browser.py` to safely preview or import installed Mullvad Browser extensions and managed `user.js` preferences into ignored `group_data/@local.py` or `group_data/workstation.py`. Only resolvable HTTPS extension URLs are exported; writes require `--write` and preserve unrelated inventory settings. Added optional `mullvad_browser_prefs` deployment support and regression tests.
+
 ### Changed
 
 - Speed up Mullvad Browser extension reconciliation by checking all configured XPI files and URL markers in one privileged, read-only remote query instead of two queries per extension. Download only missing or outdated files; reject duplicate extension IDs and preserve retry/error behavior.

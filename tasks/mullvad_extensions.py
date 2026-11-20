@@ -37,6 +37,9 @@ Restart Mullvad Browser after deployment for changes to take effect.
 """
 
 import hashlib
+import json
+import math
+from io import StringIO
 import re
 import shlex
 from urllib.parse import urlsplit
@@ -167,9 +170,30 @@ for name, extension_id, url, extension_path, source_marker, source_hash in exten
         _ignore_errors=True,
     )
 
+# Prefer explicit inventory-managed preferences when present. The default
+# tracked user.js remains in use for inventories without this mapping.
+prefs = host.data.get("mullvad_browser_prefs")
+if prefs is None:
+    preference_source = "files/mullvad-user.js"
+else:
+    if not isinstance(prefs, dict):
+        raise ValueError("mullvad_browser_prefs must be a dictionary")
+    managed_prefs = {"extensions.installDistroAddons": True, **prefs}
+    lines = ["// Managed Mullvad Browser user.js (pyinfra)"]
+    for key, value in sorted(managed_prefs.items()):
+        if not isinstance(key, str) or not re.fullmatch(r"[A-Za-z0-9._-]+", key):
+            raise ValueError(f"Invalid Mullvad Browser preference name: {key!r}")
+        if (
+            not isinstance(value, (str, int, float, bool))
+            or isinstance(value, float) and not math.isfinite(value)
+        ):
+            raise ValueError(f"Unsupported Mullvad Browser preference value: {key!r}")
+        lines.append(f"user_pref({json.dumps(key)}, {json.dumps(value)});")
+    preference_source = StringIO("\n".join(lines) + "\n")
+
 files.put(
     name="Manage Mullvad Browser preferences",
-    src="files/mullvad-user.js",
+    src=preference_source,
     dest=f"{profile_dir}/user.js",
     mode="600",
 )

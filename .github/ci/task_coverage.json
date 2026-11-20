@@ -11,6 +11,7 @@
   "files/scripts/proton.sh": "utility",
   "files/scripts/runas": "utility",
   "files/scripts/shared.sh": "utility",
+  "files/scripts/sync-mullvad-browser.py": "utility",
   "files/scripts/translate.py": "utility",
   "tasks/apparmor.py": "deployment",
   "tasks/apt.py": "deployment",

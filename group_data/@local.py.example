@@ -187,6 +187,7 @@ mullvad_extensions = {}  # Browser extensions keyed by name; each entry requires
 #         "url": "https://addons.mozilla.org/...xpi"
 #     }
 # }.
+mullvad_browser_prefs = {}  # Optional user.js preferences (string, bool, or number values), synced by sync-mullvad-browser.py.
 mullvad_browser_dir = None  # Optional Mullvad Browser profile directory; None uses task defaults.
 
 # Docker services. Keep this empty to deploy no application containers.

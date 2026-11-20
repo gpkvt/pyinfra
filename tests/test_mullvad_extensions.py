@@ -214,3 +214,40 @@ def test_mullvad_extensions_rejects_non_dictionary_configuration(
         pyinfra_task_harness.load("mullvad_extensions.py", {
             "mullvad_extensions": ["not-a-dictionary"],
         })
+
+def test_mullvad_preferences_render_as_stable_user_js(pyinfra_task_harness):
+    """Managed settings are serialized and retain distribution add-on support."""
+    pyinfra_task_harness.load("mullvad_extensions.py", {
+        "mullvad_extensions": {},
+        "mullvad_browser_prefs": {
+            "privacy.resistFingerprinting": True,
+            "browser.tabs.warnOnClose": False,
+            "browser.tabs.minWidth": 100,
+        },
+    })
+    preferences = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "files" and name == "put"
+        and kwargs.get("name") == "Manage Mullvad Browser preferences"
+    )
+    text = preferences["src"].getvalue()
+    assert 'user_pref("extensions.installDistroAddons", true);' in text
+    assert 'user_pref("privacy.resistFingerprinting", true);' in text
+    assert 'user_pref("browser.tabs.warnOnClose", false);' in text
+    assert 'user_pref("browser.tabs.minWidth", 100);' in text
+    assert preferences["mode"] == "600"
+
+
+@pytest.mark.parametrize("config", [
+    ["not-a-mapping"],
+    {"invalid key!": True},
+    {"privacy.setting": None},
+    {"privacy.setting": float("nan")},
+])
+def test_mullvad_rejects_invalid_preferences(pyinfra_task_harness, config):
+    """Refuse malformed settings rather than write an invalid user.js."""
+    with pytest.raises(ValueError):
+        pyinfra_task_harness.load("mullvad_extensions.py", {
+            "mullvad_extensions": {},
+            "mullvad_browser_prefs": config,
+        })
