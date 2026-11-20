@@ -192,8 +192,27 @@ For detailed validation, file paths and safety considerations, see [System confi
 | `workstation.cosmic.shortcuts` | `tasks/workstation/cosmic/shortcuts.py` | Optional raw RON map for `com.system76.CosmicSettings.Shortcuts/v1/custom`. |
 | `vscodium` | `tasks/vscodium.py` | Extension configuration dictionary. |
 | `mullvad_extensions` | `tasks/mullvad_extensions.py` | Extension IDs and download URLs. |
+| `mullvad_browser_prefs` | `tasks/mullvad_extensions.py` | Optional literal `user.js` preferences mapping; synced from a managed `user.js` file. |
 | `mullvad_browser_dir` | `tasks/mullvad_extensions.py` | Browser distribution directory; task default is `/usr/lib/mullvad-browser/distribution`. |
 | `proton` | `tasks/proton.py` | Proton application selection and options. |
+
+### Mullvad Browser reverse sync
+
+The installed `sync-mullvad-browser.py` utility can preview or copy current browser extension IDs and selected, explicitly managed `user.js` preferences into the ignored host or group inventory file without executing that Python configuration.
+
+Run it from the repository checkout. The default target is `group_data/@local.py`; use `--target workstation` to update `group_data/workstation.py` instead. Both destinations must already exist.
+
+```bash
+python3 files/scripts/sync-mullvad-browser.py --target local
+python3 files/scripts/sync-mullvad-browser.py --target local --write
+python3 files/scripts/sync-mullvad-browser.py --target workstation --write
+```
+
+The default distribution directory is `/usr/lib/mullvad-browser/distribution`. Use `--distribution PATH` for a different installation, `--profile PATH` to include an explicitly selected browser profile's active extension IDs and HTTPS `sourceURI` values from `extensions.json`, and `--prefs-file PATH/user.js` to choose an explicit preferences source. The script does **not** export `prefs.js`, browser history, or extension settings/storage; `prefs.js` may contain private URLs and identifiers. Sensitive preference names are also excluded from export.
+
+Add-ons found locally but without an existing configured HTTPS download URL or an HTTPS `sourceURI` cannot be reproduced reliably; they are reported and skipped, never assigned fabricated download URLs. Existing inventory entries are retained by default, including those that are not installed. `--prune` explicitly drops absent extensions that have known URLs; unresolved installed extensions are not used to invent URLs. The script makes no writes unless `--write` is specified, replaces the inventory file atomically, and leaves unchanged files untouched.
+
+`mullvad_browser_prefs` is optional and supports string, boolean, integer, or finite floating-point values. The deployment task generates the distribution `user.js` from this mapping (keeping `extensions.installDistroAddons=true`) and remains idempotent. Without the mapping, the existing tracked `files/mullvad-user.js` is deployed unchanged. Set `mullvad_browser_enabled = True` to apply managed settings. Browser settings in `user.js` take effect after a browser restart and may be superseded by Mullvad Browser's own policies.
 
 When Proton Drive CLI installation is enabled, set `proton.drive_cli_version` explicitly to the release to install. There is no fallback version.
 
