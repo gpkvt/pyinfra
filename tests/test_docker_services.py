@@ -12,6 +12,25 @@ import pytest
 
 from conftest import ROOT
 
+def test_mdmesh_runtime_directories_are_creation_only():
+    """MDMesh containers may own runtime files; preserve their metadata."""
+    tree = ast.parse((ROOT / "tasks/docker/mdmesh.py").read_text(encoding="utf-8"))
+    directory_calls = [
+        node for node in ast.walk(tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and node.func.attr == "directory"
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "files"
+    ]
+    assert directory_calls
+    for call in directory_calls:
+        assert any(
+            keyword.arg == "_if" and isinstance(keyword.value, ast.Lambda)
+            for keyword in call.keywords
+        ), "MDMesh runtime directories must only be created when missing"
+
+
 def test_docker_service_modules_declare_compose_services():
     """Sablier service names are static so first deployment needs no remote Compose fact."""
     for task_path in sorted((ROOT / "tasks/docker").glob("*.py")):
