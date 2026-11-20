@@ -428,6 +428,13 @@ def deploy_docker_service( # pylint: disable=R0912,R0913,R0914,R0915,R0917
             _if=lambda: not sablier_labels_match(),
         )
     def compose_configuration_is_current():
+        # Sablier deliberately leaves some containers created, stopped or
+        # paused. A normal Compose "up -d" dry-run would try to start those
+        # containers and falsely report drift on every deployment. For Sablier
+        # projects, file-change triggers and the label/existence inspection
+        # above determine whether reconciliation is necessary instead.
+        if sablier_enabled:
+            return True
         compose_command = (
             f"docker compose -f {compose_path}"
             + (

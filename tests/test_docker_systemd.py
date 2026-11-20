@@ -108,6 +108,41 @@ def test_docker_service_restarts_when_sablier_labels_drift(pyinfra_task_harness)
     assert restart_call["_if"]() is True
 
 
+def test_sablier_paused_containers_do_not_trigger_docker_start(pyinfra_task_harness):
+    """Paused Sablier containers are a valid idle state, not Compose drift."""
+    module = pyinfra_task_harness.load("docker.py", {
+        "username": "tester",
+        "docker": {"custom": {}},
+        "docker_sablier": {"enabled": True},
+    })
+    queries = []
+
+    def get_fact(_fact, command="", **_kwargs):
+        queries.append(command)
+        if command.startswith("id -u"):
+            return "1000"
+        if "show --property=ActiveState --value custom" in command:
+            return "active"
+        if "container_ids=" in command:
+            return "match"
+        if "--dry-run up --no-deps -d" in command:
+            raise AssertionError("Sablier must not plan to start paused containers")
+        return ""
+
+    pyinfra_task_harness.host.get_fact = get_fact
+    module.deploy_docker_service(
+        "custom", "Custom", "/home/tester", compose_services=["web", "db"],
+        username="tester",
+    )
+    restart_call = next(
+        kwargs for namespace, name, kwargs in pyinfra_task_harness.calls
+        if namespace == "server" and name == "shell"
+        and kwargs.get("name") == "Reload systemd and ensure custom is prepared"
+    )
+    assert restart_call["_if"]() is False
+    assert not any("--dry-run up --no-deps -d" in query for query in queries)
+
+
 def test_docker_service_starts_when_systemd_unit_is_inactive(pyinfra_task_harness):
     """Inactive systemd units are detected without a failing is-active fact."""
     module = pyinfra_task_harness.load("docker.py", {

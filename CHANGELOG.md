@@ -8,6 +8,12 @@ Changes are tracked in date-based entries in this changelog and published as Git
 
 ### Fixed
 
+- Preserve Sablier-managed containers that are intentionally paused, stopped or merely created, instead of restarting them because a normal Compose `up -d` dry-run would start them. Still reconcile changed configuration, missing containers and label drift.
+- Only create MDMesh runtime directories when absent; do not repeatedly reset ownership and permissions managed by containers.
+- Check root-owned Mullvad Browser extension source markers with sufficient privileges and report failed XPI downloads as ignored errors rather than misleading successful changes. Continue deploying unrelated tasks.
+
+### Fixed
+
 - Avoid unnecessary Docker Compose/systemd service restarts when a dry-run reports network or image progress while all existing application containers are already running; only planned container lifecycle changes require reconciliation.
 
 ### Added

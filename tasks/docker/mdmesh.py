@@ -12,6 +12,7 @@ import shlex
 
 from pyinfra import host
 from pyinfra.facts.server import Command
+from pyinfra.facts.files import Directory
 from pyinfra.operations import files, server
 
 from tasks.docker import deploy_docker_service, ensure_numeric_directory
@@ -106,12 +107,19 @@ def deploy_mdmesh():  # pylint: disable=R0912,R0914,R0915
     # PostgreSQL 14's official image runs as UID/GID 999.
     ensure_numeric_directory(f"{root}/postgres", 999, 999, "700")
     for directory in ("server", "caddy/data", "caddy/config", "backups", "bootstrap"):
+        directory_path = f"{root}/{directory}"
+        # MDMesh containers may change the owner/mode of runtime storage.
+        # Establish the expected owner only on initial creation; do not
+        # repeatedly overwrite legitimate container-managed metadata.
         files.directory(
             name=f"Create MDMesh {directory} directory",
-            path=f"{root}/{directory}",
+            path=directory_path,
             user=username,
             group=usergroup,
             mode="750",
+            _if=lambda directory_path=directory_path: not host.get_fact(
+                Directory, path=directory_path
+            ),
         )
 
     # Keep the bootstrap SQL and helper functions on the same signed release as the images.
