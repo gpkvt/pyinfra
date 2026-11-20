@@ -141,6 +141,23 @@ def test_mullvad_extension_rejects_invalid_id_or_url(
         })
 
 
+def test_mullvad_rejects_duplicate_extension_ids(pyinfra_task_harness):
+    """Two configured extensions cannot overwrite the same XPI/marker."""
+    with pytest.raises(ValueError, match="Duplicate Mullvad extension ID"):
+        pyinfra_task_harness.load("mullvad_extensions.py", {
+            "mullvad_extensions": {
+                "First": {
+                    "id": "shared@example.invalid",
+                    "url": "https://addons.example.invalid/first.xpi",
+                },
+                "Second": {
+                    "id": "shared@example.invalid",
+                    "url": "https://addons.example.invalid/second.xpi",
+                },
+            },
+        })
+
+
 def test_mullvad_extensions_rejects_non_dictionary_configuration(
     pyinfra_task_harness,
 ):
