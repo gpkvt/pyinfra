@@ -43,7 +43,6 @@ from urllib.parse import urlsplit
 
 from common import command_output, initialize
 from pyinfra import host
-from pyinfra.facts.files import File
 from pyinfra.operations import files, server
 
 if not hasattr(__import__('builtins'), 'homedir'):
@@ -70,7 +69,10 @@ files.directory(
     mode="0700",
 )
 
-# Reconcile each configured extension and its source URL
+# Validate configuration before querying the host or scheduling downloads.
+# Collect metadata locally, then inspect all installed XPIs in a single fact
+# query rather than issuing two separate remote checks per extension.
+extension_specs = []
 for name, extension in extensions.items():
     if not isinstance(extension, dict):
         raise ValueError(f"Invalid Mullvad extension configuration: {name}")
@@ -100,53 +102,70 @@ for name, extension in extensions.items():
     if not valid_url:
         raise ValueError(f"Invalid Mullvad extension URL for {name!r}")
 
-    extension_path = f"{extensions_dir}/{extension_id}.xpi"
+    if any(existing_id == extension_id for _, existing_id, *_ in extension_specs):
+        raise ValueError(f"Duplicate Mullvad extension ID: {extension_id!r}")
 
-    # Track the configured URL so downloads happen only when the source changes.
-    # The temporary file and marker are promoted only after a complete download.
+    extension_path = f"{extensions_dir}/{extension_id}.xpi"
     source_marker = f"{extension_path}.source-sha256"
     source_hash = hashlib.sha256(url.encode("utf-8")).hexdigest()
-    installed_source_hash = command_output(
-        host,
-        f"cat {shlex.quote(source_marker)} 2>/dev/null || true",
-        _sudo=True,
-    ).strip()
-    extension_exists = host.get_fact(File, path=extension_path, _sudo=True)
+    extension_specs.append(
+        (name, extension_id, url, extension_path, source_marker, source_hash)
+    )
 
-    if installed_source_hash != source_hash or not extension_exists:
-        temporary_path = f"{extension_path}.download"
-        temporary_marker = f"{source_marker}.tmp"
-        download_command = (
-            f"rm -f {shlex.quote(temporary_path)} "
-            f"{shlex.quote(temporary_marker)}; "
-            f"if curl --fail --location --silent --show-error "
-            f"--retry 3 --retry-all-errors --retry-delay 2 "
-            f"--connect-timeout 20 --max-time 300 "
-            f"--output {shlex.quote(temporary_path)} "
-            f"{shlex.quote(url)} "
-            f"&& test -s {shlex.quote(temporary_path)} "
-            f"&& chown {shlex.quote(f'{user}:{group}')} "
-            f"{shlex.quote(temporary_path)} "
-            f"&& chmod 0600 {shlex.quote(temporary_path)} "
-            f"&& mv {shlex.quote(temporary_path)} {shlex.quote(extension_path)} "
-            f"&& printf '%s\\n' {shlex.quote(source_hash)} "
-            f"> {shlex.quote(temporary_marker)} "
-            f"&& chown {shlex.quote(f'{user}:{group}')} "
-            f"{shlex.quote(temporary_marker)} "
-            f"&& chmod 0600 {shlex.quote(temporary_marker)} "
-            f"&& mv {shlex.quote(temporary_marker)} {shlex.quote(source_marker)}; "
-            f"then echo 'Downloaded {name}'; "
-            f"else rm -f {shlex.quote(temporary_path)} "
-            f"{shlex.quote(temporary_marker)}; "
-            f"echo 'WARNING: Could not download {name}; keeping the existing extension and retrying on the next deployment' >&2; "
-            f"false; fi"
-        )
-        server.shell(
-            name=f"Download {name}",
-            commands=[download_command],
-            _sudo=True,
-            _ignore_errors=True,
-        )
+# Each successful check prints its extension ID. Missing files, empty XPIs,
+# unreadable or outdated source markers print nothing. This works correctly in
+# root-owned distribution directories and takes one remote round trip.
+check_commands = [
+    f"if test -s {shlex.quote(path)} "
+    f"&& test \"$(cat {shlex.quote(marker)} 2>/dev/null)\" "
+    f"= {shlex.quote(source_hash)}; then "
+    f"printf '%s\\n' {shlex.quote(extension_id)}; fi"
+    for _, extension_id, _, path, marker, source_hash in extension_specs
+]
+current_extensions = set()
+if check_commands:
+    current_extensions = set(
+        command_output(host, "\n".join(check_commands), _sudo=True).splitlines()
+    )
+
+# Only stale or missing extensions need a download. Failed downloads preserve
+# the old XPI and source marker, and remain retryable on the next deployment.
+for name, extension_id, url, extension_path, source_marker, source_hash in extension_specs:
+    if extension_id in current_extensions:
+        continue
+    temporary_path = f"{extension_path}.download"
+    temporary_marker = f"{source_marker}.tmp"
+    download_command = (
+        f"rm -f {shlex.quote(temporary_path)} "
+        f"{shlex.quote(temporary_marker)}; "
+        f"if curl --fail --location --silent --show-error "
+        f"--retry 3 --retry-all-errors --retry-delay 2 "
+        f"--connect-timeout 20 --max-time 300 "
+        f"--output {shlex.quote(temporary_path)} "
+        f"{shlex.quote(url)} "
+        f"&& test -s {shlex.quote(temporary_path)} "
+        f"&& chown {shlex.quote(f'{user}:{group}')} "
+        f"{shlex.quote(temporary_path)} "
+        f"&& chmod 0600 {shlex.quote(temporary_path)} "
+        f"&& mv {shlex.quote(temporary_path)} {shlex.quote(extension_path)} "
+        f"&& printf '%s\\\\n' {shlex.quote(source_hash)} "
+        f"> {shlex.quote(temporary_marker)} "
+        f"&& chown {shlex.quote(f'{user}:{group}')} "
+        f"{shlex.quote(temporary_marker)} "
+        f"&& chmod 0600 {shlex.quote(temporary_marker)} "
+        f"&& mv {shlex.quote(temporary_marker)} {shlex.quote(source_marker)}; "
+        f"then echo 'Downloaded {name}'; "
+        f"else rm -f {shlex.quote(temporary_path)} "
+        f"{shlex.quote(temporary_marker)}; "
+        f"echo 'WARNING: Could not download {name}; keeping the existing extension and retrying on the next deployment' >&2; "
+        f"false; fi"
+    )
+    server.shell(
+        name=f"Download {name}",
+        commands=[download_command],
+        _sudo=True,
+        _ignore_errors=True,
+    )
 
 files.put(
     name="Manage Mullvad Browser preferences",
