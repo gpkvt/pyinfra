@@ -33,6 +33,34 @@
     "test_update_local_config_preserves_other_sections_and_management_flags",
     "test_update_local_config_is_idempotent"
   ],
+  "files/scripts/sync-mullvad-browser.py:addon_sources": [
+    "test_browser_extensions_and_metadata"
+  ],
+  "files/scripts/sync-mullvad-browser.py:browser_extensions": [
+    "test_browser_extensions_and_metadata"
+  ],
+  "files/scripts/sync-mullvad-browser.py:browser_preferences": [
+    "test_browser_preferences_skip_sensitive_and_unknown_values"
+  ],
+  "files/scripts/sync-mullvad-browser.py:find_repository_root": [
+    "test_main_is_preview_only_until_write"
+  ],
+  "files/scripts/sync-mullvad-browser.py:literal_assignments": [
+    "test_literal_assignments_do_not_evaluate_python"
+  ],
+  "files/scripts/sync-mullvad-browser.py:main": [
+    "test_main_is_preview_only_until_write",
+    "test_main_rejects_profile_prefs_js"
+  ],
+  "files/scripts/sync-mullvad-browser.py:replace_assignments": [
+    "test_replace_assignments_preserves_other_top_level_configuration"
+  ],
+  "files/scripts/sync-mullvad-browser.py:synchronize": [
+    "test_synchronize_preserves_known_urls_and_reports_unknown"
+  ],
+  "files/scripts/sync-mullvad-browser.py:valid_url": [
+    "test_valid_url_rejects_http_and_credentials"
+  ],
   "files/scripts/translate.py:is_audio_descriptor": [
     "test_is_audio_descriptor_respects_configuration"
   ],
@@ -150,12 +178,6 @@
     "test_numeric_directory_skips_when_uid_gid_and_mode_match",
     "test_numeric_directory_repairs_missing_or_mismatched_metadata"
   ],
-  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.__init__": [
-    "test_favicon_html_parser_collects_only_icon_links"
-  ],
-  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.handle_starttag": [
-    "test_favicon_html_parser_collects_only_icon_links"
-  ],
   "tasks/docker/linkwarden_bookmarks.py:_download_image": [
     "test_download_image_accepts_only_nonempty_supported_images",
     "test_download_image_rejects_content_over_size_limit"
@@ -196,6 +218,12 @@
   ],
   "tasks/docker/linkwarden_bookmarks.py:favicon_origin": [
     "test_favicon_origin_normalizes_scheme_and_host"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.__init__": [
+    "test_favicon_html_parser_collects_only_icon_links"
+  ],
+  "tasks/docker/linkwarden_bookmarks.py:FaviconHTMLParser.handle_starttag": [
+    "test_favicon_html_parser_collects_only_icon_links"
   ],
   "tasks/docker/linkwarden_bookmarks.py:fetch_links": [
     "test_fetch_links_follows_cursor_and_rejects_repeated_cursor",
@@ -242,12 +270,6 @@
   "tasks/docker/mdmesh.py:deploy_mdmesh.mdmesh_needs_initialization": [
     "test_mdmesh_deploys_pinned_android_mdm_with_private_secrets"
   ],
-  "tasks/flatpak.py:FlatpakRemoteApplications.process": [
-    "test_flatpak_remote_applications_groups_refs_in_one_query"
-  ],
-  "tasks/flatpak.py:FlatpakUpdates.process": [
-    "test_flatpak_facts_ignore_blank_output_lines"
-  ],
   "tasks/flatpak.py:_command_lines": [
     "test_flatpak_command_output_is_parsed_as_application_ids",
     "test_flatpak_install_resolves_ids_from_string_command_output"
@@ -257,6 +279,12 @@
   ],
   "tasks/flatpak.py:flatpak_ref_ids": [
     "test_flatpak_ref_ids_normalizes_application_and_runtime_refs"
+  ],
+  "tasks/flatpak.py:FlatpakRemoteApplications.process": [
+    "test_flatpak_remote_applications_groups_refs_in_one_query"
+  ],
+  "tasks/flatpak.py:FlatpakUpdates.process": [
+    "test_flatpak_facts_ignore_blank_output_lines"
   ],
   "tasks/flatpak.py:select_flatpak_remote": [
     "test_flatpak_remote_selection_prefers_flathub_or_sole_match",
@@ -287,6 +315,12 @@
   "tasks/sudo.py:SudoersFile.process": [
     "test_sudoers_fact_preserves_file_content_with_trailing_newline"
   ],
+  "tasks/ufw.py:ufw_custom_rule_exists": [
+    "test_ufw_custom_rule_matches_with_or_without_explicit_in_token"
+  ],
+  "tasks/ufw.py:ufw_rule_exists": [
+    "test_ufw_fact_parsers_and_rule_matching"
+  ],
   "tasks/ufw.py:UfwActive.process": [
     "test_ufw_fact_parsers_and_rule_matching"
   ],
@@ -297,12 +331,6 @@
     "test_ufw_fact_parsers_and_rule_matching"
   ],
   "tasks/ufw.py:UfwRules.process": [
-    "test_ufw_fact_parsers_and_rule_matching"
-  ],
-  "tasks/ufw.py:ufw_custom_rule_exists": [
-    "test_ufw_custom_rule_matches_with_or_without_explicit_in_token"
-  ],
-  "tasks/ufw.py:ufw_rule_exists": [
     "test_ufw_fact_parsers_and_rule_matching"
   ],
   "tasks/vscodium.py:VSCodiumExtensions.command": [
